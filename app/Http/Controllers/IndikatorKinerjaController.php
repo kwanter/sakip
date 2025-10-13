@@ -31,7 +31,7 @@ class IndikatorKinerjaController extends Controller
             $search = $request->search;
             $query->where(function($q) use ($search) {
                 $q->where('nama_indikator', 'like', "%{$search}%")
-                  ->orWhere('deskripsi', 'like', "%{$search}%")
+                  ->orWhere('definisi', 'like', "%{$search}%")
                   ->orWhere('satuan', 'like', "%{$search}%");
             });
         }
@@ -65,10 +65,10 @@ class IndikatorKinerjaController extends Controller
         $request->validate([
             'kegiatan_id' => 'required|exists:kegiatans,id',
             'nama_indikator' => 'required|string|max:255',
-            'deskripsi' => 'nullable|string',
+            'definisi' => 'nullable|string',
             'target' => 'required|numeric|min:0',
             'satuan' => 'required|string|max:100',
-            'jenis' => 'required|in:input,output,outcome,impact',
+            'jenis' => 'required|in:output,outcome,impact',
             'status' => 'required|in:aktif,nonaktif'
         ]);
         
@@ -90,7 +90,7 @@ class IndikatorKinerjaController extends Controller
     public function show(IndikatorKinerja $indikatorKinerja)
     {
         $indikatorKinerja->load(['kegiatan.program.instansi', 'laporanKinerjas' => function($query) {
-            $query->orderBy('periode_laporan', 'desc');
+            $query->orderBy('periode', 'desc');
         }]);
         
         return view('indikator-kinerja.show', compact('indikatorKinerja'));
@@ -114,10 +114,10 @@ class IndikatorKinerjaController extends Controller
         $request->validate([
             'kegiatan_id' => 'required|exists:kegiatans,id',
             'nama_indikator' => 'required|string|max:255',
-            'deskripsi' => 'nullable|string',
+            'definisi' => 'nullable|string',
             'target' => 'required|numeric|min:0',
             'satuan' => 'required|string|max:100',
-            'jenis' => 'required|in:input,output,outcome,impact',
+            'jenis' => 'required|in:output,outcome,impact',
             'status' => 'required|in:aktif,nonaktif'
         ]);
         

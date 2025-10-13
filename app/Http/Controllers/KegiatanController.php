@@ -9,6 +9,11 @@ use Illuminate\Support\Facades\DB;
 
 class KegiatanController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+        $this->authorizeResource(Kegiatan::class, 'kegiatan');
+    }
     /**
      * Display a listing of the resource.
      */
@@ -63,6 +68,11 @@ class KegiatanController extends Controller
      */
     public function store(Request $request)
     {
+        // Sanitize currency input (remove formatting like dots/commas)
+        if ($request->has('anggaran')) {
+            $request->merge(['anggaran' => preg_replace('/\D/', '', (string)$request->anggaran)]);
+        }
+        
         $validated = $request->validate([
             'program_id' => 'required|exists:programs,id',
             'kode_kegiatan' => 'required|string|max:20|unique:kegiatans',
@@ -120,6 +130,11 @@ class KegiatanController extends Controller
      */
     public function update(Request $request, Kegiatan $kegiatan)
     {
+        // Sanitize currency input (remove formatting like dots/commas)
+        if ($request->has('anggaran')) {
+            $request->merge(['anggaran' => preg_replace('/\D/', '', (string)$request->anggaran)]);
+        }
+        
         $validated = $request->validate([
             'program_id' => 'required|exists:programs,id',
             'kode_kegiatan' => 'required|string|max:20|unique:kegiatans,kode_kegiatan,' . $kegiatan->id,

@@ -470,6 +470,7 @@
             }
         });
     </script>
+    <script src="{{ asset('js/helpers.js') }}"></script>
     
     @stack('scripts')
 </body>

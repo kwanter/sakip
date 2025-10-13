@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('nama_program');
             $table->text('deskripsi')->nullable();
             $table->decimal('anggaran', 15, 2)->nullable();
-            $table->year('tahun');
+            $table->unsignedSmallInteger('tahun');
             $table->enum('status', ['draft', 'aktif', 'selesai'])->default('draft');
             $table->timestamps();
         });

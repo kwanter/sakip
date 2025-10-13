@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('laporan_kinerjas', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('indikator_kinerja_id')->constrained('indikator_kinerjas')->onDelete('cascade');
-            $table->year('tahun');
+            $table->unsignedSmallInteger('tahun');
             $table->enum('periode', ['triwulan1', 'triwulan2', 'triwulan3', 'triwulan4', 'tahunan']);
             $table->decimal('input', 10, 2);
             $table->decimal('nilai_realisasi', 10, 2);

@@ -65,11 +65,11 @@
                                 <label class="font-weight-bold text-gray-800">Status:</label>
                                 <p>
                                     @if($kegiatan->status == 'berjalan')
-                    <span class="badge badge-success badge-lg">Aktif</span>
+                    <span class="badge badge-success badge-lg">Berjalan</span>
                 @elseif($kegiatan->status == 'selesai')
                     <span class="badge badge-primary badge-lg">Selesai</span>
                 @elseif($kegiatan->status == 'tunda')
-                    <span class="badge badge-secondary badge-lg">Non-aktif</span>
+                    <span class="badge badge-secondary badge-lg">Tunda</span>
                 @else
                     <span class="badge badge-warning badge-lg">Draft</span>
                 @endif

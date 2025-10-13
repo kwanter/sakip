@@ -8,6 +8,11 @@ use Illuminate\Support\Facades\Validator;
 
 class InstansiController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+        $this->authorizeResource(Instansi::class, 'instansi');
+    }
     /**
      * Display a listing of the resource.
      */
@@ -59,7 +64,9 @@ class InstansiController extends Controller
      */
     public function show(Instansi $instansi)
     {
-        $instansi->load(['programs.kegiatans.indikatorKinerjas']);
+        $instansi->load(['programs' => function ($q) {
+            $q->withCount('kegiatans');
+        }]);
         return view('instansi.show', compact('instansi'));
     }
 

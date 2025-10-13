@@ -5,9 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 class IndikatorKinerja extends Model
 {
+    use HasUuids;
+
     protected $fillable = [
         'kegiatan_id',
         'nama_indikator',
@@ -20,6 +23,9 @@ class IndikatorKinerja extends Model
         'formula_perhitungan',
         'status'
     ];
+
+    public $incrementing = false;
+    protected $keyType = 'string';
 
     /**
      * Relasi ke Kegiatan

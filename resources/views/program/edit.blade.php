@@ -143,9 +143,9 @@
                             <select class="form-control @error('status') is-invalid @enderror" 
                                     id="status" name="status" required>
                                 <option value="">Pilih Status</option>
+                                <option value="draft" {{ old('status', $program->status) == 'draft' ? 'selected' : '' }}>Draft</option>
                                 <option value="aktif" {{ old('status', $program->status) == 'aktif' ? 'selected' : '' }}>Aktif</option>
                                 <option value="selesai" {{ old('status', $program->status) == 'selesai' ? 'selected' : '' }}>Selesai</option>
-                                <option value="nonaktif" {{ old('status', $program->status) == 'nonaktif' ? 'selected' : '' }}>Non-aktif</option>
                             </select>
                             @error('status')
                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -187,7 +187,7 @@
                 </div>
                 <div class="col-md-3">
                     <div class="text-center">
-                        <h4 class="text-success">{{ $program->kegiatans->where('status', 'aktif')->count() }}</h4>
+                        <h4 class="text-success">{{ $program->kegiatans->where('status', 'berjalan')->count() }}</h4>
                         <p class="text-gray-600 mb-0">Kegiatan Aktif</p>
                     </div>
                 </div>
@@ -213,30 +213,17 @@
 @push('scripts')
 <script>
 $(document).ready(function() {
-    // Format currency input
-    $('#anggaran').on('input', function() {
-        let value = $(this).val().replace(/[^0-9]/g, '');
-        if (value) {
-            $(this).val(parseInt(value).toLocaleString('id-ID'));
-        }
-    });
-    
-    // Validate year range
-    $('#tahun_mulai, #tahun_selesai').on('change', function() {
-        let tahunMulai = parseInt($('#tahun_mulai').val());
-        let tahunSelesai = parseInt($('#tahun_selesai').val());
-        
-        if (tahunMulai && tahunSelesai && tahunSelesai < tahunMulai) {
-            alert('Tahun selesai tidak boleh lebih kecil dari tahun mulai.');
-            $('#tahun_selesai').val(tahunMulai + 1);
-        }
-    });
-    
-    // Validate form before submit
+    // Currency formatting
+    Helpers.initialCurrencyFormat('#anggaran');
+    Helpers.attachCurrencyInputFormatting('#anggaran');
+    Helpers.sanitizeCurrencyBeforeSubmit('form', '#anggaran');
+
+    // Year range validation
+    Helpers.validateYearRange('#tahun_mulai', '#tahun_selesai');
+
+    // Basic required validation
     $('form').on('submit', function(e) {
         let isValid = true;
-        
-        // Check required fields
         $('input[required], select[required], textarea[required]').each(function() {
             if (!$(this).val()) {
                 $(this).addClass('is-invalid');
@@ -245,11 +232,6 @@ $(document).ready(function() {
                 $(this).removeClass('is-invalid');
             }
         });
-        
-        // Convert currency format back to number
-        let anggaranValue = $('#anggaran').val().replace(/[^0-9]/g, '');
-        $('#anggaran').val(anggaranValue);
-        
         if (!isValid) {
             e.preventDefault();
             alert('Mohon lengkapi semua field yang wajib diisi.');

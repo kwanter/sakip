@@ -145,7 +145,7 @@
                             <p class="text-gray-600 mb-0">Program Aktif</p>
                         </div>
                         <div class="mb-3">
-                            <h4 class="text-info">{{ $instansi->programs->sum(function($program) { return $program->kegiatans->count(); }) }}</h4>
+                            <h4 class="text-info">{{ $instansi->programs->sum('kegiatans_count') }}</h4>
                             <p class="text-gray-600 mb-0">Total Kegiatan</p>
                         </div>
                     </div>
@@ -200,18 +200,18 @@
                             <td>{{ $program->kode_program }}</td>
                             <td>{{ $program->nama_program }}</td>
                             <td>Rp {{ number_format($program->anggaran, 0, ',', '.') }}</td>
-                            <td>{{ $program->tahun_mulai }} - {{ $program->tahun_selesai }}</td>
+                            <td>{{ $program->tahun }}</td>
                             <td>
                                 @if($program->status == 'aktif')
-                                    <span class="badge badge-success">Aktif</span>
-                                @elseif($program->status == 'selesai')
-                                    <span class="badge badge-primary">Selesai</span>
-                                @else
-                                    <span class="badge badge-secondary">Non-aktif</span>
-                                @endif
+                                                <span class="badge badge-success">Aktif</span>
+                                            @elseif($program->status == 'selesai')
+                                                <span class="badge badge-primary">Selesai</span>
+                                            @else
+                                                <span class="badge badge-warning">Draft</span>
+                                            @endif
                             </td>
                             <td>
-                                <span class="badge badge-info">{{ $program->kegiatans->count() }}</span>
+                                <span class="badge badge-info">{{ $program->kegiatans_count }}</span>
                             </td>
                             <td>
                                 <a href="{{ route('program.show', $program) }}" class="btn btn-info btn-sm">

@@ -9,6 +9,11 @@ use Illuminate\Support\Facades\Validator;
 
 class ProgramController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+        $this->authorizeResource(Program::class, 'program');
+    }
     /**
      * Display a listing of the resource.
      */
@@ -21,9 +26,10 @@ class ProgramController extends Controller
             $query->where('instansi_id', $request->instansi_id);
         }
         
-        // Filter by status if provided
+        // Filter by status if provided (map nonaktif -> draft)
         if ($request->filled('status')) {
-            $query->where('status', $request->status);
+            $status = $request->status === 'nonaktif' ? 'draft' : $request->status;
+            $query->where('status', $status);
         }
         
         // Search functionality
@@ -58,6 +64,11 @@ class ProgramController extends Controller
      */
     public function store(Request $request)
     {
+        // Sanitize currency input (remove formatting like dots/commas)
+        if ($request->has('anggaran')) {
+            $request->merge(['anggaran' => preg_replace('/\D/', '', (string)$request->anggaran)]);
+        }
+        
         $validator = Validator::make($request->all(), [
             'instansi_id' => 'required|exists:instansis,id',
             'kode_program' => 'required|max:20|unique:programs,kode_program',
@@ -117,6 +128,11 @@ class ProgramController extends Controller
      */
     public function update(Request $request, Program $program)
     {
+        // Sanitize currency input (remove formatting like dots/commas)
+        if ($request->has('anggaran')) {
+            $request->merge(['anggaran' => preg_replace('/\D/', '', (string)$request->anggaran)]);
+        }
+        
         $validator = Validator::make($request->all(), [
             'instansi_id' => 'required|exists:instansis,id',
             'kode_program' => 'required|max:20|unique:programs,kode_program,' . $program->id,

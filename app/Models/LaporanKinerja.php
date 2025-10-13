@@ -4,9 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 class LaporanKinerja extends Model
 {
+    use HasUuids;
+
     protected $fillable = [
         'indikator_kinerja_id',
         'tahun',
@@ -20,6 +23,9 @@ class LaporanKinerja extends Model
         'status_verifikasi',
         'catatan_verifikasi'
     ];
+
+    public $incrementing = false;
+    protected $keyType = 'string';
 
     /**
      * Relasi ke Indikator Kinerja

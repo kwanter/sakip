@@ -35,9 +35,9 @@
                             <label for="status">Filter Status:</label>
                             <select name="status" id="status" class="form-control">
                                 <option value="">Semua Status</option>
-                                <option value="aktif" {{ request('status') == 'aktif' ? 'selected' : '' }}>Aktif</option>
+                                <option value="berjalan" {{ request('status') == 'berjalan' ? 'selected' : '' }}>Berjalan</option>
                                 <option value="selesai" {{ request('status') == 'selesai' ? 'selected' : '' }}>Selesai</option>
-                                <option value="nonaktif" {{ request('status') == 'nonaktif' ? 'selected' : '' }}>Non-aktif</option>
+                                <option value="tunda" {{ request('status') == 'tunda' ? 'selected' : '' }}>Tunda</option>
                             </select>
                         </div>
                     </div>
@@ -111,14 +111,14 @@
                                 </td>
                                 <td>
                                     @if($kegiatan->status == 'berjalan')
-                            <span class="badge badge-success">Aktif</span>
-                        @elseif($kegiatan->status == 'selesai')
-                            <span class="badge badge-primary">Selesai</span>
-                        @elseif($kegiatan->status == 'tunda')
-                            <span class="badge badge-secondary">Non-aktif</span>
-                        @else
-                            <span class="badge badge-warning">Draft</span>
-                        @endif
+                                    <span class="badge badge-success">Berjalan</span>
+                                @elseif($kegiatan->status == 'selesai')
+                                    <span class="badge badge-primary">Selesai</span>
+                                @elseif($kegiatan->status == 'tunda')
+                                    <span class="badge badge-secondary">Tunda</span>
+                                @else
+                                    <span class="badge badge-warning">Draft</span>
+                                @endif
                                 </td>
                                 <td>{{ $kegiatan->penanggung_jawab }}</td>
                                 <td>

@@ -4,9 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Instansi extends Model
 {
+    use HasUuids, HasFactory;
+
     protected $fillable = [
         'kode_instansi',
         'nama_instansi',
@@ -18,6 +22,9 @@ class Instansi extends Model
         'nip_kepala',
         'status'
     ];
+
+    public $incrementing = false;
+    protected $keyType = 'string';
 
     /**
      * Relasi ke Program

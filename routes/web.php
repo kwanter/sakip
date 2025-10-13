@@ -12,27 +12,33 @@ use App\Http\Controllers\PengaturanController;
 // Dashboard Route
 Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
-// Resource Routes untuk SAKIP
-Route::resource('instansi', InstansiController::class);
-Route::resource('program', ProgramController::class);
-Route::resource('kegiatan', KegiatanController::class);
-Route::resource('indikator-kinerja', IndikatorKinerjaController::class);
-Route::resource('laporan-kinerja', LaporanKinerjaController::class);
+// Auth stub (replace with real auth later)
+Route::view('/login', 'auth.login')->name('login');
 
-// Additional Routes untuk relasi
-Route::get('program/instansi/{instansi}', [ProgramController::class, 'byInstansi'])->name('program.by-instansi');
-Route::get('kegiatan/program/{program}', [KegiatanController::class, 'byProgram'])->name('kegiatan.by-program');
-Route::get('indikator-kinerja/kegiatan/{kegiatan}', [IndikatorKinerjaController::class, 'byKegiatan'])->name('indikator-kinerja.by-kegiatan');
-Route::get('laporan-kinerja/indikator/{indikator}', [LaporanKinerjaController::class, 'byIndikator'])->name('laporan-kinerja.by-indikator');
-Route::post('laporan-kinerja/quarterly-aggregation', [LaporanKinerjaController::class, 'quarterlyAggregation'])->name('laporan-kinerja.quarterly-aggregation');
-Route::post('laporan-kinerja/create-from-monthly', [LaporanKinerjaController::class, 'createFromMonthly'])->name('laporan-kinerja.create-from-monthly');
+// Protected Routes untuk SAKIP
+Route::middleware('auth')->group(function () {
+    // Resources
+    Route::resource('instansi', InstansiController::class);
+    Route::resource('program', ProgramController::class);
+    Route::resource('kegiatan', KegiatanController::class);
+    Route::resource('indikator-kinerja', IndikatorKinerjaController::class);
+    Route::resource('laporan-kinerja', LaporanKinerjaController::class);
 
-// Pengaturan Routes
-Route::get('pengaturan', [PengaturanController::class, 'index'])->name('pengaturan.index');
-Route::put('pengaturan', [PengaturanController::class, 'update'])->name('pengaturan.update');
-Route::post('pengaturan/clear-cache', [PengaturanController::class, 'clearCache'])->name('pengaturan.clear-cache');
-Route::post('pengaturan/optimize', [PengaturanController::class, 'optimizeApp'])->name('pengaturan.optimize');
-Route::post('pengaturan/backup', [PengaturanController::class, 'backupDatabase'])->name('pengaturan.backup');
+    // Additional Relations
+    Route::get('program/instansi/{instansi}', [ProgramController::class, 'byInstansi'])->name('program.by-instansi');
+    Route::get('kegiatan/program/{program}', [KegiatanController::class, 'byProgram'])->name('kegiatan.by-program');
+    Route::get('indikator-kinerja/kegiatan/{kegiatan}', [IndikatorKinerjaController::class, 'byKegiatan'])->name('indikator-kinerja.by-kegiatan');
+    Route::get('laporan-kinerja/indikator/{indikator}', [LaporanKinerjaController::class, 'byIndikator'])->name('laporan-kinerja.by-indikator');
+    Route::post('laporan-kinerja/quarterly-aggregation', [LaporanKinerjaController::class, 'quarterlyAggregation'])->name('laporan-kinerja.quarterly-aggregation');
+    Route::post('laporan-kinerja/create-from-monthly', [LaporanKinerjaController::class, 'createFromMonthly'])->name('laporan-kinerja.create-from-monthly');
+
+    // Pengaturan
+    Route::get('pengaturan', [PengaturanController::class, 'index'])->name('pengaturan.index');
+    Route::put('pengaturan', [PengaturanController::class, 'update'])->name('pengaturan.update');
+    Route::post('pengaturan/clear-cache', [PengaturanController::class, 'clearCache'])->name('pengaturan.clear-cache');
+    Route::post('pengaturan/optimize', [PengaturanController::class, 'optimizeApp'])->name('pengaturan.optimize');
+    Route::post('pengaturan/backup', [PengaturanController::class, 'backupDatabase'])->name('pengaturan.backup');
+});
 
 // API Routes untuk AJAX
 Route::prefix('api')->group(function () {

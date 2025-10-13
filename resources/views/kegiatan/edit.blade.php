@@ -143,9 +143,10 @@
                             <label for="status" class="form-label">Status <span class="text-danger">*</span></label>
                             <select class="form-control @error('status') is-invalid @enderror" 
                                     id="status" name="status" required>
-                                <option value="aktif" {{ old('status', $kegiatan->status == 'berjalan' ? 'aktif' : $kegiatan->status) == 'aktif' ? 'selected' : '' }}>Aktif</option>
+                                <option value="draft" {{ old('status', $kegiatan->status) == 'draft' ? 'selected' : '' }}>Draft</option>
+                            <option value="berjalan" {{ old('status', $kegiatan->status) == 'berjalan' ? 'selected' : '' }}>Aktif</option>
                             <option value="selesai" {{ old('status', $kegiatan->status) == 'selesai' ? 'selected' : '' }}>Selesai</option>
-                            <option value="nonaktif" {{ old('status', $kegiatan->status == 'tunda' ? 'nonaktif' : $kegiatan->status) == 'nonaktif' ? 'selected' : '' }}>Non-aktif</option>
+                            <option value="tunda" {{ old('status', $kegiatan->status) == 'tunda' ? 'selected' : '' }}>Tunda</option>
                             </select>
                             @error('status')
                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -227,61 +228,38 @@
 @push('scripts')
 <script>
 $(document).ready(function() {
-    // Format currency input
-    $('#anggaran').on('input', function() {
-        let value = this.value.replace(/[^\d]/g, '');
-        this.value = formatCurrency(value);
-    });
+    // Currency formatting
+    Helpers.initialCurrencyFormat('#anggaran');
+    Helpers.attachCurrencyInputFormatting('#anggaran');
+    Helpers.sanitizeCurrencyBeforeSubmit('#kegiatanForm', '#anggaran');
 
     // Date validation
-    $('#tanggal_mulai, #tanggal_selesai').change(function() {
-        const startDate = $('#tanggal_mulai').val();
-        const endDate = $('#tanggal_selesai').val();
-        
-        if (startDate && endDate && startDate > endDate) {
-            alert('Tanggal mulai tidak boleh lebih besar dari tanggal selesai');
-            $('#tanggal_selesai').val('');
-        }
-    });
+    Helpers.validateDateRange('#tanggal_mulai', '#tanggal_selesai');
 
-    // Form validation
-    $('#kegiatanForm').submit(function(e) {
+    // Basic required validation
+    $('#kegiatanForm').on('submit', function(e) {
         let isValid = true;
-        
-        // Check required fields
         const requiredFields = ['program_id', 'kode_kegiatan', 'nama_kegiatan', 'anggaran', 'penanggung_jawab', 'status'];
         requiredFields.forEach(function(field) {
-            const value = $('#' + field).val();
-            if (!value || value.trim() === '') {
+            const el = document.getElementById(field);
+            if (!el || !el.value || el.value.trim() === '') {
                 isValid = false;
-                $('#' + field).addClass('is-invalid');
+                if (el) el.classList.add('is-invalid');
             } else {
-                $('#' + field).removeClass('is-invalid');
+                el.classList.remove('is-invalid');
             }
         });
-        
-        // Check budget format
-        const budget = $('#anggaran').val().replace(/[^\d]/g, '');
+        const budget = Helpers.stripCurrency(document.getElementById('anggaran').value);
         if (budget === '' || parseInt(budget) <= 0) {
             isValid = false;
-            $('#anggaran').addClass('is-invalid');
+            document.getElementById('anggaran').classList.add('is-invalid');
             alert('Anggaran harus lebih dari 0');
         }
-        
         if (!isValid) {
             e.preventDefault();
             alert('Mohon lengkapi semua field yang wajib diisi');
-        } else {
-            // Convert formatted currency back to number
-            const budgetValue = $('#anggaran').val().replace(/[^\d]/g, '');
-            $('#anggaran').val(budgetValue);
         }
     });
 });
-
-function formatCurrency(value) {
-    if (!value) return '';
-    return parseInt(value).toLocaleString('id-ID');
-}
 </script>
 @endpush

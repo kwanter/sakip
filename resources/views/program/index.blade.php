@@ -37,7 +37,7 @@
                                 <option value="">Semua Status</option>
                                 <option value="aktif" {{ request('status') == 'aktif' ? 'selected' : '' }}>Aktif</option>
                                 <option value="selesai" {{ request('status') == 'selesai' ? 'selected' : '' }}>Selesai</option>
-                                <option value="nonaktif" {{ request('status') == 'nonaktif' ? 'selected' : '' }}>Non-aktif</option>
+                                <option value="draft" {{ request('status') == 'draft' ? 'selected' : '' }}>Draft</option>
                             </select>
                         </div>
                     </div>
@@ -110,7 +110,7 @@
                                     @elseif($program->status == 'selesai')
                                         <span class="badge badge-primary">Selesai</span>
                                     @else
-                                        <span class="badge badge-secondary">Non-aktif</span>
+                                        <span class="badge badge-warning">Draft</span>
                                     @endif
                                 </td>
                                 <td>

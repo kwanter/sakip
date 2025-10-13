@@ -41,7 +41,7 @@
                                     @elseif($program->status == 'selesai')
                                         <span class="badge badge-primary">Selesai</span>
                                     @else
-                                        <span class="badge badge-secondary">Non-aktif</span>
+                                        <span class="badge badge-warning">Draft</span>
                                     @endif
                                 </p>
                             </div>
@@ -206,12 +206,14 @@
                                 {{ $kegiatan->tanggal_selesai ? $kegiatan->tanggal_selesai->format('d/m/Y') : '-' }}
                             </td>
                             <td>
-                                @if($kegiatan->status == 'aktif')
-                                    <span class="badge badge-success">Aktif</span>
+                                @if($kegiatan->status == 'berjalan')
+                                    <span class="badge badge-success">Berjalan</span>
                                 @elseif($kegiatan->status == 'selesai')
                                     <span class="badge badge-primary">Selesai</span>
+                                @elseif($kegiatan->status == 'tunda')
+                                    <span class="badge badge-secondary">Tunda</span>
                                 @else
-                                    <span class="badge badge-secondary">Non-aktif</span>
+                                    <span class="badge badge-warning">Draft</span>
                                 @endif
                             </td>
                             <td>{{ $kegiatan->penanggung_jawab }}</td>
