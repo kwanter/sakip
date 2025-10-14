@@ -491,33 +491,35 @@
 @if($indikatorKinerja->laporanKinerjas->count() > 1)
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-// Performance Trend Chart
-const ctx = document.getElementById('performanceChart').getContext('2d');
-const laporanData = @json($indikatorKinerja->laporanKinerjas->sortBy('periode_laporan')->values());
-const target = {{ $indikatorKinerja->target }};
+// Performance Trend Chart (safe init)
+const perfCanvas = document.getElementById('performanceChart');
+if (perfCanvas && typeof Chart !== 'undefined') {
+    const ctx = perfCanvas.getContext('2d');
+    const laporanData = @json($indikatorKinerja->laporanKinerjas->sortBy('periode_laporan')->values());
+    const target = {{ $indikatorKinerja->target }};
 
-const labels = laporanData.map(laporan => laporan.periode_laporan);
-const realisasiData = laporanData.map(laporan => laporan.realisasi);
-const persentaseData = laporanData.map(laporan => target > 0 ? (laporan.realisasi / target) * 100 : 0);
+    const labels = laporanData.map(laporan => laporan.periode_laporan);
+    const realisasiData = laporanData.map(laporan => laporan.realisasi);
+    const persentaseData = laporanData.map(laporan => target > 0 ? (laporan.realisasi / target) * 100 : 0);
 
-const chart = new Chart(ctx, {
-    type: 'line',
-    data: {
-        labels: labels,
-        datasets: [{
-            label: 'Realisasi',
-            data: realisasiData,
-            borderColor: 'rgb(75, 192, 192)',
-            backgroundColor: 'rgba(75, 192, 192, 0.1)',
-            tension: 0.1,
-            yAxisID: 'y'
-        }, {
-            label: 'Persentase (%)',
-            data: persentaseData,
-            borderColor: 'rgb(255, 99, 132)',
-            backgroundColor: 'rgba(255, 99, 132, 0.1)',
-            tension: 0.1,
-            yAxisID: 'y1'
+    const chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Realisasi',
+                data: realisasiData,
+                borderColor: 'rgb(75, 192, 192)',
+                backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                tension: 0.1,
+                yAxisID: 'y'
+            }, {
+                label: 'Persentase (%)',
+                data: persentaseData,
+                borderColor: 'rgb(255, 99, 132)',
+                backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                tension: 0.1,
+                yAxisID: 'y1'
         }]
     },
     options: {

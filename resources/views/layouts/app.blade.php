@@ -290,6 +290,7 @@
 <body>
     <div class="d-flex">
         <!-- Sidebar -->
+        @auth
         <nav class="sidebar p-3" style="width: 250px;">
             <div class="text-center mb-4">
                 <h4 class="text-white mb-0">SAKIP</h4>
@@ -341,14 +342,50 @@
                 
                 <hr class="my-3" style="border-color: rgba(255, 255, 255, 0.2);">
                 
+                <!-- Admin Menu -->
+                @role('admin')
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}" href="{{ route('admin.dashboard') }}">
+                        <i class="fas fa-user-shield"></i>
+                        Admin Dashboard
+                    </a>
+                </li>
+                
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}" href="{{ route('admin.users.index') }}">
+                        <i class="fas fa-users-cog"></i>
+                        User Management
+                    </a>
+                </li>
+                
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('admin.audit-logs') ? 'active' : '' }}" href="{{ route('admin.audit-logs') }}">
+                        <i class="fas fa-history"></i>
+                        Audit Logs
+                    </a>
+                </li>
+                
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}" href="{{ route('admin.settings.index') }}">
+                        <i class="fas fa-cogs"></i>
+                        System Settings
+                    </a>
+                </li>
+                
+                <hr class="my-2" style="border-color: rgba(255, 255, 255, 0.2);">
+                @endrole
+                
+                @role('admin')
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('pengaturan.*') ? 'active' : '' }}" href="{{ route('pengaturan.index') }}">
                         <i class="fas fa-cog"></i>
                         Pengaturan
                     </a>
                 </li>
+                @endrole
             </ul>
         </nav>
+        @endauth
 
         <!-- Main Content -->
         <div class="flex-grow-1">
@@ -366,18 +403,36 @@
                                     <i class="fas fa-moon" id="theme-icon"></i>
                                 </button>
                             </li>
+                            @auth
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" style="color: var(--text-color);">
                                     <i class="fas fa-user-circle"></i>
-                                    Admin
+                                    {{ Auth::user()->name }}
+                                    @foreach(Auth::user()->roles as $role)
+                                        <span class="badge badge-secondary ms-1">{{ $role->display_name ?? $role->name }}</span>
+                                    @endforeach
                                 </a>
                                 <ul class="dropdown-menu dropdown-menu-end">
-                                    <li><a class="dropdown-item" href="#"><i class="fas fa-user"></i> Profile</a></li>
-                                    <li><a class="dropdown-item" href="#"><i class="fas fa-cog"></i> Settings</a></li>
+                                    <li class="px-3 py-2">
+                                        <div class="small text-muted">{{ Auth::user()->email }}</div>
+                                    </li>
                                     <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" href="#"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                                    <li>
+                                        <form method="POST" action="{{ route('auth.logout') }}">
+                                            @csrf
+                                            <button type="submit" class="dropdown-item"><i class="fas fa-sign-out-alt"></i> Logout</button>
+                                        </form>
+                                    </li>
                                 </ul>
                             </li>
+                            @endauth
+                            @guest
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('login') }}" style="color: var(--text-color);">
+                                    <i class="fas fa-sign-in-alt"></i> Login
+                                </a>
+                            </li>
+                            @endguest
                         </ul>
                     </div>
                 </div>
@@ -410,7 +465,29 @@
                     </div>
                 @endif
 
-                @yield('content')
+                @auth
+                    @yield('content')
+                @else
+                    @if (request()->routeIs('login'))
+                        @yield('content')
+                    @else
+                        <div class="container py-5">
+                            <div class="row justify-content-center">
+                                <div class="col-md-6">
+                                    <div class="card shadow-sm">
+                                        <div class="card-body text-center">
+                                            <h5 class="card-title mb-3">Selamat datang di SAKIP</h5>
+                                            <p class="card-text">Silakan masuk untuk mengakses menu dan fitur aplikasi.</p>
+                                            <a href="{{ route('login') }}" class="btn btn-primary">
+                                                <i class="fas fa-sign-in-alt"></i> Masuk
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+                @endauth
             </main>
         </div>
     </div>
@@ -472,6 +549,9 @@
     </script>
     <script src="{{ asset('js/helpers.js') }}"></script>
     
-    @stack('scripts')
+-    @stack('scripts')
++    @auth
++    @stack('scripts')
++    @endauth
 </body>
 </html>

@@ -9,26 +9,26 @@ class KegiatanPolicy
 {
     public function viewAny(User $user): bool
     {
-        return true;
+        return true; // any authenticated user
     }
 
     public function view(User $user, Kegiatan $kegiatan): bool
     {
-        return true;
+        return true; // any authenticated user
     }
 
     public function create(User $user): bool
     {
-        return true;
+        return $user->hasAnyRole(['admin', 'manager']) || $user->isAdmin();
     }
 
     public function update(User $user, Kegiatan $kegiatan): bool
     {
-        return true;
+        return $user->hasAnyRole(['admin', 'manager']) || $user->isAdmin();
     }
 
     public function delete(User $user, Kegiatan $kegiatan): bool
     {
-        return true;
+        return $user->hasRole('admin') || $user->isAdmin();
     }
 }

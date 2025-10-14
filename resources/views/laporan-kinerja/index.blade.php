@@ -8,10 +8,14 @@
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
         <h1 class="h3 mb-0 text-gray-800">Daftar Laporan Kinerja</h1>
         <div>
-            <button type="button" class="btn btn-info btn-sm mr-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#quarterlyModal">
-                <i class="fas fa-chart-line fa-sm text-white-50"></i> Buat Laporan Triwulan
-            </button>
-            <a href="{{ route('laporan-kinerja.create') }}" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+            @anyrole('admin,manager')
+<button type="button" class="btn btn-info btn-sm mr-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#quarterlyModal">
+    <i class="fas fa-chart-line fa-sm text-white-50"></i> Buat Laporan Triwulan
+</button>
+@endanyrole
+            @anyrole('admin,manager')
+<a href="{{ route('laporan-kinerja.create') }}" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+@endanyrole
                 <i class="fas fa-plus fa-sm text-white-50"></i> Tambah Laporan
             </a>
         </div>

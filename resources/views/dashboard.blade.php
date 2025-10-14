@@ -195,51 +195,59 @@
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-// Program Chart
-const programCtx = document.getElementById('programChart').getContext('2d');
-const programChart = new Chart(programCtx, {
-    type: 'bar',
-    data: {
-        labels: {!! json_encode($programByInstansi->pluck('nama_instansi')) !!},
-        datasets: [{
-            label: 'Jumlah Program',
-            data: {!! json_encode($programByInstansi->pluck('programs_count')) !!},
-            backgroundColor: 'rgba(78, 115, 223, 0.8)',
-            borderColor: 'rgba(78, 115, 223, 1)',
-            borderWidth: 1
-        }]
-    },
-    options: {
-        responsive: true,
-        scales: {
-            y: {
-                beginAtZero: true
+(function(){
+// Program Chart (safe init)
+const programCanvas = document.getElementById('programChart');
+if (programCanvas && typeof Chart !== 'undefined') {
+    const programCtx = programCanvas.getContext('2d');
+    const programChart = new Chart(programCtx, {
+        type: 'bar',
+        data: {
+            labels: {!! json_encode($programByInstansi->pluck('nama_instansi')) !!},
+            datasets: [{
+                label: 'Jumlah Program',
+                data: {!! json_encode($programByInstansi->pluck('programs_count')) !!},
+                backgroundColor: 'rgba(78, 115, 223, 0.8)',
+                borderColor: 'rgba(78, 115, 223, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
             }
         }
-    }
-});
+    });
+}
 
-// Status Chart
-const statusCtx = document.getElementById('statusChart').getContext('2d');
-const statusChart = new Chart(statusCtx, {
-    type: 'doughnut',
-    data: {
-        labels: {!! json_encode($kegiatanByStatus->pluck('status')) !!},
-        datasets: [{
-            data: {!! json_encode($kegiatanByStatus->pluck('total')) !!},
-            backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b'],
-            hoverBackgroundColor: ['#2e59d9', '#17a673', '#2c9faf', '#f4b619', '#e02d1b'],
-            hoverBorderColor: "rgba(234, 236, 244, 1)",
-        }],
-    },
-    options: {
-        responsive: true,
-        plugins: {
-            legend: {
-                position: 'bottom',
+// Status Chart (safe init)
+const statusCanvas = document.getElementById('statusChart');
+if (statusCanvas && typeof Chart !== 'undefined') {
+    const statusCtx = statusCanvas.getContext('2d');
+    const statusChart = new Chart(statusCtx, {
+        type: 'doughnut',
+        data: {
+            labels: {!! json_encode($kegiatanByStatus->pluck('status')) !!},
+            datasets: [{
+                data: {!! json_encode($kegiatanByStatus->pluck('total')) !!},
+                backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b'],
+                hoverBackgroundColor: ['#2e59d9', '#17a673', '#2c9faf', '#f4b619', '#e02d1b'],
+                hoverBorderColor: "rgba(234, 236, 244, 1)",
+            }],
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                }
             }
-        }
-    },
-});
+        },
+    });
+}
+})();
 </script>
 @endpush

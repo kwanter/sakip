@@ -9,6 +9,11 @@ use Illuminate\Support\Facades\Storage;
 
 class LaporanKinerjaController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+        $this->authorizeResource(\App\Models\LaporanKinerja::class, 'laporan_kinerja');
+    }
     /**
      * Display a listing of the resource.
      */

@@ -7,7 +7,9 @@
     <!-- Page Header -->
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
         <h1 class="h3 mb-0 text-gray-800">Daftar Indikator Kinerja</h1>
-        <a href="{{ route('indikator-kinerja.create') }}" class="btn btn-primary btn-sm shadow-sm">
+        @anyrole('admin,manager')
+<a href="{{ route('indikator-kinerja.create') }}" class="btn btn-primary btn-sm shadow-sm">
+@endanyrole
             <i class="fas fa-plus fa-sm text-white-50"></i> Tambah Indikator
         </a>
     </div>

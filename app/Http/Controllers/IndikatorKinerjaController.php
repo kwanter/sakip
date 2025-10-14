@@ -9,6 +9,11 @@ use Illuminate\Support\Facades\DB;
 
 class IndikatorKinerjaController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+        $this->authorizeResource(\App\Models\IndikatorKinerja::class, 'indikator_kinerja');
+    }
     /**
      * Display a listing of the resource.
      */
