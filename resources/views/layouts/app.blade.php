@@ -13,13 +13,13 @@
 
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
+
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    
+
     <!-- DataTables CSS -->
     <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet">
-    
+
     <!-- Custom CSS -->
     <style>
         :root {
@@ -31,7 +31,7 @@
             --danger-color: #e74a3b;
             --light-color: #f8f9fc;
             --dark-color: #5a5c69;
-            
+
             /* Light theme variables */
             --bg-color: #f8f9fc;
             --card-bg: #ffffff;
@@ -41,7 +41,7 @@
             --navbar-bg: #ffffff;
             --sidebar-bg: linear-gradient(180deg, #4e73df 10%, #224abe 100%);
         }
-        
+
         [data-theme="dark"] {
             --bg-color: #1a1a1a;
             --card-bg: #2d2d2d;
@@ -150,38 +150,38 @@
             color: var(--text-color);
             background-color: var(--card-bg);
         }
-        
+
         .table td {
             background-color: var(--card-bg);
             color: var(--text-color);
             border-color: var(--border-color);
         }
-        
+
         .form-control {
             background-color: var(--card-bg);
             color: var(--text-color);
             border-color: var(--border-color);
         }
-        
+
         .form-control:focus {
             background-color: var(--card-bg);
             color: var(--text-color);
         }
-        
+
         .dropdown-menu {
             background-color: var(--card-bg);
             border-color: var(--border-color);
         }
-        
+
         .dropdown-item {
             color: var(--text-color);
         }
-        
+
         .dropdown-item:hover {
             background-color: var(--bg-color);
             color: var(--text-color);
         }
-        
+
         .theme-toggle {
             background: none;
             border: none;
@@ -192,11 +192,11 @@
             border-radius: 0.25rem;
             transition: background-color 0.3s ease;
         }
-        
+
         .theme-toggle:hover {
             background-color: rgba(0, 0, 0, 0.1);
         }
-        
+
         [data-theme="dark"] .theme-toggle:hover {
             background-color: rgba(255, 255, 255, 0.1);
         }
@@ -204,62 +204,62 @@
         .badge {
             font-size: 0.75em;
         }
-        
+
         .badge-secondary {
             background-color: #6c757d !important;
             color: #fff !important;
         }
-        
+
         .badge-info {
             background-color: var(--info-color) !important;
             color: #fff !important;
         }
-        
+
         .badge-success {
             background-color: var(--success-color) !important;
             color: #fff !important;
         }
-        
+
         [data-theme="dark"] .badge-secondary {
             background-color: #495057 !important;
             color: #e0e0e0 !important;
         }
-        
+
         [data-theme="dark"] .badge-info {
             background-color: #17a2b8 !important;
             color: #fff !important;
         }
-        
+
         [data-theme="dark"] .badge-success {
             background-color: #28a745 !important;
             color: #fff !important;
         }
-        
+
         .badge-primary {
             background-color: var(--primary-color) !important;
             color: #fff !important;
         }
-        
+
         .badge-warning {
             background-color: var(--warning-color) !important;
             color: #212529 !important;
         }
-        
+
         [data-theme="dark"] .badge-primary {
             background-color: #0d6efd !important;
             color: #fff !important;
         }
-        
+
         [data-theme="dark"] .badge-warning {
             background-color: #ffc107 !important;
             color: #212529 !important;
         }
-        
+
         .badge-danger {
             background-color: var(--danger-color) !important;
             color: #fff !important;
         }
-        
+
         [data-theme="dark"] .badge-danger {
             background-color: #dc3545 !important;
             color: #fff !important;
@@ -296,7 +296,7 @@
                 <h4 class="text-white mb-0">SAKIP</h4>
                 <small class="text-white-50">Sistem Akuntabilitas Kinerja</small>
             </div>
-            
+
             <ul class="nav flex-column">
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">
@@ -304,44 +304,44 @@
                         Dashboard
                     </a>
                 </li>
-                
+
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('instansi.*') ? 'active' : '' }}" href="{{ route('instansi.index') }}">
                         <i class="fas fa-building"></i>
                         Instansi
                     </a>
                 </li>
-                
+
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('program.*') ? 'active' : '' }}" href="{{ route('program.index') }}">
                         <i class="fas fa-clipboard-list"></i>
                         Program
                     </a>
                 </li>
-                
+
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('kegiatan.*') ? 'active' : '' }}" href="{{ route('kegiatan.index') }}">
                         <i class="fas fa-tasks"></i>
                         Kegiatan
                     </a>
                 </li>
-                
+
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('indikator-kinerja.*') ? 'active' : '' }}" href="{{ route('indikator-kinerja.index') }}">
                         <i class="fas fa-chart-line"></i>
                         Indikator Kinerja
                     </a>
                 </li>
-                
+
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('laporan-kinerja.*') ? 'active' : '' }}" href="{{ route('laporan-kinerja.index') }}">
                         <i class="fas fa-file-alt"></i>
                         Laporan Kinerja
                     </a>
                 </li>
-                
+
                 <hr class="my-3" style="border-color: rgba(255, 255, 255, 0.2);">
-                
+
                 <!-- Admin Menu -->
                 @role('admin')
                 <li class="nav-item">
@@ -350,38 +350,29 @@
                         Admin Dashboard
                     </a>
                 </li>
-                
+
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}" href="{{ route('admin.users.index') }}">
                         <i class="fas fa-users-cog"></i>
                         User Management
                     </a>
                 </li>
-                
+
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('admin.audit-logs') ? 'active' : '' }}" href="{{ route('admin.audit-logs') }}">
                         <i class="fas fa-history"></i>
                         Audit Logs
                     </a>
                 </li>
-                
+
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}" href="{{ route('admin.settings.index') }}">
                         <i class="fas fa-cogs"></i>
                         System Settings
                     </a>
                 </li>
-                
+
                 <hr class="my-2" style="border-color: rgba(255, 255, 255, 0.2);">
-                @endrole
-                
-                @role('admin')
-                <li class="nav-item">
-                    <a class="nav-link {{ request()->routeIs('pengaturan.*') ? 'active' : '' }}" href="{{ route('pengaturan.index') }}">
-                        <i class="fas fa-cog"></i>
-                        Pengaturan
-                    </a>
-                </li>
                 @endrole
             </ul>
         </nav>
@@ -395,7 +386,7 @@
                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                         <span class="navbar-toggler-icon"></span>
                     </button>
-                    
+
                     <div class="collapse navbar-collapse" id="navbarNav">
                         <ul class="navbar-nav ms-auto">
                             <li class="nav-item me-3">
@@ -494,24 +485,24 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
+
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    
+
     <!-- DataTables JS -->
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
-    
+
     <!-- Custom Scripts -->
     <script>
         // Theme toggle functionality
         function toggleTheme() {
             const currentTheme = document.documentElement.getAttribute('data-theme');
             const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            
+
             document.documentElement.setAttribute('data-theme', newTheme);
             localStorage.setItem('theme', newTheme);
-            
+
             // Update icon
             const themeIcon = document.getElementById('theme-icon');
             if (newTheme === 'dark') {
@@ -520,12 +511,12 @@
                 themeIcon.className = 'fas fa-moon';
             }
         }
-        
+
         // Load saved theme on page load
         document.addEventListener('DOMContentLoaded', function() {
             const savedTheme = localStorage.getItem('theme') || 'light';
             document.documentElement.setAttribute('data-theme', savedTheme);
-            
+
             // Update icon based on current theme
             const themeIcon = document.getElementById('theme-icon');
             if (savedTheme === 'dark') {
@@ -534,7 +525,7 @@
                 themeIcon.className = 'fas fa-moon';
             }
         });
-        
+
         // Auto hide alerts after 5 seconds
         setTimeout(function() {
             $('.alert').fadeOut('slow');
@@ -548,7 +539,7 @@
         });
     </script>
     <script src="{{ asset('js/helpers.js') }}"></script>
-    
+
 -    @stack('scripts')
 +    @auth
 +    @stack('scripts')

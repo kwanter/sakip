@@ -108,5 +108,94 @@ class DatabaseSeeder extends Seeder
             ]
         );
         $regularUser->roles()->sync([$userRole->id]);
+
+        // Create SAKIP permissions
+        $sakipPermissions = [
+            // Performance Indicators
+            ['name' => 'manage_sakip_indicators', 'display_name' => 'Manage SAKIP Indicators', 'module' => 'sakip'],
+            ['name' => 'view_sakip_indicators', 'display_name' => 'View SAKIP Indicators', 'module' => 'sakip'],
+            ['name' => 'create_sakip_indicators', 'display_name' => 'Create SAKIP Indicators', 'module' => 'sakip'],
+            ['name' => 'edit_sakip_indicators', 'display_name' => 'Edit SAKIP Indicators', 'module' => 'sakip'],
+            ['name' => 'delete_sakip_indicators', 'display_name' => 'Delete SAKIP Indicators', 'module' => 'sakip'],
+            
+            // Targets
+            ['name' => 'manage_sakip_targets', 'display_name' => 'Manage SAKIP Targets', 'module' => 'sakip'],
+            ['name' => 'view_sakip_targets', 'display_name' => 'View SAKIP Targets', 'module' => 'sakip'],
+            ['name' => 'create_sakip_targets', 'display_name' => 'Create SAKIP Targets', 'module' => 'sakip'],
+            ['name' => 'edit_sakip_targets', 'display_name' => 'Edit SAKIP Targets', 'module' => 'sakip'],
+            ['name' => 'approve_sakip_targets', 'display_name' => 'Approve SAKIP Targets', 'module' => 'sakip'],
+            
+            // Performance Data
+            ['name' => 'manage_sakip_data', 'display_name' => 'Manage SAKIP Performance Data', 'module' => 'sakip'],
+            ['name' => 'view_sakip_data', 'display_name' => 'View SAKIP Performance Data', 'module' => 'sakip'],
+            ['name' => 'submit_sakip_data', 'display_name' => 'Submit SAKIP Performance Data', 'module' => 'sakip'],
+            ['name' => 'validate_sakip_data', 'display_name' => 'Validate SAKIP Performance Data', 'module' => 'sakip'],
+            ['name' => 'edit_sakip_data', 'display_name' => 'Edit SAKIP Performance Data', 'module' => 'sakip'],
+            
+            // Assessments
+            ['name' => 'manage_sakip_assessments', 'display_name' => 'Manage SAKIP Assessments', 'module' => 'sakip'],
+            ['name' => 'view_sakip_assessments', 'display_name' => 'View SAKIP Assessments', 'module' => 'sakip'],
+            ['name' => 'create_sakip_assessments', 'display_name' => 'Create SAKIP Assessments', 'module' => 'sakip'],
+            ['name' => 'edit_sakip_assessments', 'display_name' => 'Edit SAKIP Assessments', 'module' => 'sakip'],
+            ['name' => 'approve_sakip_assessments', 'display_name' => 'Approve SAKIP Assessments', 'module' => 'sakip'],
+            
+            // Reports
+            ['name' => 'manage_sakip_reports', 'display_name' => 'Manage SAKIP Reports', 'module' => 'sakip'],
+            ['name' => 'view_sakip_reports', 'display_name' => 'View SAKIP Reports', 'module' => 'sakip'],
+            ['name' => 'generate_sakip_reports', 'display_name' => 'Generate SAKIP Reports', 'module' => 'sakip'],
+            ['name' => 'submit_sakip_reports', 'display_name' => 'Submit SAKIP Reports', 'module' => 'sakip'],
+            ['name' => 'download_sakip_reports', 'display_name' => 'Download SAKIP Reports', 'module' => 'sakip'],
+            
+            // Evidence Documents
+            ['name' => 'manage_sakip_evidence', 'display_name' => 'Manage SAKIP Evidence', 'module' => 'sakip'],
+            ['name' => 'view_sakip_evidence', 'display_name' => 'View SAKIP Evidence', 'module' => 'sakip'],
+            ['name' => 'upload_sakip_evidence', 'display_name' => 'Upload SAKIP Evidence', 'module' => 'sakip'],
+            ['name' => 'delete_sakip_evidence', 'display_name' => 'Delete SAKIP Evidence', 'module' => 'sakip'],
+            
+            // SAKIP Dashboard
+            ['name' => 'access_sakip_dashboard', 'display_name' => 'Access SAKIP Dashboard', 'module' => 'sakip'],
+            ['name' => 'view_sakip_analytics', 'display_name' => 'View SAKIP Analytics', 'module' => 'sakip'],
+            ['name' => 'export_sakip_data', 'display_name' => 'Export SAKIP Data', 'module' => 'sakip'],
+            
+            // SAKIP Administration
+            ['name' => 'manage_sakip_settings', 'display_name' => 'Manage SAKIP Settings', 'module' => 'sakip'],
+            ['name' => 'view_sakip_audit_logs', 'display_name' => 'View SAKIP Audit Logs', 'module' => 'sakip'],
+            ['name' => 'manage_sakip_users', 'display_name' => 'Manage SAKIP Users', 'module' => 'sakip'],
+        ];
+
+        // Create SAKIP permissions
+        $sakipPermissionIds = [];
+        foreach ($sakipPermissions as $permissionData) {
+            $permission = Permission::firstOrCreate(
+                ['name' => $permissionData['name']],
+                $permissionData
+            );
+            $sakipPermissionIds[] = $permission->id;
+        }
+
+        // Attach SAKIP permissions to admin role
+        $admin->permissions()->syncWithoutDetaching($sakipPermissionIds);
+        
+        // Attach basic SAKIP permissions to manager role
+        $manager->permissions()->syncWithoutDetaching([
+            Permission::where('name', 'view_sakip_indicators')->first()->id,
+            Permission::where('name', 'view_sakip_targets')->first()->id,
+            Permission::where('name', 'view_sakip_data')->first()->id,
+            Permission::where('name', 'submit_sakip_data')->first()->id,
+            Permission::where('name', 'view_sakip_assessments')->first()->id,
+            Permission::where('name', 'view_sakip_reports')->first()->id,
+            Permission::where('name', 'generate_sakip_reports')->first()->id,
+            Permission::where('name', 'download_sakip_reports')->first()->id,
+            Permission::where('name', 'view_sakip_evidence')->first()->id,
+            Permission::where('name', 'upload_sakip_evidence')->first()->id,
+            Permission::where('name', 'access_sakip_dashboard')->first()->id,
+            Permission::where('name', 'view_sakip_analytics')->first()->id,
+            Permission::where('name', 'export_sakip_data')->first()->id,
+        ]);
+
+        // Jalankan seeder Permission tambahan untuk indikator/laporan dan SAKIP
+        $this->call([
+            PermissionSeeder::class,
+        ]);
     }
 }

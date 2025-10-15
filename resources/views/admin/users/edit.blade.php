@@ -25,7 +25,7 @@
                         <!-- Name -->
                         <div class="form-group">
                             <label for="name">Name</label>
-                            <input type="text" class="form-control @error('name') is-invalid @enderror" 
+                            <input type="text" class="form-control @error('name') is-invalid @enderror"
                                    id="name" name="name" value="{{ old('name', $user->name) }}" required>
                             @error('name')
                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -35,7 +35,7 @@
                         <!-- Email -->
                         <div class="form-group">
                             <label for="email">Email</label>
-                            <input type="email" class="form-control @error('email') is-invalid @enderror" 
+                            <input type="email" class="form-control @error('email') is-invalid @enderror"
                                    id="email" name="email" value="{{ old('email', $user->email) }}" required>
                             @error('email')
                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -45,7 +45,7 @@
                         <!-- Password -->
                         <div class="form-group">
                             <label for="password">New Password (leave blank to keep current)</label>
-                            <input type="password" class="form-control @error('password') is-invalid @enderror" 
+                            <input type="password" class="form-control @error('password') is-invalid @enderror"
                                    id="password" name="password">
                             @error('password')
                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -64,7 +64,7 @@
                         <!-- Email Verification -->
                         <div class="form-group">
                             <div class="custom-control custom-checkbox">
-                                <input type="checkbox" class="custom-control-input" id="email_verified" name="email_verified" 
+                                <input type="checkbox" class="custom-control-input" id="email_verified" name="email_verified"
                                        {{ $user->email_verified_at ? 'checked' : '' }}>
                                 <label class="custom-control-label" for="email_verified">
                                     Email Verified
@@ -92,16 +92,14 @@
                     <h6 class="m-0 font-weight-bold text-primary">Roles</h6>
                 </div>
                 <div class="card-body">
-                    <form action="{{ route('admin.users.update', $user) }}" method="POST" id="rolesForm">
+                    <form action="{{ route('admin.users.roles.update', $user) }}" method="POST" id="rolesForm">
                         @csrf
-                        @method('PUT')
-
                         @foreach($roles as $role)
                             <div class="form-group">
                                 <div class="custom-control custom-checkbox">
-                                    <input type="checkbox" class="custom-control-input" 
+                                    <input type="checkbox" class="custom-control-input"
                                            id="role_{{ $role->id }}" name="roles[]" value="{{ $role->id }}"
-                                           {{ $user->roles->contains($role->id) ? 'checked' : '' }}>
+                                           {{ $user->roles->contains('id', $role->id) ? 'checked' : '' }}>
                                     <label class="custom-control-label" for="role_{{ $role->id }}">
                                         {{ ucfirst($role->name) }}
                                         @if($role->description)
@@ -125,16 +123,15 @@
                     <h6 class="m-0 font-weight-bold text-primary">Direct Permissions</h6>
                 </div>
                 <div class="card-body">
-                    <form action="{{ route('admin.users.update', $user) }}" method="POST" id="permissionsForm">
+                    <form action="{{ route('admin.users.permissions.update', $user) }}" method="POST" id="permissionsForm">
                         @csrf
-                        @method('PUT')
 
                         @foreach($permissions as $permission)
                             <div class="form-group">
                                 <div class="custom-control custom-checkbox">
-                                    <input type="checkbox" class="custom-control-input" 
+                                    <input type="checkbox" class="custom-control-input"
                                            id="permission_{{ $permission->id }}" name="permissions[]" value="{{ $permission->id }}"
-                                           {{ $user->permissions->contains($permission->id) ? 'checked' : '' }}>
+                                           {{ $user->permissions->contains('id', $permission->id) ? 'checked' : '' }}>
                                     <label class="custom-control-label" for="permission_{{ $permission->id }}">
                                         {{ ucfirst(str_replace('.', ' ', $permission->name)) }}
                                         @if($permission->description)
@@ -159,7 +156,7 @@
                         <h6 class="m-0 font-weight-bold text-danger">Danger Zone</h6>
                     </div>
                     <div class="card-body">
-                        <form action="{{ route('admin.users.destroy', $user) }}" method="POST" 
+                        <form action="{{ route('admin.users.destroy', $user) }}" method="POST"
                               onsubmit="return confirm('Are you sure you want to delete this user? This action cannot be undone.')">
                             @csrf
                             @method('DELETE')
@@ -174,18 +171,4 @@
     </div>
 </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Handle individual form submissions
-    document.getElementById('rolesForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        this.submit();
-    });
-
-    document.getElementById('permissionsForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        this.submit();
-    });
-});
-</script>
 @endsection

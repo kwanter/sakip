@@ -27,6 +27,12 @@ class IndikatorKinerja extends Model
     public $incrementing = false;
     protected $keyType = 'string';
 
+    protected $casts = [
+        'target' => 'decimal:2',
+        'realisasi' => 'decimal:2',
+        'input' => 'decimal:2',
+    ];
+
     /**
      * Relasi ke Kegiatan
      */

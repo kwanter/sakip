@@ -2,13 +2,13 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, HasUuids;
@@ -20,6 +20,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'email_verified_at',
     ];
 
     protected $hidden = [
@@ -41,10 +42,20 @@ class User extends Authenticatable
         return $this->belongsToMany(Role::class, 'role_user');
     }
 
-    // Permissions via roles
+    // Tambahkan relasi langsung ke permissions (direct user permissions)
     public function permissions()
     {
-        return $this->roles->flatMap->permissions->unique('id');
+        return $this->belongsToMany(Permission::class, 'permission_user');
+    }
+
+    // Permissions via roles
+    public function allPermissions()
+    {
+        return $this->roles()->with('permissions')
+            ->get()
+            ->pluck('permissions')
+            ->flatten()
+            ->unique('id');
     }
 
     public function auditLogs()
@@ -70,7 +81,8 @@ class User extends Authenticatable
 
     public function hasPermission(string $permission): bool
     {
-        return $this->permissions()->contains(fn($p) => $p->name === $permission);
+        return $this->permissions->contains(fn($p) => $p->name === $permission)
+            || $this->allPermissions()->contains(fn($p) => $p->name === $permission);
     }
 
     // Override the can method to use our permission system

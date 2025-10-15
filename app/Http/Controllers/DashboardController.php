@@ -40,7 +40,11 @@ class DashboardController extends Controller
             ->where('target', '>', 0)
             ->get()
             ->map(function ($indikator) {
-                $indikator->persentase = ($indikator->realisasi / $indikator->target) * 100;
+                // Validasi dan casting ke numeric untuk mencegah TypeError
+                $realisasi = is_numeric($indikator->realisasi) ? (float) $indikator->realisasi : 0.0;
+                $target = is_numeric($indikator->target) ? (float) $indikator->target : 0.0;
+
+                $indikator->persentase = $target > 0 ? ($realisasi / $target) * 100 : 0.0;
                 return $indikator;
             })
             ->sortByDesc('persentase')

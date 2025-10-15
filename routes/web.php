@@ -18,8 +18,22 @@ Route::get('/login', [\App\Http\Controllers\Auth\LoginController::class, 'show']
 Route::post('/login', [\App\Http\Controllers\Auth\LoginController::class, 'login'])->name('auth.login');
 Route::post('/logout', [\App\Http\Controllers\Auth\LogoutController::class, 'logout'])->name('auth.logout');
 
-// Protected Routes untuk SAKIP
+// Email verification routes
 Route::middleware('auth')->group(function () {
+    Route::get('/email/verify', [\App\Http\Controllers\Auth\EmailVerificationController::class, 'notice'])
+        ->name('verification.notice');
+
+    Route::get('/email/verify/{id}/{hash}', [\App\Http\Controllers\Auth\EmailVerificationController::class, 'verify'])
+        ->middleware('signed')
+        ->name('verification.verify');
+
+    Route::post('/email/resend', [\App\Http\Controllers\Auth\EmailVerificationController::class, 'resend'])
+        ->middleware('throttle:6,1')
+        ->name('verification.resend');
+});
+
+// Protected Routes untuk SAKIP
+Route::middleware(['auth', 'verified'])->group(function () {
     // Resources
     Route::resource('instansi', InstansiController::class);
     Route::resource('program', ProgramController::class);
@@ -35,13 +49,13 @@ Route::middleware('auth')->group(function () {
     Route::post('laporan-kinerja/quarterly-aggregation', [LaporanKinerjaController::class, 'quarterlyAggregation'])->name('laporan-kinerja.quarterly-aggregation');
     Route::post('laporan-kinerja/create-from-monthly', [LaporanKinerjaController::class, 'createFromMonthly'])->name('laporan-kinerja.create-from-monthly');
 
-    // Pengaturan (Admin only)
-    Route::middleware('role:admin')->group(function () {
-        Route::get('pengaturan', [PengaturanController::class, 'index'])->name('pengaturan.index');
-        Route::put('pengaturan', [PengaturanController::class, 'update'])->name('pengaturan.update');
-        Route::post('pengaturan/clear-cache', [PengaturanController::class, 'clearCache'])->name('pengaturan.clear-cache');
-        Route::post('pengaturan/optimize', [PengaturanController::class, 'optimizeApp'])->name('pengaturan.optimize');
-        Route::post('pengaturan/backup', [PengaturanController::class, 'backupDatabase'])->name('pengaturan.backup');
+    // Pengaturan legacy redirects (preserve URLs; forward to unified admin settings)
+    Route::middleware(['auth','verified','role:admin'])->group(function () {
+        Route::get('pengaturan', function() { return redirect()->route('admin.settings.index'); })->name('pengaturan.index');
+        Route::put('pengaturan', function(\Illuminate\Http\Request $request) { return redirect()->route('admin.settings.update'); })->name('pengaturan.update');
+        Route::post('pengaturan/clear-cache', function() { return redirect()->route('admin.settings.clear-cache'); })->name('pengaturan.clear-cache');
+        Route::post('pengaturan/optimize', function() { return redirect()->route('admin.settings.optimize'); })->name('pengaturan.optimize');
+        Route::post('pengaturan/backup', function() { return redirect()->route('admin.settings.backup'); })->name('pengaturan.backup');
     });
 
     // Admin Routes (Comprehensive Admin System)
@@ -57,19 +71,28 @@ Route::middleware('auth')->group(function () {
             Route::get('/{user}', [AdminController::class, 'showUser'])->name('admin.users.show');
             Route::get('/{user}/edit', [AdminController::class, 'editUser'])->name('admin.users.edit');
             Route::put('/{user}', [AdminController::class, 'updateUser'])->name('admin.users.update');
+            // Separate submission routes for roles and permissions management
+            Route::post('/{user}/roles', [AdminController::class, 'updateRoles'])->name('admin.users.roles.update');
+            Route::post('/{user}/permissions', [AdminController::class, 'updatePermissions'])->name('admin.users.permissions.update');
             Route::delete('/{user}', [AdminController::class, 'destroyUser'])->name('admin.users.destroy');
         });
         
         // Audit Logs
         Route::get('/audit-logs', [AdminController::class, 'auditLogs'])->name('admin.audit-logs');
         
-        // System Settings
+        // System Settings + Maintenance (Unified)
         Route::middleware('can:admin.settings')->group(function () {
             Route::get('/settings', [AdminController::class, 'systemSettings'])->name('admin.settings.index');
             Route::post('/settings', [AdminController::class, 'updateSettings'])->name('admin.settings.update');
+            Route::post('/settings/clear-cache', [AdminController::class, 'clearCache'])->name('admin.settings.clear-cache');
+            Route::post('/settings/optimize', [AdminController::class, 'optimizeApp'])->name('admin.settings.optimize');
+            Route::post('/settings/backup', [AdminController::class, 'backupDatabase'])->name('admin.settings.backup');
         });
     });
 });
+
+// Include SAKIP routes
+require __DIR__.'/web_sakip.php';
 
 // API Routes untuk AJAX
 Route::prefix('api')->middleware('auth')->group(function () {

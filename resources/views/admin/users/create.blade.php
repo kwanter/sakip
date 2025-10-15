@@ -74,8 +74,8 @@
                                 @foreach($roles as $role)
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" name="roles[]" 
-                                           id="role_{{ $role->id }}" value="{{ $role->name }}"
-                                           {{ in_array($role->name, old('roles', [])) ? 'checked' : '' }}>
+                                           id="role_{{ $role->id }}" value="{{ $role->id }}"
+                                           {{ in_array($role->id, old('roles', [])) ? 'checked' : '' }}>
                                     <label class="form-check-label" for="role_{{ $role->id }}">
                                         {{ ucfirst($role->name) }}
                                         @if($role->description)
