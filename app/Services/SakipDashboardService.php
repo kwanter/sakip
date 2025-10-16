@@ -2,454 +2,604 @@
 
 namespace App\Services;
 
-use App\Models\PerformanceIndicator;
-use App\Models\PerformanceData;
-use App\Models\Assessment;
-use App\Models\Target;
-use App\Models\Instansi;
-use App\Models\AuditLog;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
-use Illuminate\Support\Collection;
 
+/**
+ * Service to aggregate and provide dashboard data for SAKIP.
+ *
+ * Provides metrics, charts, recent activities, notifications,
+ * compliance status, and performance summaries for a given period.
+ *
+ * All methods include basic error handling and return safe fallbacks
+ * when data sources fail to avoid breaking the dashboard UI.
+ */
 class SakipDashboardService
 {
-    protected $cacheTimeout = 3600; // 1 hour
-    protected $currentYear;
-    protected $currentPeriod;
+    /** @var SakipService */
+    protected $sakipService;
 
-    public function __construct()
+    /**
+     * Construct the dashboard service.
+     *
+     * @param SakipService $sakipService SAKIP core service dependency.
+     */
+    public function __construct(SakipService $sakipService)
     {
-        $this->currentYear = date('Y');
-        $this->currentPeriod = $this->getCurrentPeriod();
+        $this->sakipService = $sakipService;
     }
 
     /**
-     * Get executive dashboard data for leadership
+     * Get dashboard data aggregate for a period.
+     *
+     * @param string $period One of: current_year, current_month, last_month, current_quarter, last_quarter
+     * @return array Structured dashboard payload with safe fallbacks.
      */
-    public function getExecutiveDashboard($instansiId = null, $year = null): array
+    public function getDashboardData(string $period = 'current_year'): array
     {
-        $year = $year ?: $this->currentYear;
-        $cacheKey = "sakip_executive_dashboard_{$instansiId}_{$year}";
-
-        return Cache::remember($cacheKey, $this->cacheTimeout, function () use ($instansiId, $year) {
-            return [
-                'summary' => $this->getExecutiveSummary($instansiId, $year),
-                'performance_trends' => $this->getPerformanceTrends($instansiId, $year),
-                'instansi_ranking' => $this->getInstansiRanking($year),
-                'compliance_status' => $this->getComplianceStatus($instansiId, $year),
-                'critical_indicators' => $this->getCriticalIndicators($instansiId, $year),
-                'recent_activities' => $this->getRecentActivities($instansiId, 10),
-                'achievement_distribution' => $this->getAchievementDistribution($instansiId, $year),
-            ];
-        });
-    }
-
-    /**
-     * Get data collector dashboard
-     */
-    public function getDataCollectorDashboard($instansiId, $year = null): array
-    {
-        $year = $year ?: $this->currentYear;
-        $cacheKey = "sakip_data_collector_dashboard_{$instansiId}_{$year}";
-
-        return Cache::remember($cacheKey, $this->cacheTimeout, function () use ($instansiId, $year) {
-            return [
-                'pending_data' => $this->getPendingDataCollection($instansiId, $year),
-                'overdue_indicators' => $this->getOverdueIndicators($instansiId, $year),
-                'recent_submissions' => $this->getRecentSubmissions($instansiId, 10),
-                'validation_status' => $this->getValidationStatus($instansiId, $year),
-                'data_quality_score' => $this->getDataQualityScore($instansiId, $year),
-                'collection_progress' => $this->getCollectionProgress($instansiId, $year),
-                'evidence_requirements' => $this->getEvidenceRequirements($instansiId, $year),
-            ];
-        });
-    }
-
-    /**
-     * Get assessor dashboard
-     */
-    public function getAssessorDashboard($instansiId = null, $year = null): array
-    {
-        $year = $year ?: $this->currentYear;
-        $cacheKey = "sakip_assessor_dashboard_{$instansiId}_{$year}";
-
-        return Cache::remember($cacheKey, $this->cacheTimeout, function () use ($instansiId, $year) {
-            return [
-                'pending_assessments' => $this->getPendingAssessments($instansiId, $year),
-                'assessment_progress' => $this->getAssessmentProgress($instansiId, $year),
-                'quality_reviews' => $this->getQualityReviews($instansiId, $year),
-                'assessment_statistics' => $this->getAssessmentStatistics($instansiId, $year),
-                'recent_assessments' => $this->getRecentAssessments($instansiId, 10),
-                'performance_issues' => $this->getPerformanceIssues($instansiId, $year),
-                'recommendation_summary' => $this->getRecommendationSummary($instansiId, $year),
-            ];
-        });
-    }
-
-    /**
-     * Get audit dashboard
-     */
-    public function getAuditDashboard($instansiId = null, $year = null): array
-    {
-        $year = $year ?: $this->currentYear;
-        $cacheKey = "sakip_audit_dashboard_{$instansiId}_{$year}";
-
-        return Cache::remember($cacheKey, $this->cacheTimeout, function () use ($instansiId, $year) {
-            return [
-                'audit_findings' => $this->getAuditFindings($instansiId, $year),
-                'compliance_violations' => $this->getComplianceViolations($instansiId, $year),
-                'risk_indicators' => $this->getRiskIndicators($instansiId, $year),
-                'audit_trail' => $this->getAuditTrail($instansiId, 20),
-                'system_integrity' => $this->getSystemIntegrityStatus($instansiId, $year),
-                'anomaly_detection' => $this->getAnomalyDetection($instansiId, $year),
-                'audit_recommendations' => $this->getAuditRecommendations($instansiId, $year),
-            ];
-        });
-    }
-
-    /**
-     * Get executive summary data
-     */
-    protected function getExecutiveSummary($instansiId = null, $year): array
-    {
-        $query = PerformanceIndicator::with(['targets', 'performanceData'])
-            ->whereYear('created_at', '<=', $year);
-
-        if ($instansiId) {
-            $query->where('instansi_id', $instansiId);
-        }
-
-        $indicators = $query->get();
-
-        $totalIndicators = $indicators->count();
-        $indicatorsWithData = $indicators->filter(function ($indicator) use ($year) {
-            return $indicator->performanceData->where('period_year', $year)->isNotEmpty();
-        })->count();
-
-        $avgAchievement = $this->calculateAverageAchievement($indicators, $year);
-
-        return [
-            'total_indicators' => $totalIndicators,
-            'indicators_with_data' => $indicatorsWithData,
-            'data_completeness' => $totalIndicators > 0 ? round(($indicatorsWithData / $totalIndicators) * 100, 2) : 0,
-            'average_achievement' => $avgAchievement,
-            'assessment_completion' => $this->getAssessmentCompletionRate($instansiId, $year),
-            'report_submission_rate' => $this->getReportSubmissionRate($instansiId, $year),
-        ];
-    }
-
-    /**
-     * Get performance trends over time
-     */
-    protected function getPerformanceTrends($instansiId = null, $year): array
-    {
-        $trends = [];
-        $startYear = $year - 4; // 5 years trend
-
-        for ($y = $startYear; $y <= $year; $y++) {
-            $achievement = $this->calculateYearlyAchievement($instansiId, $y);
-            $trends[] = [
-                'year' => $y,
-                'achievement' => $achievement,
-                'target' => $this->getYearlyTarget($instansiId, $y),
-            ];
-        }
-
-        return $trends;
-    }
-
-    /**
-     * Get institution ranking
-     */
-    protected function getInstansiRanking($year): array
-    {
-        $instansiRankings = Instansi::with(['performanceIndicators.targets', 'performanceIndicators.performanceData'])
-            ->get()
-            ->map(function ($instansi) use ($year) {
-                return [
-                    'instansi' => $instansi->name,
-                    'instansi_id' => $instansi->id,
-                    'achievement_score' => $this->calculateInstansiAchievement($instansi, $year),
-                    'completion_rate' => $this->calculateInstansiCompletion($instansi, $year),
-                ];
-            })
-            ->sortByDesc('achievement_score')
-            ->values()
-            ->take(10);
-
-        return $instansiRankings->toArray();
-    }
-
-    /**
-     * Get compliance status
-     */
-    protected function getComplianceStatus($instansiId = null, $year): array
-    {
-        $totalIndicators = PerformanceIndicator::when($instansiId, function ($query) use ($instansiId) {
-            return $query->where('instansi_id', $instansiId);
-        })->count();
-
-        $compliantIndicators = PerformanceIndicator::when($instansiId, function ($query) use ($instansiId) {
-            return $query->where('instansi_id', $instansiId);
-        })
-            ->whereHas('performanceData', function ($query) use ($year) {
-                $query->where('period_year', $year)
-                    ->where('validation_status', 'validated');
-            })
-            ->count();
-
-        $nonCompliantIndicators = $totalIndicators - $compliantIndicators;
-
-        return [
-            'compliant_indicators' => $compliantIndicators,
-            'non_compliant_indicators' => $nonCompliantIndicators,
-            'compliance_rate' => $totalIndicators > 0 ? round(($compliantIndicators / $totalIndicators) * 100, 2) : 0,
-            'critical_violations' => $this->getCriticalViolations($instansiId, $year),
-        ];
-    }
-
-    /**
-     * Get critical indicators
-     */
-    protected function getCriticalIndicators($instansiId = null, $year): array
-    {
-        return PerformanceIndicator::with(['targets', 'performanceData'])
-            ->when($instansiId, function ($query) use ($instansiId) {
-                return $query->where('instansi_id', $instansiId);
-            })
-            ->get()
-            ->filter(function ($indicator) use ($year) {
-                $achievement = $this->calculateIndicatorAchievement($indicator, $year);
-                return $achievement < 50; // Less than 50% achievement
-            })
-            ->map(function ($indicator) use ($year) {
-                return [
-                    'id' => $indicator->id,
-                    'name' => $indicator->name,
-                    'code' => $indicator->code,
-                    'achievement' => $this->calculateIndicatorAchievement($indicator, $year),
-                    'target' => $indicator->targets->where('year', $year)->first()?->target_value ?? 0,
-                    'actual' => $indicator->performanceData->where('period_year', $year)->sum('actual_value'),
-                ];
-            })
-            ->take(10)
-            ->toArray();
-    }
-
-    /**
-     * Get recent activities
-     */
-    protected function getRecentActivities($instansiId = null, $limit = 10): array
-    {
-        $query = AuditLog::with(['user', 'instansi'])
-            ->where('module', 'sakip')
-            ->orderBy('created_at', 'desc');
-
-        if ($instansiId) {
-            $query->where('instansi_id', $instansiId);
-        }
-
-        return $query->take($limit)
-            ->get()
-            ->map(function ($log) {
-                return [
-                    'id' => $log->id,
-                    'activity' => $log->activity,
-                    'user' => $log->user?->name ?? 'System',
-                    'instansi' => $log->instansi?->name,
-                    'timestamp' => $log->created_at->format('Y-m-d H:i:s'),
-                    'details' => $log->details,
-                ];
-            })
-            ->toArray();
-    }
-
-    /**
-     * Get achievement distribution
-     */
-    protected function getAchievementDistribution($instansiId = null, $year): array
-    {
-        $indicators = PerformanceIndicator::with(['performanceData'])
-            ->when($instansiId, function ($query) use ($instansiId) {
-                return $query->where('instansi_id', $instansiId);
-            })
-            ->get();
-
-        $distributions = [
-            'excellent' => 0, // 90-100%
-            'good' => 0,      // 70-89%
-            'fair' => 0,      // 50-69%
-            'poor' => 0,      // < 50%
-        ];
-
-        foreach ($indicators as $indicator) {
-            $achievement = $this->calculateIndicatorAchievement($indicator, $year);
-            
-            if ($achievement >= 90) {
-                $distributions['excellent']++;
-            } elseif ($achievement >= 70) {
-                $distributions['good']++;
-            } elseif ($achievement >= 50) {
-                $distributions['fair']++;
-            } else {
-                $distributions['poor']++;
-            }
-        }
-
-        return $distributions;
-    }
-
-    /**
-     * Get pending data collection
-     */
-    protected function getPendingDataCollection($instansiId, $year): array
-    {
-        $indicators = PerformanceIndicator::where('instansi_id', $instansiId)
-            ->whereDoesntHave('performanceData', function ($query) use ($year) {
-                $query->where('period_year', $year);
-            })
-            ->get()
-            ->map(function ($indicator) {
-                return [
-                    'id' => $indicator->id,
-                    'name' => $indicator->name,
-                    'code' => $indicator->code,
-                    'deadline' => $this->getDataCollectionDeadline($indicator),
-                    'category' => $indicator->category,
-                ];
-            });
-
-        return $indicators->toArray();
-    }
-
-    /**
-     * Get overdue indicators
-     */
-    protected function getOverdueIndicators($instansiId, $year): array
-    {
-        $deadline = $this->getDataCollectionDeadline();
+        $cacheKey = 'sakip_dashboard_' . $period . '_' . auth()->id();
         
-        return PerformanceIndicator::where('instansi_id', $instansiId)
-            ->whereHas('performanceData', function ($query) use ($year, $deadline) {
-                $query->where('period_year', $year)
-                    ->where('created_at', '>', $deadline);
-            })
-            ->get()
-            ->map(function ($indicator) {
-                return [
-                    'id' => $indicator->id,
-                    'name' => $indicator->name,
-                    'code' => $indicator->code,
-                    'days_overdue' => Carbon::now()->diffInDays($this->getDataCollectionDeadline($indicator)),
-                    'category' => $indicator->category,
-                ];
-            })
-            ->toArray();
+        return Cache::remember($cacheKey, now()->addMinutes(15), function () use ($period) {
+            return [
+                'metrics' => $this->getMetrics($period),
+                'charts' => $this->getChartData($period),
+                'recent_activities' => $this->getRecentActivities($period),
+                // Updated to pass limit and user id safely
+                'notifications' => $this->getNotifications(5, auth()->id()),
+                'compliance_status' => $this->getComplianceStatus($period),
+                'performance_summary' => $this->getPerformanceSummary($period),
+            ];
+        });
     }
 
     /**
-     * Calculate average achievement
+     * Get dashboard metrics summary for a period.
+     *
+     * @param string $period Period filter string.
+     * @return array Metrics payload with counts and averages.
      */
-    protected function calculateAverageAchievement($indicators, $year): float
+    public function getMetrics(string $period = 'current_year'): array
     {
-        if ($indicators->isEmpty()) {
+        $dateRange = $this->getDateRange($period);
+        
+        return [
+            'total_indicators' => $this->getTotalIndicators($dateRange),
+            'active_programs' => $this->getActivePrograms($dateRange),
+            'total_activities' => $this->getTotalActivities($dateRange),
+            'total_reports' => $this->getTotalReports($dateRange),
+            'average_achievement' => $this->getAverageAchievement($dateRange),
+            'compliance_rate' => $this->getComplianceRate($dateRange),
+        ];
+    }
+
+    /**
+     * Get chart datasets for a period.
+     *
+     * @param string $period Period filter string.
+     * @return array Chart datasets (achievement trend, category breakdown, instansi comparison, quarterly).
+     */
+    public function getChartData(string $period = 'current_year'): array
+    {
+        $dateRange = $this->getDateRange($period);
+        
+        return [
+            'achievement_trend' => $this->getAchievementTrend($dateRange),
+            'category_breakdown' => $this->getCategoryBreakdown($dateRange),
+            'instansi_comparison' => $this->getInstansiComparison($dateRange),
+            'quarterly_performance' => $this->getQuarterlyPerformance($dateRange),
+        ];
+    }
+
+    /**
+     * Achievement trend over months within the date range.
+     *
+     * @param array{0: Carbon, 1: Carbon} $dateRange Start and end dates.
+     * @return array{labels: array<int,string>, data: array<int,float>} Chart data.
+     */
+    protected function getAchievementTrend(array $dateRange): array
+    {
+        try {
+            $data = DB::table('laporan_kinerjas')
+                ->select(
+                    DB::raw('MONTH(created_at) as month'),
+                    DB::raw('AVG(persentase_capaian) as average_achievement')
+                )
+                ->whereBetween('created_at', $dateRange)
+                ->groupBy(DB::raw('MONTH(created_at)'))
+                ->orderBy('month')
+                ->get();
+
+            return [
+                'labels' => $data->pluck('month')->map(function ($month) {
+                    return date('M', mktime(0, 0, 0, $month, 1));
+                })->toArray(),
+                'data' => $data->pluck('average_achievement')->map(function ($value) {
+                    return round($value, 2);
+                })->toArray(),
+            ];
+        } catch (\Throwable $e) {
+            Log::error('Failed to get achievement trend', ['exception' => $e]);
+            return ['labels' => [], 'data' => []];
+        }
+    }
+
+    /**
+     * Breakdown of indicators by category.
+     *
+     * @param array{0: Carbon, 1: Carbon} $dateRange Start and end dates.
+     * @return array<int,array{name:string,value:int}> Category breakdown list.
+     */
+    protected function getCategoryBreakdown(array $dateRange): array
+    {
+        try {
+            $categories = $this->sakipService->getIndicatorCategories();
+            $data = [];
+            foreach ($categories as $category) {
+                $count = DB::table('performance_indicators')
+                    ->where('category', $category)
+                    ->whereBetween('created_at', $dateRange)
+                    ->count();
+                $data[] = [
+                    'name' => $category,
+                    'value' => $count,
+                ];
+            }
+            return $data;
+        } catch (\Throwable $e) {
+            Log::error('Failed to get category breakdown', ['exception' => $e]);
+            return [];
+        }
+    }
+
+    /**
+     * Compare instansi average achievement.
+     *
+     * @param array{0: Carbon, 1: Carbon} $dateRange Start and end dates.
+     * @return array{labels: array<int,string>, data: array<int,float>} Chart data.
+     */
+    protected function getInstansiComparison(array $dateRange): array
+    {
+        try {
+            $data = DB::table('laporan_kinerjas')
+                ->join('indikator_kinerjas', 'laporan_kinerjas.indikator_kinerja_id', '=', 'indikator_kinerjas.id')
+                ->join('kegiatans', 'indikator_kinerjas.kegiatan_id', '=', 'kegiatans.id')
+                ->join('programs', 'kegiatans.program_id', '=', 'programs.id')
+                ->join('instansis', 'programs.instansi_id', '=', 'instansis.id')
+                ->select(
+                    'instansis.nama_instansi as instansi_name',
+                    DB::raw('COUNT(laporan_kinerjas.id) as report_count'),
+                    DB::raw('AVG(laporan_kinerjas.persentase_capaian) as average_achievement')
+                )
+                ->whereBetween('laporan_kinerjas.created_at', $dateRange)
+                ->groupBy('instansis.id', 'instansis.nama_instansi')
+                ->orderByDesc('average_achievement')
+                ->limit(10)
+                ->get();
+
+            return [
+                'labels' => $data->pluck('instansi_name')->toArray(),
+                'data' => $data->pluck('average_achievement')->map(function ($value) {
+                    return round($value, 2);
+                })->toArray(),
+            ];
+        } catch (\Throwable $e) {
+            Log::error('Failed to get instansi comparison', ['exception' => $e]);
+            return ['labels' => [], 'data' => []];
+        }
+    }
+
+    /**
+     * Quarterly performance summary (Q1-Q4).
+     *
+     * @param array{0: Carbon, 1: Carbon} $dateRange Start and end dates.
+     * @return array{labels: array<int,string>, data: array<int,float>} Chart data.
+     */
+    protected function getQuarterlyPerformance(array $dateRange): array
+    {
+        $quarters = [
+            'Q1' => [1, 2, 3],
+            'Q2' => [4, 5, 6],
+            'Q3' => [7, 8, 9],
+            'Q4' => [10, 11, 12],
+        ];
+
+        try {
+            $data = [];
+            foreach ($quarters as $quarter => $months) {
+                $achievement = DB::table('laporan_kinerjas')
+                    ->whereIn(DB::raw('MONTH(created_at)'), $months)
+                    ->whereBetween('created_at', $dateRange)
+                    ->avg('persentase_capaian');
+
+                $data[] = [
+                    'quarter' => $quarter,
+                    'achievement' => round($achievement ?? 0, 2),
+                ];
+            }
+
+            return [
+                'labels' => array_keys($quarters),
+                'data' => array_column($data, 'achievement'),
+            ];
+        } catch (\Throwable $e) {
+            Log::error('Failed to get quarterly performance', ['exception' => $e]);
+            return [
+                'labels' => array_keys($quarters),
+                'data' => [0, 0, 0, 0],
+            ];
+        }
+    }
+
+    /**
+     * Get recent activities including reports and audit logs.
+     *
+     * @param string $period Period filter string.
+     * @return array<int,array<string,string>> Recent activity items.
+     */
+    protected function getRecentActivities(string $period = 'current_year'): array
+    {
+        try {
+            $dateRange = $this->getDateRange($period);
+
+            $reportActivities = DB::table('reports')
+                ->join('users', 'reports.generated_by', '=', 'users.id')
+                ->select(
+                    'reports.report_type as report_type',
+                    'reports.period as report_period',
+                    'users.name as user_name',
+                    'reports.created_at as activity_date',
+                    DB::raw("'report_generated' as activity_type")
+                )
+                ->whereBetween('reports.created_at', $dateRange)
+                ->orderByDesc('reports.created_at')
+                ->limit(10)
+                ->get();
+
+            $auditActivities = DB::table('audit_logs')
+                ->join('users', 'audit_logs.user_id', '=', 'users.id')
+                ->select(
+                    'audit_logs.action as action',
+                    'users.name as user_name',
+                    'audit_logs.created_at as activity_date',
+                    DB::raw("'audit_log' as activity_type")
+                )
+                ->whereBetween('audit_logs.created_at', $dateRange)
+                ->orderByDesc('audit_logs.created_at')
+                ->limit(10)
+                ->get();
+
+            $activities = $reportActivities->concat($auditActivities)
+                ->sortByDesc('activity_date')
+                ->take(10)
+                ->values()
+                ->toArray();
+
+            return array_map(function ($activity) {
+                if ($activity->activity_type === 'report_generated') {
+                    return [
+                        'type' => 'report_generated',
+                        'title' => "Generated report: {$activity->report_type} ({$activity->report_period})",
+                        'user' => $activity->user_name,
+                        'date' => Carbon::parse($activity->activity_date)->diffForHumans(),
+                    ];
+                }
+                return [
+                    'type' => 'audit_log',
+                    'title' => "Action: {$activity->action}",
+                    'user' => $activity->user_name,
+                    'date' => Carbon::parse($activity->activity_date)->diffForHumans(),
+                ];
+            }, $activities);
+        } catch (\Throwable $e) {
+            Log::error('Failed to get recent activities', ['exception' => $e]);
+            return [];
+        }
+    }
+
+    /**
+     * Get unread SAKIP notifications for a user.
+     *
+     * @param int $limit Max notifications to return.
+     * @param int|null $userId Target user ID (defaults to current auth user).
+     * @return array<int,array<string,string>> Notification items.
+     */
+    public function getNotifications(int $limit = 5, ?int $userId = null): array
+    {
+        try {
+            $userId = $userId ?? auth()->id();
+            if (!$userId) {
+                return [];
+            }
+
+            $user = \App\Models\User::find($userId);
+            if (!$user || !method_exists($user, 'unreadNotifications')) {
+                return [];
+            }
+            
+            $notifications = $user->unreadNotifications()
+                ->where('type', 'like', '%Sakip%')
+                ->limit($limit)
+                ->get();
+
+            return $notifications->map(function ($notification) {
+                return [
+                    'id' => $notification->id,
+                    'type' => class_basename($notification->type),
+                    'title' => $notification->data['title'] ?? 'Notification',
+                    'message' => $notification->data['message'] ?? '',
+                    'created_at' => $notification->created_at->diffForHumans(),
+                ];
+            })->toArray();
+        } catch (\Throwable $e) {
+            Log::error('Failed to get notifications', ['exception' => $e]);
+            return [];
+        }
+    }
+
+    /**
+     * Compute compliance status across instansi over the period.
+     *
+     * @param string $period Period filter string.
+     * @return array{total_instansi:int,compliant_instansi:int,compliance_rate:float,instansi_list:array<int,array{name:string,status:string,last_report:string}>}
+     */
+    protected function getComplianceStatus(string $period = 'current_year'): array
+    {
+        try {
+            $dateRange = $this->getDateRange($period);
+            $complianceData = DB::table('instansis')
+                ->leftJoin('reports', function ($join) use ($dateRange) {
+                    $join->on('instansis.id', '=', 'reports.instansi_id')
+                         ->whereBetween('reports.created_at', $dateRange);
+                })
+                ->select(
+                    'instansis.nama_instansi as instansi_name',
+                    DB::raw('COUNT(reports.id) as report_count'),
+                    DB::raw('MAX(reports.created_at) as last_report_date')
+                )
+                ->groupBy('instansis.id', 'instansis.nama_instansi')
+                ->get();
+
+            $totalInstansi = $complianceData->count();
+            $compliantInstansi = $complianceData->filter(function ($item) {
+                return $item->report_count > 0;
+            })->count();
+
+            return [
+                'total_instansi' => $totalInstansi,
+                'compliant_instansi' => $compliantInstansi,
+                'compliance_rate' => $totalInstansi > 0 ? round(($compliantInstansi / $totalInstansi) * 100, 2) : 0,
+                'instansi_list' => $complianceData->map(function ($item) {
+                    return [
+                        'name' => $item->instansi_name,
+                        'status' => $item->report_count > 0 ? 'compliant' : 'non-compliant',
+                        'last_report' => $item->last_report_date ? Carbon::parse($item->last_report_date)->format('d M Y') : 'No reports',
+                    ];
+                })->toArray(),
+            ];
+        } catch (\Throwable $e) {
+            Log::error('Failed to get compliance status', ['exception' => $e]);
+            return [
+                'total_instansi' => 0,
+                'compliant_instansi' => 0,
+                'compliance_rate' => 0.0,
+                'instansi_list' => [],
+            ];
+        }
+    }
+
+    /**
+     * Aggregate performance summary grouped by indicator category.
+     *
+     * @param string $period Period filter string.
+     * @return array<int,array<string,mixed>> Performance summary list.
+     */
+    protected function getPerformanceSummary(string $period = 'current_year'): array
+    {
+        try {
+            $dateRange = $this->getDateRange($period);
+
+            $performanceByCategory = DB::table('laporan_kinerjas')
+                ->join('indikator_kinerjas', 'laporan_kinerjas.indikator_kinerja_id', '=', 'indikator_kinerjas.id')
+                ->select(
+                    'indikator_kinerjas.jenis as kategori',
+                    DB::raw('COUNT(*) as indicator_count'),
+                    DB::raw('AVG(persentase_capaian) as average_achievement'),
+                    DB::raw('COUNT(CASE WHEN persentase_capaian >= 100 THEN 1 END) as excellent_count'),
+                    DB::raw('COUNT(CASE WHEN persentase_capaian >= 80 AND persentase_capaian < 100 THEN 1 END) as good_count'),
+                    DB::raw('COUNT(CASE WHEN persentase_capaian >= 60 AND persentase_capaian < 80 THEN 1 END) as fair_count'),
+                    DB::raw('COUNT(CASE WHEN persentase_capaian < 60 THEN 1 END) as poor_count')
+                )
+                ->whereBetween('laporan_kinerjas.created_at', $dateRange)
+                ->groupBy('indikator_kinerjas.jenis')
+                ->get();
+
+            return $performanceByCategory->map(function ($item) {
+                return [
+                    'category' => $item->kategori,
+                    'total_indicators' => $item->indicator_count,
+                    'average_achievement' => round($item->average_achievement, 2),
+                    'performance_distribution' => [
+                        'excellent' => $item->excellent_count,
+                        'good' => $item->good_count,
+                        'fair' => $item->fair_count,
+                        'poor' => $item->poor_count,
+                    ],
+                ];
+            })->toArray();
+        } catch (\Throwable $e) {
+            Log::error('Failed to get performance summary', ['exception' => $e]);
+            return [];
+        }
+    }
+
+    /**
+     * Count total indicators created in the date range.
+     *
+     * @param array{0: Carbon, 1: Carbon} $dateRange Start and end dates.
+     * @return int Total count or 0 on error.
+     */
+    protected function getTotalIndicators(array $dateRange): int
+    {
+        try {
+            return DB::table('indikator_kinerjas')
+                ->whereBetween('created_at', $dateRange)
+                ->count();
+        } catch (\Throwable $e) {
+            Log::error('Failed to count total indicators', ['exception' => $e]);
             return 0;
         }
-
-        $totalAchievement = 0;
-        $count = 0;
-
-        foreach ($indicators as $indicator) {
-            $achievement = $this->calculateIndicatorAchievement($indicator, $year);
-            if ($achievement !== null) {
-                $totalAchievement += $achievement;
-                $count++;
-            }
-        }
-
-        return $count > 0 ? round($totalAchievement / $count, 2) : 0;
     }
 
     /**
-     * Calculate indicator achievement
+     * Count active programs in the date range.
+     *
+     * @param array{0: Carbon, 1: Carbon} $dateRange Start and end dates.
+     * @return int Active programs count or 0 on error.
      */
-    protected function calculateIndicatorAchievement($indicator, $year): ?float
+    protected function getActivePrograms(array $dateRange): int
     {
-        $target = $indicator->targets->where('year', $year)->first()?->target_value;
-        $actual = $indicator->performanceData->where('period_year', $year)->sum('actual_value');
-
-        if (!$target || $target == 0) {
-            return null;
-        }
-
-        return round(($actual / $target) * 100, 2);
-    }
-
-    /**
-     * Calculate institution achievement
-     */
-    protected function calculateInstansiAchievement($instansi, $year): float
-    {
-        $indicators = $instansi->performanceIndicators;
-        return $this->calculateAverageAchievement($indicators, $year);
-    }
-
-    /**
-     * Calculate institution completion rate
-     */
-    protected function calculateInstansiCompletion($instansi, $year): float
-    {
-        $totalIndicators = $instansi->performanceIndicators->count();
-        $indicatorsWithData = $instansi->performanceIndicators->filter(function ($indicator) use ($year) {
-            return $indicator->performanceData->where('period_year', $year)->isNotEmpty();
-        })->count();
-
-        return $totalIndicators > 0 ? round(($indicatorsWithData / $totalIndicators) * 100, 2) : 0;
-    }
-
-    /**
-     * Get current period
-     */
-    protected function getCurrentPeriod(): string
-    {
-        $month = date('n');
-        return $month <= 6 ? 'first_semester' : 'second_semester';
-    }
-
-    /**
-     * Get data collection deadline
-     */
-    protected function getDataCollectionDeadline($indicator = null): Carbon
-    {
-        // Default deadline: end of current semester
-        $year = date('Y');
-        $period = $this->currentPeriod;
-        
-        if ($period === 'first_semester') {
-            return Carbon::create($year, 7, 31); // July 31
-        } else {
-            return Carbon::create($year, 12, 31); // December 31
+        try {
+            return DB::table('programs')
+                ->where('status', 'aktif')
+                ->whereBetween('created_at', $dateRange)
+                ->count();
+        } catch (\Throwable $e) {
+            Log::error('Failed to count active programs', ['exception' => $e]);
+            return 0;
         }
     }
 
     /**
-     * Clear dashboard cache
+     * Count total activities in the date range.
+     *
+     * @param array{0: Carbon, 1: Carbon} $dateRange Start and end dates.
+     * @return int Activities count or 0 on error.
      */
-    public function clearCache($instansiId = null, $year = null): void
+    protected function getTotalActivities(array $dateRange): int
     {
-        $year = $year ?: $this->currentYear;
-        
-        $cacheKeys = [
-            "sakip_executive_dashboard_{$instansiId}_{$year}",
-            "sakip_data_collector_dashboard_{$instansiId}_{$year}",
-            "sakip_assessor_dashboard_{$instansiId}_{$year}",
-            "sakip_audit_dashboard_{$instansiId}_{$year}",
-        ];
-
-        foreach ($cacheKeys as $key) {
-            Cache::forget($key);
+        try {
+            return DB::table('kegiatans')
+                ->whereBetween('created_at', $dateRange)
+                ->count();
+        } catch (\Throwable $e) {
+            Log::error('Failed to count total activities', ['exception' => $e]);
+            return 0;
         }
+    }
+
+    /**
+     * Count total reports in the date range.
+     *
+     * @param array{0: Carbon, 1: Carbon} $dateRange Start and end dates.
+     * @return int Reports count or 0 on error.
+     */
+    protected function getTotalReports(array $dateRange): int
+    {
+        try {
+            return DB::table('laporan_kinerjas')
+                ->whereBetween('created_at', $dateRange)
+                ->count();
+        } catch (\Throwable $e) {
+            Log::error('Failed to count total reports', ['exception' => $e]);
+            return 0;
+        }
+    }
+
+    /**
+     * Average achievement percentage in the date range.
+     *
+     * @param array{0: Carbon, 1: Carbon} $dateRange Start and end dates.
+     * @return float Average or 0.0 on error.
+     */
+    protected function getAverageAchievement(array $dateRange): float
+    {
+        try {
+            $average = DB::table('laporan_kinerjas')
+                ->whereBetween('created_at', $dateRange)
+                ->avg('persentase_capaian');
+            return round($average ?? 0, 2);
+        } catch (\Throwable $e) {
+            Log::error('Failed to compute average achievement', ['exception' => $e]);
+            return 0.0;
+        }
+    }
+
+    /**
+     * Compliance rate based on reporting instansi.
+     *
+     * @param array{0: Carbon, 1: Carbon} $dateRange Start and end dates.
+     * @return float Rate percentage or 0.0 on error.
+     */
+    protected function getComplianceRate(array $dateRange): float
+    {
+        try {
+            $totalInstansi = DB::table('instansis')->count();
+            $reportingInstansi = DB::table('reports')
+                ->whereBetween('created_at', $dateRange)
+                ->distinct('instansi_id')
+                ->count('instansi_id');
+            return $totalInstansi > 0 ? round(($reportingInstansi / $totalInstansi) * 100, 2) : 0.0;
+        } catch (\Throwable $e) {
+            Log::error('Failed to compute compliance rate', ['exception' => $e]);
+            return 0.0;
+        }
+    }
+
+    /**
+     * Resolve date range based on period.
+     *
+     * @param string $period One of allowed period keys; defaults to current_year.
+     * @return array{0: Carbon, 1: Carbon} Start and end Carbon instances.
+     */
+    protected function getDateRange(string $period): array
+    {
+        $allowed = ['current_month', 'last_month', 'current_quarter', 'last_quarter', 'current_year'];
+        $period = in_array($period, $allowed, true) ? $period : 'current_year';
+
+        $now = Carbon::now();
+        switch ($period) {
+            case 'current_month':
+                return [
+                    $now->copy()->startOfMonth(),
+                    $now->copy()->endOfMonth()
+                ];
+            case 'last_month':
+                $lastMonth = $now->copy()->subMonth();
+                return [
+                    $lastMonth->copy()->startOfMonth(),
+                    $lastMonth->copy()->endOfMonth()
+                ];
+            case 'current_quarter':
+                return [
+                    $now->copy()->startOfQuarter(),
+                    $now->copy()->endOfQuarter()
+                ];
+            case 'last_quarter':
+                $lastQuarter = $now->copy()->subQuarter();
+                return [
+                    $lastQuarter->copy()->startOfQuarter(),
+                    $lastQuarter->copy()->endOfQuarter()
+                ];
+            case 'current_year':
+            default:
+                return [
+                    $now->copy()->startOfYear(),
+                    $now->copy()->endOfYear()
+                ];
+        }
+    }
+
+    /**
+     * Clear cached dashboard aggregates for common periods.
+     *
+     * @return void
+     */
+    public function clearCache(): void
+    {
+        Cache::forget('sakip_dashboard_current_year_' . auth()->id());
+        Cache::forget('sakip_dashboard_current_month_' . auth()->id());
+        Cache::forget('sakip_dashboard_current_quarter_' . auth()->id());
     }
 }

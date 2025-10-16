@@ -1,430 +1,396 @@
 /**
- * SAKIP Dashboard JavaScript Module
- * Handles dashboard charts, KPI widgets, and real-time updates
+ * SAKIP Dashboard Module
+ * Handles dashboard functionality and data visualization
  */
 
-class SakipDashboard {
-    constructor() {
-        this.charts = {};
-        this.updateInterval = null;
-        this.init();
+(function (root, factory) {
+    if (typeof define === 'function' && define.amd) {
+        define(['chart.js'], factory);
+    } else if (typeof module === 'object' && module.exports) {
+        module.exports = factory(require('chart.js'));
+    } else {
+        root.SAKIP_DASHBOARD = factory(root.Chart);
     }
+}(typeof self !== 'undefined' ? self : this, function (Chart) {
 
     /**
-     * Initialize dashboard functionality
+     * Dashboard Manager Class
      */
-    init() {
-        this.initializeCharts();
-        this.setupEventListeners();
-        this.startRealTimeUpdates();
-        this.initializeKPIWidgets();
-    }
-
-    /**
-     * Initialize all dashboard charts
-     */
-    initializeCharts() {
-        this.initializeAchievementChart();
-        this.initializeTrendChart();
-        this.initializeCategoryChart();
-        this.initializeComplianceChart();
-    }
-
-    /**
-     * Initialize achievement chart
-     */
-    initializeAchievementChart() {
-        const ctx = document.getElementById('achievementChart');
-        if (!ctx) return;
-
-        const data = JSON.parse(ctx.dataset.chartData || '{}');
-        
-        this.charts.achievement = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: data.labels || ['Q1', 'Q2', 'Q3', 'Q4'],
-                datasets: [{
-                    label: 'Pencapaian (%)',
-                    data: data.values || [0, 0, 0, 0],
-                    backgroundColor: '#1e40af',
-                    borderColor: '#1e3a8a',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    title: {
-                        display: true,
-                        text: 'Pencapaian Kinerja Triwulan'
-                    },
-                    legend: {
-                        display: false
-                    }
+    class DashboardManager {
+        constructor(options = {}) {
+            this.options = {
+                refreshInterval: 300000, // 5 minutes
+                autoRefresh: true,
+                chartColors: {
+                    primary: '#3b82f6',
+                    secondary: '#10b981',
+                    success: '#22c55e',
+                    warning: '#f59e0b',
+                    danger: '#ef4444',
+                    info: '#06b6d4'
                 },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 100,
-                        ticks: {
-                            callback: function(value) {
-                                return value + '%';
-                            }
-                        }
-                    }
+                ...options
+            };
+            
+            this.charts = new Map();
+            this.refreshTimer = null;
+            this.isRefreshing = false;
+            
+            this.init();
+        }
+
+        /**
+         * Initialize dashboard
+         */
+        init() {
+            this.setupEventListeners();
+            this.loadDashboardData();
+            
+            if (this.options.autoRefresh) {
+                this.startAutoRefresh();
+            }
+        }
+
+        /**
+         * Setup event listeners
+         */
+        setupEventListeners() {
+            document.addEventListener('click', (e) => {
+                if (e.target.matches('[data-dashboard-action="refresh"]')) {
+                    e.preventDefault();
+                    this.refreshDashboard();
                 }
-            }
-        });
-    }
-
-    /**
-     * Initialize trend chart
-     */
-    initializeTrendChart() {
-        const ctx = document.getElementById('trendChart');
-        if (!ctx) return;
-
-        const data = JSON.parse(ctx.dataset.chartData || '{}');
-        
-        this.charts.trend = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: data.labels || ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun'],
-                datasets: [{
-                    label: 'Target',
-                    data: data.targetValues || [0, 0, 0, 0, 0, 0],
-                    borderColor: '#d97706',
-                    backgroundColor: 'rgba(217, 119, 6, 0.1)',
-                    tension: 0.4
-                }, {
-                    label: 'Realisasi',
-                    data: data.actualValues || [0, 0, 0, 0, 0, 0],
-                    borderColor: '#059669',
-                    backgroundColor: 'rgba(5, 150, 105, 0.1)',
-                    tension: 0.4
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    title: {
-                        display: true,
-                        text: 'Tren Kinerja 6 Bulan Terakhir'
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
+                
+                if (e.target.matches('[data-dashboard-action="export"]')) {
+                    e.preventDefault();
+                    const format = e.target.dataset.format || 'pdf';
+                    this.exportDashboard(format);
                 }
-            }
-        });
-    }
-
-    /**
-     * Initialize category chart
-     */
-    initializeCategoryChart() {
-        const ctx = document.getElementById('categoryChart');
-        if (!ctx) return;
-
-        const data = JSON.parse(ctx.dataset.chartData || '{}');
-        
-        this.charts.category = new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: data.labels || ['Input', 'Output', 'Outcome', 'Impact'],
-                datasets: [{
-                    data: data.values || [25, 25, 25, 25],
-                    backgroundColor: [
-                        '#1e40af',
-                        '#059669',
-                        '#d97706',
-                        '#dc2626'
-                    ]
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    title: {
-                        display: true,
-                        text: 'Distribusi Indikator berdasarkan Kategori'
-                    }
-                }
-            }
-        });
-    }
-
-    /**
-     * Initialize compliance chart
-     */
-    initializeComplianceChart() {
-        const ctx = document.getElementById('complianceChart');
-        if (!ctx) return;
-
-        const data = JSON.parse(ctx.dataset.chartData || '{}');
-        
-        this.charts.compliance = new Chart(ctx, {
-            type: 'radar',
-            data: {
-                labels: data.labels || ['Kelengkapan Data', 'Ketepatan Waktu', 'Kualitas Data', 'Dokumentasi', 'Validasi'],
-                datasets: [{
-                    label: 'Kepatuhan',
-                    data: data.values || [80, 75, 90, 85, 88],
-                    borderColor: '#1e40af',
-                    backgroundColor: 'rgba(30, 64, 175, 0.2)',
-                    pointBackgroundColor: '#1e40af'
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    title: {
-                        display: true,
-                        text: 'Status Kepatuhan SAKIP'
-                    }
-                },
-                scales: {
-                    r: {
-                        beginAtZero: true,
-                        max: 100
-                    }
-                }
-            }
-        });
-    }
-
-    /**
-     * Setup event listeners
-     */
-    setupEventListeners() {
-        // Period filter change
-        document.getElementById('periodFilter')?.addEventListener('change', (e) => {
-            this.updateDashboardData(e.target.value);
-        });
-
-        // Institution filter change
-        document.getElementById('institutionFilter')?.addEventListener('change', (e) => {
-            this.updateDashboardData(null, e.target.value);
-        });
-
-        // Refresh button
-        document.getElementById('refreshDashboard')?.addEventListener('click', () => {
-            this.refreshDashboard();
-        });
-    }
-
-    /**
-     * Initialize KPI widgets
-     */
-    initializeKPIWidgets() {
-        this.updateKPIWidgets();
-        
-        // Set up periodic updates
-        setInterval(() => {
-            this.updateKPIWidgets();
-        }, 30000); // Update every 30 seconds
-    }
-
-    /**
-     * Update KPI widgets with animation
-     */
-    updateKPIWidgets() {
-        const widgets = document.querySelectorAll('.kpi-widget');
-        
-        widgets.forEach(widget => {
-            const valueElement = widget.querySelector('.kpi-value');
-            const targetValue = parseFloat(valueElement.dataset.targetValue || '0');
-            const currentValue = parseFloat(valueElement.textContent) || 0;
-            
-            this.animateValue(valueElement, currentValue, targetValue, 1000);
-        });
-    }
-
-    /**
-     * Animate number value changes
-     */
-    animateValue(element, start, end, duration) {
-        const startTime = performance.now();
-        const endTime = startTime + duration;
-        
-        const animate = (currentTime) => {
-            if (currentTime >= endTime) {
-                element.textContent = this.formatNumber(end);
-                return;
-            }
-            
-            const timeFraction = (currentTime - startTime) / duration;
-            const value = start + (end - start) * timeFraction;
-            
-            element.textContent = this.formatNumber(value);
-            requestAnimationFrame(animate);
-        };
-        
-        requestAnimationFrame(animate);
-    }
-
-    /**
-     * Format number for display
-     */
-    formatNumber(value) {
-        if (value >= 1000000) {
-            return (value / 1000000).toFixed(1) + 'M';
-        } else if (value >= 1000) {
-            return (value / 1000).toFixed(1) + 'K';
-        } else {
-            return Math.round(value).toString();
-        }
-    }
-
-    /**
-     * Update dashboard data
-     */
-    async updateDashboardData(period = null, institution = null) {
-        try {
-            const params = new URLSearchParams();
-            if (period) params.append('period', period);
-            if (institution) params.append('institution', institution);
-            
-            const response = await fetch(`/sakip/api/dashboard-data?${params}`);
-            const data = await response.json();
-            
-            this.updateCharts(data);
-            this.updateAlerts(data.alerts);
-            
-        } catch (error) {
-            console.error('Error updating dashboard data:', error);
-            this.showNotification('Error memperbarui data dashboard', 'error');
-        }
-    }
-
-    /**
-     * Update charts with new data
-     */
-    updateCharts(data) {
-        if (data.achievementData && this.charts.achievement) {
-            this.charts.achievement.data.datasets[0].data = data.achievementData;
-            this.charts.achievement.update();
-        }
-        
-        if (data.trendData && this.charts.trend) {
-            this.charts.trend.data.datasets[0].data = data.trendData.target;
-            this.charts.trend.data.datasets[1].data = data.trendData.actual;
-            this.charts.trend.update();
-        }
-        
-        if (data.categoryData && this.charts.category) {
-            this.charts.category.data.datasets[0].data = data.categoryData;
-            this.charts.category.update();
-        }
-        
-        if (data.complianceData && this.charts.compliance) {
-            this.charts.compliance.data.datasets[0].data = data.complianceData;
-            this.charts.compliance.update();
-        }
-    }
-
-    /**
-     * Update alerts section
-     */
-    updateAlerts(alerts) {
-        const alertsContainer = document.getElementById('dashboardAlerts');
-        if (!alertsContainer) return;
-        
-        alertsContainer.innerHTML = alerts.map(alert => `
-            <div class="alert alert-${alert.type} alert-dismissible fade show" role="alert">
-                <strong>${alert.title}</strong> ${alert.message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        `).join('');
-    }
-
-    /**
-     * Refresh dashboard
-     */
-    refreshDashboard() {
-        const refreshButton = document.getElementById('refreshDashboard');
-        const originalText = refreshButton.innerHTML;
-        
-        refreshButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memuat...';
-        refreshButton.disabled = true;
-        
-        this.updateDashboardData()
-            .then(() => {
-                refreshButton.innerHTML = originalText;
-                refreshButton.disabled = false;
-                this.showNotification('Dashboard berhasil diperbarui', 'success');
-            })
-            .catch(() => {
-                refreshButton.innerHTML = originalText;
-                refreshButton.disabled = false;
             });
-    }
 
-    /**
-     * Start real-time updates
-     */
-    startRealTimeUpdates() {
-        // Update every 5 minutes
-        this.updateInterval = setInterval(() => {
-            this.updateDashboardData();
-        }, 300000);
-    }
+            document.addEventListener('change', (e) => {
+                if (e.target.matches('[data-dashboard-filter]')) {
+                    this.applyFilter(e.target.dataset.filter, e.target.value);
+                }
+            });
+        }
 
-    /**
-     * Stop real-time updates
-     */
-    stopRealTimeUpdates() {
-        if (this.updateInterval) {
-            clearInterval(this.updateInterval);
-            this.updateInterval = null;
+        /**
+         * Load dashboard data
+         */
+        async loadDashboardData() {
+            try {
+                this.showLoadingState();
+                
+                const response = await this.makeApiRequest('/sakip/api/dashboard-data');
+                const data = await response.json();
+                
+                this.updateDashboard(data);
+                this.hideLoadingState();
+                
+            } catch (error) {
+                console.error('Failed to load dashboard data:', error);
+                this.showErrorState('Failed to load dashboard data');
+            }
+        }
+
+        /**
+         * Update dashboard with new data
+         */
+        updateDashboard(data) {
+            this.updateKeyMetrics(data.metrics);
+            this.updateCharts(data.charts);
+            this.updateTables(data.tables);
+            this.updateNotifications(data.notifications);
+        }
+
+        /**
+         * Update key metrics
+         */
+        updateKeyMetrics(metrics) {
+            if (!metrics) return;
+
+            Object.keys(metrics).forEach(key => {
+                const element = document.querySelector(`[data-metric="${key}"]`);
+                if (element) {
+                    const value = metrics[key];
+                    element.textContent = this.formatMetric(value, key);
+                    
+                    // Add animation class
+                    element.classList.add('metric-updated');
+                    setTimeout(() => element.classList.remove('metric-updated'), 1000);
+                }
+            });
+        }
+
+        /**
+         * Update charts
+         */
+        updateCharts(charts) {
+            if (!charts) return;
+
+            Object.keys(charts).forEach(chartId => {
+                const chartData = charts[chartId];
+                const canvas = document.getElementById(chartId);
+                
+                if (canvas) {
+                    this.renderChart(canvas, chartData);
+                }
+            });
+        }
+
+        /**
+         * Render individual chart
+         */
+        renderChart(canvas, data) {
+            const ctx = canvas.getContext('2d');
+            const chartId = canvas.id;
+            
+            // Destroy existing chart if present
+            if (this.charts.has(chartId)) {
+                this.charts.get(chartId).destroy();
+            }
+
+            const chart = new Chart(ctx, {
+                type: data.type || 'bar',
+                data: data.data,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: data.title
+                        }
+                    },
+                    ...data.options
+                }
+            });
+
+            this.charts.set(chartId, chart);
+        }
+
+        /**
+         * Update tables
+         */
+        updateTables(tables) {
+            if (!tables) return;
+
+            Object.keys(tables).forEach(tableId => {
+                const tableData = tables[tableId];
+                const table = document.getElementById(tableId);
+                
+                if (table && window.SAKIP_DATA_TABLES) {
+                    const dataTable = new SAKIP_DATA_TABLES.DataTable(table, {
+                        data: tableData.data,
+                        columns: tableData.columns,
+                        ...tableData.options
+                    });
+                }
+            });
+        }
+
+        /**
+         * Update notifications
+         */
+        updateNotifications(notifications) {
+            if (!notifications || !window.SAKIP_NOTIFICATION) return;
+
+            notifications.forEach(notification => {
+                window.SAKIP_NOTIFICATION.show(notification);
+            });
+        }
+
+        /**
+         * Format metric value
+         */
+        formatMetric(value, type) {
+            switch (type) {
+                case 'percentage':
+                    return `${value.toFixed(1)}%`;
+                case 'currency':
+                    return new Intl.NumberFormat('id-ID', {
+                        style: 'currency',
+                        currency: 'IDR'
+                    }).format(value);
+                case 'number':
+                    return new Intl.NumberFormat('id-ID').format(value);
+                default:
+                    return value;
+            }
+        }
+
+        /**
+         * Apply filter
+         */
+        applyFilter(filterType, filterValue) {
+            this.loadDashboardData();
+        }
+
+        /**
+         * Refresh dashboard
+         */
+        async refreshDashboard() {
+            if (this.isRefreshing) return;
+            
+            this.isRefreshing = true;
+            await this.loadDashboardData();
+            this.isRefreshing = false;
+        }
+
+        /**
+         * Export dashboard
+         */
+        exportDashboard(format) {
+            const url = `/sakip/reports/dashboard/export?format=${format}`;
+            window.open(url, '_blank');
+        }
+
+        /**
+         * Start auto refresh
+         */
+        startAutoRefresh() {
+            this.refreshTimer = setInterval(() => {
+                this.refreshDashboard();
+            }, this.options.refreshInterval);
+        }
+
+        /**
+         * Stop auto refresh
+         */
+        stopAutoRefresh() {
+            if (this.refreshTimer) {
+                clearInterval(this.refreshTimer);
+                this.refreshTimer = null;
+            }
+        }
+
+        /**
+         * Show loading state
+         */
+        showLoadingState() {
+            document.body.classList.add('dashboard-loading');
+        }
+
+        /**
+         * Hide loading state
+         */
+        hideLoadingState() {
+            document.body.classList.remove('dashboard-loading');
+        }
+
+        /**
+         * Show error state
+         */
+        showErrorState(message) {
+            if (window.SAKIP_NOTIFICATION) {
+                window.SAKIP_NOTIFICATION.show({
+                    type: 'error',
+                    title: 'Dashboard Error',
+                    message: message
+                });
+            }
+        }
+
+        /**
+         * Make API request
+         */
+        async makeApiRequest(url, options = {}) {
+            const defaultOptions = {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            };
+
+            const response = await fetch(url, {
+                ...defaultOptions,
+                ...options
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            return response;
+        }
+
+        /**
+         * Destroy dashboard
+         */
+        destroy() {
+            this.stopAutoRefresh();
+            
+            // Destroy all charts
+            this.charts.forEach(chart => chart.destroy());
+            this.charts.clear();
         }
     }
 
     /**
-     * Show notification
+     * Public API
      */
-    showNotification(message, type = 'info') {
-        // Use Laravel's notification system or custom implementation
-        const notification = document.createElement('div');
-        notification.className = `alert alert-${type} position-fixed top-0 end-0 m-3`;
-        notification.style.zIndex = '9999';
-        notification.innerHTML = `
-            ${message}
-            <button type="button" class="btn-close ms-2" data-bs-dismiss="alert"></button>
-        `;
+    return {
+        DashboardManager,
         
-        document.body.appendChild(notification);
-        
-        setTimeout(() => {
-            notification.remove();
-        }, 5000);
-    }
+        /**
+         * Initialize dashboard
+         */
+        init: function(options) {
+            return new DashboardManager(options);
+        },
 
-    /**
-     * Cleanup method
-     */
-    destroy() {
-        this.stopRealTimeUpdates();
-        
-        // Destroy all charts
-        Object.values(this.charts).forEach(chart => {
-            if (chart) chart.destroy();
-        });
-        
-        this.charts = {};
-    }
-}
+        /**
+         * Create chart
+         */
+        createChart: function(canvasId, data, options = {}) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return null;
 
-// Initialize dashboard when DOM is ready
-document.addEventListener('DOMContentLoaded', function() {
-    window.sakipDashboard = new SakipDashboard();
-});
+            const ctx = canvas.getContext('2d');
+            return new Chart(ctx, {
+                type: data.type || 'bar',
+                data: data.data,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    ...options
+                }
+            });
+        },
 
-// Cleanup on page unload
-window.addEventListener('beforeunload', function() {
-    if (window.sakipDashboard) {
-        window.sakipDashboard.destroy();
-    }
-});
+        /**
+         * Update chart
+         */
+        updateChart: function(chartId, newData) {
+            const chart = Chart.getChart(chartId);
+            if (chart) {
+                chart.data = newData;
+                chart.update();
+            }
+        },
+
+        /**
+         * Format number for display
+         */
+        formatNumber: function(number, type = 'number') {
+            switch (type) {
+                case 'percentage':
+                    return `${number.toFixed(1)}%`;
+                case 'currency':
+                    return new Intl.NumberFormat('id-ID', {
+                        style: 'currency',
+                        currency: 'IDR'
+                    }).format(number);
+                case 'number':
+                default:
+                    return new Intl.NumberFormat('id-ID').format(number);
+            }
+        }
+    };
+
+}));

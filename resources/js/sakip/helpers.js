@@ -1,477 +1,378 @@
 /**
- * SAKIP Helper Functions
- * Utility functions for date formatting, number formatting, status badges, and file handling
+ * SAKIP Helpers Module
+ * Provides utility functions for SAKIP integration
  */
 
-// Date formatting utilities
-const SakipDateFormatter = {
+(function (root, factory) {
+    if (typeof define === 'function' && define.amd) {
+        define([], factory);
+    } else if (typeof module === 'object' && module.exports) {
+        module.exports = factory();
+    } else {
+        root.SAKIP_HELPERS = factory();
+    }
+}(typeof self !== 'undefined' ? self : this, function () {
+
     /**
-     * Format date for government reports (Indonesian format)
+     * CSRF token for AJAX requests
      */
-    formatGovernmentDate(date, format = 'full') {
-        const options = {
-            full: { year: 'numeric', month: 'long', day: 'numeric' },
-            month: { year: 'numeric', month: 'long' },
-            short: { year: 'numeric', month: 'short', day: 'numeric' },
-            datetime: { 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
+    let csrfToken = null;
+
+    /**
+     * API base URL
+     */
+    const API_BASE_URL = '/sakip/api';
+
+    /**
+     * Helper functions
+     */
+    const Helpers = {
+
+        /**
+         * Set CSRF token
+         */
+        setCsrfToken: function(token) {
+            csrfToken = token;
+        },
+
+        /**
+         * Get CSRF token
+         */
+        getCsrfToken: function() {
+            if (!csrfToken) {
+                const tokenElement = document.querySelector('meta[name="csrf-token"]');
+                csrfToken = tokenElement ? tokenElement.getAttribute('content') : null;
             }
-        };
-        
-        const dateObj = typeof date === 'string' ? new Date(date) : date;
-        
-        if (isNaN(dateObj.getTime())) {
-            return 'Tanggal tidak valid';
-        }
-        
-        return dateObj.toLocaleDateString('id-ID', options[format] || options.full);
-    },
+            return csrfToken;
+        },
 
-    /**
-     * Format date for input fields (YYYY-MM-DD)
-     */
-    formatInputDate(date) {
-        const dateObj = typeof date === 'string' ? new Date(date) : date;
-        
-        if (isNaN(dateObj.getTime())) {
-            return '';
-        }
-        
-        const year = dateObj.getFullYear();
-        const month = String(dateObj.getMonth() + 1).padStart(2, '0');
-        const day = String(dateObj.getDate()).padStart(2, '0');
-        
-        return `${year}-${month}-${day}`;
-    },
+        /**
+         * Make API request
+         */
+        apiRequest: async function(url, options = {}) {
+            const token = this.getCsrfToken();
+            const headers = {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                ...options.headers
+            };
 
-    /**
-     * Get quarter from date
-     */
-    getQuarter(date) {
-        const dateObj = typeof date === 'string' ? new Date(date) : date;
-        const month = dateObj.getMonth() + 1;
-        
-        return Math.ceil(month / 3);
-    },
+            if (token) {
+                headers['X-CSRF-TOKEN'] = token;
+            }
 
-    /**
-     * Get semester from date
-     */
-    getSemester(date) {
-        const dateObj = typeof date === 'string' ? new Date(date) : date;
-        const month = dateObj.getMonth() + 1;
-        
-        return month <= 6 ? 1 : 2;
-    },
-
-    /**
-     * Get fiscal year (April - March)
-     */
-    getFiscalYear(date) {
-        const dateObj = typeof date === 'string' ? new Date(date) : date;
-        const year = dateObj.getFullYear();
-        const month = dateObj.getMonth() + 1;
-        
-        // Fiscal year starts in April
-        return month >= 4 ? year : year - 1;
-    }
-};
-
-// Number formatting utilities
-const SakipNumberFormatter = {
-    /**
-     * Format performance percentage
-     */
-    formatPercentage(value, decimals = 2) {
-        const num = parseFloat(value);
-        
-        if (isNaN(num)) {
-            return '-';
-        }
-        
-        return `${num.toFixed(decimals)}%`;
-    },
-
-    /**
-     * Format currency (IDR)
-     */
-    formatCurrency(amount, showSymbol = true) {
-        const num = parseFloat(amount);
-        
-        if (isNaN(num)) {
-            return '-';
-        }
-        
-        const formatted = new Intl.NumberFormat('id-ID', {
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 0
-        }).format(num);
-        
-        return showSymbol ? `Rp ${formatted}` : formatted;
-    },
-
-    /**
-     * Format number with thousand separators
-     */
-    formatNumber(value, decimals = 0) {
-        const num = parseFloat(value);
-        
-        if (isNaN(num)) {
-            return '-';
-        }
-        
-        return new Intl.NumberFormat('id-ID', {
-            minimumFractionDigits: decimals,
-            maximumFractionDigits: decimals
-        }).format(num);
-    },
-
-    /**
-     * Format target achievement
-     */
-    formatAchievement(target, actual) {
-        const targetNum = parseFloat(target);
-        const actualNum = parseFloat(actual);
-        
-        if (isNaN(targetNum) || isNaN(actualNum) || targetNum === 0) {
-            return { percentage: 0, status: 'error' };
-        }
-        
-        const percentage = (actualNum / targetNum) * 100;
-        
-        let status = 'success';
-        if (percentage < 50) status = 'danger';
-        else if (percentage < 80) status = 'warning';
-        else if (percentage < 100) status = 'info';
-        
-        return {
-            percentage: Math.round(percentage * 100) / 100,
-            status: status
-        };
-    },
-
-    /**
-     * Format performance score
-     */
-    formatScore(score, maxScore = 100) {
-        const scoreNum = parseFloat(score);
-        
-        if (isNaN(scoreNum)) {
-            return { score: 0, grade: 'E', color: 'danger' };
-        }
-        
-        const percentage = maxScore > 0 ? (scoreNum / maxScore) * 100 : 0;
-        
-        let grade = 'E';
-        let color = 'danger';
-        
-        if (percentage >= 90) {
-            grade = 'A';
-            color = 'success';
-        } else if (percentage >= 80) {
-            grade = 'B';
-            color = 'info';
-        } else if (percentage >= 70) {
-            grade = 'C';
-            color = 'warning';
-        } else if (percentage >= 60) {
-            grade = 'D';
-            color = 'orange';
-        }
-        
-        return {
-            score: Math.round(percentage * 100) / 100,
-            grade: grade,
-            color: color
-        };
-    }
-};
-
-// Status badge utilities
-const SakipStatusBadge = {
-    /**
-     * Create status badge
-     */
-    createBadge(text, type = 'secondary', size = 'sm') {
-        const colors = {
-            success: 'bg-success',
-            warning: 'bg-warning',
-            danger: 'bg-danger',
-            info: 'bg-info',
-            primary: 'bg-primary',
-            secondary: 'bg-secondary',
-            light: 'bg-light text-dark',
-            dark: 'bg-dark'
-        };
-        
-        const sizes = {
-            sm: 'badge-sm',
-            md: '',
-            lg: 'badge-lg'
-        };
-        
-        return `<span class="badge ${colors[type]} ${sizes[size]}">${text}</span>`;
-    },
-
-    /**
-     * Create achievement badge
-     */
-    createAchievementBadge(percentage) {
-        const num = parseFloat(percentage);
-        
-        if (isNaN(num)) {
-            return this.createBadge('Data Error', 'secondary');
-        }
-        
-        if (num >= 100) {
-            return this.createBadge('Tercapai', 'success');
-        } else if (num >= 80) {
-            return this.createBadge('Hampir Tercapai', 'info');
-        } else if (num >= 60) {
-            return this.createBadge('Kurang', 'warning');
-        } else {
-            return this.createBadge('Belum Tercapai', 'danger');
-        }
-    },
-
-    /**
-     * Create compliance badge
-     */
-    createComplianceBadge(status) {
-        const badges = {
-            'compliant': this.createBadge('Patuh', 'success'),
-            'non_compliant': this.createBadge('Tidak Patuh', 'danger'),
-            'partially_compliant': this.createBadge('Sebagian Patuh', 'warning'),
-            'not_applicable': this.createBadge('Tidak Berlaku', 'secondary'),
-            'pending': this.createBadge('Menunggu', 'info')
-        };
-        
-        return badges[status] || this.createBadge('Unknown', 'secondary');
-    },
-
-    /**
-     * Create assessment badge
-     */
-    createAssessmentBadge(score) {
-        const result = SakipNumberFormatter.formatScore(score);
-        return this.createBadge(`${result.score}% (${result.grade})`, result.color);
-    },
-
-    /**
-     * Create priority badge
-     */
-    createPriorityBadge(priority) {
-        const badges = {
-            'low': this.createBadge('Rendah', 'success'),
-            'medium': this.createBadge('Menengah', 'warning'),
-            'high': this.createBadge('Tinggi', 'danger'),
-            'urgent': this.createBadge('Darurat', 'danger')
-        };
-        
-        return badges[priority] || this.createBadge('Unknown', 'secondary');
-    },
-
-    /**
-     * Create status badge for data collection
-     */
-    createDataStatusBadge(status) {
-        const badges = {
-            'draft': this.createBadge('Draft', 'secondary'),
-            'submitted': this.createBadge('Dikirim', 'info'),
-            'verified': this.createBadge('Terverifikasi', 'success'),
-            'rejected': this.createBadge('Ditolak', 'danger'),
-            'pending': this.createBadge('Menunggu', 'warning')
-        };
-        
-        return badges[status] || this.createBadge('Unknown', 'secondary');
-    }
-};
-
-// File upload utilities
-const SakipFileUpload = {
-    /**
-     * Validate file upload
-     */
-    validateFile(file, allowedTypes, maxSize) {
-        const errors = [];
-        
-        // Check file type
-        if (allowedTypes && allowedTypes.length > 0) {
-            const fileExtension = file.name.split('.').pop().toLowerCase();
-            const mimeType = file.type;
-            
-            const isAllowed = allowedTypes.some(type => {
-                if (type.startsWith('.')) {
-                    return fileExtension === type.slice(1);
-                }
-                return mimeType.includes(type) || fileExtension === type;
+            const response = await fetch(url, {
+                ...options,
+                headers
             });
-            
-            if (!isAllowed) {
-                errors.push(`Tipe file tidak diizinkan. Tipe yang diizinkan: ${allowedTypes.join(', ')}`);
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
-        }
-        
-        // Check file size
-        if (maxSize && file.size > maxSize) {
-            const maxSizeMB = (maxSize / (1024 * 1024)).toFixed(2);
-            errors.push(`Ukuran file melebihi batas maksimum ${maxSizeMB} MB`);
-        }
-        
-        return {
-            valid: errors.length === 0,
-            errors: errors
-        };
-    },
 
-    /**
-     * Format file size
-     */
-    formatFileSize(bytes) {
-        if (bytes === 0) return '0 Bytes';
-        
-        const k = 1024;
-        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
-        
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-    },
+            return response;
+        },
 
-    /**
-     * Get file icon
-     */
-    getFileIcon(filename) {
-        const extension = filename.split('.').pop().toLowerCase();
-        
-        const iconMap = {
-            'pdf': 'fas fa-file-pdf text-danger',
-            'doc': 'fas fa-file-word text-primary',
-            'docx': 'fas fa-file-word text-primary',
-            'xls': 'fas fa-file-excel text-success',
-            'xlsx': 'fas fa-file-excel text-success',
-            'ppt': 'fas fa-file-powerpoint text-warning',
-            'pptx': 'fas fa-file-powerpoint text-warning',
-            'jpg': 'fas fa-file-image text-info',
-            'jpeg': 'fas fa-file-image text-info',
-            'png': 'fas fa-file-image text-info',
-            'zip': 'fas fa-file-archive text-secondary',
-            'rar': 'fas fa-file-archive text-secondary',
-            'txt': 'fas fa-file-alt text-muted'
-        };
-        
-        return iconMap[extension] || 'fas fa-file text-muted';
-    },
+        /**
+         * GET request
+         */
+        get: function(url, params = {}) {
+            const queryString = new URLSearchParams(params).toString();
+            const fullUrl = queryString ? `${url}?${queryString}` : url;
+            return this.apiRequest(fullUrl);
+        },
 
-    /**
-     * Create file preview
-     */
-    createFilePreview(file, options = {}) {
-        const { showSize = true, showIcon = true, removable = false } = options;
-        
-        const preview = document.createElement('div');
-        preview.className = 'file-preview-item';
-        preview.dataset.filename = file.name;
-        
-        let content = '';
-        
-        if (showIcon) {
-            const iconClass = this.getFileIcon(file.name);
-            content += `<i class="${iconClass}"></i> `;
-        }
-        
-        content += `<span class="file-name">${file.name}</span>`;
-        
-        if (showSize) {
-            content += ` <span class="file-size text-muted">(${this.formatFileSize(file.size)})</span>`;
-        }
-        
-        if (removable) {
-            content += ' <button type="button" class="btn btn-sm btn-link text-danger remove-file" title="Hapus file">';
-            content += '<i class="fas fa-times"></i></button>';
-        }
-        
-        preview.innerHTML = content;
-        
-        return preview;
-    },
-
-    /**
-     * Handle drag and drop
-     */
-    setupDragAndDrop(dropZone, callback, options = {}) {
-        const { allowedTypes, maxSize, multiple = true } = options;
-        
-        // Prevent default drag behaviors
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            dropZone.addEventListener(eventName, preventDefaults, false);
-            document.body.addEventListener(eventName, preventDefaults, false);
-        });
-        
-        // Highlight drop zone when item is dragged over it
-        ['dragenter', 'dragover'].forEach(eventName => {
-            dropZone.addEventListener(eventName, highlight, false);
-        });
-        
-        ['dragleave', 'drop'].forEach(eventName => {
-            dropZone.addEventListener(eventName, unhighlight, false);
-        });
-        
-        // Handle dropped files
-        dropZone.addEventListener('drop', handleDrop, false);
-        
-        function preventDefaults(e) {
-            e.preventDefault();
-            e.stopPropagation();
-        }
-        
-        function highlight() {
-            dropZone.classList.add('drag-over');
-        }
-        
-        function unhighlight() {
-            dropZone.classList.remove('drag-over');
-        }
-        
-        function handleDrop(e) {
-            const dt = e.dataTransfer;
-            const files = multiple ? [...dt.files] : [dt.files[0]];
-            
-            handleFiles(files);
-        }
-        
-        function handleFiles(files) {
-            const validFiles = [];
-            const errors = [];
-            
-            files.forEach(file => {
-                const validation = SakipFileUpload.validateFile(file, allowedTypes, maxSize);
-                
-                if (validation.valid) {
-                    validFiles.push(file);
-                } else {
-                    errors.push({ file: file.name, errors: validation.errors });
-                }
+        /**
+         * POST request
+         */
+        post: function(url, data = {}) {
+            return this.apiRequest(url, {
+                method: 'POST',
+                body: JSON.stringify(data)
             });
-            
-            if (validFiles.length > 0) {
-                callback(validFiles, errors);
-            } else if (errors.length > 0) {
-                // Show validation errors
-                const errorMessages = errors.map(e => `${e.file}: ${e.errors.join(', ')}`).join('\n');
-                alert(`Validasi file gagal:\n${errorMessages}`);
-            }
-        }
-    }
-};
+        },
 
-// Export utilities for use in other modules
-window.SakipHelpers = {
-    DateFormatter: SakipDateFormatter,
-    NumberFormatter: SakipNumberFormatter,
-    StatusBadge: SakipStatusBadge,
-    FileUpload: SakipFileUpload
-};
+        /**
+         * PUT request
+         */
+        put: function(url, data = {}) {
+            return this.apiRequest(url, {
+                method: 'PUT',
+                body: JSON.stringify(data)
+            });
+        },
+
+        /**
+         * DELETE request
+         */
+        delete: function(url) {
+            return this.apiRequest(url, {
+                method: 'DELETE'
+            });
+        },
+
+        /**
+         * Format date
+         */
+        formatDate: function(date, format = 'DD/MM/YYYY') {
+            const d = new Date(date);
+            
+            const day = d.getDate().toString().padStart(2, '0');
+            const month = (d.getMonth() + 1).toString().padStart(2, '0');
+            const year = d.getFullYear();
+
+            return format
+                .replace('DD', day)
+                .replace('MM', month)
+                .replace('YYYY', year);
+        },
+
+        /**
+         * Format datetime
+         */
+        formatDateTime: function(date, format = 'DD/MM/YYYY HH:mm') {
+            const d = new Date(date);
+            
+            const day = d.getDate().toString().padStart(2, '0');
+            const month = (d.getMonth() + 1).toString().padStart(2, '0');
+            const year = d.getFullYear();
+            const hours = d.getHours().toString().padStart(2, '0');
+            const minutes = d.getMinutes().toString().padStart(2, '0');
+
+            return format
+                .replace('DD', day)
+                .replace('MM', month)
+                .replace('YYYY', year)
+                .replace('HH', hours)
+                .replace('mm', minutes);
+        },
+
+        /**
+         * Format currency
+         */
+        formatCurrency: function(amount, currency = 'IDR') {
+            return new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: currency
+            }).format(amount);
+        },
+
+        /**
+         * Format number
+         */
+        formatNumber: function(number, decimals = 0) {
+            return new Intl.NumberFormat('id-ID', {
+                minimumFractionDigits: decimals,
+                maximumFractionDigits: decimals
+            }).format(number);
+        },
+
+        /**
+         * Format percentage
+         */
+        formatPercentage: function(value, decimals = 1) {
+            return `${value.toFixed(decimals)}%`;
+        },
+
+        /**
+         * Deep clone object
+         */
+        deepClone: function(obj) {
+            if (obj === null || typeof obj !== 'object') return obj;
+            if (obj instanceof Date) return new Date(obj.getTime());
+            if (obj instanceof Array) return obj.map(item => this.deepClone(item));
+            if (typeof obj === 'object') {
+                const cloned = {};
+                Object.keys(obj).forEach(key => {
+                    cloned[key] = this.deepClone(obj[key]);
+                });
+                return cloned;
+            }
+        },
+
+        /**
+         * Generate unique ID
+         */
+        generateId: function(prefix = 'sakip') {
+            const timestamp = Date.now().toString(36);
+            const random = Math.random().toString(36).substr(2, 9);
+            return `${prefix}_${timestamp}_${random}`;
+        },
+
+        /**
+         * Debounce function
+         */
+        debounce: function(func, wait, immediate = false) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    timeout = null;
+                    if (!immediate) func(...args);
+                };
+                const callNow = immediate && !timeout;
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+                if (callNow) func(...args);
+            };
+        },
+
+        /**
+         * Throttle function
+         */
+        throttle: function(func, limit) {
+            let inThrottle;
+            return function() {
+                const args = arguments;
+                const context = this;
+                if (!inThrottle) {
+                    func.apply(context, args);
+                    inThrottle = true;
+                    setTimeout(() => inThrottle = false, limit);
+                }
+            };
+        },
+
+        /**
+         * Show loading state
+         */
+        showLoading: function(element) {
+            const el = typeof element === 'string' ? document.querySelector(element) : element;
+            if (el) {
+                el.classList.add('sakip-loading');
+            }
+        },
+
+        /**
+         * Hide loading state
+         */
+        hideLoading: function(element) {
+            const el = typeof element === 'string' ? document.querySelector(element) : element;
+            if (el) {
+                el.classList.remove('sakip-loading');
+            }
+        },
+
+        /**
+         * Show error message
+         */
+        showError: function(message, title = 'Error') {
+            if (window.SAKIP_NOTIFICATION) {
+                window.SAKIP_NOTIFICATION.show({
+                    type: 'error',
+                    title: title,
+                    message: message
+                });
+            } else {
+                alert(`${title}: ${message}`);
+            }
+        },
+
+        /**
+         * Show success message
+         */
+        showSuccess: function(message, title = 'Success') {
+            if (window.SAKIP_NOTIFICATION) {
+                window.SAKIP_NOTIFICATION.show({
+                    type: 'success',
+                    title: title,
+                    message: message
+                });
+            } else {
+                alert(`${title}: ${message}`);
+            }
+        },
+
+        /**
+         * Validate form data
+         */
+        validateForm: function(formData, rules) {
+            const errors = {};
+
+            Object.keys(rules).forEach(field => {
+                const fieldRules = rules[field].split('|');
+                const value = formData[field];
+
+                fieldRules.forEach(rule => {
+                    const [ruleName, ruleValue] = rule.split(':');
+
+                    switch (ruleName) {
+                        case 'required':
+                            if (!value || value.trim() === '') {
+                                errors[field] = errors[field] || [];
+                                errors[field].push(`${field} is required`);
+                            }
+                            break;
+                        case 'min':
+                            if (value && value.length < parseInt(ruleValue)) {
+                                errors[field] = errors[field] || [];
+                                errors[field].push(`${field} must be at least ${ruleValue} characters`);
+                            }
+                            break;
+                        case 'max':
+                            if (value && value.length > parseInt(ruleValue)) {
+                                errors[field] = errors[field] || [];
+                                errors[field].push(`${field} must not exceed ${ruleValue} characters`);
+                            }
+                            break;
+                        case 'email':
+                            if (value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+                                errors[field] = errors[field] || [];
+                                errors[field].push(`${field} must be a valid email`);
+                            }
+                            break;
+                    }
+                });
+            });
+
+            return Object.keys(errors).length > 0 ? errors : null;
+        },
+
+        /**
+         * Get file extension
+         */
+        getFileExtension: function(filename) {
+            return filename.split('.').pop().toLowerCase();
+        },
+
+        /**
+         * Format file size
+         */
+        formatFileSize: function(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        },
+
+        /**
+         * Sanitize HTML
+         */
+        sanitizeHtml: function(html) {
+            const div = document.createElement('div');
+            div.textContent = html;
+            return div.innerHTML;
+        },
+
+        /**
+         * Escape special characters
+         */
+        escapeHtml: function(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
+    };
+
+    /**
+     * Public API
+     */
+    return Helpers;
+
+}));

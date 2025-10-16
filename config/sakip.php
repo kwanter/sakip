@@ -6,311 +6,114 @@ return [
     | SAKIP Configuration
     |--------------------------------------------------------------------------
     |
-    | Configuration settings for SAKIP (Sistem Akuntabilitas Kinerja Instansi Pemerintah)
+    | This file contains the configuration for the SAKIP (Sistem Akuntabilitas
+    | Kinerja Instansi Pemerintah) system.
     |
     */
 
-    'app' => [
-        'name' => env('SAKIP_APP_NAME', 'SAKIP'),
-        'version' => env('SAKIP_VERSION', '1.0.0'),
-        'institution_name' => env('SAKIP_INSTITUTION_NAME', 'Instansi Pemerintah'),
-        'institution_code' => env('SAKIP_INSTITUTION_CODE', '000'),
+    'enabled' => env('SAKIP_ENABLED', true),
+
+    'api' => [
+        'prefix' => 'sakip/api',
+        'middleware' => ['auth', 'api'],
+        'rate_limit' => env('SAKIP_API_RATE_LIMIT', 60),
     ],
 
-    /*
-    |--------------------------------------------------------------------------
-    | Assessment Configuration
-    |--------------------------------------------------------------------------
-    */
+    'cache' => [
+        'enabled' => env('SAKIP_CACHE_ENABLED', true),
+        'ttl' => env('SAKIP_CACHE_TTL', 3600), // 1 hour
+        'prefix' => 'sakip',
+    ],
+
+    'dashboard' => [
+        'default_period' => 'current_year',
+        'chart_colors' => [
+            '#3B82F6', '#EF4444', '#10B981', '#F59E0B',
+            '#8B5CF6', '#EC4899', '#06B6D4', '#84CC16'
+        ],
+    ],
 
     'assessment' => [
         'scoring' => [
-            'min_score' => 0,
-            'max_score' => 100,
-            'passing_score' => 60,
-            'weight_distribution' => [
-                'planning' => 15,
-                'implementation' => 35,
-                'monitoring' => 25,
-                'evaluation' => 25,
-            ],
-        ],
-        'grading' => [
-            'A' => ['min' => 90, 'max' => 100, 'color' => 'success'],
-            'B' => ['min' => 80, 'max' => 89, 'color' => 'info'],
-            'C' => ['min' => 70, 'max' => 79, 'color' => 'warning'],
-            'D' => ['min' => 60, 'max' => 69, 'color' => 'orange'],
-            'E' => ['min' => 0, 'max' => 59, 'color' => 'danger'],
-        ],
-        'frequency' => [
-            'quarterly' => 'Triwulan',
-            'semester' => 'Semester',
-            'annual' => 'Tahunan',
-        ],
-        'status' => [
-            'draft' => 'Draft',
-            'submitted' => 'Dikirim',
-            'verified' => 'Terverifikasi',
-            'rejected' => 'Ditolak',
-            'approved' => 'Disetujui',
+            'excellent' => ['min' => 90, 'max' => 100, 'label' => 'Sangat Baik'],
+            'good' => ['min' => 80, 'max' => 89, 'label' => 'Baik'],
+            'adequate' => ['min' => 70, 'max' => 79, 'label' => 'Cukup'],
+            'poor' => ['min' => 60, 'max' => 69, 'label' => 'Kurang'],
+            'very_poor' => ['min' => 0, 'max' => 59, 'label' => 'Sangat Kurang'],
         ],
     ],
 
-    /*
-    |--------------------------------------------------------------------------
-    | Performance Indicators Configuration
-    |--------------------------------------------------------------------------
-    */
-
-    'performance_indicators' => [
+    'indicators' => [
         'categories' => [
             'outcome' => 'Outcome',
             'output' => 'Output',
             'input' => 'Input',
-            'process' => 'Proses',
+            'process' => 'Process',
         ],
-        'measurement_units' => [
+        'units' => [
             'percentage' => 'Persentase (%)',
             'number' => 'Angka',
-            'ratio' => 'Rasio',
+            'rupiah' => 'Rupiah (Rp)',
+            'unit' => 'Satuan',
             'time' => 'Waktu',
-            'cost' => 'Biaya',
-            'quantity' => 'Kuantitas',
-            'quality' => 'Kualitas',
-        ],
-        'frequencies' => [
-            'monthly' => 'Bulanan',
-            'quarterly' => 'Triwulan',
-            'semester' => 'Semester',
-            'annual' => 'Tahunan',
-        ],
-        'collection_methods' => [
-            'manual' => 'Manual',
-            'automatic' => 'Otomatis',
-            'survey' => 'Survei',
-            'interview' => 'Wawancara',
-        ],
-        'data_sources' => [
-            'internal' => 'Internal',
-            'external' => 'Eksternal',
-            'third_party' => 'Pihak Ketiga',
-            'survey' => 'Survei',
         ],
     ],
-
-    /*
-    |--------------------------------------------------------------------------
-    | Report Configuration
-    |--------------------------------------------------------------------------
-    */
 
     'reports' => [
         'types' => [
-            'performance' => 'Laporan Kinerja',
-            'compliance' => 'Laporan Kepatuhan',
-            'assessment' => 'Laporan Penilaian',
-            'audit' => 'Laporan Audit',
-            'summary' => 'Ringkasan Kinerja',
-        ],
-        'formats' => [
-            'pdf' => 'PDF',
-            'excel' => 'Excel',
-            'word' => 'Word',
-        ],
-        'periods' => [
-            'monthly' => 'Bulanan',
             'quarterly' => 'Triwulan',
             'semester' => 'Semester',
             'annual' => 'Tahunan',
-            'custom' => 'Kustom',
+            'monthly' => 'Bulanan',
         ],
-        'templates' => [
-            'standard' => 'Standar',
-            'detailed' => 'Detail',
-            'executive' => 'Eksekutif',
-            'technical' => 'Teknis',
-        ],
+        'formats' => ['pdf', 'excel', 'word'],
     ],
-
-    /*
-    |--------------------------------------------------------------------------
-    | File Upload Configuration
-    |--------------------------------------------------------------------------
-    */
-
-    'file_upload' => [
-        'max_size' => env('SAKIP_MAX_FILE_SIZE', 10 * 1024 * 1024), // 10MB
-        'allowed_types' => [
-            'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx',
-            'jpg', 'jpeg', 'png', 'gif', 'zip', 'rar', 'txt'
-        ],
-        'evidence_path' => 'sakip/evidence',
-        'report_path' => 'sakip/reports',
-        'temp_path' => 'sakip/temp',
-    ],
-
-    /*
-    |--------------------------------------------------------------------------
-    | Notification Configuration
-    |--------------------------------------------------------------------------
-    */
 
     'notifications' => [
-        'channels' => ['database', 'mail', 'broadcast'],
-        'types' => [
-            'assessment_submitted' => 'Penilaian Dikirim',
-            'assessment_verified' => 'Penilaian Diverifikasi',
-            'assessment_rejected' => 'Penilaian Ditolak',
-            'assessment_approved' => 'Penilaian Disetujui',
-            'data_submitted' => 'Data Dikirim',
-            'data_verified' => 'Data Diverifikasi',
-            'deadline_reminder' => 'Pengingat Tenggat',
-            'report_generated' => 'Laporan Dihasilkan',
+        'enabled' => env('SAKIP_NOTIFICATIONS_ENABLED', true),
+        'channels' => ['database', 'mail'],
+        'email' => [
+            'from' => env('SAKIP_NOTIFICATION_EMAIL_FROM', env('MAIL_FROM_ADDRESS')),
+            'subject_prefix' => env('SAKIP_NOTIFICATION_SUBJECT_PREFIX', '[SAKIP]'),
         ],
-        'priorities' => [
-            'low' => 'Rendah',
-            'medium' => 'Menengah',
-            'high' => 'Tinggi',
-            'urgent' => 'Darurat',
-        ],
-        'retention_days' => 30,
     ],
-
-    /*
-    |--------------------------------------------------------------------------
-    | Audit Configuration
-    |--------------------------------------------------------------------------
-    */
 
     'audit' => [
-        'retention_days' => 365,
+        'enabled' => env('SAKIP_AUDIT_ENABLED', true),
+        'retention_days' => env('SAKIP_AUDIT_RETENTION_DAYS', 365),
         'log_types' => [
-            'create' => 'Membuat',
-            'update' => 'Memperbarui',
-            'delete' => 'Menghapus',
-            'view' => 'Melihat',
-            'export' => 'Mengekspor',
-            'import' => 'Mengimpor',
-            'approve' => 'Menyetujui',
-            'reject' => 'Menolak',
-            'verify' => 'Memverifikasi',
-        ],
-        'modules' => [
-            'assessment' => 'Penilaian',
-            'performance_indicator' => 'Indikator Kinerja',
-            'target' => 'Target',
-            'performance_data' => 'Data Kinerja',
-            'evidence' => 'Bukti',
-            'report' => 'Laporan',
-            'user' => 'Pengguna',
+            'create', 'update', 'delete', 'view', 'export', 'import', 'login', 'logout'
         ],
     ],
 
-    /*
-    |--------------------------------------------------------------------------
-    | Compliance Configuration
-    |--------------------------------------------------------------------------
-    */
+    'file_upload' => [
+        'max_size' => env('SAKIP_FILE_MAX_SIZE', 10240), // 10MB in KB
+        'allowed_types' => ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'jpg', 'jpeg', 'png'],
+        'storage_path' => env('SAKIP_FILE_STORAGE_PATH', 'sakip/uploads'),
+    ],
 
     'compliance' => [
-        'status' => [
-            'compliant' => 'Patuh',
-            'non_compliant' => 'Tidak Patuh',
-            'partially_compliant' => 'Sebagian Patuh',
-            'not_applicable' => 'Tidak Berlaku',
-            'pending' => 'Menunggu',
-        ],
-        'categories' => [
-            'regulatory' => 'Regulasi',
-            'policy' => 'Kebijakan',
-            'procedure' => 'Prosedur',
-            'standard' => 'Standar',
-        ],
-        'severity' => [
-            'low' => 'Rendah',
-            'medium' => 'Menengah',
-            'high' => 'Tinggi',
-            'critical' => 'Kritis',
-        ],
+        'warning_threshold' => env('SAKIP_COMPLIANCE_WARNING_THRESHOLD', 7), // days
+        'critical_threshold' => env('SAKIP_COMPLIANCE_CRITICAL_THRESHOLD', 3), // days
     ],
 
-    /*
-    |--------------------------------------------------------------------------
-    | Chart Configuration
-    |--------------------------------------------------------------------------
-    */
-
-    'charts' => [
-        'colors' => [
-            'primary' => '#007bff',
-            'success' => '#28a745',
-            'warning' => '#ffc107',
-            'danger' => '#dc3545',
-            'info' => '#17a2b8',
-            'secondary' => '#6c757d',
-            'light' => '#f8f9fa',
-            'dark' => '#343a40',
-        ],
-        'types' => [
-            'line' => 'Garis',
-            'bar' => 'Batang',
-            'pie' => 'Pie',
-            'doughnut' => 'Donat',
-            'radar' => 'Radar',
-            'polar' => 'Polar',
-        ],
-        'default_options' => [
-            'responsive' => true,
-            'maintainAspectRatio' => false,
-            'plugins' => [
-                'legend' => [
-                    'position' => 'top',
-                ],
-                'tooltip' => [
-                    'enabled' => true,
-                ],
-            ],
-            'scales' => [
-                'y' => [
-                    'beginAtZero' => true,
-                ],
-            ],
-        ],
+    'roles' => [
+        'admin' => 'Administrator',
+        'manager' => 'Manager',
+        'staff' => 'Staff',
+        'viewer' => 'Viewer',
     ],
 
-    /*
-    |--------------------------------------------------------------------------
-    | API Configuration
-    |--------------------------------------------------------------------------
-    */
-
-    'api' => [
-        'pagination' => [
-            'per_page' => 15,
-            'max_per_page' => 100,
-        ],
-        'rate_limit' => [
-            'per_minute' => 60,
-            'per_hour' => 1000,
-        ],
-        'cache' => [
-            'ttl' => 3600, // 1 hour
-            'tags' => ['sakip'],
-        ],
-    ],
-
-    /*
-    |--------------------------------------------------------------------------
-    | Security Configuration
-    |--------------------------------------------------------------------------
-    */
-
-    'security' => [
-        'encryption_key' => env('SAKIP_ENCRYPTION_KEY'),
-        'allowed_ips' => explode(',', env('SAKIP_ALLOWED_IPS', '')),
-        'session_timeout' => 1800, // 30 minutes
-        'password_expiry_days' => 90,
-        'max_login_attempts' => 5,
-        'lockout_duration' => 900, // 15 minutes
+    'permissions' => [
+        'view_dashboard' => 'View Dashboard',
+        'manage_indicators' => 'Manage Indicators',
+        'manage_programs' => 'Manage Programs',
+        'manage_activities' => 'Manage Activities',
+        'manage_reports' => 'Manage Reports',
+        'manage_assessments' => 'Manage Assessments',
+        'manage_users' => 'Manage Users',
+        'view_audit_logs' => 'View Audit Logs',
+        'export_data' => 'Export Data',
+        'import_data' => 'Import Data',
     ],
 ];

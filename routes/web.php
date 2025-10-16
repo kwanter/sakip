@@ -94,6 +94,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
 // Include SAKIP routes
 require __DIR__.'/web_sakip.php';
 
+// SAKIP Test Routes (Development only)
+if (app()->environment('local', 'development')) {
+    Route::prefix('sakip-test')->group(function () {
+        Route::get('/dashboard', [\App\Http\Controllers\SakipTestController::class, 'testDashboard'])->name('sakip.test.dashboard');
+        Route::get('/datatable', [\App\Http\Controllers\SakipTestController::class, 'testDataTable'])->name('sakip.test.datatable');
+        Route::get('/notification', [\App\Http\Controllers\SakipTestController::class, 'testNotification'])->name('sakip.test.notification');
+        Route::get('/configuration', [\App\Http\Controllers\SakipTestController::class, 'testConfiguration'])->name('sakip.test.configuration');
+        Route::get('/helpers', [\App\Http\Controllers\SakipTestController::class, 'testHelpers'])->name('sakip.test.helpers');
+    });
+}
+
 // API Routes untuk AJAX
 Route::prefix('api')->middleware('auth')->group(function () {
     Route::get('program/by-instansi/{instansi}', [ProgramController::class, 'apiByInstansi']);

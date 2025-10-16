@@ -1,744 +1,325 @@
 /**
- * SAKIP Notification System JavaScript Module
- * Handles real-time notifications, alerts, and user communication
+ * SAKIP Notification Module
+ * Provides notification and alert functionality
  */
 
-class SakipNotification {
-    constructor() {
-        this.notifications = [];
-        this.unreadCount = 0;
-        this.wsConnection = null;
-        this.reconnectAttempts = 0;
-        this.maxReconnectAttempts = 5;
-        this.init();
+(function (root, factory) {
+    if (typeof define === 'function' && define.amd) {
+        define([], factory);
+    } else if (typeof module === 'object' && module.exports) {
+        module.exports = factory();
+    } else {
+        root.SAKIP_NOTIFICATION = factory();
     }
+}(typeof self !== 'undefined' ? self : this, function () {
 
     /**
-     * Initialize notification system
+     * Notification system
      */
-    init() {
-        this.initializeUI();
-        this.setupWebSocket();
-        this.loadNotifications();
-        this.setupEventHandlers();
-        this.startPolling();
-    }
-
-    /**
-     * Initialize notification UI
-     */
-    initializeUI() {
-        // Create notification dropdown if not exists
-        this.createNotificationDropdown();
-        
-        // Create notification container
-        this.createNotificationContainer();
-        
-        // Update unread count badge
-        this.updateUnreadBadge();
-    }
-
-    /**
-     * Create notification dropdown
-     */
-    createNotificationDropdown() {
-        const notificationBell = document.getElementById('notificationBell');
-        if (!notificationBell) return;
-        
-        // Create dropdown menu
-        const dropdownMenu = document.createElement('div');
-        dropdownMenu.className = 'dropdown-menu dropdown-menu-end notification-dropdown';
-        dropdownMenu.style.width = '400px';
-        dropdownMenu.style.maxHeight = '500px';
-        dropdownMenu.style.overflowY = 'auto';
-        dropdownMenu.innerHTML = `
-            <div class="notification-header">
-                <h6 class="dropdown-header">Notifikasi</h6>
-                <div class="notification-actions">
-                    <button class="btn btn-sm btn-link mark-all-read" id="markAllRead">
-                        Tandai semua sudah dibaca
-                    </button>
-                    <button class="btn btn-sm btn-link clear-all" id="clearAllNotifications">
-                        Hapus semua
-                    </button>
-                </div>
-            </div>
-            <div class="notification-list" id="notificationList">
-                <div class="notification-loading" id="notificationLoading">
-                    <div class="text-center p-3">
-                        <div class="spinner-border spinner-border-sm text-primary" role="status">
-                            <span class="visually-hidden">Loading...</span>
-                        </div>
-                        <div class="mt-2">Memuat notifikasi...</div>
-                    </div>
-                </div>
-            </div>
-            <div class="notification-footer">
-                <a href="/sakip/notifications" class="dropdown-item text-center">
-                    Lihat semua notifikasi
-                </a>
-            </div>
-        `;
-        
-        // Insert after bell
-        notificationBell.parentNode.insertBefore(dropdownMenu, notificationBell.nextSibling);
-        
-        // Setup dropdown behavior
-        notificationBell.addEventListener('click', (e) => {
-            e.preventDefault();
-            this.toggleNotificationDropdown();
-        });
-        
-        // Setup action handlers
-        this.setupNotificationActions();
-    }
-
-    /**
-     * Setup notification actions
-     */
-    setupNotificationActions() {
-        // Mark all as read
-        const markAllReadBtn = document.getElementById('markAllRead');
-        if (markAllReadBtn) {
-            markAllReadBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.markAllAsRead();
-            });
+    class NotificationManager {
+        constructor() {
+            this.container = null;
+            this.init();
         }
-        
-        // Clear all notifications
-        const clearAllBtn = document.getElementById('clearAllNotifications');
-        if (clearAllBtn) {
-            clearAllBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.clearAllNotifications();
-            });
-        }
-    }
 
-    /**
-     * Create notification container for toast notifications
-     */
-    createNotificationContainer() {
-        // Create container if not exists
-        if (!document.getElementById('notificationContainer')) {
-            const container = document.createElement('div');
-            container.id = 'notificationContainer';
-            container.className = 'notification-container';
-            container.style.position = 'fixed';
-            container.style.top = '20px';
-            container.style.right = '20px';
-            container.style.zIndex = '9999';
-            container.style.maxWidth = '400px';
-            
-            document.body.appendChild(container);
+        /**
+         * Initialize notification system
+         */
+        init() {
+            this.createContainer();
         }
-    }
 
-    /**
-     * Setup WebSocket connection
-     */
-    setupWebSocket() {
-        if (!window.WebSocket) {
-            console.warn('WebSocket not supported, falling back to polling');
-            return;
+        /**
+         * Create notification container
+         */
+        createContainer() {
+            if (this.container) return;
+
+            this.container = document.createElement('div');
+            this.container.id = 'sakip-notifications';
+            this.container.className = 'sakip-notification-container';
+            document.body.appendChild(this.container);
+
+            // Add styles
+            this.addStyles();
         }
-        
-        try {
-            // Connect to WebSocket server
-            this.wsConnection = new WebSocket(`ws://${window.location.host}/ws/notifications`);
-            
-            this.wsConnection.onopen = () => {
-                console.log('WebSocket connection established');
-                this.reconnectAttempts = 0;
-                this.showConnectionStatus('connected');
-            };
-            
-            this.wsConnection.onmessage = (event) => {
-                try {
-                    const data = JSON.parse(event.data);
-                    this.handleWebSocketMessage(data);
-                } catch (error) {
-                    console.error('Error parsing WebSocket message:', error);
+
+        /**
+         * Add notification styles
+         */
+        addStyles() {
+            if (document.getElementById('sakip-notification-styles')) return;
+
+            const styles = `
+                .sakip-notification-container {
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    z-index: 10000;
+                    max-width: 400px;
                 }
+
+                .sakip-notification {
+                    margin-bottom: 10px;
+                    padding: 16px 20px;
+                    border-radius: 8px;
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                    background: white;
+                    border-left: 4px solid;
+                    animation: slideIn 0.3s ease-out;
+                    position: relative;
+                }
+
+                .sakip-notification.success {
+                    border-left-color: #10b981;
+                    background: #f0fdf4;
+                }
+
+                .sakip-notification.error {
+                    border-left-color: #ef4444;
+                    background: #fef2f2;
+                }
+
+                .sakip-notification.warning {
+                    border-left-color: #f59e0b;
+                    background: #fffbeb;
+                }
+
+                .sakip-notification.info {
+                    border-left-color: #3b82f6;
+                    background: #eff6ff;
+                }
+
+                .sakip-notification-header {
+                    display: flex;
+                    align-items: center;
+                    margin-bottom: 4px;
+                }
+
+                .sakip-notification-icon {
+                    width: 20px;
+                    height: 20px;
+                    margin-right: 8px;
+                    flex-shrink: 0;
+                }
+
+                .sakip-notification-title {
+                    font-weight: 600;
+                    font-size: 14px;
+                    margin: 0;
+                }
+
+                .sakip-notification-message {
+                    font-size: 13px;
+                    line-height: 1.4;
+                    margin: 0;
+                    color: #374151;
+                }
+
+                .sakip-notification-close {
+                    position: absolute;
+                    top: 8px;
+                    right: 8px;
+                    background: none;
+                    border: none;
+                    font-size: 16px;
+                    cursor: pointer;
+                    color: #6b7280;
+                    padding: 4px;
+                    border-radius: 4px;
+                }
+
+                .sakip-notification-close:hover {
+                    background: rgba(0, 0, 0, 0.05);
+                    color: #374151;
+                }
+
+                @keyframes slideIn {
+                    from {
+                        transform: translateX(100%);
+                        opacity: 0;
+                    }
+                    to {
+                        transform: translateX(0);
+                        opacity: 1;
+                    }
+                }
+
+                @keyframes slideOut {
+                    from {
+                        transform: translateX(0);
+                        opacity: 1;
+                    }
+                    to {
+                        transform: translateX(100%);
+                        opacity: 0;
+                    }
+                }
+
+                .sakip-notification.hiding {
+                    animation: slideOut 0.3s ease-out;
+                }
+            `;
+
+            const styleElement = document.createElement('style');
+            styleElement.id = 'sakip-notification-styles';
+            styleElement.textContent = styles;
+            document.head.appendChild(styleElement);
+        }
+
+        /**
+         * Show notification
+         */
+        show(options) {
+            const notification = this.createNotification(options);
+            this.container.appendChild(notification);
+
+            // Auto hide after duration
+            if (options.duration !== false) {
+                setTimeout(() => {
+                    this.hide(notification);
+                }, options.duration || 5000);
+            }
+
+            return notification;
+        }
+
+        /**
+         * Create notification element
+         */
+        createNotification(options) {
+            const notification = document.createElement('div');
+            notification.className = `sakip-notification ${options.type || 'info'}`;
+
+            // Icon based on type
+            const iconSvg = this.getIconSvg(options.type || 'info');
+
+            notification.innerHTML = `
+                <div class="sakip-notification-header">
+                    ${iconSvg}
+                    <h4 class="sakip-notification-title">${this.escapeHtml(options.title || 'Notification')}</h4>
+                </div>
+                <div class="sakip-notification-message">${this.escapeHtml(options.message || '')}</div>
+                <button class="sakip-notification-close" onclick="this.parentElement.remove()">&times;</button>
+            `;
+
+            return notification;
+        }
+
+        /**
+         * Get icon SVG
+         */
+        getIconSvg(type) {
+            const icons = {
+                success: `<svg class="sakip-notification-icon" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                </svg>`,
+                error: `<svg class="sakip-notification-icon" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+                </svg>`,
+                warning: `<svg class="sakip-notification-icon" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                </svg>`,
+                info: `<svg class="sakip-notification-icon" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                </svg>`
             };
-            
-            this.wsConnection.onclose = () => {
-                console.log('WebSocket connection closed');
-                this.showConnectionStatus('disconnected');
-                this.attemptReconnection();
-            };
-            
-            this.wsConnection.onerror = (error) => {
-                console.error('WebSocket error:', error);
-                this.showConnectionStatus('error');
-            };
-            
-        } catch (error) {
-            console.error('Error establishing WebSocket connection:', error);
-            this.showConnectionStatus('error');
+
+            return icons[type] || icons.info;
         }
-    }
 
-    /**
-     * Handle WebSocket message
-     */
-    handleWebSocketMessage(data) {
-        switch (data.type) {
-            case 'notification':
-                this.addNotification(data.notification);
-                break;
-            case 'notification_update':
-                this.updateNotification(data.notification);
-                break;
-            case 'notification_delete':
-                this.deleteNotification(data.notification_id);
-                break;
-            case 'unread_count':
-                this.updateUnreadCount(data.count);
-                break;
-            default:
-                console.log('Unknown message type:', data.type);
+        /**
+         * Escape HTML
+         */
+        escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
-    }
 
-    /**
-     * Attempt reconnection
-     */
-    attemptReconnection() {
-        if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-            console.log('Max reconnection attempts reached');
-            return;
-        }
-        
-        this.reconnectAttempts++;
-        const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 30000); // Exponential backoff
-        
-        console.log(`Attempting reconnection ${this.reconnectAttempts}/${this.maxReconnectAttempts} in ${delay}ms`);
-        
-        setTimeout(() => {
-            this.setupWebSocket();
-        }, delay);
-    }
-
-    /**
-     * Show connection status
-     */
-    showConnectionStatus(status) {
-        const statusElement = document.getElementById('notificationStatus');
-        if (!statusElement) return;
-        
-        const statusConfig = {
-            connected: { text: 'Terhubung', class: 'text-success' },
-            disconnected: { text: 'Terputus', class: 'text-warning' },
-            error: { text: 'Error', class: 'text-danger' }
-        };
-        
-        const config = statusConfig[status] || statusConfig.disconnected;
-        
-        statusElement.textContent = config.text;
-        statusElement.className = `notification-status ${config.class}`;
-    }
-
-    /**
-     * Load notifications via AJAX
-     */
-    async loadNotifications() {
-        try {
-            const response = await fetch('/sakip/api/notifications');
-            const result = await response.json();
-            
-            if (result.success) {
-                this.notifications = result.data;
-                this.unreadCount = result.unread_count || 0;
-                this.renderNotifications();
-                this.updateUnreadBadge();
-            } else {
-                console.error('Failed to load notifications:', result.message);
-            }
-            
-        } catch (error) {
-            console.error('Error loading notifications:', error);
-        }
-    }
-
-    /**
-     * Setup event handlers
-     */
-    setupEventHandlers() {
-        // Handle notification clicks
-        document.addEventListener('click', (e) => {
-            if (e.target.closest('.notification-item')) {
-                const notificationId = e.target.closest('.notification-item').dataset.notificationId;
-                this.handleNotificationClick(notificationId);
-            }
-        });
-        
-        // Handle mark as read
-        document.addEventListener('click', (e) => {
-            if (e.target.closest('.mark-as-read-btn')) {
-                const notificationId = e.target.closest('.mark-as-read-btn').dataset.notificationId;
-                this.markAsRead(notificationId);
-            }
-        });
-        
-        // Handle delete notification
-        document.addEventListener('click', (e) => {
-            if (e.target.closest('.delete-notification-btn')) {
-                const notificationId = e.target.closest('.delete-notification-btn').dataset.notificationId;
-                this.deleteNotification(notificationId);
-            }
-        });
-        
-        // Handle dropdown close
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('.notification-dropdown') && !e.target.closest('#notificationBell')) {
-                this.hideNotificationDropdown();
-            }
-        });
-    }
-
-    /**
-     * Start polling for notifications (fallback when WebSocket is not available)
-     */
-    startPolling() {
-        // Poll every 30 seconds
-        setInterval(() => {
-            this.loadNotifications();
-        }, 30000);
-    }
-
-    /**
-     * Toggle notification dropdown
-     */
-    toggleNotificationDropdown() {
-        const dropdown = document.querySelector('.notification-dropdown');
-        if (!dropdown) return;
-        
-        const isVisible = dropdown.style.display === 'block';
-        
-        if (isVisible) {
-            this.hideNotificationDropdown();
-        } else {
-            this.showNotificationDropdown();
-        }
-    }
-
-    /**
-     * Show notification dropdown
-     */
-    showNotificationDropdown() {
-        const dropdown = document.querySelector('.notification-dropdown');
-        if (!dropdown) return;
-        
-        dropdown.style.display = 'block';
-        
-        // Mark notifications as read when dropdown is opened
-        if (this.unreadCount > 0) {
+        /**
+         * Hide notification
+         */
+        hide(notification) {
+            notification.classList.add('hiding');
             setTimeout(() => {
-                this.markAllAsRead();
-            }, 1000);
+                notification.remove();
+            }, 300);
         }
-    }
 
-    /**
-     * Hide notification dropdown
-     */
-    hideNotificationDropdown() {
-        const dropdown = document.querySelector('.notification-dropdown');
-        if (!dropdown) return;
-        
-        dropdown.style.display = 'none';
-    }
-
-    /**
-     * Add notification
-     */
-    addNotification(notification) {
-        // Add to beginning of array
-        this.notifications.unshift(notification);
-        
-        // Update unread count
-        if (!notification.is_read) {
-            this.unreadCount++;
-        }
-        
-        // Render notification
-        this.renderNotification(notification, true);
-        
-        // Update badge
-        this.updateUnreadBadge();
-        
-        // Show toast notification
-        this.showToastNotification(notification);
-    }
-
-    /**
-     * Update notification
-     */
-    updateNotification(updatedNotification) {
-        const index = this.notifications.findIndex(n => n.id === updatedNotification.id);
-        if (index !== -1) {
-            this.notifications[index] = updatedNotification;
-            this.renderNotifications();
-            this.updateUnreadBadge();
-        }
-    }
-
-    /**
-     * Delete notification
-     */
-    deleteNotification(notificationId) {
-        this.notifications = this.notifications.filter(n => n.id !== parseInt(notificationId));
-        this.renderNotifications();
-        this.updateUnreadBadge();
-        
-        // Remove from UI
-        const notificationElement = document.querySelector(`[data-notification-id="${notificationId}"]`);
-        if (notificationElement) {
-            notificationElement.remove();
-        }
-    }
-
-    /**
-     * Render all notifications
-     */
-    renderNotifications() {
-        const notificationList = document.getElementById('notificationList');
-        if (!notificationList) return;
-        
-        // Clear existing notifications
-        const existingItems = notificationList.querySelectorAll('.notification-item');
-        existingItems.forEach(item => item.remove());
-        
-        // Hide loading
-        const loadingElement = document.getElementById('notificationLoading');
-        if (loadingElement) {
-            loadingElement.style.display = 'none';
-        }
-        
-        // Render notifications
-        this.notifications.slice(0, 10).forEach(notification => {
-            this.renderNotification(notification, false);
-        });
-        
-        // Show empty state if no notifications
-        if (this.notifications.length === 0) {
-            this.showEmptyState();
-        }
-    }
-
-    /**
-     * Render single notification
-     */
-    renderNotification(notification, prepend = false) {
-        const notificationList = document.getElementById('notificationList');
-        if (!notificationList) return;
-        
-        const notificationElement = this.createNotificationElement(notification);
-        
-        if (prepend) {
-            notificationList.insertBefore(notificationElement, notificationList.firstChild);
-        } else {
-            notificationList.appendChild(notificationElement);
-        }
-    }
-
-    /**
-     * Create notification element
-     */
-    createNotificationElement(notification) {
-        const element = document.createElement('div');
-        element.className = `notification-item ${!notification.is_read ? 'unread' : ''}`;
-        element.dataset.notificationId = notification.id;
-        
-        const iconClass = this.getNotificationIcon(notification.type);
-        const timeAgo = this.getTimeAgo(notification.created_at);
-        
-        element.innerHTML = `
-            <div class="notification-content">
-                <div class="notification-icon">
-                    <i class="${iconClass}"></i>
-                </div>
-                <div class="notification-body">
-                    <div class="notification-title">${notification.title}</div>
-                    <div class="notification-message">${notification.message}</div>
-                    <div class="notification-meta">
-                        <span class="notification-time">${timeAgo}</span>
-                        ${notification.institution_name ? `<span class="notification-institution">${notification.institution_name}</span>` : ''}
-                    </div>
-                </div>
-                <div class="notification-actions">
-                    <button class="btn btn-sm btn-link mark-as-read-btn" data-notification-id="${notification.id}" 
-                            title="Tandai sudah dibaca" style="display: ${notification.is_read ? 'none' : 'block'}">
-                        <i class="fas fa-check"></i>
-                    </button>
-                    <button class="btn btn-sm btn-link delete-notification-btn" data-notification-id="${notification.id}" 
-                            title="Hapus notifikasi">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-            </div>
-        `;
-        
-        return element;
-    }
-
-    /**
-     * Get notification icon
-     */
-    getNotificationIcon(type) {
-        const icons = {
-            'info': 'fas fa-info-circle text-info',
-            'success': 'fas fa-check-circle text-success',
-            'warning': 'fas fa-exclamation-triangle text-warning',
-            'error': 'fas fa-times-circle text-danger',
-            'assessment': 'fas fa-clipboard-check text-primary',
-            'report': 'fas fa-chart-bar text-primary',
-            'audit': 'fas fa-search text-secondary',
-            'system': 'fas fa-cog text-muted'
-        };
-        
-        return icons[type] || icons['info'];
-    }
-
-    /**
-     * Get time ago
-     */
-    getTimeAgo(dateString) {
-        const date = new Date(dateString);
-        const now = new Date();
-        const diffMs = now - date;
-        const diffMins = Math.floor(diffMs / 60000);
-        const diffHours = Math.floor(diffMs / 3600000);
-        const diffDays = Math.floor(diffMs / 86400000);
-        
-        if (diffMins < 1) return 'Baru saja';
-        if (diffMins < 60) return `${diffMins} menit lalu`;
-        if (diffHours < 24) return `${diffHours} jam lalu`;
-        if (diffDays < 30) return `${diffDays} hari lalu`;
-        
-        return date.toLocaleDateString('id-ID');
-    }
-
-    /**
-     * Show empty state
-     */
-    showEmptyState() {
-        const notificationList = document.getElementById('notificationList');
-        if (!notificationList) return;
-        
-        const emptyElement = document.createElement('div');
-        emptyElement.className = 'notification-empty';
-        emptyElement.innerHTML = `
-            <div class="text-center p-4">
-                <i class="fas fa-bell-slash fa-2x text-muted mb-3"></i>
-                <p class="text-muted">Tidak ada notifikasi</p>
-            </div>
-        `;
-        
-        notificationList.appendChild(emptyElement);
-    }
-
-    /**
-     * Update unread badge
-     */
-    updateUnreadBadge() {
-        const badge = document.getElementById('notificationBadge');
-        if (!badge) return;
-        
-        if (this.unreadCount > 0) {
-            badge.textContent = this.unreadCount > 99 ? '99+' : this.unreadCount;
-            badge.style.display = 'block';
-        } else {
-            badge.style.display = 'none';
-        }
-    }
-
-    /**
-     * Mark notification as read
-     */
-    async markAsRead(notificationId) {
-        try {
-            const response = await fetch(`/sakip/api/notifications/${notificationId}/read`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
-                    'Content-Type': 'application/json'
-                }
+        /**
+         * Show success notification
+         */
+        success(title, message, options = {}) {
+            return this.show({
+                type: 'success',
+                title,
+                message,
+                ...options
             });
-            
-            const result = await response.json();
-            
-            if (result.success) {
-                // Update local data
-                const notification = this.notifications.find(n => n.id === parseInt(notificationId));
-                if (notification) {
-                    notification.is_read = true;
-                    this.unreadCount = Math.max(0, this.unreadCount - 1);
-                }
-                
-                // Update UI
-                const notificationElement = document.querySelector(`[data-notification-id="${notificationId}"]`);
-                if (notificationElement) {
-                    notificationElement.classList.remove('unread');
-                }
-                
-                const markAsReadBtn = document.querySelector(`[data-notification-id="${notificationId}"].mark-as-read-btn`);
-                if (markAsReadBtn) {
-                    markAsReadBtn.style.display = 'none';
-                }
-                
-                this.updateUnreadBadge();
+        }
+
+        /**
+         * Show error notification
+         */
+        error(title, message, options = {}) {
+            return this.show({
+                type: 'error',
+                title,
+                message,
+                ...options
+            });
+        }
+
+        /**
+         * Show warning notification
+         */
+        warning(title, message, options = {}) {
+            return this.show({
+                type: 'warning',
+                title,
+                message,
+                ...options
+            });
+        }
+
+        /**
+         * Show info notification
+         */
+        info(title, message, options = {}) {
+            return this.show({
+                type: 'info',
+                title,
+                message,
+                ...options
+            });
+        }
+
+        /**
+         * Clear all notifications
+         */
+        clear() {
+            if (this.container) {
+                this.container.innerHTML = '';
             }
-            
-        } catch (error) {
-            console.error('Error marking notification as read:', error);
         }
     }
 
     /**
-     * Mark all notifications as read
+     * Create and return notification manager instance
      */
-    async markAllAsRead() {
-        try {
-            const response = await fetch('/sakip/api/notifications/mark-all-read', {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
-                    'Content-Type': 'application/json'
-                }
-            });
-            
-            const result = await response.json();
-            
-            if (result.success) {
-                // Update local data
-                this.notifications.forEach(notification => {
-                    notification.is_read = true;
-                });
-                this.unreadCount = 0;
-                
-                // Update UI
-                document.querySelectorAll('.notification-item').forEach(element => {
-                    element.classList.remove('unread');
-                });
-                
-                document.querySelectorAll('.mark-as-read-btn').forEach(btn => {
-                    btn.style.display = 'none';
-                });
-                
-                this.updateUnreadBadge();
-            }
-            
-        } catch (error) {
-            console.error('Error marking all notifications as read:', error);
-        }
-    }
+    const notificationManager = new NotificationManager();
 
     /**
-     * Clear all notifications
+     * Public API
      */
-    async clearAllNotifications() {
-        if (!confirm('Apakah Anda yakin ingin menghapus semua notifikasi?')) {
-            return;
-        }
-        
-        try {
-            const response = await fetch('/sakip/api/notifications/clear-all', {
-                method: 'DELETE',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
-                    'Content-Type': 'application/json'
-                }
-            });
-            
-            const result = await response.json();
-            
-            if (result.success) {
-                // Clear local data
-                this.notifications = [];
-                this.unreadCount = 0;
-                
-                // Clear UI
-                this.renderNotifications();
-                this.updateUnreadBadge();
-            }
-            
-        } catch (error) {
-            console.error('Error clearing notifications:', error);
-        }
-    }
+    return {
+        show: notificationManager.show.bind(notificationManager),
+        success: notificationManager.success.bind(notificationManager),
+        error: notificationManager.error.bind(notificationManager),
+        warning: notificationManager.warning.bind(notificationManager),
+        info: notificationManager.info.bind(notificationManager),
+        clear: notificationManager.clear.bind(notificationManager)
+    };
 
-    /**
-     * Handle notification click
-     */
-    handleNotificationClick(notificationId) {
-        const notification = this.notifications.find(n => n.id === parseInt(notificationId));
-        if (!notification) return;
-        
-        // Mark as read
-        if (!notification.is_read) {
-            this.markAsRead(notificationId);
-        }
-        
-        // Navigate to related content
-        if (notification.url) {
-            window.location.href = notification.url;
-        }
-    }
-
-    /**
-     * Show toast notification
-     */
-    showToastNotification(notification) {
-        const container = document.getElementById('notificationContainer');
-        if (!container) return;
-        
-        const toast = document.createElement('div');
-        toast.className = `toast notification-toast show`;
-        toast.style.marginBottom = '10px';
-        
-        const iconClass = this.getNotificationIcon(notification.type);
-        
-        toast.innerHTML = `
-            <div class="toast-header">
-                <i class="${iconClass} me-2"></i>
-                <strong class="me-auto">${notification.title}</strong>
-                <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
-            </div>
-            <div class="toast-body">
-                ${notification.message}
-                ${notification.url ? `<div class="mt-2"><a href="${notification.url}" class="btn btn-sm btn-primary">Lihat Detail</a></div>` : ''}
-            </div>
-        `;
-        
-        container.appendChild(toast);
-        
-        // Auto-hide after 5 seconds
-        setTimeout(() => {
-            toast.remove();
-        }, 5000);
-        
-        // Handle close button
-        const closeBtn = toast.querySelector('.btn-close');
-        if (closeBtn) {
-            closeBtn.addEventListener('click', () => {
-                toast.remove();
-            });
-        }
-    }
-
-    /**
-     * Show notification
-     */
-    showNotification(message, type = 'info') {
-        // Implementation for showing notifications
-        console.log(`[${type.toUpperCase()}] ${message}`);
-    }
-}
-
-// Initialize notification system when DOM is ready
-document.addEventListener('DOMContentLoaded', function() {
-    window.sakipNotification = new SakipNotification();
-});
+}));

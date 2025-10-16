@@ -9,6 +9,7 @@ use App\Http\Controllers\Sakip\PerformanceMeasurementController;
 use App\Http\Controllers\Sakip\AssessmentController;
 use App\Http\Controllers\Sakip\ReportController;
 use App\Http\Controllers\Sakip\SakipAuditController;
+use App\Http\Controllers\Api\Sakip\SakipDataTableController;
 
 /*
 |--------------------------------------------------------------------------
@@ -20,7 +21,7 @@ use App\Http\Controllers\Sakip\SakipAuditController;
 |
 */
 
-Route::prefix('sakip/api')->middleware(['auth', 'api'])->group(function () {
+Route::prefix('sakip')->middleware(['auth'])->group(function () {
     
     // Dashboard Routes
     Route::get('/dashboard-data', [SakipDashboardController::class, 'getDashboardData'])
@@ -247,5 +248,15 @@ Route::prefix('sakip/api')->middleware(['auth', 'api'])->group(function () {
     
     Route::post('/bulk/export-reports', [ReportController::class, 'bulkExportReports'])
         ->name('sakip.api.bulk.export-reports');
+
+    // DataTables Routes
+    Route::prefix('datatables')->group(function () {
+        Route::get('/indicator', [SakipDataTableController::class, 'indicators'])->name('sakip.api.datatables.indicator');
+        Route::get('/program', [SakipDataTableController::class, 'programs'])->name('sakip.api.datatables.program');
+        Route::get('/kegiatan', [SakipDataTableController::class, 'activities'])->name('sakip.api.datatables.kegiatan');
+        Route::get('/laporan', [SakipDataTableController::class, 'reports'])->name('sakip.api.datatables.laporan');
+        Route::get('/export/{type}', [SakipDataTableController::class, 'export'])->name('sakip.api.datatables.export');
+        Route::get('/config/{type}', [SakipDataTableController::class, 'configuration'])->name('sakip.api.datatables.configuration');
+    });
     
 });

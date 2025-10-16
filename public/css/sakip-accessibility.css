@@ -1,0 +1,849 @@
+/**
+ * SAKIP Accessibility Enhancements
+ * WCAG 2.1 AA compliant accessibility features for SAKIP module
+ * Government-style accessibility improvements
+ */
+
+/* ==========================================================================
+   Focus Management and Keyboard Navigation
+   ========================================================================== */
+
+/* Enhanced focus indicators for better keyboard navigation */
+.sakip-focus-visible:focus-visible,
+.sakip-btn:focus-visible,
+.sakip-form-control:focus-visible,
+.sakip-nav-link:focus-visible,
+.sakip-link:focus-visible,
+.sakip-card:focus-visible,
+.sakip-table th:focus-visible,
+.sakip-table td:focus-visible,
+.sakip-modal-close:focus-visible,
+.sakip-dropdown-toggle:focus-visible,
+.sakip-pagination-link:focus-visible,
+.sakip-tab:focus-visible,
+.sakip-accordion-header:focus-visible,
+.sakip-checkbox:focus-visible,
+.sakip-radio:focus-visible,
+.sakip-switch:focus-visible,
+.sakip-slider:focus-visible,
+.sakip-select:focus-visible,
+.sakip-textarea:focus-visible {
+  outline: 3px solid var(--sakip-primary, #1a365d) !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 4px rgba(26, 54, 93, 0.2) !important;
+  border-radius: 4px !important;
+}
+
+/* High contrast focus for users with vision impairments */
+@media (prefers-contrast: high) {
+  .sakip-focus-visible:focus-visible,
+  .sakip-btn:focus-visible,
+  .sakip-form-control:focus-visible,
+  .sakip-nav-link:focus-visible,
+  .sakip-link:focus-visible {
+    outline: 4px solid #000 !important;
+    outline-offset: 2px !important;
+    box-shadow: 0 0 0 6px #fff !important;
+  }
+}
+
+/* Skip links for keyboard navigation */
+.sakip-skip-link {
+  position: absolute !important;
+  top: -40px !important;
+  left: 6px !important;
+  background: var(--sakip-primary, #1a365d) !important;
+  color: white !important;
+  padding: 8px !important;
+  text-decoration: none !important;
+  border-radius: 0 0 4px 4px !important;
+  z-index: 9999 !important;
+  font-weight: bold !important;
+  transition: top 0.3s ease !important;
+}
+
+.sakip-skip-link:focus {
+  top: 0 !important;
+  outline: 3px solid #fff !important;
+  outline-offset: -3px !important;
+}
+
+/* ==========================================================================
+   Screen Reader Support
+   ========================================================================== */
+
+/* Visually hidden but accessible to screen readers */
+.sakip-sr-only,
+.sakip-visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+/* Screen reader only focusable elements */
+.sakip-sr-only-focusable:focus,
+.sakip-visually-hidden-focusable:focus {
+  position: static !important;
+  width: auto !important;
+  height: auto !important;
+  padding: 0.5rem !important;
+  margin: 0 !important;
+  overflow: visible !important;
+  clip: auto !important;
+  white-space: normal !important;
+  background: var(--sakip-primary, #1a365d) !important;
+  color: white !important;
+  text-decoration: none !important;
+  border-radius: 4px !important;
+  z-index: 9999 !important;
+}
+
+/* ==========================================================================
+   Color and Contrast
+   ========================================================================== */
+
+/* Ensure minimum contrast ratios (WCAG 2.1 AA) */
+:root {
+  --sakip-contrast-min: 4.5;
+  --sakip-contrast-large: 3;
+  --sakip-focus-color: #1a365d;
+  --sakip-focus-bg: rgba(26, 54, 93, 0.1);
+  --sakip-error-color: #d32f2f;
+  --sakip-success-color: #2e7d32;
+  --sakip-warning-color: #f57c00;
+  --sakip-info-color: #0277bd;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  :root {
+    --sakip-primary: #000;
+    --sakip-secondary: #333;
+    --sakip-success: #006400;
+    --sakip-warning: #cc6600;
+    --sakip-danger: #cc0000;
+    --sakip-info: #004d99;
+    --sakip-text-primary: #000;
+    --sakip-text-secondary: #333;
+    --sakip-bg-primary: #fff;
+    --sakip-bg-secondary: #f5f5f5;
+    --sakip-border-color: #000;
+  }
+  
+  .sakip-btn {
+    border-width: 2px !important;
+  }
+  
+  .sakip-btn-primary {
+    background: #000 !important;
+    color: #fff !important;
+    border-color: #000 !important;
+  }
+  
+  .sakip-btn-secondary {
+    background: #fff !important;
+    color: #000 !important;
+    border-color: #000 !important;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .sakip-btn,
+  .sakip-form-control,
+  .sakip-nav-link,
+  .sakip-card,
+  .sakip-modal,
+  .sakip-alert,
+  .sakip-progress-bar,
+  .sakip-spinner,
+  .sakip-loading-dots,
+  .sakip-transition,
+  .sakip-fade,
+  .sakip-slide,
+  .sakip-bounce {
+    transition: none !important;
+    animation: none !important;
+  }
+  
+  .sakip-chart-container canvas {
+    transition: none !important;
+  }
+}
+
+/* ==========================================================================
+   Typography and Readability
+   ========================================================================== */
+
+/* Enhanced typography for better readability */
+.sakip-text-large {
+  font-size: 1.125rem !important;
+  line-height: 1.6 !important;
+}
+
+.sakip-text-readable {
+  font-size: 1rem !important;
+  line-height: 1.6 !important;
+  max-width: 65ch !important;
+}
+
+.sakip-text-high-contrast {
+  color: #000 !important;
+  background: #fff !important;
+}
+
+/* Letter spacing for better readability */
+.sakip-text-spaced {
+  letter-spacing: 0.05em !important;
+}
+
+/* Word spacing for better readability */
+.sakip-text-word-spaced {
+  word-spacing: 0.1em !important;
+}
+
+/* ==========================================================================
+   Form Accessibility
+   ========================================================================== */
+
+/* Enhanced form labels */
+.sakip-form-label {
+  font-weight: 600 !important;
+  color: var(--sakip-text-primary, #1a365d) !important;
+  margin-bottom: 0.5rem !important;
+  display: block !important;
+}
+
+.sakip-form-label-required:after {
+  content: " *" !important;
+  color: var(--sakip-danger, #d32f2f) !important;
+  font-weight: bold !important;
+}
+
+/* Fieldset and legend enhancements */
+.sakip-fieldset {
+  border: 2px solid var(--sakip-border-color, #d1d5db) !important;
+  border-radius: 4px !important;
+  padding: 1rem !important;
+  margin: 1rem 0 !important;
+}
+
+.sakip-legend {
+  font-weight: bold !important;
+  color: var(--sakip-text-primary, #1a365d) !important;
+  padding: 0 0.5rem !important;
+  margin-left: -0.5rem !important;
+}
+
+/* Enhanced form controls */
+.sakip-form-control {
+  font-size: 1rem !important;
+  line-height: 1.5 !important;
+  padding: 0.75rem !important;
+  border: 2px solid var(--sakip-border-color, #d1d5db) !important;
+  border-radius: 4px !important;
+  background: #fff !important;
+  color: var(--sakip-text-primary, #1a365d) !important;
+  transition: all 0.2s ease !important;
+}
+
+.sakip-form-control:hover {
+  border-color: var(--sakip-primary, #1a365d) !important;
+}
+
+.sakip-form-control:focus {
+  border-color: var(--sakip-primary, #1a365d) !important;
+  box-shadow: 0 0 0 3px rgba(26, 54, 93, 0.2) !important;
+}
+
+/* Error states with enhanced contrast */
+.sakip-form-control.is-invalid {
+  border-color: var(--sakip-error-color, #d32f2f) !important;
+  background-color: rgba(211, 47, 47, 0.05) !important;
+}
+
+.sakip-form-control.is-invalid:focus {
+  border-color: var(--sakip-error-color, #d32f2f) !important;
+  box-shadow: 0 0 0 3px rgba(211, 47, 47, 0.2) !important;
+}
+
+.sakip-invalid-feedback {
+  color: var(--sakip-error-color, #d32f2f) !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  margin-top: 0.25rem !important;
+}
+
+/* Success states */
+.sakip-form-control.is-valid {
+  border-color: var(--sakip-success-color, #2e7d32) !important;
+  background-color: rgba(46, 125, 50, 0.05) !important;
+}
+
+/* Checkbox and radio enhancements */
+.sakip-checkbox,
+.sakip-radio {
+  width: 1.25rem !important;
+  height: 1.25rem !important;
+  margin-right: 0.5rem !important;
+  accent-color: var(--sakip-primary, #1a365d) !important;
+}
+
+.sakip-checkbox:focus,
+.sakip-radio:focus {
+  outline: 3px solid var(--sakip-primary, #1a365d) !important;
+  outline-offset: 2px !important;
+}
+
+/* ==========================================================================
+   Alert and Status Accessibility
+   ========================================================================== */
+
+/* Enhanced alert messages */
+.sakip-alert {
+  border: 2px solid transparent !important;
+  border-radius: 4px !important;
+  padding: 1rem !important;
+  margin: 1rem 0 !important;
+  position: relative !important;
+}
+
+.sakip-alert-success {
+  background-color: rgba(46, 125, 50, 0.1) !important;
+  border-color: var(--sakip-success-color, #2e7d32) !important;
+  color: var(--sakip-success-color, #2e7d32) !important;
+}
+
+.sakip-alert-warning {
+  background-color: rgba(245, 124, 0, 0.1) !important;
+  border-color: var(--sakip-warning-color, #f57c00) !important;
+  color: var(--sakip-warning-color, #f57c00) !important;
+}
+
+.sakip-alert-danger {
+  background-color: rgba(211, 47, 47, 0.1) !important;
+  border-color: var(--sakip-error-color, #d32f2f) !important;
+  color: var(--sakip-error-color, #d32f2f) !important;
+}
+
+.sakip-alert-info {
+  background-color: rgba(2, 119, 189, 0.1) !important;
+  border-color: var(--sakip-info-color, #0277bd) !important;
+  color: var(--sakip-info-color, #0277bd) !important;
+}
+
+/* Alert icons with proper contrast */
+.sakip-alert-icon {
+  font-size: 1.25rem !important;
+  margin-right: 0.75rem !important;
+  flex-shrink: 0 !important;
+}
+
+/* ==========================================================================
+   Navigation Accessibility
+   ========================================================================== */
+
+/* Enhanced navigation */
+.sakip-nav {
+  list-style: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.sakip-nav-link {
+  display: block !important;
+  padding: 0.75rem 1rem !important;
+  text-decoration: none !important;
+  color: var(--sakip-text-primary, #1a365d) !important;
+  border-radius: 4px !important;
+  transition: all 0.2s ease !important;
+  position: relative !important;
+}
+
+.sakip-nav-link:hover {
+  background: var(--sakip-focus-bg, rgba(26, 54, 93, 0.1)) !important;
+  color: var(--sakip-primary, #1a365d) !important;
+}
+
+.sakip-nav-link:focus {
+  outline: 3px solid var(--sakip-primary, #1a365d) !important;
+  outline-offset: 2px !important;
+}
+
+/* Current page indicator */
+.sakip-nav-link[aria-current="page"] {
+  background: var(--sakip-primary, #1a365d) !important;
+  color: #fff !important;
+  font-weight: 600 !important;
+}
+
+.sakip-nav-link[aria-current="page"]:before {
+  content: "" !important;
+  position: absolute !important;
+  left: 0 !important;
+  top: 0 !important;
+  bottom: 0 !important;
+  width: 4px !important;
+  background: var(--sakip-secondary, #2d5a87) !important;
+}
+
+/* ==========================================================================
+   Table Accessibility
+   ========================================================================== */
+
+/* Enhanced table accessibility */
+.sakip-table {
+  border-collapse: collapse !important;
+  width: 100% !important;
+  margin: 1rem 0 !important;
+  background: #fff !important;
+}
+
+.sakip-table th {
+  background: var(--sakip-bg-secondary, #f8f9fa) !important;
+  color: var(--sakip-text-primary, #1a365d) !important;
+  font-weight: 600 !important;
+  padding: 0.75rem !important;
+  text-align: left !important;
+  border: 1px solid var(--sakip-border-color, #d1d5db) !important;
+}
+
+.sakip-table td {
+  padding: 0.75rem !important;
+  border: 1px solid var(--sakip-border-color, #d1d5db) !important;
+  color: var(--sakip-text-primary, #1a365d) !important;
+}
+
+.sakip-table caption {
+  font-weight: bold !important;
+  text-align: left !important;
+  margin-bottom: 0.5rem !important;
+  color: var(--sakip-text-primary, #1a365d) !important;
+}
+
+/* Table row hover effects */
+.sakip-table tbody tr:hover {
+  background: var(--sakip-focus-bg, rgba(26, 54, 93, 0.05)) !important;
+}
+
+/* Table sorting indicators */
+.sakip-table th[aria-sort="ascending"]:after {
+  content: " ↑" !important;
+  font-weight: bold !important;
+}
+
+.sakip-table th[aria-sort="descending"]:after {
+  content: " ↓" !important;
+  font-weight: bold !important;
+}
+
+/* ==========================================================================
+   Button Accessibility
+   ========================================================================== */
+
+/* Enhanced button accessibility */
+.sakip-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.5rem !important;
+  padding: 0.75rem 1.5rem !important;
+  font-size: 1rem !important;
+  font-weight: 500 !important;
+  line-height: 1.5 !important;
+  border: 2px solid transparent !important;
+  border-radius: 4px !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  text-decoration: none !important;
+  min-height: 44px !important; /* Minimum touch target size */
+  min-width: 44px !important;
+}
+
+.sakip-btn:focus {
+  outline: 3px solid var(--sakip-focus-color, #1a365d) !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 4px rgba(26, 54, 93, 0.2) !important;
+}
+
+.sakip-btn:disabled {
+  opacity: 0.6 !important;
+  cursor: not-allowed !important;
+  pointer-events: none !important;
+}
+
+/* Button states with enhanced contrast */
+.sakip-btn-primary {
+  background: var(--sakip-primary, #1a365d) !important;
+  color: #fff !important;
+  border-color: var(--sakip-primary, #1a365d) !important;
+}
+
+.sakip-btn-primary:hover:not(:disabled) {
+  background: var(--sakip-primary-dark, #0f1e35) !important;
+  border-color: var(--sakip-primary-dark, #0f1e35) !important;
+}
+
+.sakip-btn-secondary {
+  background: var(--sakip-secondary, #2d5a87) !important;
+  color: #fff !important;
+  border-color: var(--sakip-secondary, #2d5a87) !important;
+}
+
+/* ==========================================================================
+   Modal Accessibility
+   ========================================================================== */
+
+/* Enhanced modal accessibility */
+.sakip-modal {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  background: rgba(0, 0, 0, 0.5) !important;
+  z-index: 1050 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 1rem !important;
+}
+
+.sakip-modal-dialog {
+  background: #fff !important;
+  border-radius: 8px !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2) !important;
+  max-width: 90vw !important;
+  max-height: 90vh !important;
+  overflow: auto !important;
+  position: relative !important;
+}
+
+.sakip-modal-header {
+  padding: 1rem !important;
+  border-bottom: 1px solid var(--sakip-border-color, #d1d5db) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+}
+
+.sakip-modal-title {
+  margin: 0 !important;
+  font-size: 1.25rem !important;
+  font-weight: 600 !important;
+  color: var(--sakip-text-primary, #1a365d) !important;
+}
+
+.sakip-modal-close {
+  background: none !important;
+  border: none !important;
+  font-size: 1.5rem !important;
+  cursor: pointer !important;
+  padding: 0.5rem !important;
+  border-radius: 4px !important;
+  color: var(--sakip-text-secondary, #6b7280) !important;
+  min-width: 44px !important;
+  min-height: 44px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.sakip-modal-close:focus {
+  outline: 3px solid var(--sakip-primary, #1a365d) !important;
+  outline-offset: 2px !important;
+}
+
+/* ==========================================================================
+   Progress and Loading Accessibility
+   ========================================================================== */
+
+/* Accessible progress indicators */
+.sakip-progress {
+  background: var(--sakip-bg-secondary, #f8f9fa) !important;
+  border-radius: 4px !important;
+  height: 8px !important;
+  overflow: hidden !important;
+  position: relative !important;
+}
+
+.sakip-progress-bar {
+  background: var(--sakip-primary, #1a365d) !important;
+  height: 100% !important;
+  transition: width 0.3s ease !important;
+  position: relative !important;
+}
+
+.sakip-progress-bar[aria-valuenow]:after {
+  content: attr(aria-valuenow) "%" !important;
+  position: absolute !important;
+  right: 0.5rem !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  color: #fff !important;
+  font-size: 0.75rem !important;
+  font-weight: bold !important;
+}
+
+/* Loading states with screen reader support */
+.sakip-loading {
+  position: relative !important;
+  min-height: 200px !important;
+}
+
+.sakip-loading:before {
+  content: "" !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  background: rgba(255, 255, 255, 0.8) !important;
+  z-index: 10 !important;
+}
+
+.sakip-loading[aria-label]:after {
+  content: attr(aria-label) !important;
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  background: var(--sakip-primary, #1a365d) !important;
+  color: #fff !important;
+  padding: 1rem !important;
+  border-radius: 4px !important;
+  z-index: 11 !important;
+  font-weight: 500 !important;
+  text-align: center !important;
+  min-width: 200px !important;
+}
+
+/* ==========================================================================
+   Status and Validation Accessibility
+   ========================================================================== */
+
+/* Status indicators with proper contrast */
+.sakip-status-success {
+  color: var(--sakip-success-color, #2e7d32) !important;
+  background: rgba(46, 125, 50, 0.1) !important;
+  border: 1px solid var(--sakip-success-color, #2e7d32) !important;
+  padding: 0.25rem 0.5rem !important;
+  border-radius: 4px !important;
+  font-weight: 500 !important;
+}
+
+.sakip-status-error {
+  color: var(--sakip-error-color, #d32f2f) !important;
+  background: rgba(211, 47, 47, 0.1) !important;
+  border: 1px solid var(--sakip-error-color, #d32f2f) !important;
+  padding: 0.25rem 0.5rem !important;
+  border-radius: 4px !important;
+  font-weight: 500 !important;
+}
+
+.sakip-status-warning {
+  color: var(--sakip-warning-color, #f57c00) !important;
+  background: rgba(245, 124, 0, 0.1) !important;
+  border: 1px solid var(--sakip-warning-color, #f57c00) !important;
+  padding: 0.25rem 0.5rem !important;
+  border-radius: 4px !important;
+  font-weight: 500 !important;
+}
+
+/* ==========================================================================
+   Language and Internationalization
+   ========================================================================== */
+
+/* Text direction support */
+.sakip-rtl {
+  direction: rtl !important;
+  text-align: right !important;
+}
+
+.sakip-ltr {
+  direction: ltr !important;
+  text-align: left !important;
+}
+
+/* Language-specific font adjustments */
+.sakip-lang-ar {
+  font-family: "Noto Naskh Arabic", "Arial", sans-serif !important;
+}
+
+.sakip-lang-zh {
+  font-family: "Noto Sans CJK SC", "SimHei", sans-serif !important;
+}
+
+.sakip-lang-ja {
+  font-family: "Noto Sans CJK JP", "Meiryo", sans-serif !important;
+}
+
+.sakip-lang-ko {
+  font-family: "Noto Sans CJK KR", "Malgun Gothic", sans-serif !important;
+}
+
+/* ==========================================================================
+   Utility Classes for Accessibility
+   ========================================================================== */
+
+/* Text alternatives */
+.sakip-alt-text {
+  font-style: italic !important;
+  color: var(--sakip-text-secondary, #6b7280) !important;
+  font-size: 0.875rem !important;
+}
+
+/* Caption and description text */
+.sakip-caption {
+  font-size: 0.875rem !important;
+  color: var(--sakip-text-secondary, #6b7280) !important;
+  margin-top: 0.5rem !important;
+  line-height: 1.5 !important;
+}
+
+/* Keyboard shortcut indicators */
+.sakip-keyboard-shortcut {
+  background: var(--sakip-bg-secondary, #f8f9fa) !important;
+  border: 1px solid var(--sakip-border-color, #d1d5db) !important;
+  border-radius: 3px !important;
+  padding: 0.125rem 0.375rem !important;
+  font-family: monospace !important;
+  font-size: 0.875rem !important;
+  white-space: nowrap !important;
+}
+
+/* ==========================================================================
+   Print Accessibility
+   ========================================================================== */
+
+@media print {
+  /* Ensure text remains readable in print */
+  .sakip-text-print {
+    color: #000 !important;
+    background: transparent !important;
+    font-size: 12pt !important;
+    line-height: 1.5 !important;
+  }
+  
+  /* Hide decorative elements in print */
+  .sakip-print-hide {
+    display: none !important;
+  }
+  
+  /* Ensure links are visible in print */
+  .sakip-print-link:after {
+    content: " (" attr(href) ")" !important;
+    font-size: 90% !important;
+    color: #666 !important;
+  }
+  
+  .sakip-print-link[href^="#"]:after,
+  .sakip-print-link[href^="javascript:"]:after {
+    content: "" !important;
+  }
+}
+
+/* ==========================================================================
+   Animation and Motion Accessibility
+   ========================================================================== */
+
+/* Respect user motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .sakip-animation-paused *,
+  .sakip-no-animation * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Safe animation classes */
+.sakip-animation-safe {
+  animation-duration: 0.2s !important;
+  animation-timing-function: ease-out !important;
+}
+
+/* ==========================================================================
+   Touch and Mobile Accessibility
+   ========================================================================== */
+
+/* Enhanced touch targets */
+.sakip-touch-target {
+  min-width: 44px !important;
+  min-height: 44px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.sakip-touch-target-large {
+  min-width: 48px !important;
+  min-height: 48px !important;
+}
+
+/* Touch-friendly spacing */
+.sakip-touch-spacing {
+  margin: 0.5rem !important;
+  padding: 0.75rem !important;
+}
+
+/* ==========================================================================
+   Cognitive Accessibility
+   ========================================================================== */
+
+/* Simplified layouts for cognitive accessibility */
+.sakip-simple-layout {
+  max-width: 800px !important;
+  margin: 0 auto !important;
+  padding: 1rem !important;
+}
+
+.sakip-simple-text {
+  font-size: 1.125rem !important;
+  line-height: 1.8 !important;
+  max-width: 65ch !important;
+}
+
+/* Clear visual hierarchy */
+.sakip-visual-hierarchy > * + * {
+  margin-top: 1.5rem !important;
+}
+
+/* Consistent spacing */
+.sakip-consistent-spacing {
+  --sakip-space-unit: 1rem;
+  margin: calc(var(--sakip-space-unit) * 2) 0 !important;
+  padding: var(--sakip-space-unit) !important;
+}
+
+/* ==========================================================================
+   Testing and Debugging Utilities
+   ========================================================================== */
+
+/* Accessibility testing helpers */
+.sakip-a11y-test:focus {
+  outline: 4px solid #ff0000 !important;
+  outline-offset: 4px !important;
+}
+
+.sakip-contrast-test {
+  background: #fff !important;
+  color: #000 !important;
+  border: 2px solid #000 !important;
+}
+
+/* Screen reader testing */
+.sakip-sr-test:after {
+  content: " (Screen reader test content)" !important;
+  position: absolute !important;
+  left: -9999px !important;
+  width: 1px !important;
+  height: 1px !important;
+  overflow: hidden !important;
+}

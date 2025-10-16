@@ -1,0 +1,827 @@
+/**
+ * SAKIP Responsive Design Utilities
+ * Government-style responsive design system for SAKIP module
+ */
+
+/* ==========================================================================
+   Breakpoint Variables
+   ========================================================================== */
+:root {
+  --breakpoint-xs: 480px;
+  --breakpoint-sm: 576px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 992px;
+  --breakpoint-xl: 1200px;
+  --breakpoint-xxl: 1400px;
+}
+
+/* ==========================================================================
+   Mobile First Responsive Utilities
+   ========================================================================== */
+
+/* Extra Small Devices (phones, less than 576px) */
+@media (max-width: 575.98px) {
+  /* Container adjustments */
+  .sakip-container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  .sakip-container-fluid {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+  
+  /* Grid system adjustments */
+  .sakip-row {
+    margin-left: -0.5rem;
+    margin-right: -0.5rem;
+  }
+  
+  .sakip-col,
+  [class*="sakip-col-"] {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+  
+  /* Full width columns on mobile */
+  .sakip-col-xs-12 {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+  
+  /* Typography adjustments */
+  .sakip-display-1 {
+    font-size: 2rem;
+    line-height: 1.2;
+  }
+  
+  .sakip-display-2 {
+    font-size: 1.75rem;
+    line-height: 1.3;
+  }
+  
+  .sakip-display-3 {
+    font-size: 1.5rem;
+    line-height: 1.4;
+  }
+  
+  .sakip-h1 {
+    font-size: 1.75rem;
+  }
+  
+  .sakip-h2 {
+    font-size: 1.5rem;
+  }
+  
+  .sakip-h3 {
+    font-size: 1.25rem;
+  }
+  
+  .sakip-h4 {
+    font-size: 1.125rem;
+  }
+  
+  /* Header adjustments */
+  .sakip-header {
+    padding: 1rem 0;
+  }
+  
+  .sakip-header-content {
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+  }
+  
+  .sakip-logo {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+  
+  .sakip-header-title {
+    font-size: 1.25rem;
+  }
+  
+  .sakip-header-subtitle {
+    font-size: 0.875rem;
+  }
+  
+  /* Navigation adjustments */
+  .sakip-nav {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .sakip-nav-item {
+    width: 100%;
+  }
+  
+  .sakip-nav-link {
+    padding: 0.75rem 1rem;
+    justify-content: center;
+  }
+  
+  /* Card adjustments */
+  .sakip-card {
+    margin-bottom: 1rem;
+  }
+  
+  .sakip-card-header {
+    padding: 1rem;
+  }
+  
+  .sakip-card-body {
+    padding: 1rem;
+  }
+  
+  .sakip-card-footer {
+    padding: 1rem;
+  }
+  
+  /* Button adjustments */
+  .sakip-btn {
+    padding: 0.625rem 1rem;
+    font-size: 0.875rem;
+  }
+  
+  .sakip-btn-lg {
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+  }
+  
+  .sakip-btn-sm {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+  }
+  
+  .sakip-btn-group {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .sakip-btn-group .sakip-btn {
+    border-radius: 0.375rem !important;
+    margin-bottom: 0.5rem;
+  }
+  
+  /* Form adjustments */
+  .sakip-form-group {
+    margin-bottom: 1rem;
+  }
+  
+  .sakip-form-label {
+    font-size: 0.875rem;
+    margin-bottom: 0.375rem;
+  }
+  
+  .sakip-form-control {
+    font-size: 1rem; /* Prevent zoom on iOS */
+    padding: 0.75rem;
+  }
+  
+  .sakip-form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+  
+  .sakip-form-row .sakip-form-group {
+    margin-bottom: 1rem;
+  }
+  
+  /* Table adjustments */
+  .sakip-table-responsive {
+    border: 0;
+  }
+  
+  .sakip-table {
+    font-size: 0.875rem;
+  }
+  
+  .sakip-table th,
+  .sakip-table td {
+    padding: 0.75rem 0.5rem;
+  }
+  
+  /* Modal adjustments */
+  .sakip-modal-dialog {
+    margin: 0.5rem;
+    max-width: calc(100% - 1rem);
+  }
+  
+  .sakip-modal-content {
+    border-radius: 0.5rem;
+  }
+  
+  .sakip-modal-header {
+    padding: 1rem;
+  }
+  
+  .sakip-modal-body {
+    padding: 1rem;
+  }
+  
+  .sakip-modal-footer {
+    padding: 1rem;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  /* Dashboard specific */
+  .sakip-stat-card {
+    margin-bottom: 1rem;
+  }
+  
+  .sakip-stat-value {
+    font-size: 1.5rem;
+  }
+  
+  .sakip-chart-container {
+    height: 250px;
+  }
+  
+  /* Assessment scoring adjustments */
+  .sakip-assessment-item {
+    padding: 1rem;
+  }
+  
+  .sakip-assessment-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .sakip-score-input {
+    width: 100%;
+    max-width: 100px;
+  }
+  
+  /* File upload adjustments */
+  .sakip-upload-zone {
+    padding: 1.5rem;
+  }
+  
+  .sakip-upload-icon {
+    font-size: 2rem;
+  }
+  
+  /* Notification adjustments */
+  .sakip-toast {
+    max-width: calc(100% - 2rem);
+    margin: 0.5rem;
+  }
+  
+  .sakip-notification-dropdown {
+    width: calc(100% - 2rem);
+    right: 1rem;
+    left: 1rem;
+    max-width: none;
+  }
+  
+  /* Utility classes */
+  .sakip-d-xs-block {
+    display: block !important;
+  }
+  
+  .sakip-d-xs-none {
+    display: none !important;
+  }
+  
+  .sakip-text-xs-center {
+    text-align: center !important;
+  }
+  
+  .sakip-text-xs-left {
+    text-align: left !important;
+  }
+  
+  .sakip-text-xs-right {
+    text-align: right !important;
+  }
+  
+  .sakip-mb-xs-0 {
+    margin-bottom: 0 !important;
+  }
+  
+  .sakip-mb-xs-1 {
+    margin-bottom: 0.25rem !important;
+  }
+  
+  .sakip-mb-xs-2 {
+    margin-bottom: 0.5rem !important;
+  }
+  
+  .sakip-mb-xs-3 {
+    margin-bottom: 1rem !important;
+  }
+  
+  .sakip-p-xs-0 {
+    padding: 0 !important;
+  }
+  
+  .sakip-p-xs-1 {
+    padding: 0.25rem !important;
+  }
+  
+  .sakip-p-xs-2 {
+    padding: 0.5rem !important;
+  }
+  
+  .sakip-p-xs-3 {
+    padding: 1rem !important;
+  }
+}
+
+/* Small Devices (landscape phones, 576px and up) */
+@media (min-width: 576px) and (max-width: 767.98px) {
+  .sakip-container {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+  
+  .sakip-display-1 {
+    font-size: 2.25rem;
+  }
+  
+  .sakip-display-2 {
+    font-size: 2rem;
+  }
+  
+  .sakip-display-3 {
+    font-size: 1.75rem;
+  }
+  
+  .sakip-h1 {
+    font-size: 2rem;
+  }
+  
+  .sakip-header-title {
+    font-size: 1.5rem;
+  }
+  
+  .sakip-modal-dialog {
+    max-width: 500px;
+    margin: 1.75rem auto;
+  }
+  
+  .sakip-chart-container {
+    height: 300px;
+  }
+  
+  .sakip-btn-group {
+    flex-direction: row;
+  }
+  
+  .sakip-btn-group .sakip-btn {
+    margin-bottom: 0;
+    border-radius: 0 !important;
+  }
+  
+  .sakip-btn-group .sakip-btn:first-child {
+    border-top-left-radius: 0.375rem !important;
+    border-bottom-left-radius: 0.375rem !important;
+  }
+  
+  .sakip-btn-group .sakip-btn:last-child {
+    border-top-right-radius: 0.375rem !important;
+    border-bottom-right-radius: 0.375rem !important;
+  }
+}
+
+/* Medium Devices (tablets, 768px and up) */
+@media (min-width: 768px) and (max-width: 991.98px) {
+  .sakip-container {
+    max-width: 720px;
+  }
+  
+  .sakip-display-1 {
+    font-size: 2.5rem;
+  }
+  
+  .sakip-display-2 {
+    font-size: 2.25rem;
+  }
+  
+  .sakip-display-3 {
+    font-size: 2rem;
+  }
+  
+  .sakip-h1 {
+    font-size: 2.25rem;
+  }
+  
+  .sakip-header-content {
+    flex-direction: row;
+    text-align: left;
+    gap: 1.5rem;
+  }
+  
+  .sakip-nav {
+    flex-direction: row;
+    gap: 0;
+  }
+  
+  .sakip-nav-item {
+    width: auto;
+  }
+  
+  .sakip-chart-container {
+    height: 350px;
+  }
+  
+  .sakip-modal-dialog {
+    max-width: 600px;
+  }
+  
+  .sakip-modal-footer {
+    flex-direction: row;
+    gap: 0.75rem;
+  }
+}
+
+/* Large Devices (desktops, 992px and up) */
+@media (min-width: 992px) and (max-width: 1199.98px) {
+  .sakip-container {
+    max-width: 960px;
+  }
+  
+  .sakip-display-1 {
+    font-size: 3rem;
+  }
+  
+  .sakip-display-2 {
+    font-size: 2.5rem;
+  }
+  
+  .sakip-display-3 {
+    font-size: 2.25rem;
+  }
+  
+  .sakip-chart-container {
+    height: 400px;
+  }
+  
+  .sakip-modal-dialog {
+    max-width: 800px;
+  }
+}
+
+/* Extra Large Devices (large desktops, 1200px and up) */
+@media (min-width: 1200px) and (max-width: 1399.98px) {
+  .sakip-container {
+    max-width: 1140px;
+  }
+  
+  .sakip-display-1 {
+    font-size: 3.5rem;
+  }
+  
+  .sakip-display-2 {
+    font-size: 3rem;
+  }
+  
+  .sakip-display-3 {
+    font-size: 2.5rem;
+  }
+  
+  .sakip-chart-container {
+    height: 450px;
+  }
+}
+
+/* Extra Extra Large Devices (larger desktops, 1400px and up) */
+@media (min-width: 1400px) {
+  .sakip-container {
+    max-width: 1320px;
+  }
+  
+  .sakip-display-1 {
+    font-size: 4rem;
+  }
+  
+  .sakip-display-2 {
+    font-size: 3.5rem;
+  }
+  
+  .sakip-display-3 {
+    font-size: 3rem;
+  }
+  
+  .sakip-chart-container {
+    height: 500px;
+  }
+}
+
+/* ==========================================================================
+   Orientation Specific Styles
+   ========================================================================== */
+
+/* Landscape orientation */
+@media (orientation: landscape) and (max-width: 767.98px) {
+  .sakip-header {
+    padding: 0.75rem 0;
+  }
+  
+  .sakip-header-title {
+    font-size: 1.125rem;
+  }
+  
+  .sakip-chart-container {
+    height: 200px;
+  }
+}
+
+/* Portrait orientation */
+@media (orientation: portrait) and (max-width: 767.98px) {
+  .sakip-modal-dialog {
+    margin: 1rem;
+    max-width: calc(100% - 2rem);
+  }
+}
+
+/* ==========================================================================
+   Touch Device Optimizations
+   ========================================================================== */
+@media (hover: none) and (pointer: coarse) {
+  .sakip-btn {
+    min-height: 44px; /* Minimum touch target size */
+    min-width: 44px;
+  }
+  
+  .sakip-form-control {
+    min-height: 44px;
+  }
+  
+  .sakip-nav-link {
+    padding: 0.75rem 1rem;
+    min-height: 44px;
+  }
+  
+  .sakip-table th,
+  .sakip-table td {
+    padding: 1rem 0.75rem;
+  }
+  
+  .sakip-close {
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+/* ==========================================================================
+   High DPI Display Optimizations
+   ========================================================================== */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .sakip-border {
+    border-width: 0.5px;
+  }
+  
+  .sakip-table th,
+  .sakip-table td {
+    border-width: 0.5px;
+  }
+}
+
+/* ==========================================================================
+   Print Responsive Styles (Basic)
+   ========================================================================== */
+@media print {
+  .sakip-no-print {
+    display: none !important;
+  }
+  
+  .sakip-print-only {
+    display: block !important;
+  }
+  
+  .sakip-container {
+    max-width: none;
+    width: 100%;
+  }
+  
+  .sakip-card {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  
+  .sakip-table {
+    font-size: 0.75rem;
+  }
+  
+  .sakip-table th,
+  .sakip-table td {
+    padding: 0.5rem;
+  }
+}
+
+/* ==========================================================================
+   Dark Mode Support
+   ========================================================================== */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --sakip-bg-primary: #1a1a1a;
+    --sakip-bg-secondary: #2d2d2d;
+    --sakip-text-primary: #e0e0e0;
+    --sakip-text-secondary: #b0b0b0;
+    --sakip-border-color: #404040;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion Support
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  .sakip-btn,
+  .sakip-form-control,
+  .sakip-nav-link,
+  .sakip-card,
+  .sakip-modal {
+    transition: none !important;
+    animation: none !important;
+  }
+  
+  .sakip-spinner,
+  .sakip-loading-dots {
+    animation: none !important;
+  }
+}
+
+/* ==========================================================================
+   Focus Visible Support
+   ========================================================================== */
+@media (prefers-reduced-motion: no-preference) {
+  .sakip-btn:focus-visible,
+  .sakip-form-control:focus-visible,
+  .sakip-nav-link:focus-visible {
+    outline: 2px solid var(--sakip-primary);
+    outline-offset: 2px;
+  }
+}
+
+/* ==========================================================================
+   Responsive Utility Classes
+   ========================================================================== */
+
+/* Display utilities */
+.sakip-d-none { display: none !important; }
+.sakip-d-inline { display: inline !important; }
+.sakip-d-inline-block { display: inline-block !important; }
+.sakip-d-block { display: block !important; }
+.sakip-d-flex { display: flex !important; }
+.sakip-d-inline-flex { display: inline-flex !important; }
+.sakip-d-table { display: table !important; }
+.sakip-d-table-cell { display: table-cell !important; }
+.sakip-d-table-row { display: table-row !important; }
+
+/* Flexbox utilities */
+.sakip-flex-row { flex-direction: row !important; }
+.sakip-flex-column { flex-direction: column !important; }
+.sakip-flex-row-reverse { flex-direction: row-reverse !important; }
+.sakip-flex-column-reverse { flex-direction: column-reverse !important; }
+.sakip-flex-wrap { flex-wrap: wrap !important; }
+.sakip-flex-nowrap { flex-wrap: nowrap !important; }
+.sakip-flex-wrap-reverse { flex-wrap: wrap-reverse !important; }
+.sakip-justify-content-start { justify-content: flex-start !important; }
+.sakip-justify-content-end { justify-content: flex-end !important; }
+.sakip-justify-content-center { justify-content: center !important; }
+.sakip-justify-content-between { justify-content: space-between !important; }
+.sakip-justify-content-around { justify-content: space-around !important; }
+.sakip-align-items-start { align-items: flex-start !important; }
+.sakip-align-items-end { align-items: flex-end !important; }
+.sakip-align-items-center { align-items: center !important; }
+.sakip-align-items-baseline { align-items: baseline !important; }
+.sakip-align-items-stretch { align-items: stretch !important; }
+
+/* Responsive display utilities */
+@media (min-width: 576px) {
+  .sakip-d-sm-none { display: none !important; }
+  .sakip-d-sm-inline { display: inline !important; }
+  .sakip-d-sm-inline-block { display: inline-block !important; }
+  .sakip-d-sm-block { display: block !important; }
+  .sakip-d-sm-flex { display: flex !important; }
+  .sakip-d-sm-inline-flex { display: inline-flex !important; }
+}
+
+@media (min-width: 768px) {
+  .sakip-d-md-none { display: none !important; }
+  .sakip-d-md-inline { display: inline !important; }
+  .sakip-d-md-inline-block { display: inline-block !important; }
+  .sakip-d-md-block { display: block !important; }
+  .sakip-d-md-flex { display: flex !important; }
+  .sakip-d-md-inline-flex { display: inline-flex !important; }
+}
+
+@media (min-width: 992px) {
+  .sakip-d-lg-none { display: none !important; }
+  .sakip-d-lg-inline { display: inline !important; }
+  .sakip-d-lg-inline-block { display: inline-block !important; }
+  .sakip-d-lg-block { display: block !important; }
+  .sakip-d-lg-flex { display: flex !important; }
+  .sakip-d-lg-inline-flex { display: inline-flex !important; }
+}
+
+@media (min-width: 1200px) {
+  .sakip-d-xl-none { display: none !important; }
+  .sakip-d-xl-inline { display: inline !important; }
+  .sakip-d-xl-inline-block { display: inline-block !important; }
+  .sakip-d-xl-block { display: block !important; }
+  .sakip-d-xl-flex { display: flex !important; }
+  .sakip-d-xl-inline-flex { display: inline-flex !important; }
+}
+
+/* Text alignment utilities */
+.sakip-text-left { text-align: left !important; }
+.sakip-text-right { text-align: right !important; }
+.sakip-text-center { text-align: center !important; }
+
+@media (min-width: 576px) {
+  .sakip-text-sm-left { text-align: left !important; }
+  .sakip-text-sm-right { text-align: right !important; }
+  .sakip-text-sm-center { text-align: center !important; }
+}
+
+@media (min-width: 768px) {
+  .sakip-text-md-left { text-align: left !important; }
+  .sakip-text-md-right { text-align: right !important; }
+  .sakip-text-md-center { text-align: center !important; }
+}
+
+@media (min-width: 992px) {
+  .sakip-text-lg-left { text-align: left !important; }
+  .sakip-text-lg-right { text-align: right !important; }
+  .sakip-text-lg-center { text-align: center !important; }
+}
+
+@media (min-width: 1200px) {
+  .sakip-text-xl-left { text-align: left !important; }
+  .sakip-text-xl-right { text-align: right !important; }
+  .sakip-text-xl-center { text-align: center !important; }
+}
+
+/* Spacing utilities */
+.sakip-m-0 { margin: 0 !important; }
+.sakip-mt-0 { margin-top: 0 !important; }
+.sakip-mb-0 { margin-bottom: 0 !important; }
+.sakip-ml-0 { margin-left: 0 !important; }
+.sakip-mr-0 { margin-right: 0 !important; }
+.sakip-mx-0 { margin-left: 0 !important; margin-right: 0 !important; }
+.sakip-my-0 { margin-top: 0 !important; margin-bottom: 0 !important; }
+
+.sakip-m-1 { margin: 0.25rem !important; }
+.sakip-mt-1 { margin-top: 0.25rem !important; }
+.sakip-mb-1 { margin-bottom: 0.25rem !important; }
+.sakip-ml-1 { margin-left: 0.25rem !important; }
+.sakip-mr-1 { margin-right: 0.25rem !important; }
+.sakip-mx-1 { margin-left: 0.25rem !important; margin-right: 0.25rem !important; }
+.sakip-my-1 { margin-top: 0.25rem !important; margin-bottom: 0.25rem !important; }
+
+.sakip-m-2 { margin: 0.5rem !important; }
+.sakip-mt-2 { margin-top: 0.5rem !important; }
+.sakip-mb-2 { margin-bottom: 0.5rem !important; }
+.sakip-ml-2 { margin-left: 0.5rem !important; }
+.sakip-mr-2 { margin-right: 0.5rem !important; }
+.sakip-mx-2 { margin-left: 0.5rem !important; margin-right: 0.5rem !important; }
+.sakip-my-2 { margin-top: 0.5rem !important; margin-bottom: 0.5rem !important; }
+
+.sakip-m-3 { margin: 1rem !important; }
+.sakip-mt-3 { margin-top: 1rem !important; }
+.sakip-mb-3 { margin-bottom: 1rem !important; }
+.sakip-ml-3 { margin-left: 1rem !important; }
+.sakip-mr-3 { margin-right: 1rem !important; }
+.sakip-mx-3 { margin-left: 1rem !important; margin-right: 1rem !important; }
+.sakip-my-3 { margin-top: 1rem !important; margin-bottom: 1rem !important; }
+
+/* Padding utilities */
+.sakip-p-0 { padding: 0 !important; }
+.sakip-pt-0 { padding-top: 0 !important; }
+.sakip-pb-0 { padding-bottom: 0 !important; }
+.sakip-pl-0 { padding-left: 0 !important; }
+.sakip-pr-0 { padding-right: 0 !important; }
+.sakip-px-0 { padding-left: 0 !important; padding-right: 0 !important; }
+.sakip-py-0 { padding-top: 0 !important; padding-bottom: 0 !important; }
+
+.sakip-p-1 { padding: 0.25rem !important; }
+.sakip-pt-1 { padding-top: 0.25rem !important; }
+.sakip-pb-1 { padding-bottom: 0.25rem !important; }
+.sakip-pl-1 { padding-left: 0.25rem !important; }
+.sakip-pr-1 { padding-right: 0.25rem !important; }
+.sakip-px-1 { padding-left: 0.25rem !important; padding-right: 0.25rem !important; }
+.sakip-py-1 { padding-top: 0.25rem !important; padding-bottom: 0.25rem !important; }
+
+.sakip-p-2 { padding: 0.5rem !important; }
+.sakip-pt-2 { padding-top: 0.5rem !important; }
+.sakip-pb-2 { padding-bottom: 0.5rem !important; }
+.sakip-pl-2 { padding-left: 0.5rem !important; }
+.sakip-pr-2 { padding-right: 0.5rem !important; }
+.sakip-px-2 { padding-left: 0.5rem !important; padding-right: 0.5rem !important; }
+.sakip-py-2 { padding-top: 0.5rem !important; padding-bottom: 0.5rem !important; }
+
+.sakip-p-3 { padding: 1rem !important; }
+.sakip-pt-3 { padding-top: 1rem !important; }
+.sakip-pb-3 { padding-bottom: 1rem !important; }
+.sakip-pl-3 { padding-left: 1rem !important; }
+.sakip-pr-3 { padding-right: 1rem !important; }
+.sakip-px-3 { padding-left: 1rem !important; padding-right: 1rem !important; }
+.sakip-py-3 { padding-top: 1rem !important; padding-bottom: 1rem !important; }

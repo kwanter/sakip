@@ -1,0 +1,946 @@
+/**
+ * SAKIP Print Styles
+ * Government-style print-friendly styles for SAKIP module
+ */
+
+/* ==========================================================================
+   Print Reset and Base Styles
+   ========================================================================== */
+@media print {
+  * {
+    background: transparent !important;
+    color: black !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    filter: none !important;
+    -ms-filter: none !important;
+  }
+  
+  /* Reset print margins */
+  @page {
+    margin: 1cm;
+    size: A4;
+  }
+  
+  /* First page margin adjustment */
+  @page :first {
+    margin-top: 1.5cm;
+  }
+  
+  /* Left page for duplex printing */
+  @page :left {
+    margin-left: 1.5cm;
+    margin-right: 1cm;
+  }
+  
+  /* Right page for duplex printing */
+  @page :right {
+    margin-left: 1cm;
+    margin-right: 1.5cm;
+  }
+  
+  body {
+    font-family: "Times New Roman", Times, serif !important;
+    font-size: 12pt !important;
+    line-height: 1.5 !important;
+    color: #000 !important;
+    background: #fff !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
+  /* Ensure proper page breaks */
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+    page-break-inside: avoid;
+  }
+  
+  p, blockquote, table, pre {
+    page-break-inside: avoid;
+  }
+  
+  img, svg {
+    page-break-inside: avoid;
+    max-width: 100% !important;
+    height: auto !important;
+  }
+  
+  /* Links */
+  a, a:visited {
+    text-decoration: underline;
+  }
+  
+  a[href]:after {
+    content: " (" attr(href) ")";
+    font-size: 90%;
+    word-break: break-all;
+  }
+  
+  a[href^="#"]:after,
+  a[href^="javascript:"]:after {
+    content: "";
+  }
+  
+  /* Abbreviations */
+  abbr[title]:after {
+    content: " (" attr(title) ")";
+  }
+  
+  /* Pre and code blocks */
+  pre, blockquote {
+    border: 1pt solid #000;
+    page-break-inside: avoid;
+  }
+  
+  pre {
+    white-space: pre-wrap !important;
+    word-wrap: break-word !important;
+  }
+  
+  code {
+    font-family: "Courier New", Courier, monospace !important;
+    font-size: 11pt !important;
+  }
+  
+  /* Tables */
+  thead {
+    display: table-header-group;
+  }
+  
+  tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+  
+  th, td {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+}
+
+/* ==========================================================================
+   SAKIP Specific Print Styles
+   ========================================================================== */
+
+@media print {
+  /* Hide non-printable elements */
+  .sakip-no-print,
+  .sakip-header-actions,
+  .sakip-nav,
+  .sakip-sidebar,
+  .sakip-footer-actions,
+  .sakip-btn:not(.sakip-print-btn),
+  .sakip-pagination,
+  .sakip-loading,
+  .sakip-spinner,
+  .sakip-toast,
+  .sakip-notification,
+  .sakip-modal-backdrop,
+  .sakip-tooltip,
+  .sakip-dropdown-menu,
+  .sakip-collapse-toggle,
+  .sakip-expand-toggle,
+  .sakip-sort-icon,
+  .sakip-filter-controls,
+  .sakip-search-box,
+  .sakip-action-buttons,
+  .sakip-edit-controls,
+  .sakip-delete-controls,
+  .sakip-upload-controls,
+  .sakip-progress-bar,
+  .sakip-file-upload-zone,
+  .sakip-drag-handle,
+  .sakip-resize-handle {
+    display: none !important;
+  }
+  
+  /* Show print-only elements */
+  .sakip-print-only {
+    display: block !important;
+  }
+  
+  .sakip-print-only-inline {
+    display: inline !important;
+  }
+  
+  .sakip-print-only-flex {
+    display: flex !important;
+  }
+  
+  /* Container adjustments */
+  .sakip-container,
+  .sakip-container-fluid {
+    max-width: none !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
+  /* Card adjustments */
+  .sakip-card {
+    border: 1pt solid #000 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    margin-bottom: 1rem !important;
+    page-break-inside: avoid;
+  }
+  
+  .sakip-card-header {
+    background: #f0f0f0 !important;
+    border-bottom: 1pt solid #000 !important;
+    padding: 0.75rem !important;
+  }
+  
+  .sakip-card-body {
+    padding: 0.75rem !important;
+  }
+  
+  .sakip-card-footer {
+    background: #f0f0f0 !important;
+    border-top: 1pt solid #000 !important;
+    padding: 0.75rem !important;
+  }
+  
+  /* Table styles */
+  .sakip-table {
+    border-collapse: collapse !important;
+    width: 100% !important;
+    font-size: 10pt !important;
+  }
+  
+  .sakip-table th {
+    background: #e0e0e0 !important;
+    border: 1pt solid #000 !important;
+    font-weight: bold !important;
+    padding: 0.5rem !important;
+    text-align: left !important;
+  }
+  
+  .sakip-table td {
+    border: 1pt solid #000 !important;
+    padding: 0.5rem !important;
+  }
+  
+  .sakip-table-striped tbody tr:nth-child(odd) td {
+    background: #f8f8f8 !important;
+  }
+  
+  /* Status badges */
+  .sakip-badge {
+    border: 1pt solid #000 !important;
+    padding: 0.25rem 0.5rem !important;
+    font-size: 9pt !important;
+    font-weight: bold !important;
+  }
+  
+  .sakip-badge-success {
+    background: #e8f5e8 !important;
+    color: #000 !important;
+  }
+  
+  .sakip-badge-warning {
+    background: #fff8e8 !important;
+    color: #000 !important;
+  }
+  
+  .sakip-badge-danger {
+    background: #ffe8e8 !important;
+    color: #000 !important;
+  }
+  
+  .sakip-badge-info {
+    background: #e8f4ff !important;
+    color: #000 !important;
+  }
+  
+  .sakip-badge-secondary {
+    background: #f0f0f0 !important;
+    color: #000 !important;
+  }
+  
+  /* Form elements */
+  .sakip-form-group {
+    margin-bottom: 0.75rem !important;
+  }
+  
+  .sakip-form-label {
+    font-weight: bold !important;
+    margin-bottom: 0.25rem !important;
+  }
+  
+  .sakip-form-control {
+    border: 1pt solid #000 !important;
+    padding: 0.375rem !important;
+    background: #fff !important;
+  }
+  
+  /* Read-only form elements */
+  .sakip-form-control[readonly],
+  .sakip-form-control:disabled {
+    background: #f8f8f8 !important;
+    color: #000 !important;
+  }
+  
+  /* Header styles */
+  .sakip-header {
+    border-bottom: 2pt solid #000 !important;
+    margin-bottom: 1rem !important;
+    padding: 0.5rem 0 !important;
+  }
+  
+  .sakip-header-title {
+    font-size: 16pt !important;
+    font-weight: bold !important;
+    margin: 0 !important;
+  }
+  
+  .sakip-header-subtitle {
+    font-size: 12pt !important;
+    margin: 0 !important;
+  }
+  
+  /* Logo adjustments */
+  .sakip-logo {
+    width: 1.5rem !important;
+    height: 1.5rem !important;
+  }
+  
+  /* Typography adjustments */
+  .sakip-h1 {
+    font-size: 16pt !important;
+    font-weight: bold !important;
+    margin: 1rem 0 0.5rem 0 !important;
+  }
+  
+  .sakip-h2 {
+    font-size: 14pt !important;
+    font-weight: bold !important;
+    margin: 1rem 0 0.5rem 0 !important;
+  }
+  
+  .sakip-h3 {
+    font-size: 12pt !important;
+    font-weight: bold !important;
+    margin: 1rem 0 0.5rem 0 !important;
+  }
+  
+  .sakip-h4 {
+    font-size: 11pt !important;
+    font-weight: bold !important;
+    margin: 0.75rem 0 0.25rem 0 !important;
+  }
+  
+  .sakip-lead {
+    font-size: 12pt !important;
+    font-weight: bold !important;
+  }
+  
+  /* Assessment scoring print styles */
+  .sakip-assessment-item {
+    border: 1pt solid #000 !important;
+    margin-bottom: 1rem !important;
+    page-break-inside: avoid;
+  }
+  
+  .sakip-assessment-header {
+    background: #f0f0f0 !important;
+    border-bottom: 1pt solid #000 !important;
+    padding: 0.5rem !important;
+  }
+  
+  .sakip-score-display {
+    font-weight: bold !important;
+    font-size: 14pt !important;
+  }
+  
+  /* Report styles */
+  .sakip-report-header {
+    text-align: center !important;
+    margin-bottom: 1rem !important;
+    page-break-after: avoid;
+  }
+  
+  .sakip-report-title {
+    font-size: 16pt !important;
+    font-weight: bold !important;
+    text-transform: uppercase !important;
+    margin: 0 !important;
+  }
+  
+  .sakip-report-subtitle {
+    font-size: 12pt !important;
+    margin: 0.5rem 0 !important;
+  }
+  
+  .sakip-report-meta {
+    font-size: 10pt !important;
+    margin: 0.5rem 0 !important;
+  }
+  
+  /* Chart print styles */
+  .sakip-chart-container {
+    border: 1pt solid #000 !important;
+    margin: 1rem 0 !important;
+    page-break-inside: avoid;
+  }
+  
+  .sakip-chart-title {
+    font-size: 12pt !important;
+    font-weight: bold !important;
+    text-align: center !important;
+    margin: 0.5rem 0 !important;
+  }
+  
+  /* Data table print optimizations */
+  .sakip-data-table-wrapper {
+    overflow: visible !important;
+  }
+  
+  .sakip-data-table {
+    font-size: 9pt !important;
+  }
+  
+  .sakip-data-table th,
+  .sakip-data-table td {
+    padding: 0.375rem !important;
+  }
+  
+  /* Summary boxes */
+  .sakip-summary-box {
+    border: 1pt solid #000 !important;
+    padding: 0.75rem !important;
+    margin: 0.5rem 0 !important;
+    page-break-inside: avoid;
+  }
+  
+  .sakip-summary-title {
+    font-weight: bold !important;
+    font-size: 11pt !important;
+    margin-bottom: 0.5rem !important;
+  }
+  
+  /* Footer styles */
+  .sakip-footer {
+    border-top: 1pt solid #000 !important;
+    margin-top: 1rem !important;
+    padding-top: 0.5rem !important;
+    font-size: 9pt !important;
+  }
+  
+  /* QR Code and barcode styles */
+  .sakip-qr-code,
+  .sakip-barcode {
+    border: 1pt solid #000 !important;
+    padding: 0.25rem !important;
+    display: inline-block !important;
+  }
+  
+  /* Signature areas */
+  .sakip-signature-area {
+    border-top: 1pt solid #000 !important;
+    margin-top: 2rem !important;
+    padding-top: 0.5rem !important;
+    text-align: center !important;
+  }
+  
+  .sakip-signature-line {
+    border-bottom: 1pt solid #000 !important;
+    width: 200px !important;
+    margin: 2rem auto 0.5rem auto !important;
+  }
+  
+  /* Page numbering */
+  .sakip-page-number {
+    position: fixed !important;
+    bottom: 1cm !important;
+    right: 1cm !important;
+    font-size: 9pt !important;
+  }
+  
+  .sakip-page-number:after {
+    content: "Halaman " counter(page) " dari " counter(pages);
+  }
+}
+
+/* ==========================================================================
+   Print-specific Utility Classes
+   ========================================================================== */
+
+/* Print visibility utilities */
+.sakip-print-only {
+  display: none;
+}
+
+.sakip-print-hidden {
+  display: block;
+}
+
+@media print {
+  .sakip-print-only {
+    display: block !important;
+  }
+  
+  .sakip-print-only-inline {
+    display: inline !important;
+  }
+  
+  .sakip-print-only-flex {
+    display: flex !important;
+  }
+  
+  .sakip-print-hidden {
+    display: none !important;
+  }
+}
+
+/* Print layout utilities */
+.sakip-print-break-before {
+  page-break-before: auto;
+}
+
+.sakip-print-break-after {
+  page-break-after: auto;
+}
+
+.sakip-print-break-inside-avoid {
+  page-break-inside: avoid;
+}
+
+.sakip-print-break-before-always {
+  page-break-before: always;
+}
+
+.sakip-print-break-after-always {
+  page-break-after: always;
+}
+
+@media print {
+  .sakip-print-break-before {
+    page-break-before: auto !important;
+  }
+  
+  .sakip-print-break-after {
+    page-break-after: auto !important;
+  }
+  
+  .sakip-print-break-inside-avoid {
+    page-break-inside: avoid !important;
+  }
+  
+  .sakip-print-break-before-always {
+    page-break-before: always !important;
+  }
+  
+  .sakip-print-break-after-always {
+    page-break-after: always !important;
+  }
+}
+
+/* Print size utilities */
+.sakip-print-width-full {
+  width: 100% !important;
+}
+
+.sakip-print-width-half {
+  width: 50% !important;
+}
+
+.sakip-print-width-third {
+  width: 33.333333% !important;
+}
+
+.sakip-print-width-quarter {
+  width: 25% !important;
+}
+
+/* Print text utilities */
+.sakip-print-text-center {
+  text-align: center !important;
+}
+
+.sakip-print-text-left {
+  text-align: left !important;
+}
+
+.sakip-print-text-right {
+  text-align: right !important;
+}
+
+.sakip-print-text-justify {
+  text-align: justify !important;
+}
+
+.sakip-print-font-bold {
+  font-weight: bold !important;
+}
+
+.sakip-print-font-normal {
+  font-weight: normal !important;
+}
+
+/* Print border utilities */
+.sakip-print-border {
+  border: 1pt solid #000 !important;
+}
+
+.sakip-print-border-top {
+  border-top: 1pt solid #000 !important;
+}
+
+.sakip-print-border-bottom {
+  border-bottom: 1pt solid #000 !important;
+}
+
+.sakip-print-border-left {
+  border-left: 1pt solid #000 !important;
+}
+
+.sakip-print-border-right {
+  border-right: 1pt solid #000 !important;
+}
+
+.sakip-print-border-none {
+  border: none !important;
+}
+
+/* Print background utilities */
+.sakip-print-bg-light {
+  background: #f8f8f8 !important;
+}
+
+.sakip-print-bg-white {
+  background: #fff !important;
+}
+
+.sakip-print-bg-none {
+  background: transparent !important;
+}
+
+/* Print margin utilities */
+.sakip-print-m-0 { margin: 0 !important; }
+.sakip-print-mt-0 { margin-top: 0 !important; }
+.sakip-print-mb-0 { margin-bottom: 0 !important; }
+.sakip-print-ml-0 { margin-left: 0 !important; }
+.sakip-print-mr-0 { margin-right: 0 !important; }
+
+.sakip-print-m-1 { margin: 0.25cm !important; }
+.sakip-print-mt-1 { margin-top: 0.25cm !important; }
+.sakip-print-mb-1 { margin-bottom: 0.25cm !important; }
+.sakip-print-ml-1 { margin-left: 0.25cm !important; }
+.sakip-print-mr-1 { margin-right: 0.25cm !important; }
+
+.sakip-print-m-2 { margin: 0.5cm !important; }
+.sakip-print-mt-2 { margin-top: 0.5cm !important; }
+.sakip-print-mb-2 { margin-bottom: 0.5cm !important; }
+.sakip-print-ml-2 { margin-left: 0.5cm !important; }
+.sakip-print-mr-2 { margin-right: 0.5cm !important; }
+
+/* Print padding utilities */
+.sakip-print-p-0 { padding: 0 !important; }
+.sakip-print-pt-0 { padding-top: 0 !important; }
+.sakip-print-pb-0 { padding-bottom: 0 !important; }
+.sakip-print-pl-0 { padding-left: 0 !important; }
+.sakip-print-pr-0 { padding-right: 0 !important; }
+
+.sakip-print-p-1 { padding: 0.25cm !important; }
+.sakip-print-pt-1 { padding-top: 0.25cm !important; }
+.sakip-print-pb-1 { padding-bottom: 0.25cm !important; }
+.sakip-print-pl-1 { padding-left: 0.25cm !important; }
+.sakip-print-pr-1 { padding-right: 0.25cm !important; }
+
+.sakip-print-p-2 { padding: 0.5cm !important; }
+.sakip-print-pt-2 { padding-top: 0.5cm !important; }
+.sakip-print-pb-2 { padding-bottom: 0.5cm !important; }
+.sakip-print-pl-2 { padding-left: 0.5cm !important; }
+.sakip-print-pr-2 { padding-right: 0.5cm !important; }
+
+/* ==========================================================================
+   Government Document Specific Print Styles
+   ========================================================================== */
+
+@media print {
+  /* Kop surat (letterhead) styles */
+  .sakip-letterhead {
+    text-align: center !important;
+    border-bottom: 3pt double #000 !important;
+    padding-bottom: 0.5rem !important;
+    margin-bottom: 1rem !important;
+  }
+  
+  .sakip-letterhead-title {
+    font-size: 14pt !important;
+    font-weight: bold !important;
+    text-transform: uppercase !important;
+    margin: 0 !important;
+  }
+  
+  .sakip-letterhead-subtitle {
+    font-size: 12pt !important;
+    margin: 0.25rem 0 !important;
+  }
+  
+  .sakip-letterhead-address {
+    font-size: 10pt !important;
+    margin: 0 !important;
+  }
+  
+  /* Document classification */
+  .sakip-classification {
+    border: 2pt solid #000 !important;
+    padding: 0.5rem !important;
+    margin: 1rem 0 !important;
+    text-align: center !important;
+    font-weight: bold !important;
+    page-break-inside: avoid;
+  }
+  
+  .sakip-classification-confidential {
+    border-color: #ff0000 !important;
+    color: #ff0000 !important;
+  }
+  
+  .sakip-classification-secret {
+    border-color: #cc0000 !important;
+    color: #cc0000 !important;
+  }
+  
+  /* Document metadata */
+  .sakip-document-meta {
+    border: 1pt solid #000 !important;
+    padding: 0.5rem !important;
+    margin: 1rem 0 !important;
+    font-size: 10pt !important;
+  }
+  
+  .sakip-document-meta-item {
+    display: flex !important;
+    justify-content: space-between !important;
+    margin-bottom: 0.25rem !important;
+  }
+  
+  .sakip-document-meta-label {
+    font-weight: bold !important;
+  }
+  
+  /* Approval section */
+  .sakip-approval-section {
+    margin-top: 2rem !important;
+    page-break-inside: avoid;
+  }
+  
+  .sakip-approval-grid {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 2rem !important;
+    margin-top: 3rem !important;
+  }
+  
+  .sakip-approval-box {
+    text-align: center !important;
+    border: 1pt solid #000 !important;
+    padding: 1rem !important;
+  }
+  
+  .sakip-approval-title {
+    font-weight: bold !important;
+    margin-bottom: 3rem !important;
+  }
+  
+  .sakip-approval-name {
+    font-weight: bold !important;
+    border-bottom: 1pt solid #000 !important;
+    padding-bottom: 0.25rem !important;
+    margin-bottom: 0.25rem !important;
+  }
+  
+  .sakip-approval-title-text {
+    font-size: 9pt !important;
+  }
+  
+  /* Attachment list */
+  .sakip-attachment-list {
+    border: 1pt solid #000 !important;
+    padding: 0.75rem !important;
+    margin: 1rem 0 !important;
+  }
+  
+  .sakip-attachment-title {
+    font-weight: bold !important;
+    margin-bottom: 0.5rem !important;
+  }
+  
+  .sakip-attachment-item {
+    margin-bottom: 0.25rem !important;
+    padding-left: 1.5rem !important;
+    position: relative !important;
+  }
+  
+  .sakip-attachment-item:before {
+    content: counter(attachment-counter, decimal) ". " !important;
+    position: absolute !important;
+    left: 0 !important;
+    counter-increment: attachment-counter !important;
+  }
+  
+  .sakip-attachment-list {
+    counter-reset: attachment-counter !important;
+  }
+  
+  /* Distribution list */
+  .sakip-distribution-list {
+    border: 1pt solid #000 !important;
+    padding: 0.75rem !important;
+    margin: 1rem 0 !important;
+  }
+  
+  .sakip-distribution-title {
+    font-weight: bold !important;
+    margin-bottom: 0.5rem !important;
+  }
+  
+  .sakip-distribution-item {
+    margin-bottom: 0.25rem !important;
+    padding-left: 1.5rem !important;
+    position: relative !important;
+  }
+  
+  .sakip-distribution-item:before {
+    content: "- " !important;
+    position: absolute !important;
+    left: 0 !important;
+  }
+  
+  /* Copy notation */
+  .sakip-copy-notation {
+    font-style: italic !important;
+    margin-top: 1rem !important;
+    font-size: 10pt !important;
+  }
+  
+  .sakip-copy-notation:before {
+    content: "Tembusan: " !important;
+    font-weight: bold !important;
+  }
+  
+  /* Stamp area */
+  .sakip-stamp-area {
+    border: 2pt dashed #000 !important;
+    padding: 1rem !important;
+    margin: 1rem 0 !important;
+    text-align: center !important;
+    min-height: 100px !important;
+  }
+  
+  .sakip-stamp-text {
+    font-size: 9pt !important;
+    color: #666 !important;
+    font-style: italic !important;
+  }
+  
+  /* Watermark */
+  .sakip-watermark {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) rotate(-45deg) !important;
+    font-size: 72pt !important;
+    color: #ccc !important;
+    opacity: 0.3 !important;
+    z-index: 9999 !important;
+    pointer-events: none !important;
+  }
+}
+
+/* ==========================================================================
+   Print Button Styles
+   ========================================================================== */
+.sakip-print-btn {
+  background: var(--sakip-primary) !important;
+  color: white !important;
+  border: none !important;
+  padding: 0.5rem 1rem !important;
+  border-radius: 0.25rem !important;
+  cursor: pointer !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+  transition: all 0.2s ease !important;
+}
+
+.sakip-print-btn:hover {
+  background: var(--sakip-primary-dark) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+.sakip-print-btn:active {
+  transform: translateY(0) !important;
+}
+
+.sakip-print-btn:focus {
+  outline: 2px solid var(--sakip-primary) !important;
+  outline-offset: 2px !important;
+}
+
+.sakip-print-btn:disabled {
+  opacity: 0.6 !important;
+  cursor: not-allowed !important;
+}
+
+@media print {
+  .sakip-print-btn {
+    display: none !important;
+  }
+}
+
+/* Print preview styles */
+.sakip-print-preview {
+  background: white !important;
+  border: 1pt solid #000 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+  margin: 1rem !important;
+  padding: 1rem !important;
+  max-width: 21cm !important;
+  min-height: 29.7cm !important;
+  position: relative !important;
+}
+
+.sakip-print-preview-header {
+  background: #f0f0f0 !important;
+  border-bottom: 1pt solid #000 !important;
+  padding: 0.75rem !important;
+  margin: -1rem -1rem 1rem -1rem !important;
+  text-align: center !important;
+  font-weight: bold !important;
+}
+
+.sakip-print-preview-close {
+  position: absolute !important;
+  top: 0.5rem !important;
+  right: 0.5rem !important;
+  background: #dc3545 !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 0.25rem !important;
+  padding: 0.25rem 0.5rem !important;
+  cursor: pointer !important;
+  font-size: 0.875rem !important;
+}
+
+@media print {
+  .sakip-print-preview {
+    border: none !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    max-width: none !important;
+    min-height: auto !important;
+  }
+  
+  .sakip-print-preview-header,
+  .sakip-print-preview-close {
+    display: none !important;
+  }
+}

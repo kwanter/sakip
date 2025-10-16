@@ -3,268 +3,814 @@
 @section('title', 'Dashboard Penilai - SAKIP')
 
 @section('content')
-<div class="py-6">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <!-- Page Header -->
-        <div class="mb-8">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h1 class="text-3xl font-bold text-gray-900">Dashboard Penilai</h1>
-                    <p class="mt-2 text-gray-600">Kelola penilaian kinerja dan validasi data</p>
-                </div>
-                <div class="flex items-center space-x-3">
-                    <a href="{{ route('sakip.assessments.create') }}" class="inline-flex items-center px-4 py-2 bg-blue-800 text-white text-sm font-medium rounded-md hover:bg-blue-900 transition-colors">
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-                        </svg>
-                        Buat Penilaian
-                    </a>
-                </div>
+<div class="sakip-dashboard-assessor">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="row align-items-center">
+            <div class="col-sm-12">
+                <h1 class="page-title">Dashboard Penilai</h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Beranda</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Dashboard Penilai</li>
+                    </ol>
+                </nav>
             </div>
         </div>
+    </div>
 
-        <!-- Alert Notifications -->
-        <div class="mb-6">
-            <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-md">
-                <div class="flex">
-                    <div class="flex-shrink-0">
-                        <svg class="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
-                        </svg>
+    <!-- Quick Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card stat-card stat-card-primary">
+                <div class="card-body">
+                    <div class="stat-icon">
+                        <i class="fas fa-clipboard-list"></i>
                     </div>
-                    <div class="ml-3">
-                        <h3 class="text-sm font-medium text-blue-800">Informasi</h3>
-                        <div class="mt-1 text-sm text-blue-700">
-                            <p>Anda memiliki 8 penilaian yang menunggu proses dan 3 data yang perlu divalidasi.</p>
-                        </div>
+                    <div class="stat-content">
+                        <h3 class="stat-number">24</h3>
+                        <p class="stat-label">Menunggu Penilaian</p>
+                        <small class="stat-change text-warning">
+                            <i class="fas fa-clock"></i> 8 baru hari ini
+                        </small>
                     </div>
                 </div>
             </div>
         </div>
-
-        <!-- Quick Stats -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <div class="w-8 h-8 bg-blue-100 rounded-md flex items-center justify-center">
-                            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                            </svg>
-                        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card stat-card stat-card-success">
+                <div class="card-body">
+                    <div class="stat-icon">
+                        <i class="fas fa-check-circle"></i>
                     </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-500">Total Penilaian</p>
-                        <p class="text-2xl font-semibold text-gray-900">42</p>
-                        <p class="text-sm text-gray-600">Penilaian dibuat</p>
+                    <div class="stat-content">
+                        <h3 class="stat-number">156</h3>
+                        <p class="stat-label">Telah Dinilai</p>
+                        <small class="stat-change text-success">
+                            <i class="fas fa-arrow-up"></i> +12 minggu ini
+                        </small>
                     </div>
                 </div>
             </div>
-
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <div class="w-8 h-8 bg-yellow-100 rounded-md flex items-center justify-center">
-                            <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                        </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card stat-card stat-card-info">
+                <div class="card-body">
+                    <div class="stat-icon">
+                        <i class="fas fa-redo"></i>
                     </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-500">Menunggu</p>
-                        <p class="text-2xl font-semibold text-gray-900">8</p>
-                        <p class="text-sm text-yellow-600">Perlu diproses</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <div class="w-8 h-8 bg-green-100 rounded-md flex items-center justify-center">
-                            <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-500">Disetujui</p>
-                        <p class="text-2xl font-semibold text-gray-900">28</p>
-                        <p class="text-sm text-green-600">66.7% dari total</p>
+                    <div class="stat-content">
+                        <h3 class="stat-number">8</h3>
+                        <p class="stat-label">Perlu Revisi</p>
+                        <small class="stat-change text-danger">
+                            <i class="fas fa-exclamation-triangle"></i> 3 mendesak
+                        </small>
                     </div>
                 </div>
             </div>
-
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <div class="w-8 h-8 bg-red-100 rounded-md flex items-center justify-center">
-                            <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                            </svg>
-                        </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card stat-card stat-card-warning">
+                <div class="card-body">
+                    <div class="stat-icon">
+                        <i class="fas fa-star"></i>
                     </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-500">Ditolak</p>
-                        <p class="text-2xl font-semibold text-gray-900">6</p>
-                        <p class="text-sm text-red-600">14.3% dari total</p>
+                    <div class="stat-content">
+                        <h3 class="stat-number">4.2</h3>
+                        <p class="stat-label">Rata-rata Nilai</p>
+                        <small class="stat-change text-info">
+                            <i class="fas fa-chart-line"></i> Bulan ini
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Assessment Queue -->
+        <div class="col-lg-8 mb-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-tasks"></i> Antrian Penilaian
+                    </h5>
+                    <div class="card-tools">
+                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="refreshAssessmentQueue()">
+                            <i class="fas fa-sync-alt"></i> Segarkan
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-sm" id="assessmentQueueTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th width="5%">No</th>
+                                    <th width="20%">Indikator Kinerja</th>
+                                    <th width="15%">Unit Kerja</th>
+                                    <th width="10%">Periode</th>
+                                    <th width="10%">Tgl Pengajuan</th>
+                                    <th width="10%">Status</th>
+                                    <th width="15%">Prioritas</th>
+                                    <th width="15%" class="text-center">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>1</td>
+                                    <td>
+                                        <strong>Capaian Kinerja Utama</strong><br>
+                                        <small class="text-muted">IKU-001</small>
+                                    </td>
+                                    <td>Dinas Kesehatan</td>
+                                    <td>Q1 2024</td>
+                                    <td>15 Jan 2024</td>
+                                    <td>
+                                        <span class="badge bg-warning">Menunggu</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-danger">Tinggi</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{{ route('sakip.assessments.review', 1) }}" class="btn btn-primary btn-sm" title="Mulai Penilaian">
+                                                <i class="fas fa-play"></i>
+                                            </a>
+                                            <button class="btn btn-outline-secondary btn-sm" title="Lihat Detail" onclick="viewAssessmentDetail(1)">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>2</td>
+                                    <td>
+                                        <strong>Efisiensi Anggaran</strong><br>
+                                        <small class="text-muted">IKU-002</small>
+                                    </td>
+                                    <td>Dinas Pendidikan</td>
+                                    <td>Q1 2024</td>
+                                    <td>14 Jan 2024</td>
+                                    <td>
+                                        <span class="badge bg-warning">Menunggu</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-warning">Sedang</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{{ route('sakip.assessments.review', 2) }}" class="btn btn-primary btn-sm" title="Mulai Penilaian">
+                                                <i class="fas fa-play"></i>
+                                            </a>
+                                            <button class="btn btn-outline-secondary btn-sm" title="Lihat Detail" onclick="viewAssessmentDetail(2)">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>3</td>
+                                    <td>
+                                        <strong>Kepuasan Masyarakat</strong><br>
+                                        <small class="text-muted">IKU-003</small>
+                                    </td>
+                                    <td>Dinas Sosial</td>
+                                    <td>Q4 2023</td>
+                                    <td>12 Jan 2024</td>
+                                    <td>
+                                        <span class="badge bg-info">Dalam Proses</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-success">Rendah</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{{ route('sakip.assessments.review', 3) }}" class="btn btn-primary btn-sm" title="Lanjutkan Penilaian">
+                                                <i class="fas fa-play"></i>
+                                            </a>
+                                            <button class="btn btn-outline-secondary btn-sm" title="Lihat Detail" onclick="viewAssessmentDetail(3)">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted">Menampilkan 3 dari 24 penilaian menunggu</small>
+                        <a href="{{ route('sakip.assessments.index') }}" class="btn btn-sm btn-outline-primary">
+                            Lihat Semua <i class="fas fa-arrow-right"></i>
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Pending Assessments -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-medium text-gray-900">Penilaian Menunggu</h3>
-                <span class="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">8 perlu diproses</span>
+        <!-- Quick Actions & Info -->
+        <div class="col-lg-4 mb-4">
+            <!-- Quick Actions -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-bolt"></i> Aksi Cepat
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{{ route('sakip.assessments.index') }}" class="btn btn-primary">
+                            <i class="fas fa-tasks"></i> Lihat Semua Penilaian
+                        </a>
+                        <button class="btn btn-outline-primary" onclick="showAssessmentGuidelines()">
+                            <i class="fas fa-book"></i> Panduan Penilaian
+                        </button>
+                        <button class="btn btn-outline-secondary" onclick="showAssessmentCriteria()">
+                            <i class="fas fa-list"></i> Kriteria Penilaian
+                        </button>
+                    </div>
+                </div>
             </div>
-            <div class="space-y-3">
-                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-md">
-                    <div class="flex items-center">
-                        <div class="w-2 h-2 bg-yellow-500 rounded-full mr-3"></div>
-                        <div>
-                            <p class="text-sm font-medium text-gray-900">IK.15 - Persentase kehadiran pegawai</p>
-                            <p class="text-xs text-gray-500">Instansi: Dinas Kesehatan | Periode: Triwulan IV 2024</p>
-                        </div>
-                    </div>
-                    <a href="{{ route('sakip.assessments.create') }}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">Nilai</a>
+
+            <!-- Assessment Statistics -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-pie"></i> Statistik Penilaian
+                    </h5>
                 </div>
-                
-                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-md">
-                    <div class="flex items-center">
-                        <div class="w-2 h-2 bg-yellow-500 rounded-full mr-3"></div>
-                        <div>
-                            <p class="text-sm font-medium text-gray-900">IK.14 - Jumlah kegiatan yang dilaksanakan</p>
-                            <p class="text-xs text-gray-500">Instansi: Dinas Pendidikan | Periode: Triwulan IV 2024</p>
-                        </div>
-                    </div>
-                    <a href="{{ route('sakip.assessments.create') }}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">Nilai</a>
+                <div class="card-body">
+                    <canvas id="assessmentStatsChart" width="200" height="200"></canvas>
                 </div>
-                
-                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-md">
-                    <div class="flex items-center">
-                        <div class="w-2 h-2 bg-yellow-500 rounded-full mr-3"></div>
-                        <div>
-                            <p class="text-sm font-medium text-gray-900">IK.13 - Tingkat kepuasan masyarakat</p>
-                            <p class="text-xs text-gray-500">Instansi: Dinas Pekerjaan Umum | Periode: Triwulan IV 2024</p>
+            </div>
+
+            <!-- Recent Activities -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-history"></i> Aktivitas Terbaru
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="activity-list">
+                        <div class="activity-item">
+                            <div class="activity-icon bg-success">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <div class="activity-content">
+                                <p class="activity-title">Penilaian selesai</p>
+                                <p class="activity-desc">IKU-005 - Dinas Perhubungan</p>
+                                <small class="activity-time">2 jam yang lalu</small>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-icon bg-primary">
+                                <i class="fas fa-play"></i>
+                            </div>
+                            <div class="activity-content">
+                                <p class="activity-title">Mulai penilaian</p>
+                                <p class="activity-desc">IKU-003 - Dinas Sosial</p>
+                                <small class="activity-time">5 jam yang lalu</small>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-icon bg-warning">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="activity-content">
+                                <p class="activity-title">Penilaian ditunda</p>
+                                <p class="activity-desc">IKU-007 - Dinas PU</p>
+                                <small class="activity-time">1 hari yang lalu</small>
+                            </div>
                         </div>
                     </div>
-                    <a href="{{ route('sakip.assessments.create') }}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">Nilai</a>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- Recent Assessments -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-medium text-gray-900">Penilaian Terakhir</h3>
-                <a href="{{ route('sakip.assessments.index') }}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">Lihat Semua</a>
-            </div>
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kode</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Indikator</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Skor</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        <tr>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">AS.15</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Persentase kehadiran pegawai</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">85</td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Disetujui</span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2 jam lalu</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <a href="#" class="text-blue-600 hover:text-blue-800">Detail</a>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">AS.14</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Jumlah kegiatan yang dilaksanakan</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">78</td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Ditolak</span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">1 hari lalu</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <a href="#" class="text-blue-600 hover:text-blue-800">Detail</a>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">AS.13</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Tingkat kepuasan masyarakat</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">92</td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Disetujui</span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">3 hari lalu</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <a href="#" class="text-blue-600 hover:text-blue-800">Detail</a>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Quick Actions -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 class="text-lg font-medium text-gray-900 mb-4">Aksi Cepat</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <a href="{{ route('sakip.assessments.create') }}" class="flex items-center p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
-                    <div class="flex-shrink-0">
-                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-                        </svg>
+    <!-- Assessment Performance Chart -->
+    <div class="row">
+        <div class="col-12 mb-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-line"></i> Performa Penilaian
+                    </h5>
+                    <div class="card-tools">
+                        <select class="form-select form-select-sm" id="performancePeriod" onchange="updatePerformanceChart()">
+                            <option value="week">Minggu Ini</option>
+                            <option value="month" selected>Bulan Ini</option>
+                            <option value="quarter">Triwulan Ini</option>
+                            <option value="year">Tahun Ini</option>
+                        </select>
                     </div>
-                    <div class="ml-3">
-                        <p class="text-sm font-medium text-blue-900">Buat Penilaian</p>
-                        <p class="text-xs text-blue-600">Penilaian kinerja baru</p>
-                    </div>
-                </a>
-                
-                <a href="{{ route('sakip.data-collection.index') }}" class="flex items-center p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors">
-                    <div class="flex-shrink-0">
-                        <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                    </div>
-                    <div class="ml-3">
-                        <p class="text-sm font-medium text-green-900">Validasi Data</p>
-                        <p class="text-xs text-green-600">Periksa data masuk</p>
-                    </div>
-                </a>
-                
-                <a href="#" class="flex items-center p-4 bg-orange-50 rounded-lg hover:bg-orange-100 transition-colors">
-                    <div class="flex-shrink-0">
-                        <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-                        </svg>
-                    </div>
-                    <div class="ml-3">
-                        <p class="text-sm font-medium text-orange-900">Laporan</p>
-                        <p class="text-xs text-orange-600">Unduh hasil penilaian</p>
-                    </div>
-                </a>
+                </div>
+                <div class="card-body">
+                    <canvas id="performanceChart" height="100"></canvas>
+                </div>
             </div>
         </div>
     </div>
 </div>
-@stop
 
-@section('scripts')
+<!-- Assessment Detail Modal -->
+<div class="modal fade" id="assessmentDetailModal" tabindex="-1" aria-labelledby="assessmentDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="assessmentDetailModalLabel">Detail Penilaian</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="assessmentDetailContent">
+                <!-- Content will be loaded dynamically -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                <a href="#" class="btn btn-primary" id="startAssessmentBtn">Mulai Penilaian</a>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+
+@push('styles')
+<style>
+/* Assessor Dashboard Styles */
+.sakip-dashboard-assessor {
+    padding: 20px 0;
+}
+
+.page-header {
+    background: var(--sakip-primary-light);
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 25px;
+    border-left: 4px solid var(--sakip-primary);
+}
+
+.page-title {
+    color: var(--sakip-primary-dark);
+    font-size: 1.8rem;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+/* Stat Cards */
+.stat-card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+}
+
+.stat-card .card-body {
+    padding: 20px;
+    display: flex;
+    align-items: center;
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: white;
+    margin-right: 15px;
+    flex-shrink: 0;
+}
+
+.stat-card-primary .stat-icon {
+    background: linear-gradient(135deg, var(--sakip-primary), var(--sakip-primary-dark));
+}
+
+.stat-card-success .stat-icon {
+    background: linear-gradient(135deg, var(--sakip-success), var(--sakip-success-dark));
+}
+
+.stat-card-info .stat-icon {
+    background: linear-gradient(135deg, var(--sakip-info), var(--sakip-info-dark));
+}
+
+.stat-card-warning .stat-icon {
+    background: linear-gradient(135deg, var(--sakip-warning), var(--sakip-warning-dark));
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0;
+    color: var(--sakip-dark);
+}
+
+.stat-label {
+    margin-bottom: 5px;
+    color: var(--sakip-secondary);
+    font-size: 0.9rem;
+}
+
+.stat-change {
+    font-size: 0.8rem;
+}
+
+/* Table Styles */
+.table-responsive {
+    border-radius: 8px;
+}
+
+.table th {
+    background: var(--sakip-light);
+    color: var(--sakip-primary-dark);
+    font-weight: 600;
+    border: none;
+    padding: 12px 8px;
+    font-size: 0.85rem;
+}
+
+.table td {
+    padding: 10px 8px;
+    vertical-align: middle;
+    border-color: var(--sakip-border);
+}
+
+.table-hover tbody tr:hover {
+    background-color: var(--sakip-primary-light);
+}
+
+/* Activity List */
+.activity-list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.activity-item {
+    display: flex;
+    align-items: flex-start;
+    padding: 15px 0;
+    border-bottom: 1px solid var(--sakip-border);
+}
+
+.activity-item:last-child {
+    border-bottom: none;
+}
+
+.activity-icon {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 0.9rem;
+    margin-right: 12px;
+    flex-shrink: 0;
+}
+
+.activity-content {
+    flex: 1;
+}
+
+.activity-title {
+    font-weight: 600;
+    margin-bottom: 2px;
+    color: var(--sakip-dark);
+}
+
+.activity-desc {
+    color: var(--sakip-secondary);
+    margin-bottom: 2px;
+    font-size: 0.9rem;
+}
+
+.activity-time {
+    color: var(--sakip-muted);
+    font-size: 0.8rem;
+}
+
+/* Card Styles */
+.card {
+    border: 1px solid var(--sakip-border);
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.card-header {
+    background: var(--sakip-light);
+    border-bottom: 1px solid var(--sakip-border);
+    border-radius: 12px 12px 0 0 !important;
+    padding: 15px 20px;
+}
+
+.card-title {
+    color: var(--sakip-primary-dark);
+    font-weight: 600;
+}
+
+/* Buttons */
+.btn-group-sm > .btn, .btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.8rem;
+}
+
+.btn-primary {
+    background: var(--sakip-primary);
+    border-color: var(--sakip-primary);
+}
+
+.btn-primary:hover {
+    background: var(--sakip-primary-dark);
+    border-color: var(--sakip-primary-dark);
+}
+
+/* Badges */
+.badge {
+    padding: 0.4em 0.6em;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .page-title {
+        font-size: 1.5rem;
+    }
+    
+    .stat-card .card-body {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .stat-icon {
+        margin-right: 0;
+        margin-bottom: 10px;
+    }
+    
+    .table-responsive {
+        font-size: 0.8rem;
+    }
+    
+    .btn-group-sm > .btn, .btn-sm {
+        padding: 0.2rem 0.4rem;
+        font-size: 0.7rem;
+    }
+}
+
+@media print {
+    .card-tools,
+    .btn-group,
+    .btn {
+        display: none !important;
+    }
+    
+    .card {
+        box-shadow: none !important;
+        border: 1px solid #ddd !important;
+    }
+}
+</style>
+@endpush
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+// Assessment Statistics Chart
+const assessmentStatsCtx = document.getElementById('assessmentStatsChart').getContext('2d');
+const assessmentStatsChart = new Chart(assessmentStatsCtx, {
+    type: 'doughnut',
+    data: {
+        labels: ['Menunggu', 'Dalam Proses', 'Selesai', 'Revisi'],
+        datasets: [{
+            data: [24, 8, 156, 8],
+            backgroundColor: [
+                '#ffc107',
+                '#17a2b8',
+                '#28a745',
+                '#dc3545'
+            ],
+            borderWidth: 0
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: {
+                    padding: 20,
+                    usePointStyle: true
+                }
+            }
+        }
+    }
+});
+
+// Performance Chart
+const performanceCtx = document.getElementById('performanceChart').getContext('2d');
+const performanceChart = new Chart(performanceCtx, {
+    type: 'line',
+    data: {
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'],
+        datasets: [{
+            label: 'Penilaian Selesai',
+            data: [12, 15, 18, 22, 25, 28, 32, 35, 38, 42, 45, 48],
+            borderColor: '#28a745',
+            backgroundColor: 'rgba(40, 167, 69, 0.1)',
+            tension: 0.4,
+            fill: true
+        }, {
+            label: 'Rata-rata Nilai',
+            data: [3.8, 3.9, 4.0, 4.1, 4.2, 4.1, 4.3, 4.2, 4.4, 4.3, 4.5, 4.2],
+            borderColor: '#007bff',
+            backgroundColor: 'rgba(0, 123, 255, 0.1)',
+            tension: 0.4,
+            fill: true
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'top',
+            },
+            title: {
+                display: true,
+                text: 'Performa Penilaian Bulanan'
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                grid: {
+                    color: 'rgba(0,0,0,0.1)'
+                }
+            },
+            x: {
+                grid: {
+                    display: false
+                }
+            }
+        }
+    }
+});
+
+// Functions
+function refreshAssessmentQueue() {
+    showLoading('assessmentQueueTable');
+    
+    // Simulate API call
+    setTimeout(() => {
+        hideLoading('assessmentQueueTable');
+        showToast('Antrian penilaian telah disegarkan', 'success');
+    }, 1000);
+}
+
+function viewAssessmentDetail(id) {
+    const modal = new bootstrap.Modal(document.getElementById('assessmentDetailModal'));
+    
+    // Simulate loading assessment detail
+    document.getElementById('assessmentDetailContent').innerHTML = `
+        <div class="text-center">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Memuat detail penilaian...</p>
+        </div>
+    `;
+    
+    // Simulate API call
+    setTimeout(() => {
+        document.getElementById('assessmentDetailContent').innerHTML = `
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>Informasi Indikator</h6>
+                    <table class="table table-sm">
+                        <tr><td>Kode</td><td>IKU-00${id}</td></tr>
+                        <tr><td>Nama</td><td>Indikator Kinerja Utama</td></tr>
+                        <tr><td>Unit Kerja</td><td>Dinas Kesehatan</td></tr>
+                        <tr><td>Periode</td><td>Q1 2024</td></tr>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <h6>Status Penilaian</h6>
+                    <table class="table table-sm">
+                        <tr><td>Status</td><td><span class="badge bg-warning">Menunggu</span></td></tr>
+                        <tr><td>Tgl Pengajuan</td><td>15 Jan 2024</td></tr>
+                        <tr><td>Prioritas</td><td><span class="badge bg-danger">Tinggi</span></td></tr>
+                        <tr><td>Catatan</td><td>Evaluasi capaian target kinerja</td></tr>
+                    </table>
+                </div>
+            </div>
+        `;
+        
+        document.getElementById('startAssessmentBtn').href = `/sakip/assessments/review/${id}`;
+    }, 500);
+    
+    modal.show();
+}
+
+function updatePerformanceChart() {
+    const period = document.getElementById('performancePeriod').value;
+    
+    // Simulate data update based on period
+    let newData, newLabels;
+    
+    switch(period) {
+        case 'week':
+            newLabels = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
+            newData = [5, 8, 6, 9, 7, 4, 3];
+            break;
+        case 'month':
+            newLabels = ['Minggu 1', 'Minggu 2', 'Minggu 3', 'Minggu 4'];
+            newData = [25, 32, 28, 35];
+            break;
+        case 'quarter':
+            newLabels = ['Jan', 'Feb', 'Mar'];
+            newData = [85, 92, 78];
+            break;
+        default:
+            return;
+    }
+    
+    performanceChart.data.labels = newLabels;
+    performanceChart.data.datasets[0].data = newData;
+    performanceChart.update();
+}
+
+function showAssessmentGuidelines() {
+    showToast('Panduan penilaian akan ditampilkan', 'info');
+}
+
+function showAssessmentCriteria() {
+    showToast('Kriteria penilaian akan ditampilkan', 'info');
+}
+
+function showLoading(elementId) {
+    const element = document.getElementById(elementId);
+    if (element) {
+        element.style.opacity = '0.5';
+        element.style.pointerEvents = 'none';
+    }
+}
+
+function hideLoading(elementId) {
+    const element = document.getElementById(elementId);
+    if (element) {
+        element.style.opacity = '1';
+        element.style.pointerEvents = 'auto';
+    }
+}
+
+function showToast(message, type = 'info') {
+    // Create toast element
+    const toastHtml = `
+        <div class="toast align-items-center text-white bg-${type === 'success' ? 'success' : type === 'error' ? 'danger' : 'info'} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">
+                    ${message}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    `;
+    
+    // Add toast container if not exists
+    if (!document.querySelector('.toast-container')) {
+        const container = document.createElement('div');
+        container.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+        container.style.zIndex = '9999';
+        document.body.appendChild(container);
+    }
+    
+    const container = document.querySelector('.toast-container');
+    container.insertAdjacentHTML('beforeend', toastHtml);
+    
+    const toast = new bootstrap.Toast(container.lastElementChild);
+    toast.show();
+    
+    // Remove toast element after hiding
+    container.lastElementChild.addEventListener('hidden.bs.toast', function() {
+        this.remove();
+    });
+}
+
+// Initialize DataTable
 document.addEventListener('DOMContentLoaded', function() {
-    // Add any specific assessor dashboard functionality here
+    // Initialize any additional functionality here
     console.log('Assessor dashboard loaded');
 });
 </script>
-@stop
+@endpush
