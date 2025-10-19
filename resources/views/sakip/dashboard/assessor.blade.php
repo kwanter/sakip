@@ -1,4 +1,4 @@
-@extends('sakip.layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Dashboard Penilai - SAKIP')
 
@@ -546,21 +546,21 @@
     .page-title {
         font-size: 1.5rem;
     }
-    
+
     .stat-card .card-body {
         flex-direction: column;
         text-align: center;
     }
-    
+
     .stat-icon {
         margin-right: 0;
         margin-bottom: 10px;
     }
-    
+
     .table-responsive {
         font-size: 0.8rem;
     }
-    
+
     .btn-group-sm > .btn, .btn-sm {
         padding: 0.2rem 0.4rem;
         font-size: 0.7rem;
@@ -573,7 +573,7 @@
     .btn {
         display: none !important;
     }
-    
+
     .card {
         box-shadow: none !important;
         border: 1px solid #ddd !important;
@@ -670,7 +670,7 @@ const performanceChart = new Chart(performanceCtx, {
 // Functions
 function refreshAssessmentQueue() {
     showLoading('assessmentQueueTable');
-    
+
     // Simulate API call
     setTimeout(() => {
         hideLoading('assessmentQueueTable');
@@ -680,7 +680,7 @@ function refreshAssessmentQueue() {
 
 function viewAssessmentDetail(id) {
     const modal = new bootstrap.Modal(document.getElementById('assessmentDetailModal'));
-    
+
     // Simulate loading assessment detail
     document.getElementById('assessmentDetailContent').innerHTML = `
         <div class="text-center">
@@ -690,7 +690,7 @@ function viewAssessmentDetail(id) {
             <p class="mt-2">Memuat detail penilaian...</p>
         </div>
     `;
-    
+
     // Simulate API call
     setTimeout(() => {
         document.getElementById('assessmentDetailContent').innerHTML = `
@@ -715,19 +715,19 @@ function viewAssessmentDetail(id) {
                 </div>
             </div>
         `;
-        
+
         document.getElementById('startAssessmentBtn').href = `/sakip/assessments/review/${id}`;
     }, 500);
-    
+
     modal.show();
 }
 
 function updatePerformanceChart() {
     const period = document.getElementById('performancePeriod').value;
-    
+
     // Simulate data update based on period
     let newData, newLabels;
-    
+
     switch(period) {
         case 'week':
             newLabels = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
@@ -744,7 +744,7 @@ function updatePerformanceChart() {
         default:
             return;
     }
-    
+
     performanceChart.data.labels = newLabels;
     performanceChart.data.datasets[0].data = newData;
     performanceChart.update();
@@ -786,7 +786,7 @@ function showToast(message, type = 'info') {
             </div>
         </div>
     `;
-    
+
     // Add toast container if not exists
     if (!document.querySelector('.toast-container')) {
         const container = document.createElement('div');
@@ -794,13 +794,13 @@ function showToast(message, type = 'info') {
         container.style.zIndex = '9999';
         document.body.appendChild(container);
     }
-    
+
     const container = document.querySelector('.toast-container');
     container.insertAdjacentHTML('beforeend', toastHtml);
-    
+
     const toast = new bootstrap.Toast(container.lastElementChild);
     toast.show();
-    
+
     // Remove toast element after hiding
     container.lastElementChild.addEventListener('hidden.bs.toast', function() {
         this.remove();

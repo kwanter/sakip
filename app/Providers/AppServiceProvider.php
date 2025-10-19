@@ -22,16 +22,20 @@ use App\Models\Sakip\PerformanceData;
 use App\Models\Sakip\Assessment;
 use App\Models\Sakip\Report;
 use App\Models\Sakip\EvidenceDocument;
-use App\Models\Sakip\Target;
+use App\Models\Target;
+use App\Models\AuditLog;
 
 // SAKIP Policies
-use App\Policies\Sakip\SakipDashboardPolicy;
+use App\Policies\SakipDashboardPolicy;
 use App\Policies\Sakip\PerformanceIndicatorPolicy;
 use App\Policies\Sakip\PerformanceDataPolicy;
 use App\Policies\Sakip\AssessmentPolicy;
 use App\Policies\Sakip\ReportPolicy;
 use App\Policies\Sakip\EvidenceDocumentPolicy;
-use App\Policies\Sakip\TargetPolicy;
+use App\Policies\TargetPolicy;
+use App\Policies\AuditLogPolicy;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -54,13 +58,18 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(IndikatorKinerja::class, IndikatorKinerjaPolicy::class);
         Gate::policy(LaporanKinerja::class, LaporanKinerjaPolicy::class);
 
+        Gate::policy(\App\Models\PerformanceIndicator::class, \App\Policies\PerformanceIndicatorPolicy::class);
+
         // Register SAKIP policies
         Gate::policy(PerformanceIndicator::class, PerformanceIndicatorPolicy::class);
         Gate::policy(PerformanceData::class, PerformanceDataPolicy::class);
         Gate::policy(Assessment::class, AssessmentPolicy::class);
         Gate::policy(Report::class, ReportPolicy::class);
         Gate::policy(EvidenceDocument::class, EvidenceDocumentPolicy::class);
-        Gate::policy(Target::class, TargetPolicy::class);
+        Gate::policy(AuditLog::class, AuditLogPolicy::class);
+        
+        // Explicitly register Target policy to override auto-discovery
+        Gate::policy(\App\Models\Target::class, \App\Policies\TargetPolicy::class);
 
         // Gate abilities for admin middleware
         Gate::define('admin.dashboard', function (\App\Models\User $user) {
@@ -77,6 +86,19 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('sakip.dashboard.assessor', [SakipDashboardPolicy::class, 'viewAssessorDashboard']);
         Gate::define('sakip.dashboard.audit', [SakipDashboardPolicy::class, 'viewAuditDashboard']);
 
+        // SAKIP Main Gates
+        Gate::define('sakip.view.dashboard', [\App\Policies\SakipPolicy::class, 'viewDashboard']);
+        Gate::define('sakip.view.performance-indicators', [\App\Policies\SakipPolicy::class, 'viewPerformanceIndicators']);
+        Gate::define('sakip.view.performance-data', [\App\Policies\SakipPolicy::class, 'viewPerformanceData']);
+        Gate::define('sakip.view.assessments', [\App\Policies\SakipPolicy::class, 'viewAssessments']);
+        Gate::define('sakip.view.reports', [\App\Policies\SakipPolicy::class, 'viewReports']);
+        Gate::define('sakip.export.data', [\App\Policies\SakipPolicy::class, 'exportData']);
+
+
+        Gate::define('isSuperAdmin', function ($user) {
+            return $user->hasRole('Super Admin');
+        });
+
         // Blade directives for roles and permissions
         Blade::if('role', function ($role) {
             $user = auth()->user();
@@ -91,6 +113,21 @@ class AppServiceProvider extends ServiceProvider
         Blade::if('permission', function ($permission) {
             $user = auth()->user();
             return $user && $user->hasPermission($permission);
+        });
+
+        // Slow query logging (threshold: 150ms)
+        DB::listen(function ($query) {
+            $thresholdMs = 150;
+            // $query->time is in milliseconds for Laravel 10+; guard if null
+            $duration = method_exists($query, 'time') ? ($query->time ?? 0) : 0;
+            if ($duration >= $thresholdMs) {
+                Log::channel('daily')->warning('Slow query detected', [
+                    'sql' => $query->sql,
+                    'bindings' => $query->bindings,
+                    'time_ms' => $duration,
+                    'connection' => property_exists($query, 'connectionName') ? $query->connectionName : null,
+                ]);
+            }
         });
     }
 }

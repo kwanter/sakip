@@ -22,26 +22,26 @@ class ReportPolicy
 
     public function create(User $user): bool
     {
-        return $user->hasRole(['admin', 'manager']);
+        return $user->hasAnyRole(['superadmin', 'executive']);
     }
 
     public function update(User $user, Report $report): bool
     {
-        return $user->hasRole(['admin', 'manager']);
+        return $user->hasAnyRole(['superadmin', 'executive']);
     }
 
     public function delete(User $user, Report $report): bool
     {
-        return $user->hasRole(['admin']);
+        return $user->hasRole('superadmin');
     }
 
     public function restore(User $user, Report $report): bool
     {
-        return $user->hasRole(['admin']);
+        return $user->hasRole('superadmin');
     }
 
     public function forceDelete(User $user, Report $report): bool
     {
-        return $user->hasRole(['admin']);
+        return $user->hasRole('superadmin');
     }
 }

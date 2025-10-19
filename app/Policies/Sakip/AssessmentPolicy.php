@@ -31,7 +31,7 @@ class AssessmentPolicy
      */
     public function create(User $user): bool
     {
-        return $user->hasRole(['admin', 'manager']);
+        return $user->hasAnyRole(['superadmin', 'assessor']);
     }
 
     /**
@@ -39,7 +39,7 @@ class AssessmentPolicy
      */
     public function update(User $user, Assessment $assessment): bool
     {
-        return $user->hasRole(['admin', 'manager']);
+        return $user->hasAnyRole(['superadmin', 'assessor']);
     }
 
     /**
@@ -47,7 +47,7 @@ class AssessmentPolicy
      */
     public function delete(User $user, Assessment $assessment): bool
     {
-        return $user->hasRole(['admin']);
+        return $user->hasRole('superadmin');
     }
 
     /**
@@ -55,7 +55,7 @@ class AssessmentPolicy
      */
     public function restore(User $user, Assessment $assessment): bool
     {
-        return $user->hasRole(['admin']);
+        return $user->hasRole('superadmin');
     }
 
     /**
@@ -63,6 +63,6 @@ class AssessmentPolicy
      */
     public function forceDelete(User $user, Assessment $assessment): bool
     {
-        return $user->hasRole(['admin']);
+        return $user->hasRole('superadmin');
     }
 }

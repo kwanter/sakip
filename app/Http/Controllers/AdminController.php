@@ -22,7 +22,7 @@ class AdminController extends Controller
     {
         $this->adminService = $adminService;
         $this->settingsService = $settingsService;
-        $this->middleware('can:admin.dashboard');
+        $this->middleware('can:manage-high-level-settings');
     }
 
     public function dashboard()
@@ -199,7 +199,7 @@ class AdminController extends Controller
      */
     public function systemSettings(Request $request)
     {
-        $this->authorize('admin.settings');
+        $this->authorize('manage-high-level-settings');
 
         $settings = \App\Models\SystemSetting::all();
 
@@ -208,7 +208,7 @@ class AdminController extends Controller
 
     public function updateSettings(Request $request)
     {
-        $this->authorize('admin.settings');
+        $this->authorize('manage-high-level-settings');
 
         $rules = [
             'settings' => 'required|array',
@@ -245,7 +245,7 @@ class AdminController extends Controller
      */
     public function clearCache()
     {
-        $this->authorize('admin.settings');
+        $this->authorize('manage-high-level-settings');
         try {
             \Artisan::call('cache:clear');
             \Artisan::call('config:clear');
@@ -269,7 +269,7 @@ class AdminController extends Controller
      */
     public function optimizeApp()
     {
-        $this->authorize('admin.settings');
+        $this->authorize('manage-high-level-settings');
         try {
             \Artisan::call('optimize');
             \Artisan::call('config:cache');
@@ -293,7 +293,7 @@ class AdminController extends Controller
      */
     public function backupDatabase()
     {
-        $this->authorize('admin.settings');
+        $this->authorize('manage-high-level-settings');
         try {
             $connection = config('database.default');
             $config = config("database.connections.{$connection}");
@@ -438,12 +438,5 @@ class AdminController extends Controller
         ];
     }
 
-    private function formatBytes($bytes, $precision = 2)
-    {
-        $units = ['B', 'KB', 'MB', 'GB', 'TB'];
-        for ($i = 0; $bytes > 1024 && $i < count($units) - 1; $i++) {
-            $bytes /= 1024;
-        }
-        return round($bytes, $precision) . ' ' . $units[$i];
-    }
+
 }

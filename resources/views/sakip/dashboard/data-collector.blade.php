@@ -1,4 +1,4 @@
-@extends('sakip.layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Dashboard Pengumpul Data - SAKIP')
 
@@ -40,7 +40,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-lg-3 col-md-6 mb-3">
             <div class="kpi-card kpi-success">
                 <div class="kpi-icon">
@@ -56,7 +56,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-lg-3 col-md-6 mb-3">
             <div class="kpi-card kpi-warning">
                 <div class="kpi-icon">
@@ -72,7 +72,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-lg-3 col-md-6 mb-3">
             <div class="kpi-card kpi-primary">
                 <div class="kpi-icon">
@@ -89,7 +89,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Task Management Section -->
     <div class="row mb-4">
         <!-- Pending Tasks -->
@@ -155,7 +155,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Quick Actions -->
         <div class="col-lg-4 mb-4">
             <div class="quick-actions-panel">
@@ -173,7 +173,7 @@
                                 <span class="action-desc">Unggah data kinerja</span>
                             </div>
                         </button>
-                        
+
                         <button class="action-btn" onclick="uploadEvidence()">
                             <div class="action-icon">
                                 <i class="fas fa-paperclip"></i>
@@ -183,7 +183,7 @@
                                 <span class="action-desc">Lampirkan dokumen</span>
                             </div>
                         </button>
-                        
+
                         <button class="action-btn" onclick="bulkImport()">
                             <div class="action-icon">
                                 <i class="fas fa-file-import"></i>
@@ -193,7 +193,7 @@
                                 <span class="action-desc">Impor data Excel</span>
                             </div>
                         </button>
-                        
+
                         <button class="action-btn" onclick="viewHistory()">
                             <div class="action-icon">
                                 <i class="fas fa-history"></i>
@@ -206,7 +206,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- Upload Guidelines -->
             <div class="guidelines-panel">
                 <div class="panel-header">
@@ -233,7 +233,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Data Submission History -->
     <div class="row mb-4">
         <div class="col-12">
@@ -314,7 +314,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Bulk Operations -->
     <div class="row">
         <div class="col-12">
@@ -332,7 +332,7 @@
                                 Pilih File Excel
                             </button>
                         </div>
-                        
+
                         <div class="bulk-item">
                             <h6>Ekspor Template</h6>
                             <p>Unduh template Excel untuk pengisian data massal</p>
@@ -341,7 +341,7 @@
                                 Unduh Template
                             </button>
                         </div>
-                        
+
                         <div class="bulk-item">
                             <h6>Validasi Data</h6>
                             <p>Periksa kelayakan data sebelum pengiriman</p>
@@ -795,35 +795,35 @@
         align-items: flex-start;
         gap: 1rem;
     }
-    
+
     .header-actions {
         width: 100%;
         justify-content: flex-end;
     }
-    
+
     .task-header,
     .history-header {
         flex-direction: column;
         align-items: flex-start;
     }
-    
+
     .task-controls,
     .history-controls {
         width: 100%;
         justify-content: space-between;
     }
-    
+
     .task-item {
         flex-direction: column;
         align-items: flex-start;
     }
-    
+
     .task-actions {
         margin-top: 1rem;
         width: 100%;
         justify-content: flex-end;
     }
-    
+
     .bulk-grid {
         grid-template-columns: 1fr;
     }
@@ -835,11 +835,11 @@
         flex-direction: column;
         align-items: stretch;
     }
-    
+
     .action-grid {
         gap: 0.75rem;
     }
-    
+
     .action-btn {
         padding: 0.75rem;
     }
@@ -854,7 +854,7 @@
     .bulk-operations-panel {
         display: none !important;
     }
-    
+
     .task-container,
     .history-container {
         break-inside: avoid;
@@ -874,7 +874,7 @@ let historyFilter = 'all';
 document.addEventListener('DOMContentLoaded', function() {
     initializeFilters();
     setupEventListeners();
-    
+
     // Auto-refresh every 3 minutes
     setInterval(function() {
         refreshDashboard();
@@ -911,7 +911,7 @@ function setupEventListeners() {
 function filterTasks() {
     const filter = document.getElementById('taskFilter').value;
     const taskItems = document.querySelectorAll('.task-item');
-    
+
     taskItems.forEach(item => {
         const status = item.dataset.status;
         if (filter === 'all' || status === filter) {
@@ -920,7 +920,7 @@ function filterTasks() {
             item.style.display = 'none';
         }
     });
-    
+
     taskFilter = filter;
     updateTaskCount();
 }
@@ -929,24 +929,24 @@ function filterHistory() {
     const statusFilter = document.getElementById('historyFilter').value;
     const dateFilter = document.getElementById('historyDate').value;
     const rows = document.querySelectorAll('#historyTable tbody tr');
-    
+
     rows.forEach(row => {
         const status = row.dataset.status;
         const date = row.dataset.date;
-        
+
         let showRow = true;
-        
+
         if (statusFilter !== 'all' && status !== statusFilter) {
             showRow = false;
         }
-        
+
         if (dateFilter && date !== dateFilter) {
             showRow = false;
         }
-        
+
         row.style.display = showRow ? 'table-row' : 'none';
     });
-    
+
     historyFilter = statusFilter;
 }
 
@@ -994,8 +994,8 @@ function bulkImport() {
 
 function viewHistory() {
     // Scroll to history section
-    document.querySelector('.history-container').scrollIntoView({ 
-        behavior: 'smooth' 
+    document.querySelector('.history-container').scrollIntoView({
+        behavior: 'smooth'
     });
 }
 
@@ -1012,7 +1012,7 @@ function resubmitData(submissionId) {
 function exportHistory() {
     // Show loading state
     showNotification('Mempersiapkan ekspor riwayat...', 'info');
-    
+
     // Simulate export process
     setTimeout(() => {
         showNotification('Riwayat berhasil diekspor', 'success');
@@ -1025,13 +1025,13 @@ function exportTemplate() {
     link.href = '/templates/sakip-data-collection-template.xlsx';
     link.download = 'template-pengumpulan-data.xlsx';
     link.click();
-    
+
     showNotification('Template berhasil diunduh', 'success');
 }
 
 function validateData() {
     showNotification('Memvalidasi data...', 'info');
-    
+
     // Simulate validation process
     setTimeout(() => {
         showNotification('Validasi data selesai. Tidak ada masalah ditemukan.', 'success');
@@ -1044,17 +1044,17 @@ function refreshDashboard() {
     cards.forEach(card => {
         card.style.opacity = '0.6';
     });
-    
+
     // Simulate data refresh
     setTimeout(() => {
         // Update KPI values with slight variations
         updateKPIValues();
-        
+
         // Restore opacity
         cards.forEach(card => {
             card.style.opacity = '1';
         });
-        
+
         // Show success notification
         showNotification('Dashboard berhasil disegarkan', 'success');
     }, 1000);
@@ -1086,7 +1086,7 @@ function showNotification(message, type = 'info') {
     const notification = document.createElement('div');
     notification.className = `notification notification-${type}`;
     notification.textContent = message;
-    
+
     // Style the notification
     notification.style.cssText = `
         position: fixed;
@@ -1103,7 +1103,7 @@ function showNotification(message, type = 'info') {
         transform: translateX(100%);
         transition: transform 0.3s ease;
     `;
-    
+
     // Set background color based on type
     const colors = {
         success: '#10b981',
@@ -1112,14 +1112,14 @@ function showNotification(message, type = 'info') {
         info: '#3b82f6'
     };
     notification.style.backgroundColor = colors[type] || colors.info;
-    
+
     document.body.appendChild(notification);
-    
+
     // Animate in
     setTimeout(() => {
         notification.style.transform = 'translateX(0)';
     }, 100);
-    
+
     // Remove after 3 seconds
     setTimeout(() => {
         notification.style.transform = 'translateX(100%)';
@@ -1137,15 +1137,15 @@ document.addEventListener('DOMContentLoaded', function() {
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
             bulkImportBtn.addEventListener(eventName, preventDefaults, false);
         });
-        
+
         ['dragenter', 'dragover'].forEach(eventName => {
             bulkImportBtn.addEventListener(eventName, highlight, false);
         });
-        
+
         ['dragleave', 'drop'].forEach(eventName => {
             bulkImportBtn.addEventListener(eventName, unhighlight, false);
         });
-        
+
         bulkImportBtn.addEventListener('drop', handleDrop, false);
     }
 });
@@ -1166,7 +1166,7 @@ function unhighlight(e) {
 function handleDrop(e) {
     const dt = e.dataTransfer;
     const files = dt.files;
-    
+
     if (files.length > 0) {
         handleFiles(files);
     }
@@ -1174,8 +1174,8 @@ function handleDrop(e) {
 
 function handleFiles(files) {
     ([...files]).forEach(file => {
-        if (file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' || 
-            file.name.endsWith('.xlsx') || 
+        if (file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+            file.name.endsWith('.xlsx') ||
             file.name.endsWith('.xls')) {
             showNotification(`File ${file.name} siap untuk diimpor`, 'info');
             // Process the file

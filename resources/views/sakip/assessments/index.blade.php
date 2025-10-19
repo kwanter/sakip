@@ -1,4 +1,4 @@
-@extends('sakip.layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Performance Assessments')
 
@@ -17,7 +17,7 @@
                     Create Assessment
                 </a>
                 @endcan
-                
+
                 <a href="{{ route('sakip.assessments.export') }}" class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 active:bg-green-900 focus:outline-none focus:border-green-900 focus:ring ring-green-300 disabled:opacity-25 transition ease-in-out duration-150">
                     Export
                 </a>
@@ -234,18 +234,18 @@
                                     @can('view', $assessment)
                                     <a href="{{ route('sakip.assessments.show', $assessment) }}" class="text-blue-600 hover:text-blue-900">View</a>
                                     @endcan
-                                    
+
                                     @can('update', $assessment)
                                     <a href="{{ route('sakip.assessments.edit', $assessment) }}" class="text-indigo-600 hover:text-indigo-900">Edit</a>
                                     @endcan
-                                    
+
                                     @can('approve', $assessment)
                                     @if($assessment->status === 'submitted')
                                     <button onclick="approveAssessment({{ $assessment->id }})" class="text-green-600 hover:text-green-900">Approve</button>
                                     <button onclick="rejectAssessment({{ $assessment->id }})" class="text-red-600 hover:text-red-900">Reject</button>
                                     @endif
                                     @endcan
-                                    
+
                                     @can('delete', $assessment)
                                     <form action="{{ route('sakip.assessments.destroy', $assessment) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure?')">
                                         @csrf
@@ -266,7 +266,7 @@
                     </tbody>
                 </table>
             </div>
-            
+
             @if($assessments->hasPages())
             <div class="px-6 py-4 border-t border-gray-200">
                 {{ $assessments->links() }}

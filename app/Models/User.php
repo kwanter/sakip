@@ -3,15 +3,15 @@
 namespace App\Models;
 
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Spatie\Permission\Traits\HasRoles;
 
-class User extends Authenticatable implements MustVerifyEmail
+class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasUuids;
+    use HasFactory, Notifiable, HasUuids, HasRoles;
 
     public $incrementing = false;
     protected $keyType = 'string';
@@ -36,69 +36,8 @@ class User extends Authenticatable implements MustVerifyEmail
         ];
     }
 
-    // Relationships
-    public function roles()
-    {
-        return $this->belongsToMany(Role::class, 'role_user');
-    }
-
-    // Tambahkan relasi langsung ke permissions (direct user permissions)
-    public function permissions()
-    {
-        return $this->belongsToMany(Permission::class, 'permission_user');
-    }
-
-    // Permissions via roles
-    public function allPermissions()
-    {
-        return $this->roles()->with('permissions')
-            ->get()
-            ->pluck('permissions')
-            ->flatten()
-            ->unique('id');
-    }
-
     public function auditLogs()
     {
         return $this->hasMany(AuditLog::class);
-    }
-
-    // Helper checks
-    public function hasRole(string $role): bool
-    {
-        return $this->roles->contains(fn($r) => $r->name === $role);
-    }
-
-    public function isAdmin(): bool
-    {
-        return $this->hasRole('admin');
-    }
-
-    public function hasAnyRole(array $roles): bool
-    {
-        return $this->roles->contains(fn($r) => in_array($r->name, $roles, true));
-    }
-
-    public function hasPermission(string $permission): bool
-    {
-        return $this->permissions->contains(fn($p) => $p->name === $permission)
-            || $this->allPermissions()->contains(fn($p) => $p->name === $permission);
-    }
-
-    // Override the can method to use our permission system
-    public function can($ability, $arguments = [])
-    {
-        // Check if user has the permission directly or through roles
-        if ($this->hasPermission($ability)) {
-            return true;
-        }
-
-        // Check if user has admin role (admin can do everything)
-        if ($this->hasRole('admin')) {
-            return true;
-        }
-
-        // Fall back to parent can method for other checks
-        return parent::can($ability, $arguments);
     }
 }

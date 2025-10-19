@@ -31,9 +31,6 @@ class SakipDashboardController extends Controller
     protected AssessmentService $assessmentService;
     protected DataValidationService $validationService;
 
-    /**
-     * Constructor with dependency injection
-     */
     public function __construct(
         ReportGenerationService $reportService,
         AssessmentService $assessmentService,
@@ -46,10 +43,13 @@ class SakipDashboardController extends Controller
 
     /**
      * Display the main SAKIP dashboard
+     *
+     * Authorization: Uses 'sakip.dashboard.view' gate handled by SakipDashboardPolicy.
+     * This ensures only users with appropriate SAKIP dashboard access can view the page.
      */
     public function index(Request $request)
     {
-        $this->authorize('viewAny', PerformanceIndicator::class);
+        $this->authorize('viewDashboard', Auth::user());
 
         try {
             $user = Auth::user();
@@ -83,24 +83,17 @@ class SakipDashboardController extends Controller
     }
 
     /**
-     * Get dashboard data based on user role
+     * Helper to get dashboard metrics based on role
      */
     private function getDashboardMetrics($user, $instansiId, $year)
     {
-        $data = [];
-
-        if ($user->hasRole('superadmin')) {
-            // Superadmin sees system-wide metrics
-            $data = $this->getSystemWideMetrics($year);
-        } elseif ($user->hasRole('admin')) {
-            // Admin sees institutional metrics
-            $data = $this->getInstitutionalMetrics($instansiId, $year);
-        } else {
-            // Regular user sees personal/department metrics
-            $data = $this->getPersonalMetrics($user, $instansiId, $year);
+        if ($user->can('viewExecutiveDashboard', $user)) {
+            return $this->getSystemWideMetrics($year);
+        } elseif ($user->can('view-data-entry-dashboard', $user)) {
+            return $this->getInstitutionalMetrics($instansiId, $year);
         }
 
-        return $data;
+        return $this->getPersonalMetrics($user, $instansiId, $year);
     }
 
     /**
@@ -109,12 +102,11 @@ class SakipDashboardController extends Controller
     private function getSystemWideMetrics($year)
     {
         return [
-            'total_institutions' => Instansi::count(),
             'total_indicators' => PerformanceIndicator::count(),
             'total_targets' => Target::where('year', $year)->count(),
-            'total_performance_data' => PerformanceData::whereYear('period', $year)->count(),
+            'total_performance_data' => PerformanceData::where('period', 'like', $year . '%')->count(),
             'total_assessments' => Assessment::whereYear('created_at', $year)->count(),
-            'total_reports' => Report::whereYear('reporting_period', $year)->count(),
+            'total_reports' => Report::where('period', 'like', $year . '%')->count(),
             'average_performance' => $this->calculateAveragePerformance($year),
             'compliance_rate' => $this->calculateComplianceRate(),
             'pending_actions' => $this->getPendingActions(),
@@ -128,12 +120,12 @@ class SakipDashboardController extends Controller
     {
         return [
             'total_indicators' => PerformanceIndicator::where('instansi_id', $instansiId)->count(),
-            'total_targets' => Target::where('instansi_id', $instansiId)->where('year', $year)->count(),
-            'total_performance_data' => PerformanceData::whereHas('indicator', function($q) use ($instansiId) {
+            'total_targets' => Target::where('year', $year)->count(),
+            'total_performance_data' => PerformanceData::whereHas('performanceIndicator', function($q) use ($instansiId) {
                 $q->where('instansi_id', $instansiId);
-            })->whereYear('period', $year)->count(),
-            'total_assessments' => Assessment::where('instansi_id', $instansiId)->whereYear('created_at', $year)->count(),
-            'total_reports' => Report::where('instansi_id', $instansiId)->whereYear('reporting_period', $year)->count(),
+            })->where('period', 'like', $year . '%')->count(),
+            'total_assessments' => Assessment::whereYear('created_at', $year)->count(),
+            'total_reports' => Report::where('period', 'like', $year . '%')->count(),
             'average_performance' => $this->calculateInstitutionalPerformance($instansiId, $year),
             'compliance_rate' => $this->calculateInstitutionalCompliance($instansiId, $year),
             'pending_actions' => $this->getInstitutionalPendingActions($instansiId),
@@ -149,8 +141,8 @@ class SakipDashboardController extends Controller
             'my_indicators' => PerformanceIndicator::where('instansi_id', $instansiId)
                 ->where('created_by', $user->id)->count(),
             'my_performance_data' => PerformanceData::where('created_by', $user->id)
-                ->whereYear('period', $year)->count(),
-            'my_assessments' => Assessment::where('assessor_id', $user->id)
+                ->where('period', 'like', $year . '%')->count(),
+            'my_assessments' => Assessment::where('assessed_by', $user->id)
                 ->whereYear('created_at', $year)->count(),
             'pending_tasks' => $this->getUserPendingTasks($user, $instansiId),
             'recent_activities' => $this->getUserRecentActivities($user),
@@ -162,9 +154,9 @@ class SakipDashboardController extends Controller
      */
     private function calculateAveragePerformance($year)
     {
-        $performanceData = PerformanceData::whereYear('period', $year)
-            ->whereNotNull('performance_percentage')
-            ->avg('performance_percentage');
+        $performanceData = PerformanceData::where('period', 'like', $year . '%')
+            ->whereNotNull('actual_value')
+            ->avg('actual_value');
 
         return round($performanceData ?? 0, 2);
     }
@@ -174,11 +166,11 @@ class SakipDashboardController extends Controller
      */
     private function calculateInstitutionalPerformance($instansiId, $year)
     {
-        $performanceData = PerformanceData::whereHas('indicator', function($q) use ($instansiId) {
+        $performanceData = PerformanceData::whereHas('performanceIndicator', function($q) use ($instansiId) {
             $q->where('instansi_id', $instansiId);
-        })->whereYear('period', $year)
-          ->whereNotNull('performance_percentage')
-          ->avg('performance_percentage');
+        })->where('period', 'like', $year . '%')
+          ->whereNotNull('actual_value')
+          ->avg('actual_value');
 
         return round($performanceData ?? 0, 2);
     }
@@ -202,158 +194,12 @@ class SakipDashboardController extends Controller
     private function calculateInstitutionalCompliance($instansiId, $year)
     {
         $totalIndicators = PerformanceIndicator::where('instansi_id', $instansiId)->count();
-        $indicatorsWithData = PerformanceIndicator::where('instansi_id', $instansiId)
-            ->whereHas('performanceData', function($q) use ($year) {
-                $q->whereYear('period', $year);
-            })->count();
+        $indicatorsWithData = PerformanceData::whereHas('performanceIndicator', function($q) use ($instansiId) {
+            $q->where('instansi_id', $instansiId);
+        })->where('period', 'like', $year . '%')
+          ->count();
 
         return $totalIndicators > 0 ? round(($indicatorsWithData / $totalIndicators) * 100, 2) : 0;
-    }
-
-    /**
-     * Get recent activities
-     */
-    private function getRecentActivities($instansiId = null)
-    {
-        $query = AuditLog::with('user')
-            ->where('module', 'SAKIP')
-            ->orderBy('created_at', 'desc')
-            ->limit(10);
-
-        if ($instansiId) {
-            $query->where('instansi_id', $instansiId);
-        }
-
-        return $query->get()->map(function ($log) {
-            return [
-                'id' => $log->id,
-                'action' => $log->action,
-                'description' => $log->description,
-                'user' => $log->user ? $log->user->name : 'System',
-                'created_at' => $log->created_at->diffForHumans(),
-            ];
-        });
-    }
-
-    /**
-     * Get alerts and notifications
-     */
-    private function getAlerts($user, $instansiId, $year)
-    {
-        $alerts = [];
-
-        try {
-            // Check for overdue targets
-            $overdueTargets = Target::where('instansi_id', $instansiId)
-                ->where('year', $year)
-                ->where('deadline', '<', Carbon::now())
-                ->whereNull('achieved_value')
-                ->count();
-
-            if ($overdueTargets > 0) {
-                $alerts[] = [
-                    'type' => 'warning',
-                    'message' => "Ada {$overdueTargets} target yang melewati batas waktu.",
-                    'link' => route('sakip.targets.index'),
-                ];
-            }
-
-            // Check for missing performance data
-            $missingData = PerformanceIndicator::where('instansi_id', $instansiId)
-                ->whereDoesntHave('performanceData', function($q) use ($year) {
-                    $q->whereYear('period', $year);
-                })->count();
-
-            if ($missingData > 0) {
-                $alerts[] = [
-                    'type' => 'info',
-                    'message' => "Ada {$missingData} indikator yang belum memiliki data kinerja untuk tahun {$year}.",
-                    'link' => route('sakip.data-collection.index'),
-                ];
-            }
-
-            // Check for pending assessments
-            $pendingAssessments = Assessment::where('instansi_id', $instansiId)
-                ->where('status', 'pending')
-                ->count();
-
-            if ($pendingAssessments > 0) {
-                $alerts[] = [
-                    'type' => 'info',
-                    'message' => "Ada {$pendingAssessments} penilaian yang menunggu proses.",
-                    'link' => route('sakip.assessments.index'),
-                ];
-            }
-
-            // Check for overdue reports
-            $overdueReports = Report::where('instansi_id', $instansiId)
-                ->where('status', 'draft')
-                ->where('deadline', '<', Carbon::now())
-                ->count();
-
-            if ($overdueReports > 0) {
-                $alerts[] = [
-                    'type' => 'danger',
-                    'message' => "Ada {$overdueReports} laporan yang melewati batas pengumpulan.",
-                    'link' => route('sakip.reports.index'),
-                ];
-            }
-
-        } catch (\Exception $e) {
-            \Log::error('Error generating alerts: ' . $e->getMessage());
-        }
-
-        return $alerts;
-    }
-
-    /**
-     * Get quick actions based on user role
-     */
-    private function getQuickActions($user)
-    {
-        $actions = [];
-
-        if ($user->can('create', PerformanceIndicator::class)) {
-            $actions[] = [
-                'title' => 'Tambah Indikator',
-                'description' => 'Buat indikator kinerja baru',
-                'icon' => 'fas fa-plus',
-                'link' => route('sakip.indicators.create'),
-                'color' => 'primary',
-            ];
-        }
-
-        if ($user->can('create', PerformanceData::class)) {
-            $actions[] = [
-                'title' => 'Input Data Kinerja',
-                'description' => 'Masukkan data kinerja terbaru',
-                'icon' => 'fas fa-chart-line',
-                'link' => route('sakip.data-collection.create'),
-                'color' => 'success',
-            ];
-        }
-
-        if ($user->can('create', Assessment::class)) {
-            $actions[] = [
-                'title' => 'Buat Penilaian',
-                'description' => 'Lakukan penilaian kinerja',
-                'icon' => 'fas fa-clipboard-check',
-                'link' => route('sakip.assessments.create'),
-                'color' => 'warning',
-            ];
-        }
-
-        if ($user->can('create', Report::class)) {
-            $actions[] = [
-                'title' => 'Buat Laporan',
-                'description' => 'Buat laporan kinerja',
-                'icon' => 'fas fa-file-alt',
-                'link' => route('sakip.reports.create'),
-                'color' => 'info',
-            ];
-        }
-
-        return $actions;
     }
 
     /**
@@ -362,9 +208,9 @@ class SakipDashboardController extends Controller
     private function getPendingActions()
     {
         return [
-            'pending_institutions' => Instansi::where('is_active', false)->count(),
+            'unverified_reports' => Report::where('status', 'submitted')->count(),
             'pending_assessments' => Assessment::where('status', 'pending')->count(),
-            'pending_reports' => Report::where('status', 'submitted')->count(),
+            'missing_data_sets' => PerformanceData::whereNull('actual_value')->count(),
         ];
     }
 
@@ -374,32 +220,30 @@ class SakipDashboardController extends Controller
     private function getInstitutionalPendingActions($instansiId)
     {
         return [
-            'missing_data' => PerformanceIndicator::where('instansi_id', $instansiId)
-                ->whereDoesntHave('performanceData', function($q) {
-                    $q->whereYear('period', Carbon::now()->year);
-                })->count(),
-            'pending_assessments' => Assessment::where('instansi_id', $instansiId)
-                ->where('status', 'pending')->count(),
-            'overdue_reports' => Report::where('instansi_id', $instansiId)
-                ->where('status', 'draft')
-                ->where('deadline', '<', Carbon::now())->count(),
+            'unverified_reports' => Report::where('instansi_id', $instansiId)->where('status', 'submitted')->count(),
+            'pending_assessments' => Assessment::whereHas('performanceData.performanceIndicator', function($q) use ($instansiId) {
+                $q->where('instansi_id', $instansiId);
+            })->where('status', 'pending')->count(),
+            'missing_data_sets' => PerformanceData::whereHas('performanceIndicator', function($q) use ($instansiId) {
+                $q->where('instansi_id', $instansiId);
+            })->whereNull('actual_value')->count(),
         ];
     }
 
     /**
-     * Get pending tasks for regular user
+     * Get recent activities based on institution
      */
-    private function getUserPendingTasks($user, $instansiId)
+    private function getRecentActivities($instansiId)
     {
-        return [
-            'data_entry_tasks' => PerformanceIndicator::where('instansi_id', $instansiId)
-                ->where('created_by', $user->id)
-                ->whereDoesntHave('performanceData', function($q) {
-                    $q->whereYear('period', Carbon::now()->year);
-                })->count(),
-            'assessment_tasks' => Assessment::where('assessor_id', $user->id)
-                ->where('status', 'pending')->count(),
-        ];
+        return PerformanceData::whereHas('performanceIndicator', function($q) use ($instansiId) {
+            $q->where('instansi_id', $instansiId);
+        })->orderBy('created_at', 'desc')->limit(5)->get()->map(function ($data) {
+            return [
+                'indicator_name' => $data->performanceIndicator->name ?? '-',
+                'action' => 'Data diperbarui',
+                'created_at' => $data->created_at->diffForHumans(),
+            ];
+        });
     }
 
     /**
@@ -422,17 +266,19 @@ class SakipDashboardController extends Controller
 
     /**
      * Get dashboard data for AJAX requests
+     *
+     * Authorization: Uses 'sakip.dashboard.view' to ensure only permitted users can fetch dashboard data.
      */
     public function getDashboardData(Request $request)
     {
-        $this->authorize('viewAny', PerformanceIndicator::class);
+        $this->authorize('viewDashboard', Auth::user());
 
         try {
             $user = Auth::user();
             $instansiId = $user->instansi_id;
             $year = $request->get('year', Carbon::now()->year);
 
-            $data = $this->getDashboardData($user, $instansiId, $year);
+            $data = $this->getDashboardMetrics($user, $instansiId, $year);
 
             return response()->json([
                 'success' => true,
@@ -451,10 +297,12 @@ class SakipDashboardController extends Controller
 
     /**
      * Get performance trends data
+     *
+     * Authorization: Uses 'sakip.dashboard.view' so only dashboard-authorized users can access trends.
      */
     public function getPerformanceTrends(Request $request)
     {
-        $this->authorize('viewAny', PerformanceIndicator::class);
+        $this->authorize('viewDashboard', Auth::user());
 
         try {
             $user = Auth::user();
@@ -463,11 +311,11 @@ class SakipDashboardController extends Controller
 
             $trends = [];
             foreach ($years as $year) {
-                $avgPerformance = PerformanceData::whereHas('indicator', function($q) use ($instansiId) {
+                $avgPerformance = PerformanceData::whereHas('performanceIndicator', function($q) use ($instansiId) {
                     $q->where('instansi_id', $instansiId);
-                })->whereYear('period', $year)
-                  ->whereNotNull('performance_percentage')
-                  ->avg('performance_percentage');
+                })->where('period', 'like', $year . '%')
+                  ->whereNotNull('actual_value')
+                  ->avg('actual_value');
 
                 $trends[] = [
                     'year' => $year,
@@ -487,5 +335,127 @@ class SakipDashboardController extends Controller
                 'message' => 'Gagal memuat tren kinerja.',
             ], 500);
         }
+    }
+
+    /**
+     * Get alerts and notifications
+     *
+     * Generates summary alerts for missing data, pending assessments, and report status.
+     * Handles errors gracefully and returns an empty list on failure.
+     */
+    private function getAlerts($user, $instansiId, $year)
+    {
+        $alerts = [];
+
+        try {
+            // Missing performance data for current year
+            $missingData = PerformanceData::whereHas('performanceIndicator', function($q) use ($instansiId) {
+                    $q->where('instansi_id', $instansiId);
+                })
+                ->where('period', 'like', $year . '%')
+                ->whereNull('actual_value')
+                ->count();
+
+            if ($missingData > 0) {
+                $alerts[] = [
+                    'type' => 'info',
+                    'message' => "Ada {$missingData} data kinerja yang belum lengkap untuk tahun {$year}.",
+                    'link' => route('sakip.performance-data.index'),
+                ];
+            }
+
+            // Pending assessments
+            $pendingAssessments = Assessment::where('instansi_id', $instansiId)
+                ->where('status', 'pending')
+                ->count();
+
+            if ($pendingAssessments > 0) {
+                $alerts[] = [
+                    'type' => 'info',
+                    'message' => "Ada {$pendingAssessments} penilaian yang menunggu proses.",
+                    'link' => route('sakip.assessments.index'),
+                ];
+            }
+
+            // Reports needing verification (safer than deadline-based check)
+            $unverifiedReports = Report::where('instansi_id', $instansiId)
+                ->where('status', 'submitted')
+                ->count();
+
+            if ($unverifiedReports > 0) {
+                $alerts[] = [
+                    'type' => 'warning',
+                    'message' => "Ada {$unverifiedReports} laporan yang belum diverifikasi.",
+                    'link' => route('sakip.reports.index'),
+                ];
+            }
+
+            return $alerts;
+        } catch (\Exception $e) {
+            \Log::error('Alerts generation error: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Get quick actions
+     */
+    private function getQuickActions($user)
+    {
+        $actions = [];
+
+        try {
+            if ($user->can('create', PerformanceIndicator::class)) {
+                $actions[] = [
+                    'label' => 'Tambah Indikator',
+                    'link' => route('sakip.indicators.create'),
+                    'icon' => 'fas fa-plus-circle',
+                ];
+            }
+
+            if ($user->can('create', PerformanceData::class)) {
+                $actions[] = [
+                    'label' => 'Input Data Kinerja',
+                    'link' => route('sakip.performance-data.create'),
+                    'icon' => 'fas fa-keyboard',
+                ];
+            }
+
+            if ($user->can('create', Assessment::class)) {
+                $actions[] = [
+                    'label' => 'Buat Penilaian',
+                    'link' => route('sakip.assessments.create'),
+                    'icon' => 'fas fa-check-double',
+                ];
+            }
+
+            if ($user->can('create', Report::class)) {
+                $actions[] = [
+                    'label' => 'Buat Laporan',
+                    'link' => route('sakip.reports.create'),
+                    'icon' => 'fas fa-file-alt',
+                ];
+            }
+
+            return $actions;
+        } catch (\Exception $e) {
+            \Log::error('Quick actions error: ' . $e->getMessage());
+            return [];
+        }
+    }
+    private function getUserPendingTasks($user, $instansiId)
+    {
+        return [
+            'unsubmitted_reports' => Report::where('instansi_id', $instansiId)
+                ->where('created_by', $user->id)
+                ->whereNull('submitted_at')
+                ->count(),
+            'pending_assessments' => Assessment::where('assessed_by', $user->id)
+                ->where('status', 'pending')
+                ->count(),
+            'missing_data_sets' => PerformanceData::where('created_by', $user->id)
+                ->whereNull('actual_value')
+                ->count(),
+        ];
     }
 }

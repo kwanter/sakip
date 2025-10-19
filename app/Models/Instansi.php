@@ -33,4 +33,12 @@ class Instansi extends Model
     {
         return $this->hasMany(Program::class);
     }
+
+    /**
+     * Relasi ke PerformanceIndicator (indikator kinerja)
+     */
+    public function performanceIndicators(): HasMany
+    {
+        return $this->hasMany(PerformanceIndicator::class);
+    }
 }

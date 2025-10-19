@@ -22,26 +22,26 @@ class EvidenceDocumentPolicy
 
     public function create(User $user): bool
     {
-        return $user->hasRole(['admin', 'manager', 'user']);
+        return $user->hasAnyRole(['superadmin', 'data_collector']);
     }
 
     public function update(User $user, EvidenceDocument $evidenceDocument): bool
     {
-        return $user->hasRole(['admin', 'manager']) || $user->id === $evidenceDocument->uploaded_by;
+        return $user->hasAnyRole(['superadmin', 'data_collector']) || $user->id === $evidenceDocument->uploaded_by;
     }
 
     public function delete(User $user, EvidenceDocument $evidenceDocument): bool
     {
-        return $user->hasRole(['admin', 'manager']) || $user->id === $evidenceDocument->uploaded_by;
+        return $user->hasAnyRole(['superadmin', 'data_collector']) || $user->id === $evidenceDocument->uploaded_by;
     }
 
     public function restore(User $user, EvidenceDocument $evidenceDocument): bool
     {
-        return $user->hasRole(['admin']);
+        return $user->hasRole('superadmin');
     }
 
     public function forceDelete(User $user, EvidenceDocument $evidenceDocument): bool
     {
-        return $user->hasRole(['admin']);
+        return $user->hasRole('superadmin');
     }
 }

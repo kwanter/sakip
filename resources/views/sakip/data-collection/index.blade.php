@@ -1,4 +1,4 @@
-@extends('sakip.layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Pengumpulan Data Kinerja')
 
@@ -187,7 +187,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
@@ -380,24 +380,24 @@
     // Filter functionality
     document.addEventListener('DOMContentLoaded', function() {
         const filterButton = document.querySelector('.bg-white.rounded-lg.shadow-sm.border.border-gray-200.p-6 button[type="button"]');
-        
+
         filterButton.addEventListener('click', function() {
             const period = document.getElementById('period').value;
             const instansi = document.getElementById('instansi').value;
             const validationStatus = document.getElementById('validation_status').value;
-            
+
             let url = new URL(window.location.href);
             let params = new URLSearchParams(url.search);
-            
+
             if (period) params.set('period', period);
             else params.delete('period');
-            
+
             if (instansi) params.set('instansi', instansi);
             else params.delete('instansi');
-            
+
             if (validationStatus) params.set('validation_status', validationStatus);
             else params.delete('validation_status');
-            
+
             url.search = params.toString();
             window.location.href = url.toString();
         });

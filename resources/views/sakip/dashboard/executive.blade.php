@@ -1,4 +1,4 @@
-@extends('sakip.layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Dashboard Eksekutif - SAKIP')
 
@@ -40,7 +40,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-lg-3 col-md-6 mb-3">
             <div class="kpi-card kpi-info">
                 <div class="kpi-icon">
@@ -56,7 +56,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-lg-3 col-md-6 mb-3">
             <div class="kpi-card kpi-warning">
                 <div class="kpi-icon">
@@ -72,7 +72,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-lg-3 col-md-6 mb-3">
             <div class="kpi-card kpi-danger">
                 <div class="kpi-icon">
@@ -89,7 +89,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Charts Row -->
     <div class="row mb-4">
         <!-- Achievement Trend Chart -->
@@ -113,7 +113,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Department Performance Distribution -->
         <div class="col-lg-4 mb-4">
             <div class="chart-container">
@@ -131,7 +131,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Performance by Category -->
     <div class="row mb-4">
         <div class="col-12">
@@ -156,7 +156,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Tables Section -->
     <div class="row">
         <!-- Top Performing Departments -->
@@ -203,7 +203,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Critical Issues -->
         <div class="col-lg-6 mb-4">
             <div class="table-container">
@@ -252,7 +252,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Quick Actions -->
     <div class="quick-actions">
         <h5 class="section-title">Aksi Cepat</h5>
@@ -533,16 +533,16 @@
         align-items: flex-start;
         gap: 1rem;
     }
-    
+
     .header-actions {
         width: 100%;
         justify-content: flex-end;
     }
-    
+
     .action-buttons {
         flex-direction: column;
     }
-    
+
     .action-buttons .btn {
         width: 100%;
         justify-content: center;
@@ -556,7 +556,7 @@
         align-items: flex-start;
         gap: 1rem;
     }
-    
+
     .chart-controls {
         width: 100%;
         justify-content: space-between;
@@ -570,7 +570,7 @@
     .chart-controls {
         display: none !important;
     }
-    
+
     .chart-container,
     .table-container,
     .quick-actions {
@@ -591,7 +591,7 @@ let achievementTrendChart, departmentDistributionChart, categoryPerformanceChart
 // Initialize charts when page loads
 document.addEventListener('DOMContentLoaded', function() {
     initializeCharts();
-    
+
     // Auto-refresh every 5 minutes
     setInterval(function() {
         refreshDashboard();
@@ -649,7 +649,7 @@ function initializeCharts() {
             }
         });
     }
-    
+
     // Department Distribution Chart
     const distributionCtx = document.getElementById('departmentDistributionChart');
     if (distributionCtx) {
@@ -679,7 +679,7 @@ function initializeCharts() {
             }
         });
     }
-    
+
     // Category Performance Chart
     const categoryCtx = document.getElementById('categoryPerformanceChart');
     if (categoryCtx) {
@@ -727,7 +727,7 @@ function initializeCharts() {
 
 function updateCharts() {
     const period = document.getElementById('periodFilter').value;
-    
+
     // Simulate data update based on period
     if (achievementTrendChart) {
         // Update chart data based on selected period
@@ -740,19 +740,19 @@ function updateCharts() {
 function generatePeriodData(period) {
     // Simulate different data for different periods
     const baseData = [75, 78, 82, 85, 87, 89, 88, 90, 87, 89, 91, 87.5];
-    
+
     if (period === 'quarterly') {
         return [78, 85, 89, 87.5];
     } else if (period === 'weekly') {
         return Array.from({length: 12}, () => Math.floor(Math.random() * 10) + 80);
     }
-    
+
     return baseData;
 }
 
 function updateCategoryChart() {
     const category = document.getElementById('categoryFilter').value;
-    
+
     if (categoryPerformanceChart) {
         // Simulate data update based on category filter
         // In real implementation, this would fetch new data from server
@@ -762,7 +762,7 @@ function updateCategoryChart() {
 
 function exportChart(chartType) {
     let chart;
-    
+
     switch(chartType) {
         case 'achievement-trend':
             chart = achievementTrendChart;
@@ -776,7 +776,7 @@ function exportChart(chartType) {
         default:
             return;
     }
-    
+
     if (chart) {
         const url = chart.toBase64Image();
         const link = document.createElement('a');
@@ -792,22 +792,22 @@ function refreshDashboard() {
     cards.forEach(card => {
         card.style.opacity = '0.6';
     });
-    
+
     // Simulate data refresh
     setTimeout(() => {
         // Update KPI values with slight variations
         updateKPIValues();
-        
+
         // Refresh charts
         if (achievementTrendChart) achievementTrendChart.update();
         if (departmentDistributionChart) departmentDistributionChart.update();
         if (categoryPerformanceChart) categoryPerformanceChart.update();
-        
+
         // Restore opacity
         cards.forEach(card => {
             card.style.opacity = '1';
         });
-        
+
         // Show success notification
         showNotification('Dashboard berhasil disegarkan', 'success');
     }, 1000);
@@ -829,7 +829,7 @@ function updateKPIValues() {
 function exportDashboard() {
     // Show loading state
     showNotification('Mempersiapkan ekspor dashboard...', 'info');
-    
+
     // Simulate export process
     setTimeout(() => {
         showNotification('Dashboard berhasil diekspor', 'success');
@@ -864,7 +864,7 @@ function showNotification(message, type = 'info') {
     const notification = document.createElement('div');
     notification.className = `notification notification-${type}`;
     notification.textContent = message;
-    
+
     // Style the notification
     notification.style.cssText = `
         position: fixed;
@@ -881,7 +881,7 @@ function showNotification(message, type = 'info') {
         transform: translateX(100%);
         transition: transform 0.3s ease;
     `;
-    
+
     // Set background color based on type
     const colors = {
         success: '#10b981',
@@ -890,14 +890,14 @@ function showNotification(message, type = 'info') {
         info: '#3b82f6'
     };
     notification.style.backgroundColor = colors[type] || colors.info;
-    
+
     document.body.appendChild(notification);
-    
+
     // Animate in
     setTimeout(() => {
         notification.style.transform = 'translateX(0)';
     }, 100);
-    
+
     // Remove after 3 seconds
     setTimeout(() => {
         notification.style.transform = 'translateX(100%)';

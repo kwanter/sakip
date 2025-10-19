@@ -52,7 +52,7 @@ class AssessmentController extends Controller
 
             // Get assessments based on user role
             $query = Assessment::with(['indicator', 'assessor', 'reviewer'])
-                ->whereYear('assessment_period', $currentYear);
+                ->whereYear('created_at', $currentYear);
 
             // Role-based filtering
             if ($user->hasRole('assessor')) {
@@ -81,7 +81,7 @@ class AssessmentController extends Controller
             }
 
             if ($request->filled('period')) {
-                $query->where('assessment_period', $request->get('period'));
+                $query->whereYear('created_at', $request->get('period'));
             }
 
             $assessments = $query->orderBy('created_at', 'desc')->paginate(15);
@@ -94,7 +94,7 @@ class AssessmentController extends Controller
 
             // Get recent activities
             $recentActivities = Assessment::with(['indicator', 'assessor', 'reviewer'])
-                ->whereYear('assessment_period', $currentYear)
+                ->whereYear('created_at', $currentYear)
                 ->where(function($q) use ($user, $instansiId) {
                     if (!$user->hasRole('superadmin')) {
                         $q->whereHas('indicator', function($subQ) use ($instansiId) {
@@ -173,8 +173,7 @@ class AssessmentController extends Controller
         $this->authorize('create', Assessment::class);
 
         $validator = Validator::make($request->all(), [
-            'indicator_id' => 'required|exists:performance_indicators,id',
-            'assessment_period' => 'required|date',
+            'performance_data_id' => 'required|exists:performance_data,id',
             'assessment_type' => 'required|in:monthly,quarterly,semester,annual',
             'priority' => 'required|in:low,medium,high',
             'criteria_scores' => 'required|array',
@@ -197,29 +196,27 @@ class AssessmentController extends Controller
         DB::beginTransaction();
         try {
             $user = Auth::user();
-            $indicator = PerformanceIndicator::findOrFail($request->get('indicator_id'));
+            $performanceData = PerformanceData::findOrFail($request->get('performance_data_id'));
 
-            // Check authorization for this specific indicator
-            $this->authorize('assess', $indicator);
+            // Check authorization for this specific performance data
+            $this->authorize('assess', $performanceData);
 
-            // Check for existing assessment in the same period
-            $existingAssessment = Assessment::where('indicator_id', $indicator->id)
-                ->where('assessment_period', $request->get('assessment_period'))
+            // Check for existing assessment for this performance data
+            $existingAssessment = Assessment::where('performance_data_id', $performanceData->id)
                 ->where('assessment_type', $request->get('assessment_type'))
                 ->first();
 
             if ($existingAssessment) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Penilaian untuk periode ini sudah ada.',
+                    'message' => 'Penilaian untuk data kinerja ini sudah ada.',
                 ], 422);
             }
 
             // Create assessment
             $assessment = Assessment::create([
-                'indicator_id' => $indicator->id,
-                'assessor_id' => $user->id,
-                'assessment_period' => $request->get('assessment_period'),
+                'performance_data_id' => $performanceData->id,
+                'assessed_by' => $user->id,
                 'assessment_type' => $request->get('assessment_type'),
                 'priority' => $request->get('priority'),
                 'overall_score' => $request->get('overall_score'),
@@ -247,7 +244,7 @@ class AssessmentController extends Controller
                 'instansi_id' => $user->instansi_id,
                 'action' => 'CREATE',
                 'module' => 'SAKIP',
-                'description' => "Membuat penilaian untuk indikator: {$indicator->name} (Periode: {$request->get('assessment_period')})",
+                'description' => "Membuat penilaian untuk data kinerja ID: {$performanceData->id}",
                 'old_values' => null,
                 'new_values' => $assessment->toArray(),
             ]);
@@ -301,9 +298,9 @@ class AssessmentController extends Controller
             $scoring = $this->assessmentService->calculateDetailedScoring($assessment);
 
             // Get related assessments
-            $relatedAssessments = Assessment::where('indicator_id', $assessment->indicator_id)
+            $relatedAssessments = Assessment::where('performance_data_id', $assessment->performance_data_id)
                 ->where('id', '!=', $assessment->id)
-                ->orderBy('assessment_period', 'desc')
+                ->orderBy('created_at', 'desc')
                 ->limit(5)
                 ->get();
 
@@ -693,7 +690,7 @@ class AssessmentController extends Controller
      */
     private function getAssessmentStatistics($user, $year)
     {
-        $query = Assessment::whereYear('assessment_period', $year);
+        $query = Assessment::whereYear('created_at', $year);
 
         // Role-based filtering
         if ($user->hasRole('assessor')) {
@@ -730,8 +727,8 @@ class AssessmentController extends Controller
      */
     private function getPendingAssessments($user, $year)
     {
-        $query = Assessment::with(['indicator', 'assessor'])
-            ->whereYear('assessment_period', $year);
+        $query = Assessment::with(['performanceData', 'assessor'])
+            ->whereYear('created_at', $year);
 
         if ($user->hasRole('assessor')) {
             $query->where('assessor_id', $user->id)

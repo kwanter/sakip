@@ -29,7 +29,7 @@ class IndikatorKinerjaPolicy
      */
     public function create(User $user): bool
     {
-        return $user->hasAnyRole(['admin', 'manager']) || $user->isAdmin();
+        return $user->hasAnyRole(['superadmin', 'executive']);
     }
 
     /**
@@ -37,7 +37,7 @@ class IndikatorKinerjaPolicy
      */
     public function update(User $user, IndikatorKinerja $indikatorKinerja): bool
     {
-        return $user->hasAnyRole(['admin', 'manager']) || $user->isAdmin();
+        return $user->hasAnyRole(['superadmin', 'executive']);
     }
 
     /**
@@ -45,7 +45,7 @@ class IndikatorKinerjaPolicy
      */
     public function delete(User $user, IndikatorKinerja $indikatorKinerja): bool
     {
-        return $user->hasRole('admin') || $user->isAdmin();
+        return $user->hasRole('superadmin');
     }
 
     /**
@@ -53,7 +53,7 @@ class IndikatorKinerjaPolicy
      */
     public function restore(User $user, IndikatorKinerja $indikatorKinerja): bool
     {
-        return $user->hasRole('admin') || $user->isAdmin();
+        return $user->hasRole('superadmin');
     }
 
     /**
@@ -61,6 +61,6 @@ class IndikatorKinerjaPolicy
      */
     public function forceDelete(User $user, IndikatorKinerja $indikatorKinerja): bool
     {
-        return $user->hasRole('admin') || $user->isAdmin();
+        return $user->hasRole('superadmin');
     }
 }

@@ -1,4 +1,4 @@
-@extends('sakip.layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Tambah Penilaian Kinerja')
 
@@ -21,11 +21,11 @@
         <!-- Assessment Form -->
         <form action="{{ route('sakip.assessments.store') }}" method="POST" class="space-y-6">
             @csrf
-            
+
             <!-- Basic Information -->
             <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                 <h3 class="text-lg font-medium text-gray-900 mb-4">Informasi Dasar</h3>
-                
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label for="performance_data_id" class="block text-sm font-medium text-gray-700 mb-2">Data Kinerja *</label>
@@ -39,7 +39,7 @@
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
                     </div>
-                    
+
                     <div>
                         <label for="assessor_id" class="block text-sm font-medium text-gray-700 mb-2">Penilai *</label>
                         <select name="assessor_id" id="assessor_id" required class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
@@ -52,7 +52,7 @@
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
                     </div>
-                    
+
                     <div>
                         <label for="period" class="block text-sm font-medium text-gray-700 mb-2">Periode *</label>
                         <select name="period" id="period" required class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
@@ -68,7 +68,7 @@
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
                     </div>
-                    
+
                     <div>
                         <label for="year" class="block text-sm font-medium text-gray-700 mb-2">Tahun *</label>
                         <select name="year" id="year" required class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
@@ -86,7 +86,7 @@
             <!-- Assessment Score -->
             <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                 <h3 class="text-lg font-medium text-gray-900 mb-4">Penilaian</h3>
-                
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label for="score" class="block text-sm font-medium text-gray-700 mb-2">Skor (0-100) *</label>
@@ -95,7 +95,7 @@
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
                     </div>
-                    
+
                     <div>
                         <label for="status" class="block text-sm font-medium text-gray-700 mb-2">Status *</label>
                         <select name="status" id="status" required class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
@@ -111,7 +111,7 @@
                         @enderror
                     </div>
                 </div>
-                
+
                 <div class="mt-6">
                     <label for="notes" class="block text-sm font-medium text-gray-700 mb-2">Catatan Penilaian</label>
                     <textarea name="notes" id="notes" rows="4" class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="Masukkan catatan penilaian..."></textarea>
@@ -129,7 +129,7 @@
                     </svg>
                     Batal
                 </a>
-                
+
                 <button type="submit" class="inline-flex items-center px-4 py-2 bg-blue-800 text-white text-sm font-medium rounded-md hover:bg-blue-900 transition-colors">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>

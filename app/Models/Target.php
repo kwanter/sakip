@@ -17,6 +17,13 @@ class Target extends Model
     use HasFactory, SoftDeletes;
 
     /**
+     * Indicates if the model should be auto-discovered for policies.
+     *
+     * @var bool
+     */
+    protected static $discoverPolicies = false;
+
+    /**
      * The table associated with the model.
      *
      * @var string
@@ -188,5 +195,14 @@ class Target extends Model
         
         $unit = $this->performanceIndicator->measurement_unit ?? '';
         return number_format($this->minimum_value, 2) . ($unit ? ' ' . $unit : '');
+    }
+
+    /**
+     * Get the policy class for this model.
+     * Override to prevent auto-discovery conflicts.
+     */
+    public function resolvePolicy()
+    {
+        return \App\Policies\TargetPolicy::class;
     }
 }

@@ -14,7 +14,10 @@ class LoginController extends Controller
     public function show()
     {
         if (Auth::check()) {
-            return redirect()->route('dashboard');
+            if (!Auth::user()->hasVerifiedEmail()) {
+                return redirect()->route('verification.notice');
+            }
+            return redirect()->route('sakip.dashboard');
         }
         return view('auth.login');
     }
@@ -35,7 +38,7 @@ class LoginController extends Controller
             if (!Auth::user()->hasVerifiedEmail()) {
                 return redirect()->route('verification.notice');
             }
-            return redirect()->intended(route('dashboard'));
+            return redirect()->intended(route('sakip.dashboard'));
         }
 
         return back()->withErrors([

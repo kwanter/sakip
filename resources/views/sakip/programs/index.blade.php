@@ -1,4 +1,4 @@
-@extends('sakip.layouts.app')
+@extends('layouts.app')
 
 @section('content')
 <div class="py-12">
@@ -11,7 +11,7 @@
                         Tambah Program
                     </button>
                 </div>
-                
+
                 <!-- Data Table Component -->
                 @component('sakip.components.data-table', [
                     'id' => 'programs-table',

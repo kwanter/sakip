@@ -1,22 +1,27 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\InstansiController;
-use App\Http\Controllers\ProgramController;
-use App\Http\Controllers\KegiatanController;
-use App\Http\Controllers\IndikatorKinerjaController;
-use App\Http\Controllers\LaporanKinerjaController;
-use App\Http\Controllers\PengaturanController;
 use App\Http\Controllers\AdminController;
 
-// Dashboard Route
-Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+// Dashboard Route with auth/verification-aware redirect
+Route::get('/', function () {
+    $user = auth()->user();
+    // Guest: no authenticated user
+    if (!$user) {
+        return redirect()->route('login'); // Guest → login
+    }
+    // Authenticated but unverified: send to verification notice
+    if (!$user->hasVerifiedEmail()) {
+        return redirect()->route('verification.notice'); // Unverified → verify
+    }
+    // Authenticated and verified: go to SAKIP dashboard
+    return redirect()->route('sakip.dashboard');   // Verified → SAKIP
+})->name('home');
 
 // Auth routes
-Route::get('/login', [\App\Http\Controllers\Auth\LoginController::class, 'show'])->name('login');
+Route::get('/login', [\App\Http\Controllers\Auth\LoginController::class, 'show'])->middleware('guest')->name('login');
 Route::post('/login', [\App\Http\Controllers\Auth\LoginController::class, 'login'])->name('auth.login');
-Route::post('/logout', [\App\Http\Controllers\Auth\LogoutController::class, 'logout'])->name('auth.logout');
+Route::post('/logout', [\App\Http\Controllers\Auth\LogoutController::class, 'logout'])->name('logout');
 
 // Email verification routes
 Route::middleware('auth')->group(function () {
@@ -34,23 +39,64 @@ Route::middleware('auth')->group(function () {
 
 // Protected Routes untuk SAKIP
 Route::middleware(['auth', 'verified'])->group(function () {
-    // Resources
-    Route::resource('instansi', InstansiController::class);
-    Route::resource('program', ProgramController::class);
-    Route::resource('kegiatan', KegiatanController::class);
-    Route::resource('indikator-kinerja', IndikatorKinerjaController::class);
-    Route::resource('laporan-kinerja', LaporanKinerjaController::class);
+    /**
+     * Legacy route redirects to SAKIP equivalents
+     * We intentionally remove legacy resources and forward users to the new module.
+     */
+    Route::any('instansi/{any?}', function () {
+        return redirect()->route('sakip.dashboard');
+    })->where('any', '.*');
 
-    // Additional Relations
-    Route::get('program/instansi/{instansi}', [ProgramController::class, 'byInstansi'])->name('program.by-instansi');
-    Route::get('kegiatan/program/{program}', [KegiatanController::class, 'byProgram'])->name('kegiatan.by-program');
-    Route::get('indikator-kinerja/kegiatan/{kegiatan}', [IndikatorKinerjaController::class, 'byKegiatan'])->name('indikator-kinerja.by-kegiatan');
-    Route::get('laporan-kinerja/indikator/{indikator}', [LaporanKinerjaController::class, 'byIndikator'])->name('laporan-kinerja.by-indikator');
-    Route::post('laporan-kinerja/quarterly-aggregation', [LaporanKinerjaController::class, 'quarterlyAggregation'])->name('laporan-kinerja.quarterly-aggregation');
-    Route::post('laporan-kinerja/create-from-monthly', [LaporanKinerjaController::class, 'createFromMonthly'])->name('laporan-kinerja.create-from-monthly');
+    Route::any('program/{any?}', function () {
+        return redirect()->route('sakip.performance-data.index');
+    })->where('any', '.*');
+
+    Route::any('kegiatan/{any?}', function () {
+        return redirect()->route('sakip.performance-data.index');
+    })->where('any', '.*');
+
+    Route::any('indikator-kinerja/{any?}', function () {
+        return redirect()->route('sakip.indicators.index');
+    })->where('any', '.*');
+
+    Route::any('laporan-kinerja/{any?}', function () {
+        return redirect()->route('sakip.reports.index');
+    })->where('any', '.*');
+
+    // Profile page
+    Route::get('/profile', [\App\Http\Controllers\ProfileController::class, 'show'])
+        ->name('profile.show');
+
+    // Account Settings page (user-level settings)
+    Route::get('/settings/account', [\App\Http\Controllers\AccountSettingsController::class, 'show'])
+        ->name('settings.account');
+        
+    // Help page
+    Route::get('/help', [\App\Http\Controllers\HelpController::class, 'index'])
+        ->name('help');
+        
+    // Feedback page
+    Route::get('/feedback', [\App\Http\Controllers\FeedbackController::class, 'index'])
+        ->name('feedback');
+    Route::post('/feedback', [\App\Http\Controllers\FeedbackController::class, 'store'])
+        ->name('feedback.store');
+        
+    // Documentation page
+    Route::get('/documentation', [\App\Http\Controllers\DocumentationController::class, 'index'])
+        ->name('documentation');
+
+    // Legal pages
+    Route::get('/privacy-policy', [\App\Http\Controllers\LegalController::class, 'privacyPolicy'])
+        ->name('privacy-policy');
+    Route::get('/terms-of-service', [\App\Http\Controllers\LegalController::class, 'termsOfService'])
+        ->name('terms-of-service');
+    Route::get('/disclaimer', [\App\Http\Controllers\LegalController::class, 'disclaimer'])
+        ->name('disclaimer');
+    Route::get('/accessibility', [\App\Http\Controllers\LegalController::class, 'accessibility'])
+        ->name('accessibility');
 
     // Pengaturan legacy redirects (preserve URLs; forward to unified admin settings)
-    Route::middleware(['auth','verified','role:admin'])->group(function () {
+    Route::middleware(['auth','verified','role:superadmin'])->group(function () {
         Route::get('pengaturan', function() { return redirect()->route('admin.settings.index'); })->name('pengaturan.index');
         Route::put('pengaturan', function(\Illuminate\Http\Request $request) { return redirect()->route('admin.settings.update'); })->name('pengaturan.update');
         Route::post('pengaturan/clear-cache', function() { return redirect()->route('admin.settings.clear-cache'); })->name('pengaturan.clear-cache');
@@ -62,7 +108,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::prefix('admin')->middleware('can:admin.dashboard')->group(function () {
         // Dashboard
         Route::get('/', [AdminController::class, 'dashboard'])->name('admin.dashboard');
-        
+
         // User Management
         Route::prefix('users')->group(function () {
             Route::get('/', [AdminController::class, 'users'])->name('admin.users.index');
@@ -74,12 +120,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
             // Separate submission routes for roles and permissions management
             Route::post('/{user}/roles', [AdminController::class, 'updateRoles'])->name('admin.users.roles.update');
             Route::post('/{user}/permissions', [AdminController::class, 'updatePermissions'])->name('admin.users.permissions.update');
+            // Cleanup legacy roles & permissions for a user (supports dry_run)
+            Route::post('/{user}/cleanup-access', [AdminController::class, 'cleanupAccess'])->name('admin.users.cleanup-access');
             Route::delete('/{user}', [AdminController::class, 'destroyUser'])->name('admin.users.destroy');
         });
-        
+
         // Audit Logs
         Route::get('/audit-logs', [AdminController::class, 'auditLogs'])->name('admin.audit-logs');
-        
+
         // System Settings + Maintenance (Unified)
         Route::middleware('can:admin.settings')->group(function () {
             Route::get('/settings', [AdminController::class, 'systemSettings'])->name('admin.settings.index');
@@ -103,11 +151,62 @@ if (app()->environment('local', 'development')) {
         Route::get('/configuration', [\App\Http\Controllers\SakipTestController::class, 'testConfiguration'])->name('sakip.test.configuration');
         Route::get('/helpers', [\App\Http\Controllers\SakipTestController::class, 'testHelpers'])->name('sakip.test.helpers');
     });
+
+    /**
+     * Health check endpoint for local debugging.
+     * Returns HTTP 200 with a simple body to confirm server is responsive.
+     */
+    Route::get('/healthz', function () {
+        return response('ok', 200);
+    })->name('healthz');
+
+    /**
+     * Session and authentication debug endpoint (local only).
+     * Helps diagnose cookie, session domain, and redirect issues by exposing
+     * minimal, non-sensitive runtime state for the current request.
+     */
+    Route::get('/debug/session', function (\Illuminate\Http\Request $request) {
+        $user = \Illuminate\Support\Facades\Auth::user();
+        return response()->json([
+            'host' => $request->getHost(),
+            'url' => url()->current(),
+            'app_url' => config('app.url'),
+            'authenticated' => \Illuminate\Support\Facades\Auth::check(),
+            'user_id' => $user?->id,
+            'verified' => $user?->hasVerifiedEmail(),
+            'session_id' => $request->session()->getId(),
+            'session_cookie_name' => config('session.cookie'),
+            'session_domain' => config('session.domain'),
+            'session_path' => config('session.path'),
+            'session_secure' => config('session.secure'),
+            'session_same_site' => config('session.same_site'),
+        ]);
+    })->name('debug.session');
 }
 
-// API Routes untuk AJAX
+// API Routes untuk AJAX (Legacy redirects)
 Route::prefix('api')->middleware('auth')->group(function () {
-    Route::get('program/by-instansi/{instansi}', [ProgramController::class, 'apiByInstansi']);
-    Route::get('kegiatan/by-program/{program}', [KegiatanController::class, 'apiByProgram']);
-    Route::get('indikator/by-kegiatan/{kegiatan}', [IndikatorKinerjaController::class, 'apiByKegiatan']);
+    // Map: /api/program/by-instansi/{instansi} -> /api/sakip/datatables/program?instansi_id=...
+    Route::get('program/by-instansi/{instansi}', function ($instansi) {
+        $target = route('sakip.api.datatables.program');
+        $url = $target . '?instansi_id=' . urlencode($instansi);
+        return redirect()->to($url);
+    });
+
+    // Map: /api/kegiatan/by-program/{program} -> /api/sakip/datatables/kegiatan?program_id=...
+    Route::get('kegiatan/by-program/{program}', function ($program) {
+        $target = route('sakip.api.datatables.kegiatan');
+        $url = $target . '?program_id=' . urlencode($program);
+        return redirect()->to($url);
+    });
+
+    // Map: /api/indikator/by-kegiatan/{kegiatan} -> /api/sakip/datatables/indicator?instansi_id=...
+    // We infer instansi_id from kegiatan, since indikator-by-kegiatan no longer exists in SAKIP.
+    Route::get('indikator/by-kegiatan/{kegiatan}', function ($kegiatanId) {
+        $kegiatan = \App\Models\Kegiatan::with('program')->find($kegiatanId);
+        $instansiId = $kegiatan?->program?->instansi_id;
+        $target = route('sakip.api.datatables.indicator');
+        $url = $instansiId ? ($target . '?instansi_id=' . urlencode($instansiId)) : $target;
+        return redirect()->to($url);
+    });
 });

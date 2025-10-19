@@ -90,9 +90,9 @@ class DataCollectionController extends Controller
             $statistics = $this->getDataCollectionStatistics($instansiId, $currentYear);
 
             // Get recent data entries
-            $recentEntries = PerformanceData::whereHas('indicator', function($q) use ($instansiId) {
+            $recentEntries = PerformanceData::whereHas('performanceIndicator', function($q) use ($instansiId) {
                 $q->where('instansi_id', $instansiId);
-            })->with(['indicator', 'creator'])
+            })->with(['performanceIndicator', 'creator'])
               ->orderBy('created_at', 'desc')
               ->limit(10)
               ->get();
@@ -113,13 +113,31 @@ class DataCollectionController extends Controller
     /**
      * Show data collection form for a specific indicator
      */
-    public function create(Request $request, PerformanceIndicator $indicator)
+    public function create(Request $request, PerformanceIndicator $indicator = null)
     {
         $this->authorize('create', PerformanceData::class);
 
         try {
             $user = Auth::user();
             $currentYear = Carbon::now()->year;
+
+            // If indicator_id is provided in query params, get the indicator
+            if (!$indicator && $request->has('indicator_id')) {
+                $indicator = PerformanceIndicator::findOrFail($request->indicator_id);
+            }
+
+            // If no indicator is specified, show indicator selection
+            if (!$indicator) {
+                $indicators = PerformanceIndicator::with(['instansi', 'targets'])
+                    ->where('status', 'active')
+                    ->orderBy('name')
+                    ->get();
+
+                return view('sakip.data-collection.create', compact(
+                    'indicators',
+                    'currentYear'
+                ));
+            }
 
             // Get targets for the current year
             $targets = $indicator->targets()

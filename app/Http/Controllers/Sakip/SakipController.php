@@ -28,7 +28,7 @@ class SakipController extends Controller
      */
     public function index(Request $request)
     {
-        $this->authorize('view sakip dashboard');
+        $this->authorize('sakip.view.dashboard');
 
         $instansiId = Auth::user()->instansi_id;
         $period = $request->get('period', date('Y'));
@@ -46,7 +46,7 @@ class SakipController extends Controller
      */
     public function indicators(Request $request)
     {
-        $this->authorize('view performance indicators');
+        $this->authorize('sakip.view.performance-indicators');
 
         $query = PerformanceIndicator::with(['instansi', 'targets', 'performanceData'])
             ->when(Auth::user()->instansi_id, function ($q, $instansiId) {
@@ -65,7 +65,7 @@ class SakipController extends Controller
      */
     public function performanceData(Request $request)
     {
-        $this->authorize('view performance data');
+        $this->authorize('sakip.view.performance-data');
 
         $query = PerformanceData::with([
             'performanceIndicator',

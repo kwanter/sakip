@@ -21,7 +21,7 @@ use App\Http\Controllers\Api\Sakip\SakipDataTableController;
 |
 */
 
-Route::prefix('sakip')->middleware(['auth'])->group(function () {
+Route::prefix('sakip')->middleware(['auth:sanctum', 'permission:view-dashboard'])->group(function () {
     
     // Dashboard Routes
     Route::get('/dashboard-data', [SakipDashboardController::class, 'getDashboardData'])

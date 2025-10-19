@@ -1,4 +1,4 @@
-@extends('sakip.layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Impor Data Kinerja')
 
@@ -70,7 +70,7 @@
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
             <h3 class="text-lg font-medium text-gray-900 mb-4">Unduh Template</h3>
             <p class="text-gray-600 mb-4">Gunakan template ini untuk memastikan format data sesuai dengan sistem.</p>
-            
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <a href="{{ route('sakip.data-collection.template') }}" class="inline-flex items-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 transition-colors">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -78,7 +78,7 @@
                     </svg>
                     Unduh Template Excel
                 </a>
-                
+
                 <a href="{{ route('sakip.data-collection.sample') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
@@ -91,11 +91,11 @@
         <!-- Import Form -->
         <form action="{{ route('sakip.data-collection.import') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
             @csrf
-            
+
             <!-- Import Configuration -->
             <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                 <h3 class="text-lg font-medium text-gray-900 mb-4">Konfigurasi Impor</h3>
-                
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label for="year" class="block text-sm font-medium text-gray-700 mb-2">Tahun *</label>
@@ -108,7 +108,7 @@
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
                     </div>
-                    
+
                     <div>
                         <label for="instansi_id" class="block text-sm font-medium text-gray-700 mb-2">Instansi *</label>
                         <select name="instansi_id" id="instansi_id" required class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
@@ -127,7 +127,7 @@
             <!-- File Upload -->
             <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                 <h3 class="text-lg font-medium text-gray-900 mb-4">Unggah File</h3>
-                
+
                 <div class="border-2 border-dashed border-gray-300 rounded-md p-6 text-center hover:border-gray-400 transition-colors cursor-pointer" id="drop-zone">
                     <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
                         <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -136,7 +136,7 @@
                     <p class="text-xs text-gray-500 mt-1">Format: .xlsx, .xls (maksimal 10MB)</p>
                     <input type="file" name="file" id="file" required class="hidden" accept=".xlsx,.xls">
                 </div>
-                
+
                 <!-- File Preview -->
                 <div id="file-preview" class="mt-4 hidden">
                     <div class="border border-gray-200 rounded-md p-4">
@@ -168,7 +168,7 @@
                     </svg>
                     Batal
                 </a>
-                
+
                 <button type="submit" class="inline-flex items-center px-4 py-2 bg-blue-800 text-white text-sm font-medium rounded-md hover:bg-blue-900 transition-colors">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"/>
@@ -182,7 +182,7 @@
         @if(isset($previewData))
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mt-6">
             <h3 class="text-lg font-medium text-gray-900 mb-4">Preview Hasil Impor</h3>
-            
+
             <div class="mb-4">
                 <div class="flex items-center space-x-4">
                     <div class="bg-green-50 border border-green-200 rounded-md p-3">
@@ -199,7 +199,7 @@
                     </div>
                 </div>
             </div>
-            
+
             @if(count($previewData['errors']) > 0)
             <div class="mb-4">
                 <h4 class="text-sm font-medium text-gray-900 mb-2">Daftar Error</h4>
@@ -212,7 +212,7 @@
                 </div>
             </div>
             @endif
-            
+
             @if(count($previewData['valid_data']) > 0)
             <div class="mb-4">
                 <h4 class="text-sm font-medium text-gray-900 mb-2">Data Valid</h4>
@@ -241,7 +241,7 @@
                     </table>
                 </div>
             </div>
-            
+
             <form action="{{ route('sakip.data-collection.import.confirm') }}" method="POST">
                 @csrf
                 <input type="hidden" name="import_id" value="{{ $previewData['import_id'] }}">
@@ -268,46 +268,46 @@ document.addEventListener('DOMContentLoaded', function() {
     const fileName = document.getElementById('file-name');
     const fileSize = document.getElementById('file-size');
     const removeFile = document.getElementById('remove-file');
-    
+
     // Drag and drop functionality
     dropZone.addEventListener('dragover', function(e) {
         e.preventDefault();
         this.classList.add('border-blue-300');
     });
-    
+
     dropZone.addEventListener('dragleave', function(e) {
         e.preventDefault();
         this.classList.remove('border-blue-300');
     });
-    
+
     dropZone.addEventListener('drop', function(e) {
         e.preventDefault();
         this.classList.remove('border-blue-300');
-        
+
         const files = e.dataTransfer.files;
         if (files.length > 0) {
             handleFile(files[0]);
         }
     });
-    
+
     // Click to select file
     dropZone.addEventListener('click', function() {
         fileInput.click();
     });
-    
+
     // File input change
     fileInput.addEventListener('change', function(e) {
         if (this.files.length > 0) {
             handleFile(this.files[0]);
         }
     });
-    
+
     // Remove file
     removeFile.addEventListener('click', function() {
         fileInput.value = '';
         filePreview.classList.add('hidden');
     });
-    
+
     function handleFile(file) {
         // Check file type
         const allowedTypes = ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel'];
@@ -315,17 +315,17 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('File harus berformat Excel (.xlsx atau .xls)');
             return;
         }
-        
+
         // Check file size (10MB = 10 * 1024 * 1024 bytes)
         if (file.size > 10 * 1024 * 1024) {
             alert('Ukuran file tidak boleh melebihi 10MB');
             return;
         }
-        
+
         fileName.textContent = file.name;
         fileSize.textContent = (file.size / 1024 / 1024).toFixed(2) + ' MB';
         filePreview.classList.remove('hidden');
-        
+
         // Set the file to input
         const dt = new DataTransfer();
         dt.items.add(file);

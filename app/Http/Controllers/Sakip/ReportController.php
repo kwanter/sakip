@@ -53,7 +53,7 @@ class ReportController extends Controller
 
             // Get reports based on user role
             $query = Report::with(['creator', 'approver'])
-                ->whereYear('report_period', $currentYear);
+                ->whereYear('period', $currentYear);
 
             // Role-based filtering
             if (!$user->hasRole('superadmin')) {
@@ -73,7 +73,7 @@ class ReportController extends Controller
             }
 
             if ($request->filled('period')) {
-                $query->where('report_period', $request->get('period'));
+                $query->where('period', $request->get('period'));
             }
 
             if ($request->filled('category')) {
@@ -90,7 +90,7 @@ class ReportController extends Controller
 
             // Get recent reports
             $recentReports = Report::with(['creator', 'approver'])
-                ->whereYear('report_period', $currentYear)
+                ->whereYear('period', $currentYear)
                 ->where(function($q) use ($user, $instansiId) {
                     if (!$user->hasRole('superadmin')) {
                         $q->where('created_by', $user->id)
@@ -135,7 +135,7 @@ class ReportController extends Controller
                     $q->whereYear('period', $currentYear)
                       ->where('status', 'approved');
                 }, 'assessments' => function($q) use ($currentYear) {
-                    $q->whereYear('assessment_period', $currentYear)
+                    $q->whereYear('created_at', $currentYear)
                       ->where('status', 'approved');
                 }])
                 ->orderBy('name')
@@ -166,7 +166,7 @@ class ReportController extends Controller
 
         $validator = Validator::make($request->all(), [
             'report_type' => 'required|in:monthly,quarterly,semester,annual,custom',
-            'report_period' => 'required|date',
+            'period' => 'required|string|max:20',
             'category' => 'required|in:performance,assessment,compliance,summary',
             'title' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
@@ -194,7 +194,7 @@ class ReportController extends Controller
             // Create report record
             $report = Report::create([
                 'report_type' => $request->get('report_type'),
-                'report_period' => $request->get('report_period'),
+                'period' => $request->get('period'),
                 'category' => $request->get('category'),
                 'title' => $request->get('title'),
                 'description' => $request->get('description'),
@@ -227,7 +227,7 @@ class ReportController extends Controller
                 'instansi_id' => $user->instansi_id,
                 'action' => 'CREATE',
                 'module' => 'SAKIP',
-                'description' => "Membuat laporan: {$report->title} (Periode: {$report->report_period})",
+                'description' => "Membuat laporan: {$report->title} (Periode: {$report->period})",
                 'old_values' => null,
                 'new_values' => $report->toArray(),
             ]);
@@ -270,7 +270,7 @@ class ReportController extends Controller
             $relatedReports = Report::where('id', '!=', $report->id)
                 ->where('instansi_id', $report->instansi_id)
                 ->where('report_type', $report->report_type)
-                ->orderBy('report_period', 'desc')
+                ->orderBy('period', 'desc')
                 ->limit(5)
                 ->get();
 
@@ -607,7 +607,7 @@ class ReportController extends Controller
      */
     private function getReportStatistics($user, $year)
     {
-        $query = Report::whereYear('report_period', $year);
+        $query = Report::whereYear('period', $year);
 
         if (!$user->hasRole('superadmin')) {
             $query->where(function($q) use ($user) {
@@ -644,7 +644,7 @@ class ReportController extends Controller
     {
         try {
             $user = Auth::user();
-            $year = Carbon::parse($report->report_period)->year;
+            $year = Carbon::parse($report->period)->year;
 
             // Get performance data
             $indicators = PerformanceIndicator::whereIn('id', $indicatorIds)
@@ -660,8 +660,10 @@ class ReportController extends Controller
             // Get assessments if requested
             $assessments = null;
             if ($options['include_assessments'] ?? false) {
-                $assessments = Assessment::whereIn('indicator_id', $indicatorIds)
-                    ->whereYear('assessment_period', $year)
+                $assessments = Assessment::whereHas('performanceData', function($q) use ($indicatorIds) {
+                        $q->whereIn('performance_indicator_id', $indicatorIds);
+                    })
+                    ->whereYear('created_at', $year)
                     ->where('status', 'approved')
                     ->with(['criteriaScores.criterion'])
                     ->get();
@@ -774,7 +776,7 @@ class ReportController extends Controller
      */
     private function getReportTrends(Report $report)
     {
-        $year = Carbon::parse($report->report_period)->year;
+        $year = Carbon::parse($report->period)->year;
         $trends = [];
 
         // Get monthly trends for the year
@@ -800,7 +802,7 @@ class ReportController extends Controller
     private function getReportBenchmarks(Report $report)
     {
         $instansiId = $report->instansi_id;
-        $year = Carbon::parse($report->report_period)->year;
+        $year = Carbon::parse($report->period)->year;
 
         // Get institution performance
         $institutionPerformance = $this->calculateInstitutionPerformance($instansiId, $year);

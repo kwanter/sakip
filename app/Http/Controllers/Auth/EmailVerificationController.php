@@ -15,7 +15,7 @@ class EmailVerificationController extends Controller
     public function notice(Request $request)
     {
         if ($request->user()->hasVerifiedEmail()) {
-            return redirect()->route('dashboard');
+            return redirect()->route('sakip.dashboard');
         }
         return view('auth.verify-email');
     }
@@ -27,7 +27,7 @@ class EmailVerificationController extends Controller
     public function verify(EmailVerificationRequest $request)
     {
         if ($request->user()->hasVerifiedEmail()) {
-            return redirect()->intended(route('dashboard'));
+            return redirect()->intended(route('sakip.dashboard'));
         }
 
         if ($request->user()->markEmailAsVerified()) {
@@ -43,7 +43,7 @@ class EmailVerificationController extends Controller
             ]);
         }
 
-        return redirect()->intended(route('dashboard'))->with('success', 'Email verified successfully!');
+        return redirect()->intended(route('sakip.dashboard'))->with('success', 'Email verified successfully!');
     }
 
     /**
@@ -52,7 +52,7 @@ class EmailVerificationController extends Controller
     public function resend(Request $request)
     {
         if ($request->user()->hasVerifiedEmail()) {
-            return redirect()->route('dashboard');
+            return redirect()->route('sakip.dashboard');
         }
 
         $request->user()->sendEmailVerificationNotification();

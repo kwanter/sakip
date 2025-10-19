@@ -163,7 +163,7 @@
                             <i class="fas fa-history fa-fw mr-2"></i>
                             View Audit Logs
                         </a>
-                        @can('admin.settings')
+                        @can('manage-settings')
                         <a href="{{ route('admin.settings.index') }}" class="list-group-item list-group-item-action">
                             <i class="fas fa-cog fa-fw mr-2"></i>
                             System Settings

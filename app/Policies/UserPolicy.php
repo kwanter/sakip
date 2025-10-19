@@ -14,7 +14,7 @@ class UserPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->hasPermission('admin.users.view') || $user->isAdmin();
+        return $user->can('manage-users');
     }
     
     /**
@@ -22,7 +22,7 @@ class UserPolicy
      */
     public function view(User $user, User $model): bool
     {
-        return $user->hasPermission('admin.users.view') || $user->isAdmin() || $user->id === $model->id;
+        return $user->can('manage-users') || $user->id === $model->id;
     }
     
     /**
@@ -30,7 +30,7 @@ class UserPolicy
      */
     public function create(User $user): bool
     {
-        return $user->hasPermission('admin.users.create') || $user->isAdmin();
+        return $user->can('manage-users');
     }
     
     /**
@@ -38,7 +38,7 @@ class UserPolicy
      */
     public function update(User $user, User $model): bool
     {
-        return $user->hasPermission('admin.users.update') || $user->isAdmin() || $user->id === $model->id;
+        return $user->can('manage-users') || $user->id === $model->id;
     }
     
     /**
@@ -51,7 +51,7 @@ class UserPolicy
             return false;
         }
         
-        return $user->hasPermission('admin.users.delete') || $user->isAdmin();
+        return $user->can('manage-users');
     }
     
     /**
@@ -59,7 +59,7 @@ class UserPolicy
      */
     public function restore(User $user, User $model): bool
     {
-        return $user->hasPermission('admin.users.restore') || $user->isAdmin();
+        return $user->can('manage-users');
     }
     
     /**
@@ -72,7 +72,7 @@ class UserPolicy
             return false;
         }
         
-        return $user->hasPermission('admin.users.force-delete') || $user->isAdmin();
+        return $user->can('manage-users');
     }
     
     /**
@@ -80,7 +80,7 @@ class UserPolicy
      */
     public function assignRoles(User $user): bool
     {
-        return $user->hasPermission('admin.users.assign-roles') || $user->isAdmin();
+        return $user->can('manage-roles');
     }
     
     /**
@@ -88,7 +88,7 @@ class UserPolicy
      */
     public function assignPermissions(User $user): bool
     {
-        return $user->hasPermission('admin.users.assign-permissions') || $user->isAdmin();
+        return $user->can('manage-roles');
     }
     
     /**
@@ -96,7 +96,7 @@ class UserPolicy
      */
     public function viewAuditLogs(User $user): bool
     {
-        return $user->hasPermission('admin.audit-logs.view') || $user->isAdmin();
+        return $user->can('manage-settings');
     }
     
     /**

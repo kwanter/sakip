@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification as LaravelNotification;
+use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
 use Exception;
 
@@ -655,166 +656,140 @@ class SakipNotificationService
      */
     protected function getUserRole($userId): string
     {
-        $user = User::find($userId);
-        return $user ? $user->role : 'user';
+        $user = User::with('roles')->find($userId);
+        if (!$user) {
+            return 'user';
+        }
+        // Map approved roles for backward compatibility where a single role string is needed
+        $approvedRoles = ['superadmin', 'executive', 'data_collector', 'assessor', 'auditor', 'government_agency'];
+        foreach ($approvedRoles as $roleName) {
+            if ($user->hasRole($roleName)) {
+                return $roleName;
+            }
+        }
+        return 'user';
     }
 
-    /**
-     * Check if user is recipient
-     */
     protected function isUserRecipient(Notification $notification, $userId): bool
     {
         $recipients = json_decode($notification->recipients, true) ?? [];
-        
-        return in_array($userId, $recipients) ||
-               in_array('all', $recipients) ||
-               in_array('role:' . $this->getUserRole($userId), $recipients);
+        $user = User::with('roles')->find($userId);
+        if (!$user) {
+            return false;
+        }
+        $userRoles = $user->roles->pluck('name')->toArray();
+        $roleRecipients = array_filter($recipients, fn($r) => is_string($r) && str_starts_with($r, 'role:'));
+        $roleNames = array_map(fn($r) => substr($r, 5), $roleRecipients);
+
+        return in_array($userId, $recipients, true) ||
+               in_array('all', $recipients, true) ||
+               count(array_intersect($userRoles, $roleNames)) > 0;
     }
 
-    /**
-     * Check if user can delete notification
-     */
-    protected function canUserDeleteNotification(Notification $notification, $userId): bool
-    {
-        return $notification->sent_by === $userId || $this->isUserAdmin($userId);
-    }
-
-    /**
-     * Check if user is admin
-     */
     protected function isUserAdmin($userId): bool
     {
-        $user = User::find($userId);
-        return $user && in_array($user->role, ['admin', 'super_admin']);
+        $user = User::with('roles')->find($userId);
+        if (!$user) {
+            return false;
+        }
+        return $user->hasAnyRole(['superadmin', 'executive']);
     }
 
-    /**
-     * Get validation notification type
-     */
-    protected function getValidationNotificationType(string $type, string $status): string
-    {
-        $typeMap = [
-            'performance_data' => 'data_validated',
-            'assessment' => 'assessment_completed',
-            'evidence_document' => 'evidence_validated',
-            'target' => 'target_approved',
-        ];
-
-        return $typeMap[$type] ?? 'system_alert';
-    }
-
-    /**
-     * Get instansi recipients
-     */
-    protected function getInstansiRecipients($instansiId, $notificationType): array
-    {
-        // This would return users associated with the instansi based on notification type
-        return User::where('instansi_id', $instansiId)->pluck('id')->toArray();
-    }
-
-    /**
-     * Get target setting recipients
-     */
     protected function getTargetSettingRecipients($instansiId): array
     {
         return User::where('instansi_id', $instansiId)
-            ->whereIn('role', ['manager', 'admin'])
+            ->whereHas('roles', function ($q) {
+                $q->whereIn('name', ['executive', 'government_agency']);
+            })
             ->pluck('id')
             ->toArray();
     }
 
-    /**
-     * Get data submission recipients
-     */
     protected function getDataSubmissionRecipients($instansiId): array
     {
         return User::where('instansi_id', $instansiId)
-            ->whereIn('role', ['data_collector', 'manager'])
+            ->whereHas('roles', function ($q) {
+                $q->whereIn('name', ['data_collector']);
+            })
             ->pluck('id')
             ->toArray();
     }
 
-    /**
-     * Get assessment recipients
-     */
     protected function getAssessmentRecipients($instansiId): array
     {
         return User::where('instansi_id', $instansiId)
-            ->whereIn('role', ['assessor', 'manager'])
+            ->whereHas('roles', function ($q) {
+                $q->whereIn('name', ['assessor', 'auditor']);
+            })
             ->pluck('id')
             ->toArray();
     }
 
-    /**
-     * Get report generation recipients
-     */
     protected function getReportGenerationRecipients($instansiId): array
     {
         return User::where('instansi_id', $instansiId)
-            ->whereIn('role', ['manager', 'admin'])
+            ->whereHas('roles', function ($q) {
+                $q->whereIn('name', ['executive', 'government_agency']);
+            })
             ->pluck('id')
             ->toArray();
     }
 
-    /**
-     * Get achievement alert recipients
-     */
     protected function getAchievementAlertRecipients($instansiId): array
     {
         return User::where('instansi_id', $instansiId)
-            ->whereIn('role', ['manager', 'assessor', 'admin'])
+            ->whereHas('roles', function ($q) {
+                $q->whereIn('name', ['executive', 'assessor', 'auditor']);
+            })
             ->pluck('id')
             ->toArray();
     }
 
-    /**
-     * Get system alert recipients
-     */
     protected function getSystemAlertRecipients(): array
     {
-        return User::whereIn('role', ['admin', 'super_admin'])->pluck('id')->toArray();
+        return User::whereHas('roles', function ($q) {
+                $q->whereIn('name', ['superadmin', 'executive']);
+            })
+            ->pluck('id')
+            ->toArray();
     }
 
-    /**
-     * Get data validation recipients
-     */
     protected function getDataValidationRecipients($instansiId): array
     {
         return User::where('instansi_id', $instansiId)
-            ->whereIn('role', ['data_collector', 'manager'])
+            ->whereHas('roles', function ($q) {
+                $q->whereIn('name', ['data_collector']);
+            })
             ->pluck('id')
             ->toArray();
     }
 
-    /**
-     * Get assessment validation recipients
-     */
     protected function getAssessmentValidationRecipients($instansiId): array
     {
         return User::where('instansi_id', $instansiId)
-            ->whereIn('role', ['assessor', 'manager'])
+            ->whereHas('roles', function ($q) {
+                $q->whereIn('name', ['assessor', 'auditor']);
+            })
             ->pluck('id')
             ->toArray();
     }
 
-    /**
-     * Get evidence validation recipients
-     */
     protected function getEvidenceValidationRecipients($instansiId): array
     {
         return User::where('instansi_id', $instansiId)
-            ->whereIn('role', ['data_collector', 'manager'])
+            ->whereHas('roles', function ($q) {
+                $q->whereIn('name', ['data_collector']);
+            })
             ->pluck('id')
             ->toArray();
     }
 
-    /**
-     * Get target validation recipients
-     */
     protected function getTargetValidationRecipients($instansiId): array
     {
         return User::where('instansi_id', $instansiId)
-            ->whereIn('role', ['manager', 'admin'])
+            ->whereHas('roles', function ($q) {
+                $q->whereIn('name', ['executive', 'government_agency']);
+            })
             ->pluck('id')
             ->toArray();
     }

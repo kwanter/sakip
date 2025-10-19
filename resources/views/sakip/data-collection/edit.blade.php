@@ -1,4 +1,4 @@
-@extends('sakip.layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Edit Data Kinerja')
 
@@ -43,11 +43,11 @@
         <form action="{{ route('sakip.data-collection.update', $data) }}" method="POST" enctype="multipart/form-data" class="space-y-6">
             @csrf
             @method('PUT')
-            
+
             <!-- Basic Information -->
             <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                 <h3 class="text-lg font-medium text-gray-900 mb-4">Informasi Dasar</h3>
-                
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label for="indicator_id" class="block text-sm font-medium text-gray-700 mb-2">Indikator Kinerja *</label>
@@ -56,7 +56,7 @@
                         </select>
                         <input type="hidden" name="indicator_id" value="{{ $data->indicator_id }}">
                     </div>
-                    
+
                     <div>
                         <label for="instansi_id" class="block text-sm font-medium text-gray-700 mb-2">Instansi *</label>
                         <select name="instansi_id" id="instansi_id" required class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500" disabled>
@@ -64,7 +64,7 @@
                         </select>
                         <input type="hidden" name="instansi_id" value="{{ $data->instansi_id }}">
                     </div>
-                    
+
                     <div>
                         <label for="year" class="block text-sm font-medium text-gray-700 mb-2">Tahun *</label>
                         <select name="year" id="year" required class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
@@ -76,7 +76,7 @@
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
                     </div>
-                    
+
                     <div>
                         <label for="period" class="block text-sm font-medium text-gray-700 mb-2">Periode *</label>
                         <select name="period" id="period" required class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
@@ -110,7 +110,7 @@
             <!-- Performance Data -->
             <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                 <h3 class="text-lg font-medium text-gray-900 mb-4">Data Kinerja</h3>
-                
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label for="value" class="block text-sm font-medium text-gray-700 mb-2">Nilai Kinerja *</label>
@@ -119,7 +119,7 @@
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
                     </div>
-                    
+
                     <div>
                         <label for="target" class="block text-sm font-medium text-gray-700 mb-2">Target *</label>
                         <input type="number" name="target" id="target" step="0.01" value="{{ old('target', $data->target) }}" required class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="Masukkan target">
@@ -127,7 +127,7 @@
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
                     </div>
-                    
+
                     <div>
                         <label for="data_source" class="block text-sm font-medium text-gray-700 mb-2">Sumber Data *</label>
                         <input type="text" name="data_source" id="data_source" value="{{ old('data_source', $data->data_source) }}" required class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="Contoh: Laporan Bulanan, Sistem Informasi">
@@ -135,7 +135,7 @@
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
                     </div>
-                    
+
                     <div>
                         <label for="collection_method" class="block text-sm font-medium text-gray-700 mb-2">Metode Pengumpulan *</label>
                         <select name="collection_method" id="collection_method" required class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
@@ -151,7 +151,7 @@
                         @enderror
                     </div>
                 </div>
-                
+
                 <div class="mt-6">
                     <label for="notes" class="block text-sm font-medium text-gray-700 mb-2">Catatan</label>
                     <textarea name="notes" id="notes" rows="3" class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="Masukkan catatan tambahan">{{ old('notes', $data->notes) }}</textarea>
@@ -164,7 +164,7 @@
             <!-- Evidence Documents -->
             <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                 <h3 class="text-lg font-medium text-gray-900 mb-4">Dokumen Bukti</h3>
-                
+
                 <!-- Existing Evidence -->
                 @if($data->evidence->count() > 0)
                 <div class="mb-4">
@@ -193,7 +193,7 @@
                     </div>
                 </div>
                 @endif
-                
+
                 <!-- File Upload -->
                 <div>
                     <label for="evidence_files" class="block text-sm font-medium text-gray-700 mb-2">Unggah Dokumen Bukti</label>
@@ -204,7 +204,7 @@
                         <p class="mt-2 text-sm text-gray-600">Klik untuk memilih file atau drag and drop</p>
                         <input type="file" name="evidence_files[]" id="evidence_files" multiple class="hidden" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png">
                     </div>
-                    
+
                     <!-- File Preview -->
                     <div id="file-preview" class="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
                 </div>
@@ -218,7 +218,7 @@
                     </svg>
                     Batal
                 </a>
-                
+
                 <div class="flex items-center space-x-3">
                     <button type="submit" name="status" value="draft" class="inline-flex items-center px-4 py-2 bg-gray-600 text-white text-sm font-medium rounded-md hover:bg-gray-700 transition-colors">
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -226,7 +226,7 @@
                         </svg>
                         Simpan sebagai Draft
                     </button>
-                    
+
                     <button type="submit" name="status" value="pending" class="inline-flex items-center px-4 py-2 bg-blue-800 text-white text-sm font-medium rounded-md hover:bg-blue-900 transition-colors">
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
@@ -245,11 +245,11 @@
 document.addEventListener('DOMContentLoaded', function() {
     const fileInput = document.getElementById('evidence_files');
     const filePreview = document.getElementById('file-preview');
-    
+
     // File upload preview
     fileInput.addEventListener('change', function(e) {
         filePreview.innerHTML = '';
-        
+
         Array.from(e.target.files).forEach((file, index) => {
             const fileItem = document.createElement('div');
             fileItem.className = 'border border-gray-200 rounded-md p-3';
@@ -274,13 +274,13 @@ document.addEventListener('DOMContentLoaded', function() {
             filePreview.appendChild(fileItem);
         });
     });
-    
+
     // Indicator preview
     document.getElementById('indicator_id').addEventListener('change', function() {
         const selectedOption = this.options[this.selectedIndex];
         const target = selectedOption.getAttribute('data-target');
         const unit = selectedOption.getAttribute('data-unit');
-        
+
         if (target && unit) {
             document.getElementById('indicator-preview').innerHTML = `
                 <div class="bg-blue-50 border border-blue-200 rounded-md p-4">
@@ -295,12 +295,12 @@ function removeFile(index) {
     const fileInput = document.getElementById('evidence_files');
     const files = Array.from(fileInput.files);
     files.splice(index, 1);
-    
+
     // Create new FileList
     const dt = new DataTransfer();
     files.forEach(file => dt.items.add(file));
     fileInput.files = dt.files;
-    
+
     // Trigger change event to update preview
     fileInput.dispatchEvent(new Event('change'));
 }
@@ -313,7 +313,7 @@ function removeEvidence(evidenceId) {
         input.name = 'delete_evidence[]';
         input.value = evidenceId;
         document.querySelector('form').appendChild(input);
-        
+
         // Remove from UI
         event.target.closest('.border').remove();
     }

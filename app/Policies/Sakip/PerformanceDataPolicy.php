@@ -31,7 +31,7 @@ class PerformanceDataPolicy
      */
     public function create(User $user): bool
     {
-        return $user->hasRole(['admin', 'manager', 'user']);
+        return $user->hasAnyRole(['superadmin', 'data_collector', 'government_agency']);
     }
 
     /**
@@ -39,7 +39,7 @@ class PerformanceDataPolicy
      */
     public function update(User $user, PerformanceData $performanceData): bool
     {
-        return $user->hasRole(['admin', 'manager']) || $user->id === $performanceData->user_id;
+        return $user->hasAnyRole(['superadmin', 'data_collector']) || $user->id === $performanceData->user_id;
     }
 
     /**
@@ -47,7 +47,7 @@ class PerformanceDataPolicy
      */
     public function delete(User $user, PerformanceData $performanceData): bool
     {
-        return $user->hasRole(['admin', 'manager']);
+        return $user->hasAnyRole(['superadmin']);
     }
 
     /**
@@ -55,7 +55,7 @@ class PerformanceDataPolicy
      */
     public function restore(User $user, PerformanceData $performanceData): bool
     {
-        return $user->hasRole(['admin']);
+        return $user->hasRole('superadmin');
     }
 
     /**
@@ -63,6 +63,6 @@ class PerformanceDataPolicy
      */
     public function forceDelete(User $user, PerformanceData $performanceData): bool
     {
-        return $user->hasRole(['admin']);
+        return $user->hasRole('superadmin');
     }
 }

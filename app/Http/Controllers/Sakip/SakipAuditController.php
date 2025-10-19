@@ -92,7 +92,7 @@ class SakipAuditController extends Controller
             $recentActivities = $this->getRecentActivities($user, $instansiId);
 
             // Get compliance status
-            $complianceStatus = $this->complianceService->getComplianceStatus($instansiId);
+            $complianceStatus = $this->complianceService->runComplianceCheck($instansiId, date('Y'));
 
             // Get available actions for filtering
             $availableActions = $this->getAvailableActions();
@@ -556,11 +556,11 @@ class SakipAuditController extends Controller
      */
     private function getIncompleteAssessments($instansiId, $year)
     {
-        return Assessment::whereHas('indicator', function($q) use ($instansiId) {
+        return Assessment::whereHas('performanceData.performanceIndicator', function($q) use ($instansiId) {
             $q->where('instansi_id', $instansiId);
-        })->whereYear('assessment_period', $year)
+        })->whereYear('created_at', $year)
           ->where('status', 'pending')
-          ->with(['indicator'])
+          ->with(['performanceData.performanceIndicator'])
           ->get();
     }
 

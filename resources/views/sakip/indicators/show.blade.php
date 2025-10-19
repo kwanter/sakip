@@ -1,4 +1,4 @@
-@extends('sakip.layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Detail Indikator Kinerja')
 
@@ -53,7 +53,7 @@
                 </svg>
                 Edit
             </a>
-            
+
             <form action="{{ route('sakip.indicators.destroy', $indicator) }}" method="POST" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus indikator ini?')">
                 @csrf
                 @method('DELETE')
@@ -69,39 +69,39 @@
         <!-- Basic Information -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
             <h3 class="text-lg font-medium text-gray-900 mb-4">Informasi Dasar</h3>
-            
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-1">Kode Indikator</label>
                     <p class="text-lg font-semibold text-gray-900">{{ $indicator->code }}</p>
                 </div>
-                
+
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-1">Nama Indikator</label>
                     <p class="text-lg font-semibold text-gray-900">{{ $indicator->name }}</p>
                 </div>
-                
+
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-1">Kategori</label>
                     <p class="text-gray-900">{{ ucfirst(str_replace('_', ' ', $indicator->category)) }}</p>
                 </div>
-                
+
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-1">Satuan</label>
                     <p class="text-gray-900">{{ $indicator->unit }}</p>
                 </div>
-                
+
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-1">Instansi</label>
                     <p class="text-gray-900">{{ $indicator->instansi->name }}</p>
                 </div>
-                
+
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-1">Frekuensi Pengukuran</label>
                     <p class="text-gray-900">{{ ucfirst($indicator->frequency) }}</p>
                 </div>
             </div>
-            
+
             @if($indicator->description)
             <div class="mt-6">
                 <label class="block text-sm font-medium text-gray-500 mb-1">Deskripsi</label>
@@ -113,18 +113,18 @@
         <!-- Target Information -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
             <h3 class="text-lg font-medium text-gray-900 mb-4">Informasi Target</h3>
-            
+
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-1">Nilai Target</label>
                     <p class="text-2xl font-bold text-blue-600">{{ number_format($indicator->target_value, 2) }}</p>
                 </div>
-                
+
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-1">Tahun Target</label>
                     <p class="text-lg font-semibold text-gray-900">{{ $indicator->target_year }}</p>
                 </div>
-                
+
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-1">Status</label>
                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $indicator->status == 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800' }}">
@@ -138,7 +138,7 @@
         @if($indicator->criteria->count() > 0)
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
             <h3 class="text-lg font-medium text-gray-900 mb-4">Kriteria Penilaian</h3>
-            
+
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
@@ -173,7 +173,7 @@
                     Tambah Data
                 </a>
             </div>
-            
+
             @if($recentData->count() > 0)
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
@@ -235,7 +235,7 @@
                     Buat Penilaian
                 </a>
             </div>
-            
+
             @if($recentAssessments->count() > 0)
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">

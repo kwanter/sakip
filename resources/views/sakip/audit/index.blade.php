@@ -1,4 +1,4 @@
-@extends('sakip.layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Audit & Compliance')
 
@@ -17,7 +17,7 @@
                     Run Compliance Check
                 </button>
                 @endcan
-                
+
                 @can('generate-audit-report', App\Models\SakipAudit::class)
                 <a href="{{ route('sakip.audit.export') }}" class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 active:bg-green-900 focus:outline-none focus:border-green-900 focus:ring ring-green-300 disabled:opacity-25 transition ease-in-out duration-150">
                     Export Audit Report
@@ -107,7 +107,7 @@
                         </div>
                         <div class="flex items-center">
                             <div class="w-24 bg-gray-200 rounded-full h-2 mr-3">
-                                <div class="h-2 rounded-full" 
+                                <div class="h-2 rounded-full"
                                      style="width: {{ $check['score'] }}%; background-color: {{ $check['score'] >= 80 ? '#10B981' : ($check['score'] >= 60 ? '#F59E0B' : '#EF4444') }}">
                                 </div>
                             </div>
@@ -160,7 +160,7 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                    {{ $violation->severity === 'high' ? 'bg-red-100 text-red-800' : 
+                                    {{ $violation->severity === 'high' ? 'bg-red-100 text-red-800' :
                                        ($violation->severity === 'medium' ? 'bg-yellow-100 text-yellow-800' : 'bg-blue-100 text-blue-800') }}">
                                     {{ ucfirst($violation->severity) }}
                                 </span>
@@ -227,8 +227,8 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                    {{ $log->event_type === 'delete' ? 'bg-red-100 text-red-800' : 
-                                       ($log->event_type === 'update' ? 'bg-yellow-100 text-yellow-800' : 
+                                    {{ $log->event_type === 'delete' ? 'bg-red-100 text-red-800' :
+                                       ($log->event_type === 'update' ? 'bg-yellow-100 text-yellow-800' :
                                        ($log->event_type === 'create' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800')) }}">
                                     {{ ucfirst($log->event_type) }}
                                 </span>

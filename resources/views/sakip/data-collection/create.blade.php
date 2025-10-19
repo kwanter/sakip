@@ -1,4 +1,4 @@
-@extends('sakip.layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Input Data Kinerja')
 
@@ -70,7 +70,7 @@
                                 <select id="indicator_id" name="indicator_id" required class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('indicator_id') border-red-300 @enderror">
                                     <option value="">Pilih Indikator</option>
                                     @foreach($indicators as $indicator)
-                                        <option value="{{ $indicator->id }}" 
+                                        <option value="{{ $indicator->id }}"
                                             {{ old('indicator_id', $performanceData->indicator_id ?? '') == $indicator->id ? 'selected' : '' }}>
                                             {{ $indicator->code }} - {{ $indicator->name }}
                                         </option>
@@ -86,7 +86,7 @@
                                 <select id="instansi_id" name="instansi_id" required class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('instansi_id') border-red-300 @enderror">
                                     <option value="">Pilih Instansi</option>
                                     @foreach($instansis as $instansi)
-                                        <option value="{{ $instansi->id }}" 
+                                        <option value="{{ $instansi->id }}"
                                             {{ old('instansi_id', $performanceData->instansi_id ?? '') == $instansi->id ? 'selected' : '' }}>
                                             {{ $instansi->name }}
                                         </option>
@@ -102,7 +102,7 @@
                                 <select id="year" name="year" required class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('year') border-red-300 @enderror">
                                     <option value="">Pilih Tahun</option>
                                     @for($year = date('Y') - 2; $year <= date('Y') + 1; $year++)
-                                        <option value="{{ $year }}" 
+                                        <option value="{{ $year }}"
                                             {{ old('year', $performanceData->year ?? date('Y')) == $year ? 'selected' : '' }}>
                                             {{ $year }}
                                         </option>
@@ -137,7 +137,7 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <label for="value" class="block text-sm font-medium text-gray-700 mb-2">Nilai Kinerja *</label>
-                                <input type="number" step="0.01" id="value" name="value" required 
+                                <input type="number" step="0.01" id="value" name="value" required
                                     value="{{ old('value', $performanceData->value ?? '') }}"
                                     class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('value') border-red-300 @enderror"
                                     placeholder="Masukkan nilai kinerja">
@@ -148,7 +148,7 @@
 
                             <div>
                                 <label for="target" class="block text-sm font-medium text-gray-700 mb-2">Target</label>
-                                <input type="number" step="0.01" id="target" name="target" 
+                                <input type="number" step="0.01" id="target" name="target"
                                     value="{{ old('target', $performanceData->target ?? '') }}"
                                     class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('target') border-red-300 @enderror"
                                     placeholder="Masukkan target kinerja">
@@ -159,7 +159,7 @@
 
                             <div>
                                 <label for="data_source" class="block text-sm font-medium text-gray-700 mb-2">Sumber Data *</label>
-                                <input type="text" id="data_source" name="data_source" required 
+                                <input type="text" id="data_source" name="data_source" required
                                     value="{{ old('data_source', $performanceData->data_source ?? '') }}"
                                     class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('data_source') border-red-300 @enderror"
                                     placeholder="Contoh: Sistem Informasi, Laporan, Survey">
@@ -185,7 +185,7 @@
 
                         <div class="mt-6">
                             <label for="notes" class="block text-sm font-medium text-gray-700 mb-2">Catatan</label>
-                            <textarea id="notes" name="notes" rows="3" 
+                            <textarea id="notes" name="notes" rows="3"
                                 class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('notes') border-red-300 @enderror"
                                 placeholder="Tambahkan catatan atau keterangan tambahan">{{ old('notes', $performanceData->notes ?? '') }}</textarea>
                             @error('notes')
@@ -203,10 +203,10 @@
                             </svg>
                             <p class="text-sm text-gray-600 mb-2">Upload dokumen bukti (PDF, Excel, Word, gambar)</p>
                             <p class="text-xs text-gray-500 mb-4">Maksimal 5MB per file</p>
-                            <input type="file" id="evidence_documents" name="evidence_documents[]" multiple 
+                            <input type="file" id="evidence_documents" name="evidence_documents[]" multiple
                                 accept=".pdf,.xlsx,.xls,.doc,.docx,.jpg,.jpeg,.png"
                                 class="hidden">
-                            <button type="button" onclick="document.getElementById('evidence_documents').click()" 
+                            <button type="button" onclick="document.getElementById('evidence_documents').click()"
                                 class="inline-flex items-center px-4 py-2 bg-gray-600 text-white text-sm font-medium rounded-md hover:bg-gray-700 transition-colors">
                                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
@@ -214,7 +214,7 @@
                                 Pilih File
                             </button>
                         </div>
-                        
+
                         <!-- Existing Evidence Documents -->
                         @if(isset($performanceData) && $performanceData->evidenceDocuments->count() > 0)
                         <div class="mt-4">
@@ -332,7 +332,7 @@
                 fileList += `<li class="text-sm text-gray-600">${files[i].name} (${fileSize} MB)</li>`;
             }
             fileList += '</ul></div>';
-            
+
             // Insert or update the file list
             const existingList = document.getElementById('fileList');
             if (existingList) {
@@ -374,7 +374,7 @@
     document.querySelector('form').addEventListener('submit', function(e) {
         const requiredFields = ['indicator_id', 'instansi_id', 'year', 'period', 'value', 'data_source'];
         let isValid = true;
-        
+
         requiredFields.forEach(field => {
             const element = document.getElementById(field);
             if (!element.value.trim()) {
@@ -384,7 +384,7 @@
                 element.classList.remove('border-red-300');
             }
         });
-        
+
         if (!isValid) {
             e.preventDefault();
             alert('Mohon lengkapi semua field yang wajib diisi (ditandai dengan *).');

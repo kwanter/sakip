@@ -1,4 +1,4 @@
-@extends('sakip.layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Tambah Indikator Kinerja - SAKIP')
 
@@ -48,7 +48,7 @@
     <!-- Form Container -->
     <form id="indicatorForm" method="POST" action="{{ route('sakip.indicators.store') }}" enctype="multipart/form-data">
         @csrf
-        
+
         <!-- Step 1: Basic Information -->
         <div class="form-step" id="step1">
             <div class="card mb-4">
@@ -66,8 +66,8 @@
                                 </label>
                                 <div class="input-group">
                                     <span class="input-group-text">IK</span>
-                                    <input type="text" class="form-control @error('code') is-invalid @enderror" 
-                                           id="code" name="code" value="{{ old('code') }}" required 
+                                    <input type="text" class="form-control @error('code') is-invalid @enderror"
+                                           id="code" name="code" value="{{ old('code') }}" required
                                            placeholder="Contoh: U-001" maxlength="10">
                                     <button type="button" class="btn btn-outline-secondary" onclick="generateCode()">
                                         <i class="fas fa-magic"></i>
@@ -83,8 +83,8 @@
                                 <label for="name" class="form-label">
                                     Nama Indikator <span class="text-danger">*</span>
                                 </label>
-                                <input type="text" class="form-control @error('name') is-invalid @enderror" 
-                                       id="name" name="name" value="{{ old('name') }}" required 
+                                <input type="text" class="form-control @error('name') is-invalid @enderror"
+                                       id="name" name="name" value="{{ old('name') }}" required
                                        placeholder="Masukkan nama indikator" maxlength="255">
                                 @error('name')
                                     <div class="invalid-feedback">{{ $message }}</div>
@@ -100,7 +100,7 @@
                                 <label for="category" class="form-label">
                                     Kategori Indikator <span class="text-danger">*</span>
                                 </label>
-                                <select class="form-select @error('category') is-invalid @enderror" 
+                                <select class="form-select @error('category') is-invalid @enderror"
                                         id="category" name="category" required onchange="updateCategoryDescription()">
                                     <option value="">Pilih Kategori</option>
                                     <option value="iku" {{ old('category') == 'iku' ? 'selected' : '' }}>
@@ -130,7 +130,7 @@
                                 <label for="department_id" class="form-label">
                                     Unit Kerja <span class="text-danger">*</span>
                                 </label>
-                                <select class="form-select @error('department_id') is-invalid @enderror" 
+                                <select class="form-select @error('department_id') is-invalid @enderror"
                                         id="department_id" name="department_id" required>
                                     <option value="">Pilih Unit Kerja</option>
                                     <option value="1" {{ old('department_id') == '1' ? 'selected' : '' }}>
@@ -158,7 +158,7 @@
                                 <label for="year" class="form-label">
                                     Tahun <span class="text-danger">*</span>
                                 </label>
-                                <select class="form-select @error('year') is-invalid @enderror" 
+                                <select class="form-select @error('year') is-invalid @enderror"
                                         id="year" name="year" required>
                                     <option value="">Pilih Tahun</option>
                                     @for($year = date('Y') + 1; $year >= date('Y') - 5; $year--)
@@ -174,8 +174,8 @@
 
                             <div class="mb-3">
                                 <label for="description" class="form-label">Deskripsi Indikator</label>
-                                <textarea class="form-control @error('description') is-invalid @enderror" 
-                                          id="description" name="description" rows="4" 
+                                <textarea class="form-control @error('description') is-invalid @enderror"
+                                          id="description" name="description" rows="4"
                                           placeholder="Jelaskan secara detail tentang indikator ini">{{ old('description') }}</textarea>
                                 @error('description')
                                     <div class="invalid-feedback">{{ $message }}</div>
@@ -204,7 +204,7 @@
                                 <label for="strategic_goal_id" class="form-label">
                                     Tujuan Strategis
                                 </label>
-                                <select class="form-select @error('strategic_goal_id') is-invalid @enderror" 
+                                <select class="form-select @error('strategic_goal_id') is-invalid @enderror"
                                         id="strategic_goal_id" name="strategic_goal_id">
                                     <option value="">Pilih Tujuan Strategis</option>
                                     <option value="1" {{ old('strategic_goal_id') == '1' ? 'selected' : '' }}>
@@ -227,7 +227,7 @@
                                 <label for="program_id" class="form-label">
                                     Program Terkait
                                 </label>
-                                <select class="form-select @error('program_id') is-invalid @enderror" 
+                                <select class="form-select @error('program_id') is-invalid @enderror"
                                         id="program_id" name="program_id">
                                     <option value="">Pilih Program</option>
                                     <option value="1" {{ old('program_id') == '1' ? 'selected' : '' }}>
@@ -266,8 +266,8 @@
                                     Nilai Target <span class="text-danger">*</span>
                                 </label>
                                 <div class="input-group">
-                                    <input type="number" class="form-control @error('target_value') is-invalid @enderror" 
-                                           id="target_value" name="target_value" value="{{ old('target_value') }}" 
+                                    <input type="number" class="form-control @error('target_value') is-invalid @enderror"
+                                           id="target_value" name="target_value" value="{{ old('target_value') }}"
                                            required step="0.01" min="0" max="100">
                                     <span class="input-group-text">%</span>
                                 </div>
@@ -281,7 +281,7 @@
                                 <label for="target_type" class="form-label">
                                     Tipe Target <span class="text-danger">*</span>
                                 </label>
-                                <select class="form-select @error('target_type') is-invalid @enderror" 
+                                <select class="form-select @error('target_type') is-invalid @enderror"
                                         id="target_type" name="target_type" required onchange="updateTargetFields()">
                                     <option value="">Pilih Tipe</option>
                                     <option value="percentage" {{ old('target_type') == 'percentage' ? 'selected' : '' }}>
@@ -307,7 +307,7 @@
                                 <label for="target_direction" class="form-label">
                                     Arah Target <span class="text-danger">*</span>
                                 </label>
-                                <select class="form-select @error('target_direction') is-invalid @enderror" 
+                                <select class="form-select @error('target_direction') is-invalid @enderror"
                                         id="target_direction" name="target_direction" required>
                                     <option value="">Pilih Arah</option>
                                     <option value="higher_better" {{ old('target_direction') == 'higher_better' ? 'selected' : '' }}>
@@ -333,8 +333,8 @@
                                 <label for="baseline_value" class="form-label">
                                     Nilai Dasar (Baseline)
                                 </label>
-                                <input type="number" class="form-control @error('baseline_value') is-invalid @enderror" 
-                                       id="baseline_value" name="baseline_value" value="{{ old('baseline_value') }}" 
+                                <input type="number" class="form-control @error('baseline_value') is-invalid @enderror"
+                                       id="baseline_value" name="baseline_value" value="{{ old('baseline_value') }}"
                                        step="0.01" min="0">
                                 @error('baseline_value')
                                     <div class="invalid-feedback">{{ $message }}</div>
@@ -347,7 +347,7 @@
                                 <label for="baseline_year" class="form-label">
                                     Tahun Dasar
                                 </label>
-                                <select class="form-select @error('baseline_year') is-invalid @enderror" 
+                                <select class="form-select @error('baseline_year') is-invalid @enderror"
                                         id="baseline_year" name="baseline_year">
                                     <option value="">Pilih Tahun</option>
                                     @for($year = date('Y'); $year >= date('Y') - 10; $year--)
@@ -378,8 +378,8 @@
                                 <label for="numerator" class="form-label">
                                     Pembilang (Numerator)
                                 </label>
-                                <textarea class="form-control @error('numerator') is-invalid @enderror" 
-                                          id="numerator" name="numerator" rows="2" 
+                                <textarea class="form-control @error('numerator') is-invalid @enderror"
+                                          id="numerator" name="numerator" rows="2"
                                           placeholder="Jelaskan pembilang dalam rumus">{{ old('numerator') }}</textarea>
                                 @error('numerator')
                                     <div class="invalid-feedback">{{ $message }}</div>
@@ -391,8 +391,8 @@
                                 <label for="denominator" class="form-label">
                                     Penyebut (Denominator)
                                 </label>
-                                <textarea class="form-control @error('denominator') is-invalid @enderror" 
-                                          id="denominator" name="denominator" rows="2" 
+                                <textarea class="form-control @error('denominator') is-invalid @enderror"
+                                          id="denominator" name="denominator" rows="2"
                                           placeholder="Jelaskan penyebut dalam rumus">{{ old('denominator') }}</textarea>
                                 @error('denominator')
                                     <div class="invalid-feedback">{{ $message }}</div>
@@ -405,8 +405,8 @@
                         <label for="calculation_method" class="form-label">
                             Metode Perhitungan
                         </label>
-                        <textarea class="form-control @error('calculation_method') is-invalid @enderror" 
-                                  id="calculation_method" name="calculation_method" rows="3" 
+                        <textarea class="form-control @error('calculation_method') is-invalid @enderror"
+                                  id="calculation_method" name="calculation_method" rows="3"
                                   placeholder="Jelaskan secara detail metode perhitungan indikator ini">{{ old('calculation_method') }}</textarea>
                         @error('calculation_method')
                             <div class="invalid-feedback">{{ $message }}</div>
@@ -417,8 +417,8 @@
                         <label for="data_source" class="form-label">
                             Sumber Data
                         </label>
-                        <input type="text" class="form-control @error('data_source') is-invalid @enderror" 
-                               id="data_source" name="data_source" value="{{ old('data_source') }}" 
+                        <input type="text" class="form-control @error('data_source') is-invalid @enderror"
+                               id="data_source" name="data_source" value="{{ old('data_source') }}"
                                placeholder="Contoh: Sistem Informasi Kesehatan, Laporan Bulanan">
                         @error('data_source')
                             <div class="invalid-feedback">{{ $message }}</div>
@@ -443,7 +443,7 @@
                                 <label for="validation_frequency" class="form-label">
                                     Frekuensi Validasi
                                 </label>
-                                <select class="form-select @error('validation_frequency') is-invalid @enderror" 
+                                <select class="form-select @error('validation_frequency') is-invalid @enderror"
                                         id="validation_frequency" name="validation_frequency">
                                     <option value="">Pilih Frekuensi</option>
                                     <option value="monthly" {{ old('validation_frequency') == 'monthly' ? 'selected' : '' }}>
@@ -469,8 +469,8 @@
                                 <label for="responsible_person" class="form-label">
                                     Penanggung Jawab
                                 </label>
-                                <input type="text" class="form-control @error('responsible_person') is-invalid @enderror" 
-                                       id="responsible_person" name="responsible_person" value="{{ old('responsible_person') }}" 
+                                <input type="text" class="form-control @error('responsible_person') is-invalid @enderror"
+                                       id="responsible_person" name="responsible_person" value="{{ old('responsible_person') }}"
                                        placeholder="Nama penanggung jawab indikator">
                                 @error('responsible_person')
                                     <div class="invalid-feedback">{{ $message }}</div>
@@ -481,8 +481,8 @@
 
                     <div class="mb-3">
                         <label for="notes" class="form-label">Catatan Tambahan</label>
-                        <textarea class="form-control @error('notes') is-invalid @enderror" 
-                                  id="notes" name="notes" rows="3" 
+                        <textarea class="form-control @error('notes') is-invalid @enderror"
+                                  id="notes" name="notes" rows="3"
                                   placeholder="Catatan tambahan untuk indikator ini">{{ old('notes') }}</textarea>
                         @error('notes')
                             <div class="invalid-feedback">{{ $message }}</div>
@@ -502,8 +502,8 @@
                         <label for="supporting_documents" class="form-label">
                             Upload Dokumen
                         </label>
-                        <input type="file" class="form-control @error('supporting_documents') is-invalid @enderror" 
-                               id="supporting_documents" name="supporting_documents[]" multiple 
+                        <input type="file" class="form-control @error('supporting_documents') is-invalid @enderror"
+                               id="supporting_documents" name="supporting_documents[]" multiple
                                accept=".pdf,.doc,.docx,.xls,.xlsx" onchange="previewFiles()">
                         @error('supporting_documents')
                             <div class="invalid-feedback">{{ $message }}</div>
@@ -519,8 +519,8 @@
                         <label for="document_description" class="form-label">
                             Deskripsi Dokumen
                         </label>
-                        <textarea class="form-control @error('document_description') is-invalid @enderror" 
-                                  id="document_description" name="document_description" rows="2" 
+                        <textarea class="form-control @error('document_description') is-invalid @enderror"
+                                  id="document_description" name="document_description" rows="2"
                                   placeholder="Jelaskan isi dan kegunaan dokumen yang diupload">{{ old('document_description') }}</textarea>
                         @error('document_description')
                             <div class="invalid-feedback">{{ $message }}</div>
@@ -874,40 +874,40 @@
     .page-title {
         font-size: 1.5rem;
     }
-    
+
     .progress-indicator {
         flex-direction: column;
         gap: 20px;
     }
-    
+
     .progress-indicator::before {
         display: none;
     }
-    
+
     .progress-step {
         flex-direction: row;
         justify-content: flex-start;
         gap: 15px;
     }
-    
+
     .step-label {
         text-align: left;
     }
-    
+
     .form-navigation .row {
         flex-direction: column;
         gap: 15px;
     }
-    
+
     .form-navigation .col-md-6.text-end {
         text-align: left !important;
     }
-    
+
     .review-item {
         flex-direction: column;
         gap: 5px;
     }
-    
+
     .review-value {
         text-align: left;
         margin-left: 0;
@@ -919,7 +919,7 @@
     .progress-indicator {
         display: none !important;
     }
-    
+
     .card {
         box-shadow: none !important;
         border: 1px solid #ddd !important;
@@ -986,14 +986,14 @@ function changeStep(direction) {
     if (newStep >= 1 && newStep <= totalSteps) {
         // Hide current step
         document.getElementById(`step${currentStep}`).style.display = 'none';
-        
+
         // Show new step
         currentStep = newStep;
         document.getElementById(`step${currentStep}`).style.display = 'block';
-        
+
         // Update step display
         updateStepDisplay();
-        
+
         // Update review if going to step 4
         if (currentStep === 4) {
             updateReviewData();
@@ -1058,12 +1058,12 @@ function validateCurrentStep() {
 function updateCharacterCount(fieldId) {
     const field = document.getElementById(fieldId);
     const countElement = document.getElementById(fieldId + 'Count');
-    
+
     if (field && countElement) {
         const maxLength = field.getAttribute('maxlength') || 500;
         const currentLength = field.value.length;
         countElement.textContent = currentLength;
-        
+
         // Change color if approaching limit
         if (currentLength > maxLength * 0.8) {
             countElement.style.color = 'var(--sakip-warning)';
@@ -1084,7 +1084,7 @@ function updateCharacterCounts() {
 function generateCode() {
     const category = document.getElementById('category').value;
     const year = document.getElementById('year').value;
-    
+
     if (category && year) {
         const categoryMap = {
             'iku': 'U',
@@ -1092,11 +1092,11 @@ function generateCode() {
             'ikt': 'T',
             'iks': 'S'
         };
-        
+
         const categoryCode = categoryMap[category] || 'X';
         const randomNumber = Math.floor(Math.random() * 900) + 100;
         const code = `${categoryCode}-${randomNumber}`;
-        
+
         document.getElementById('code').value = code;
         showToast('Kode indikator telah digenerate', 'success');
     } else {
@@ -1108,14 +1108,14 @@ function generateCode() {
 function updateCategoryDescription() {
     const category = document.getElementById('category').value;
     const descriptionElement = document.getElementById('categoryDescription');
-    
+
     const descriptions = {
         'iku': 'Indikator Kinerja Utama: Mengukur hasil utama dari unit kerja',
         'ikk': 'Indikator Kinerja Kegiatan: Mengukur hasil dari kegiatan tertentu',
         'ikt': 'Indikator Kinerja Turunan: Indikator yang diturunkan dari IKU',
         'iks': 'Indikator Kinerja Strategis: Mengukur pencapaian strategis organisasi'
     };
-    
+
     descriptionElement.textContent = descriptions[category] || 'Pilih kategori yang sesuai dengan jenis indikator';
 }
 
@@ -1123,7 +1123,7 @@ function updateCategoryDescription() {
 function updateTargetFields() {
     const targetType = document.getElementById('target_type').value;
     const targetValue = document.getElementById('target_value');
-    
+
     if (targetType === 'percentage') {
         targetValue.max = 100;
         targetValue.placeholder = '0-100';
@@ -1137,11 +1137,11 @@ function updateTargetFields() {
 function previewFiles() {
     const fileInput = document.getElementById('supporting_documents');
     const previewElement = document.getElementById('filePreview');
-    
+
     if (!fileInput || !previewElement) return;
-    
+
     previewElement.innerHTML = '';
-    
+
     if (fileInput.files.length > 0) {
         Array.from(fileInput.files).forEach(file => {
             const fileItem = document.createElement('div');
@@ -1312,20 +1312,20 @@ function showToast(message, type = 'info') {
             </div>
         </div>
     `;
-    
+
     if (!document.querySelector('.toast-container')) {
         const container = document.createElement('div');
         container.className = 'toast-container position-fixed bottom-0 end-0 p-3';
         container.style.zIndex = '9999';
         document.body.appendChild(container);
     }
-    
+
     const container = document.querySelector('.toast-container');
     container.insertAdjacentHTML('beforeend', toastHtml);
-    
+
     const toast = new bootstrap.Toast(container.lastElementChild);
     toast.show();
-    
+
     container.lastElementChild.addEventListener('hidden.bs.toast', function() {
         this.remove();
     });

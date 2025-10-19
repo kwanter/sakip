@@ -5,7 +5,9 @@ namespace App\Services;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Carbon\Carbon;
+use App\Services\Sakip\SakipService;
 
 /**
  * Service to aggregate and provide dashboard data for SAKIP.
@@ -134,12 +136,17 @@ class SakipDashboardService
     protected function getCategoryBreakdown(array $dateRange): array
     {
         try {
-            $categories = $this->sakipService->getIndicatorCategories();
+            $categories = DB::table('indikator_kinerjas')
+                ->select('jenis')
+                ->distinct()
+                ->pluck('jenis');
+
             $data = [];
             foreach ($categories as $category) {
-                $count = DB::table('performance_indicators')
-                    ->where('category', $category)
-                    ->whereBetween('created_at', $dateRange)
+                $count = DB::table('laporan_kinerjas')
+                    ->join('indikator_kinerjas', 'laporan_kinerjas.indikator_kinerja_id', '=', 'indikator_kinerjas.id')
+                    ->where('indikator_kinerjas.jenis', $category)
+                    ->whereBetween('laporan_kinerjas.created_at', $dateRange)
                     ->count();
                 $data[] = [
                     'name' => $category,
@@ -243,55 +250,82 @@ class SakipDashboardService
         try {
             $dateRange = $this->getDateRange($period);
 
-            $reportActivities = DB::table('reports')
-                ->join('users', 'reports.generated_by', '=', 'users.id')
-                ->select(
-                    'reports.report_type as report_type',
-                    'reports.period as report_period',
-                    'users.name as user_name',
-                    'reports.created_at as activity_date',
-                    DB::raw("'report_generated' as activity_type")
-                )
-                ->whereBetween('reports.created_at', $dateRange)
-                ->orderByDesc('reports.created_at')
-                ->limit(10)
-                ->get();
+            $reportActivities = collect();
+            if (Schema::hasTable('reports')) {
+                $selects = [];
+                if (Schema::hasColumn('reports', 'report_type')) {
+                    $selects[] = 'reports.report_type as report_type';
+                }
+                if (Schema::hasColumn('reports', 'period')) {
+                    $selects[] = 'reports.period as report_period';
+                }
+                $selects[] = 'reports.created_at as activity_date';
+                $selects[] = DB::raw("'report_generated' as activity_type");
 
-            $auditActivities = DB::table('audit_logs')
-                ->join('users', 'audit_logs.user_id', '=', 'users.id')
-                ->select(
-                    'audit_logs.action as action',
-                    'users.name as user_name',
-                    'audit_logs.created_at as activity_date',
-                    DB::raw("'audit_log' as activity_type")
-                )
-                ->whereBetween('audit_logs.created_at', $dateRange)
-                ->orderByDesc('audit_logs.created_at')
-                ->limit(10)
-                ->get();
+                $reportsQuery = DB::table('reports');
+                if (Schema::hasTable('users')) {
+                    if (Schema::hasColumn('reports', 'generated_by')) {
+                        $reportsQuery = $reportsQuery->join('users', 'reports.generated_by', '=', 'users.id');
+                        $selects[] = 'users.name as user_name';
+                    } elseif (Schema::hasColumn('reports', 'user_id')) {
+                        $reportsQuery = $reportsQuery->join('users', 'reports.user_id', '=', 'users.id');
+                        $selects[] = 'users.name as user_name';
+                    } else {
+                        $selects[] = DB::raw("'Unknown' as user_name");
+                    }
+                } else {
+                    $selects[] = DB::raw("'Unknown' as user_name");
+                }
+
+                $reportActivities = $reportsQuery
+                    ->select($selects)
+                    ->whereBetween('reports.created_at', $dateRange)
+                    ->orderByDesc('reports.created_at')
+                    ->limit(10)
+                    ->get();
+            }
+
+            // Choose correct audit log table
+            $auditTable = Schema::hasTable('sakip_audit_logs') ? 'sakip_audit_logs' : (Schema::hasTable('audit_logs') ? 'audit_logs' : null);
+
+            $auditActivities = collect();
+            if ($auditTable) {
+                $auditActivities = DB::table($auditTable)
+                    ->join('users', $auditTable . '.user_id', '=', 'users.id')
+                    ->select(
+                        ($auditTable === 'sakip_audit_logs' ? $auditTable . '.activity' : $auditTable . '.action') . ' as action',
+                        'users.name as user_name',
+                        $auditTable . '.created_at as activity_date',
+                        DB::raw("'audit_log' as activity_type")
+                    )
+                    ->whereBetween($auditTable . '.created_at', $dateRange)
+                    ->orderByDesc($auditTable . '.created_at')
+                    ->limit(10)
+                    ->get();
+            }
 
             $activities = $reportActivities->concat($auditActivities)
                 ->sortByDesc('activity_date')
                 ->take(10)
-                ->values()
-                ->toArray();
+                ->values();
 
-            return array_map(function ($activity) {
-                if ($activity->activity_type === 'report_generated') {
+            return $activities->map(function ($activity) {
+                $activity = (array) $activity;
+                if (($activity['activity_type'] ?? null) === 'report_generated') {
                     return [
                         'type' => 'report_generated',
-                        'title' => "Generated report: {$activity->report_type} ({$activity->report_period})",
-                        'user' => $activity->user_name,
-                        'date' => Carbon::parse($activity->activity_date)->diffForHumans(),
+                        'title' => "Generated report: {$activity['report_type']} ({$activity['report_period']})",
+                        'user' => $activity['user_name'],
+                        'date' => Carbon::parse($activity['activity_date'])->diffForHumans(),
                     ];
                 }
                 return [
                     'type' => 'audit_log',
-                    'title' => "Action: {$activity->action}",
-                    'user' => $activity->user_name,
-                    'date' => Carbon::parse($activity->activity_date)->diffForHumans(),
+                    'title' => "Action: {$activity['action']}",
+                    'user' => $activity['user_name'],
+                    'date' => Carbon::parse($activity['activity_date'])->diffForHumans(),
                 ];
-            }, $activities);
+            })->toArray();
         } catch (\Throwable $e) {
             Log::error('Failed to get recent activities', ['exception' => $e]);
             return [];
@@ -538,7 +572,7 @@ class SakipDashboardService
             $totalInstansi = DB::table('instansis')->count();
             $reportingInstansi = DB::table('reports')
                 ->whereBetween('created_at', $dateRange)
-                ->distinct('instansi_id')
+                ->distinct()
                 ->count('instansi_id');
             return $totalInstansi > 0 ? round(($reportingInstansi / $totalInstansi) * 100, 2) : 0.0;
         } catch (\Throwable $e) {

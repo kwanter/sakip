@@ -10,10 +10,10 @@ use App\Http\Controllers\Sakip\ReportController;
 use App\Http\Controllers\Sakip\SakipAuditController;
 
 // SAKIP Routes
-Route::prefix('sakip')->middleware(['auth', 'verified'])->group(function () {
+Route::prefix('sakip')->middleware(['auth', 'verified', 'permission:view-dashboard'])->group(function () {
     // Dashboard
     Route::get('/', [SakipDashboardController::class, 'index'])->name('sakip.dashboard');
-    
+
     // Performance Indicators
     Route::resource('indicators', PerformanceIndicatorController::class)
         ->names([
@@ -25,7 +25,7 @@ Route::prefix('sakip')->middleware(['auth', 'verified'])->group(function () {
             'update' => 'sakip.indicators.update',
             'destroy' => 'sakip.indicators.destroy'
         ]);
-    
+
     // Performance Data
     Route::prefix('performance-data')->group(function () {
         Route::get('/', [DataCollectionController::class, 'index'])->name('sakip.performance-data.index');
@@ -38,7 +38,27 @@ Route::prefix('sakip')->middleware(['auth', 'verified'])->group(function () {
         Route::post('/bulk-import', [DataCollectionController::class, 'bulkImport'])->name('sakip.performance-data.bulk-import');
         Route::post('/validate-data', [DataCollectionController::class, 'validateData'])->name('sakip.performance-data.validate');
     });
-    
+
+    // Data Collection (alias for Performance Data with different route names)
+    Route::prefix('data-collection')->group(function () {
+        Route::get('/', [DataCollectionController::class, 'index'])->name('sakip.data-collection.index');
+        Route::get('/create', [DataCollectionController::class, 'create'])->name('sakip.data-collection.create');
+        Route::post('/', [DataCollectionController::class, 'store'])->name('sakip.data-collection.store');
+        Route::get('/{performanceData}', [DataCollectionController::class, 'show'])->name('sakip.data-collection.show');
+        Route::get('/{performanceData}/edit', [DataCollectionController::class, 'edit'])->name('sakip.data-collection.edit');
+        Route::put('/{performanceData}', [DataCollectionController::class, 'update'])->name('sakip.data-collection.update');
+        Route::delete('/{performanceData}', [DataCollectionController::class, 'destroy'])->name('sakip.data-collection.destroy');
+        Route::post('/bulk-import', [DataCollectionController::class, 'bulkImport'])->name('sakip.data-collection.bulk-import');
+        Route::post('/validate-data', [DataCollectionController::class, 'validateData'])->name('sakip.data-collection.validate');
+        Route::post('/{performanceData}/reject', [DataCollectionController::class, 'reject'])->name('sakip.data-collection.reject');
+        Route::get('/template', [DataCollectionController::class, 'downloadTemplate'])->name('sakip.data-collection.template');
+        Route::get('/sample', [DataCollectionController::class, 'downloadSample'])->name('sakip.data-collection.sample');
+        Route::post('/import', [DataCollectionController::class, 'import'])->name('sakip.data-collection.import');
+        Route::post('/import/confirm', [DataCollectionController::class, 'confirmImport'])->name('sakip.data-collection.import.confirm');
+        Route::get('/evidence-upload', [DataCollectionController::class, 'evidenceUpload'])->name('sakip.data-collection.evidence-upload');
+        Route::get('/evidence', [DataCollectionController::class, 'evidence'])->name('sakip.data-collection.evidence');
+    });
+
     // Assessments
     Route::prefix('assessments')->group(function () {
         Route::get('/', [AssessmentController::class, 'index'])->name('sakip.assessments.index');
@@ -53,7 +73,7 @@ Route::prefix('sakip')->middleware(['auth', 'verified'])->group(function () {
         Route::post('/{assessment}/auto-assess', [AssessmentController::class, 'autoAssess'])->name('sakip.assessments.auto-assess');
         Route::post('/batch-assess', [AssessmentController::class, 'batchAssess'])->name('sakip.assessments.batch-assess');
     });
-    
+
     // Reports
     Route::prefix('reports')->group(function () {
         Route::get('/', [ReportController::class, 'index'])->name('sakip.reports.index');
@@ -67,7 +87,7 @@ Route::prefix('sakip')->middleware(['auth', 'verified'])->group(function () {
         Route::post('/{report}/reject', [ReportController::class, 'reject'])->name('sakip.reports.reject');
         Route::get('/templates/{template}', [ReportController::class, 'template'])->name('sakip.reports.template');
     });
-    
+
     // Audit and Compliance
     Route::prefix('audit')->group(function () {
         Route::get('/', [SakipAuditController::class, 'index'])->name('sakip.audit.index');
@@ -76,7 +96,7 @@ Route::prefix('sakip')->middleware(['auth', 'verified'])->group(function () {
         Route::post('/fix-violation/{violation}', [SakipAuditController::class, 'fixViolation'])->name('sakip.audit.fix-violation');
         Route::get('/export-report', [SakipAuditController::class, 'exportReport'])->name('sakip.audit.export-report');
     });
-    
+
     // API endpoints for AJAX
     Route::prefix('api')->group(function () {
         Route::get('/dashboard-data', [SakipDashboardController::class, 'getDashboardData'])->name('sakip.api.dashboard-data');

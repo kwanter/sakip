@@ -98,10 +98,12 @@ return [
     ],
 
     'roles' => [
-        'admin' => 'Administrator',
-        'manager' => 'Manager',
-        'staff' => 'Staff',
-        'viewer' => 'Viewer',
+        'superadmin' => 'Super Admin',
+        'executive' => 'Executive',
+        'data_collector' => 'Data Collector',
+        'assessor' => 'Assessor',
+        'auditor' => 'Auditor',
+        'government_agency' => 'Government Agency',
     ],
 
     'permissions' => [

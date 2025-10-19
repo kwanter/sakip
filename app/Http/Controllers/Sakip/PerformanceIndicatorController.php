@@ -17,7 +17,7 @@ use Carbon\Carbon;
 
 /**
  * Performance Indicator Controller
- * 
+ *
  * Manages performance indicators (CRUD operations, target setting)
  * for the SAKIP module with comprehensive validation and authorization.
  */
@@ -33,7 +33,7 @@ class PerformanceIndicatorController extends Controller
         try {
             $user = Auth::user();
             $instansiId = $user->instansi_id;
-            
+
             $query = PerformanceIndicator::with(['instansi', 'targets', 'creator', 'updater'])
                 ->when($instansiId, function($q) use ($instansiId) {
                     return $q->where('instansi_id', $instansiId);
@@ -102,7 +102,7 @@ class PerformanceIndicatorController extends Controller
         try {
             $user = Auth::user();
             $instansi = Instansi::find($user->instansi_id);
-            
+
             // Get available categories and frequencies
             $categories = $this->getCategories();
             $frequencies = $this->getFrequencies();
@@ -131,10 +131,10 @@ class PerformanceIndicatorController extends Controller
         DB::beginTransaction();
         try {
             $user = Auth::user();
-            
+
             // Generate unique code if not provided
             $code = $request->get('code') ?: $this->generateCode($request->get('name'));
-            
+
             // Create the indicator
             $indicator = PerformanceIndicator::create([
                 'instansi_id' => $user->instansi_id,
@@ -231,7 +231,7 @@ class PerformanceIndicatorController extends Controller
         try {
             $user = Auth::user();
             $instansi = Instansi::find($user->instansi_id);
-            
+
             // Get available categories and frequencies
             $categories = $this->getCategories();
             $frequencies = $this->getFrequencies();
@@ -395,7 +395,7 @@ class PerformanceIndicatorController extends Controller
 
         try {
             $year = $request->get('year', Carbon::now()->year);
-            
+
             $performanceData = $indicator->performanceData()
                 ->whereYear('period', $year)
                 ->orderBy('period')
@@ -450,10 +450,10 @@ class PerformanceIndicatorController extends Controller
             // Process the file (simplified - in real implementation use Laravel Excel or similar)
             $fileContent = file_get_contents($file->getRealPath());
             $lines = explode("\n", $fileContent);
-            
+
             foreach ($lines as $index => $line) {
                 if ($index === 0) continue; // Skip header
-                
+
                 $data = str_getcsv($line);
                 if (count($data) < 8) continue; // Skip invalid rows
 
@@ -474,9 +474,9 @@ class PerformanceIndicatorController extends Controller
                         'created_by' => $user->id,
                         'updated_by' => $user->id,
                     ]);
-                    
+
                     $importedCount++;
-                    
+
                 } catch (\Exception $e) {
                     $errors[] = "Baris " . ($index + 1) . ": " . $e->getMessage();
                 }
@@ -521,7 +521,7 @@ class PerformanceIndicatorController extends Controller
         try {
             $user = Auth::user();
             $instansiId = $user->instansi_id;
-            
+
             $indicators = PerformanceIndicator::where('instansi_id', $instansiId)
                 ->with(['targets' => function($q) {
                     $q->where('year', Carbon::now()->year);
@@ -531,7 +531,7 @@ class PerformanceIndicatorController extends Controller
 
             // Generate CSV content
             $csv = "Code,Name,Description,Measurement Unit,Data Source,Collection Method,Calculation Formula,Frequency,Category,Weight,Is Mandatory\n";
-            
+
             foreach ($indicators as $indicator) {
                 $csv .= implode(',', [
                     $indicator->code,
@@ -549,7 +549,7 @@ class PerformanceIndicatorController extends Controller
             }
 
             $filename = 'indikator_kinerja_' . date('Y-m-d_H-i-s') . '.csv';
-            
+
             return response($csv, 200, [
                 'Content-Type' => 'text/csv',
                 'Content-Disposition' => "attachment; filename=\"{$filename}\"",
@@ -598,7 +598,7 @@ class PerformanceIndicatorController extends Controller
             ->whereYear('period', $lastYear)
             ->avg('performance_percentage') ?? 0;
 
-        $trend = $lastYearPerformance > 0 ? 
+        $trend = $lastYearPerformance > 0 ?
             round((($currentPerformance - $lastYearPerformance) / $lastYearPerformance) * 100, 2) : 0;
 
         return [
@@ -616,7 +616,7 @@ class PerformanceIndicatorController extends Controller
     {
         $prefix = strtoupper(substr(str_replace(' ', '', $name), 0, 3));
         $number = PerformanceIndicator::where('code', 'like', "{$prefix}%")->count() + 1;
-        
+
         return $prefix . str_pad($number, 3, '0', STR_PAD_LEFT);
     }
 

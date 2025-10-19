@@ -22,26 +22,26 @@ class AssessmentCriterionPolicy
 
     public function create(User $user): bool
     {
-        return $user->hasRole(['admin', 'manager']);
+        return $user->hasAnyRole(['superadmin', 'assessor']);
     }
 
     public function update(User $user, AssessmentCriterion $assessmentCriterion): bool
     {
-        return $user->hasRole(['admin', 'manager']);
+        return $user->hasAnyRole(['superadmin', 'assessor']);
     }
 
     public function delete(User $user, AssessmentCriterion $assessmentCriterion): bool
     {
-        return $user->hasRole(['admin']);
+        return $user->hasRole('superadmin');
     }
 
     public function restore(User $user, AssessmentCriterion $assessmentCriterion): bool
     {
-        return $user->hasRole(['admin']);
+        return $user->hasRole('superadmin');
     }
 
     public function forceDelete(User $user, AssessmentCriterion $assessmentCriterion): bool
     {
-        return $user->hasRole(['admin']);
+        return $user->hasRole('superadmin');
     }
 }

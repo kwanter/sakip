@@ -1,4 +1,4 @@
-@extends('sakip.layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Detail Data Kinerja')
 
@@ -53,7 +53,7 @@
                 </svg>
                 Edit
             </a>
-            
+
             @if($data->status == 'pending')
             <form action="{{ route('sakip.data-collection.validate', $data) }}" method="POST" class="inline">
                 @csrf
@@ -64,7 +64,7 @@
                     Validasi
                 </button>
             </form>
-            
+
             <form action="{{ route('sakip.data-collection.reject', $data) }}" method="POST" class="inline">
                 @csrf
                 <button type="submit" class="inline-flex items-center px-3 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 transition-colors">
@@ -75,7 +75,7 @@
                 </button>
             </form>
             @endif
-            
+
             <form action="{{ route('sakip.data-collection.destroy', $data) }}" method="POST" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data ini?')">
                 @csrf
                 @method('DELETE')
@@ -91,24 +91,24 @@
         <!-- Basic Information -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
             <h3 class="text-lg font-medium text-gray-900 mb-4">Informasi Dasar</h3>
-            
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-1">Indikator Kinerja</label>
                     <p class="text-lg font-semibold text-gray-900">{{ $data->indicator->name }}</p>
                     <p class="text-sm text-gray-600">{{ $data->indicator->code }}</p>
                 </div>
-                
+
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-1">Instansi</label>
                     <p class="text-lg font-semibold text-gray-900">{{ $data->instansi->name }}</p>
                 </div>
-                
+
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-1">Periode</label>
                     <p class="text-lg font-semibold text-gray-900">{{ $data->period }} {{ $data->year }}</p>
                 </div>
-                
+
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-1">Status Validasi</label>
                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium {{ $data->status == 'validated' ? 'bg-green-100 text-green-800' : ($data->status == 'pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800') }}">
@@ -121,18 +121,18 @@
         <!-- Performance Data -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
             <h3 class="text-lg font-medium text-gray-900 mb-4">Data Kinerja</h3>
-            
+
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-1">Nilai Kinerja</label>
                     <p class="text-2xl font-bold text-blue-600">{{ number_format($data->value, 2) }}</p>
                 </div>
-                
+
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-1">Target</label>
                     <p class="text-2xl font-bold text-gray-900">{{ number_format($data->target, 2) }}</p>
                 </div>
-                
+
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-1">Pencapaian</label>
                     <p class="text-2xl font-bold {{ ($data->target > 0 ? ($data->value / $data->target * 100) : 0) >= 100 ? 'text-green-600' : 'text-red-600' }}">
@@ -144,19 +144,19 @@
                     </p>
                 </div>
             </div>
-            
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-1">Sumber Data</label>
                     <p class="text-gray-900">{{ $data->data_source }}</p>
                 </div>
-                
+
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-1">Metode Pengumpulan</label>
                     <p class="text-gray-900">{{ ucfirst(str_replace('_', ' ', $data->collection_method)) }}</p>
                 </div>
             </div>
-            
+
             @if($data->notes)
             <div class="mt-6">
                 <label class="block text-sm font-medium text-gray-500 mb-1">Catatan</label>
@@ -169,7 +169,7 @@
         @if($data->evidence->count() > 0)
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
             <h3 class="text-lg font-medium text-gray-900 mb-4">Dokumen Bukti</h3>
-            
+
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 @foreach($data->evidence as $evidence)
                 <div class="border border-gray-200 rounded-md p-4">
@@ -207,19 +207,19 @@
         @if($data->validated_at)
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
             <h3 class="text-lg font-medium text-gray-900 mb-4">Informasi Validasi</h3>
-            
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-1">Divalidasi oleh</label>
                     <p class="text-gray-900">{{ $data->validatedBy->name }}</p>
                 </div>
-                
+
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-1">Tanggal Validasi</label>
                     <p class="text-gray-900">{{ $data->validated_at->format('d F Y H:i') }}</p>
                 </div>
             </div>
-            
+
             @if($data->validation_notes)
             <div class="mt-6">
                 <label class="block text-sm font-medium text-gray-500 mb-1">Catatan Validasi</label>
@@ -232,24 +232,24 @@
         <!-- System Information -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h3 class="text-lg font-medium text-gray-900 mb-4">Informasi Sistem</h3>
-            
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-1">Dibuat oleh</label>
                     <p class="text-gray-900">{{ $data->createdBy->name }}</p>
                 </div>
-                
+
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-1">Tanggal Dibuat</label>
                     <p class="text-gray-900">{{ $data->created_at->format('d F Y H:i') }}</p>
                 </div>
-                
+
                 @if($data->updated_at != $data->created_at)
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-1">Terakhir Diperbarui oleh</label>
                     <p class="text-gray-900">{{ $data->updatedBy ? $data->updatedBy->name : '-' }}</p>
                 </div>
-                
+
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-1">Tanggal Diperbarui</label>
                     <p class="text-gray-900">{{ $data->updated_at->format('d F Y H:i') }}</p>

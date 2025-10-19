@@ -1,4 +1,4 @@
-@extends('sakip.layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Dashboard Auditor - SAKIP')
 
@@ -131,7 +131,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="audit-timeline">
                         <div class="timeline-item">
                             <div class="timeline-marker bg-success"></div>
@@ -147,7 +147,7 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="timeline-item">
                             <div class="timeline-marker bg-warning"></div>
                             <div class="timeline-content">
@@ -162,7 +162,7 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="timeline-item">
                             <div class="timeline-marker bg-info"></div>
                             <div class="timeline-content">
@@ -177,7 +177,7 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="timeline-item">
                             <div class="timeline-marker bg-danger"></div>
                             <div class="timeline-content">
@@ -248,7 +248,7 @@
                             </div>
                             <small class="text-muted">95% - Sangat Baik</small>
                         </div>
-                        
+
                         <div class="compliance-item">
                             <div class="compliance-label">Audit Trail</div>
                             <div class="progress mb-2" style="height: 8px;">
@@ -256,7 +256,7 @@
                             </div>
                             <small class="text-muted">88% - Baik</small>
                         </div>
-                        
+
                         <div class="compliance-item">
                             <div class="compliance-label">Akses Pengguna</div>
                             <div class="progress mb-2" style="height: 8px;">
@@ -264,7 +264,7 @@
                             </div>
                             <small class="text-muted">75% - Perlu Perhatian</small>
                         </div>
-                        
+
                         <div class="compliance-item">
                             <div class="compliance-label">Retensi Data</div>
                             <div class="progress mb-2" style="height: 8px;">
@@ -290,13 +290,13 @@
                             <small>5 percobaan gagal dari user: john.doe</small>
                             <div class="alert-time">5 menit yang lalu</div>
                         </div>
-                        
+
                         <div class="alert alert-warning alert-sm">
                             <strong>Perubahan Data Sensitif</strong><br>
                             <small>IKU master diubah tanpa otorisasi</small>
                             <div class="alert-time">30 menit yang lalu</div>
                         </div>
-                        
+
                         <div class="alert alert-info alert-sm">
                             <strong>Akses dari IP Baru</strong><br>
                             <small>Login dari IP: 203.78.12.45</small>
@@ -322,7 +322,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-lg-6 mb-4">
             <div class="card">
                 <div class="card-header">
@@ -604,23 +604,23 @@
     .page-title {
         font-size: 1.5rem;
     }
-    
+
     .stat-card .card-body {
         flex-direction: column;
         text-align: center;
     }
-    
+
     .stat-icon {
         margin-right: 0;
         margin-bottom: 10px;
     }
-    
+
     .timeline-header {
         flex-direction: column;
         align-items: flex-start;
         gap: 5px;
     }
-    
+
     .audit-filters .row > div {
         margin-bottom: 10px;
     }
@@ -632,12 +632,12 @@
     .btn {
         display: none !important;
     }
-    
+
     .card {
         box-shadow: none !important;
         border: 1px solid #ddd !important;
     }
-    
+
     .audit-timeline::before {
         background: #ddd !important;
     }
@@ -734,7 +734,7 @@ const auditTrendChart = new Chart(auditTrendCtx, {
 // Functions
 function refreshAuditTrail() {
     showLoading('audit-timeline');
-    
+
     // Simulate API call
     setTimeout(() => {
         hideLoading('audit-timeline');
@@ -746,9 +746,9 @@ function applyAuditFilters() {
     const typeFilter = document.getElementById('auditTypeFilter').value;
     const userFilter = document.getElementById('auditUserFilter').value;
     const dateFilter = document.getElementById('auditDateFilter').value;
-    
+
     showLoading('audit-timeline');
-    
+
     // Simulate filtering
     setTimeout(() => {
         hideLoading('audit-timeline');
@@ -758,7 +758,7 @@ function applyAuditFilters() {
 
 function generateComplianceReport() {
     showToast('Laporan kepatuhan sedang dibuat...', 'info');
-    
+
     // Simulate report generation
     setTimeout(() => {
         showToast('Laporan kepatuhan berhasil dibuat', 'success');
@@ -767,7 +767,7 @@ function generateComplianceReport() {
 
 function exportAuditLog() {
     showToast('Audit log sedang diekspor...', 'info');
-    
+
     // Simulate export
     setTimeout(() => {
         showToast('Audit log berhasil diekspor', 'success');
@@ -784,7 +784,7 @@ function viewComplianceMatrix() {
 
 function viewAuditDetail(id) {
     const modal = new bootstrap.Modal(document.getElementById('auditDetailModal'));
-    
+
     // Simulate loading audit detail
     document.getElementById('auditDetailContent').innerHTML = `
         <div class="text-center">
@@ -794,7 +794,7 @@ function viewAuditDetail(id) {
             <p class="mt-2">Memuat detail audit trail...</p>
         </div>
     `;
-    
+
     // Simulate API call
     setTimeout(() => {
         document.getElementById('auditDetailContent').innerHTML = `
@@ -846,13 +846,13 @@ function viewAuditDetail(id) {
             </div>
         `;
     }, 500);
-    
+
     modal.show();
 }
 
 function exportAuditDetail() {
     showToast('Detail audit sedang diekspor...', 'info');
-    
+
     // Simulate export
     setTimeout(() => {
         showToast('Detail audit berhasil diekspor', 'success');
@@ -887,7 +887,7 @@ function showToast(message, type = 'info') {
             </div>
         </div>
     `;
-    
+
     // Add toast container if not exists
     if (!document.querySelector('.toast-container')) {
         const container = document.createElement('div');
@@ -895,13 +895,13 @@ function showToast(message, type = 'info') {
         container.style.zIndex = '9999';
         document.body.appendChild(container);
     }
-    
+
     const container = document.querySelector('.toast-container');
     container.insertAdjacentHTML('beforeend', toastHtml);
-    
+
     const toast = new bootstrap.Toast(container.lastElementChild);
     toast.show();
-    
+
     // Remove toast element after hiding
     container.lastElementChild.addEventListener('hidden.bs.toast', function() {
         this.remove();
@@ -913,7 +913,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Set today's date as default for date filter
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('auditDateFilter').value = today;
-    
+
     console.log('Auditor dashboard loaded');
 });
 </script>

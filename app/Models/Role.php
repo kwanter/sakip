@@ -2,31 +2,15 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Spatie\Permission\Models\Role as SpatieRole;
 
-class Role extends Model
+class Role extends SpatieRole
 {
-    use HasFactory, HasUuids;
+    use HasUuids;
 
     public $incrementing = false;
     protected $keyType = 'string';
-
-    protected $fillable = [
-        'name',
-        'display_name',
-    ];
-
-    public function users()
-    {
-        return $this->belongsToMany(User::class, 'role_user');
-    }
-
-    public function permissions()
-    {
-        return $this->belongsToMany(Permission::class, 'permission_role');
-    }
 }
 
    

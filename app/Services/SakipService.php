@@ -140,34 +140,19 @@ class SakipService
     public function getUserRoles($user = null): array
     {
         $user = $user ?: auth()->user();
-        
         if (!$user) {
             return [];
         }
-        
+    
         $roles = [];
-        
-        // Check SAKIP-specific roles
-        if ($user->hasRole('sakip-admin')) {
-            $roles[] = 'admin';
+        $approvedRoles = ['superadmin', 'executive', 'data_collector', 'assessor', 'auditor', 'government_agency'];
+    
+        foreach ($approvedRoles as $roleName) {
+            if ($user->hasRole($roleName)) {
+                $roles[] = $roleName;
+            }
         }
-        
-        if ($user->hasRole('sakip-manager')) {
-            $roles[] = 'manager';
-        }
-        
-        if ($user->hasRole('sakip-analyst')) {
-            $roles[] = 'analyst';
-        }
-        
-        if ($user->hasRole('sakip-reviewer')) {
-            $roles[] = 'reviewer';
-        }
-        
-        if ($user->hasRole('sakip-user')) {
-            $roles[] = 'user';
-        }
-        
+    
         return $roles;
     }
 

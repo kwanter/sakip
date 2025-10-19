@@ -1,4 +1,4 @@
-@extends('sakip.layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Dashboard Pengumpul Data - SAKIP')
 
@@ -130,7 +130,7 @@
                     </div>
                     <a href="{{ route('sakip.data-collection.create') }}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">Input Data</a>
                 </div>
-                
+
                 <div class="flex items-center justify-between p-3 bg-gray-50 rounded-md">
                     <div class="flex items-center">
                         <div class="w-2 h-2 bg-red-500 rounded-full mr-3"></div>
@@ -141,7 +141,7 @@
                     </div>
                     <a href="{{ route('sakip.data-collection.create') }}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">Input Data</a>
                 </div>
-                
+
                 <div class="flex items-center justify-between p-3 bg-gray-50 rounded-md">
                     <div class="flex items-center">
                         <div class="w-2 h-2 bg-red-500 rounded-full mr-3"></div>
@@ -230,7 +230,7 @@
                         <p class="text-xs text-blue-600">Tambah data kinerja</p>
                     </div>
                 </a>
-                
+
                 <a href="#" class="flex items-center p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors">
                     <div class="flex-shrink-0">
                         <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -242,7 +242,7 @@
                         <p class="text-xs text-green-600">Upload data massal</p>
                     </div>
                 </a>
-                
+
                 <a href="#" class="flex items-center p-4 bg-orange-50 rounded-lg hover:bg-orange-100 transition-colors">
                     <div class="flex-shrink-0">
                         <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">

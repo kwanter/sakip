@@ -291,91 +291,92 @@
     <div class="d-flex">
         <!-- Sidebar -->
         @auth
-        <nav class="sidebar p-3" style="width: 250px;">
-            <div class="text-center mb-4">
-                <h4 class="text-white mb-0">SAKIP</h4>
-                <small class="text-white-50">Sistem Akuntabilitas Kinerja</small>
-            </div>
+                <nav class="sidebar bg-dark text-white">
+                    <ul class="nav flex-column">
+                        @can('view-dashboard')
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('sakip.dashboard') ? 'active' : '' }}" href="{{ route('sakip.dashboard') }}">
+                                <i class="fas fa-tachometer-alt"></i>
+                                Dashboard
+                            </a>
+                        </li>
+                        @endcan
+                        @can('manage-sakip')
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('sakip.indicators.*') ? 'active' : '' }}" href="{{ route('sakip.indicators.index') }}">
+                                <i class="fas fa-chart-line"></i>
+                                Indikator Kinerja
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('sakip.performance-data.*') ? 'active' : '' }}" href="{{ route('sakip.performance-data.index') }}">
+                                <i class="fas fa-database"></i>
+                                Pengumpulan Data
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('sakip.assessments.*') ? 'active' : '' }}" href="{{ route('sakip.assessments.index') }}">
+                                <i class="fas fa-clipboard-check"></i>
+                                Penilaian
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('sakip.reports.*') ? 'active' : '' }}" href="{{ route('sakip.reports.index') }}">
+                                <i class="fas fa-file-alt"></i>
+                                Laporan
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('sakip.audit.*') ? 'active' : '' }}" href="{{ route('sakip.audit.index') }}">
+                                <i class="fas fa-history"></i>
+                                Audit Trail
+                            </a>
+                        </li>
+                        @endcan
 
-            <ul class="nav flex-column">
-                <li class="nav-item">
-                    <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">
-                        <i class="fas fa-tachometer-alt"></i>
-                        Dashboard
-                    </a>
-                </li>
+                        <hr class="my-3" style="border-color: rgba(255, 255, 255, 0.2);">
 
-                <li class="nav-item">
-                    <a class="nav-link {{ request()->routeIs('instansi.*') ? 'active' : '' }}" href="{{ route('instansi.index') }}">
-                        <i class="fas fa-building"></i>
-                        Instansi
-                    </a>
-                </li>
+                        <!-- Admin Menu -->
+                        @can('manage-users')
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}" href="{{ route('admin.dashboard') }}">
+                                <i class="fas fa-user-shield"></i>
+                                Admin Dashboard
+                            </a>
+                        </li>
 
-                <li class="nav-item">
-                    <a class="nav-link {{ request()->routeIs('program.*') ? 'active' : '' }}" href="{{ route('program.index') }}">
-                        <i class="fas fa-clipboard-list"></i>
-                        Program
-                    </a>
-                </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}" href="{{ route('admin.users.index') }}">
+                                <i class="fas fa-users-cog"></i>
+                                User Management
+                            </a>
+                        </li>
+                        @endcan
+                        @can('manage-roles')
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('admin.roles.*') ? 'active' : '' }}" href="{{ route('admin.roles.index') }}">
+                                <i class="fas fa-user-tag"></i>
+                                Role Management
+                            </a>
+                        </li>
+                        @endcan
+                        @can('manage-settings')
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('admin.audit-logs') ? 'active' : '' }}" href="{{ route('admin.audit-logs') }}">
+                                <i class="fas fa-history"></i>
+                                Audit Logs
+                            </a>
+                        </li>
 
-                <li class="nav-item">
-                    <a class="nav-link {{ request()->routeIs('kegiatan.*') ? 'active' : '' }}" href="{{ route('kegiatan.index') }}">
-                        <i class="fas fa-tasks"></i>
-                        Kegiatan
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link {{ request()->routeIs('indikator-kinerja.*') ? 'active' : '' }}" href="{{ route('indikator-kinerja.index') }}">
-                        <i class="fas fa-chart-line"></i>
-                        Indikator Kinerja
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link {{ request()->routeIs('laporan-kinerja.*') ? 'active' : '' }}" href="{{ route('laporan-kinerja.index') }}">
-                        <i class="fas fa-file-alt"></i>
-                        Laporan Kinerja
-                    </a>
-                </li>
-
-                <hr class="my-3" style="border-color: rgba(255, 255, 255, 0.2);">
-
-                <!-- Admin Menu -->
-                @role('admin')
-                <li class="nav-item">
-                    <a class="nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}" href="{{ route('admin.dashboard') }}">
-                        <i class="fas fa-user-shield"></i>
-                        Admin Dashboard
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}" href="{{ route('admin.users.index') }}">
-                        <i class="fas fa-users-cog"></i>
-                        User Management
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link {{ request()->routeIs('admin.audit-logs') ? 'active' : '' }}" href="{{ route('admin.audit-logs') }}">
-                        <i class="fas fa-history"></i>
-                        Audit Logs
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}" href="{{ route('admin.settings.index') }}">
-                        <i class="fas fa-cogs"></i>
-                        System Settings
-                    </a>
-                </li>
-
-                <hr class="my-2" style="border-color: rgba(255, 255, 255, 0.2);">
-                @endrole
-            </ul>
-        </nav>
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}" href="{{ route('admin.settings.index') }}">
+                                <i class="fas fa-cogs"></i>
+                                System Settings
+                            </a>
+                        </li>
+                        @endcan
+                    </ul>
+                </nav>
         @endauth
 
         <!-- Main Content -->
@@ -409,7 +410,7 @@
                                     </li>
                                     <li><hr class="dropdown-divider"></li>
                                     <li>
-                                        <form method="POST" action="{{ route('auth.logout') }}">
+                                        <form method="POST" action="{{ route('logout') }}">
                                             @csrf
                                             <button type="submit" class="dropdown-item"><i class="fas fa-sign-out-alt"></i> Logout</button>
                                         </form>
@@ -540,9 +541,8 @@
     </script>
     <script src="{{ asset('js/helpers.js') }}"></script>
 
--    @stack('scripts')
-+    @auth
-+    @stack('scripts')
-+    @endauth
+    @auth
+    @stack('scripts')
+    @endauth
 </body>
 </html>

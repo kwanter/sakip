@@ -31,7 +31,7 @@ class PerformanceIndicatorPolicy
      */
     public function create(User $user): bool
     {
-        return $user->hasRole(['admin', 'manager']);
+        return $user->hasAnyRole(['superadmin', 'executive']);
     }
 
     /**
@@ -39,7 +39,7 @@ class PerformanceIndicatorPolicy
      */
     public function update(User $user, PerformanceIndicator $performanceIndicator): bool
     {
-        return $user->hasRole(['admin', 'manager']);
+        return $user->hasAnyRole(['superadmin', 'executive']);
     }
 
     /**
@@ -47,7 +47,7 @@ class PerformanceIndicatorPolicy
      */
     public function delete(User $user, PerformanceIndicator $performanceIndicator): bool
     {
-        return $user->hasRole(['admin']);
+        return $user->hasRole('superadmin');
     }
 
     /**
@@ -55,7 +55,7 @@ class PerformanceIndicatorPolicy
      */
     public function restore(User $user, PerformanceIndicator $performanceIndicator): bool
     {
-        return $user->hasRole(['admin']);
+        return $user->hasRole('superadmin');
     }
 
     /**
@@ -63,6 +63,6 @@ class PerformanceIndicatorPolicy
      */
     public function forceDelete(User $user, PerformanceIndicator $performanceIndicator): bool
     {
-        return $user->hasRole(['admin']);
+        return $user->hasRole('superadmin');
     }
 }
