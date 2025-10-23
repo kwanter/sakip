@@ -9,7 +9,7 @@ use Carbon\Carbon;
 
 /**
  * PerformanceDataPolicy
- * 
+ *
  * Handles authorization for performance data collection, submission, and validation operations.
  * Implements role-based access control with workflow stage permissions and deadline enforcement.
  */
@@ -25,7 +25,24 @@ class PerformanceDataPolicy
      */
     public function viewAny(User $user)
     {
-        return $user->can('view-data-collection-forms');
+        return $user->can("view-data-collection-forms");
+    }
+
+    /**
+     * Determine whether the user can view the model.
+     *
+     * @param  \App\Models\User  $user
+     * @param  \App\Models\PerformanceData  $performanceData
+     * @return \Illuminate\Auth\Access\Response|bool
+     */
+    public function view(User $user, PerformanceData $performanceData)
+    {
+        // Users can view their own data or if they have permission
+        if ($user->can("view-data-collection-forms")) {
+            return true;
+        }
+
+        return $performanceData->created_by === $user->id;
     }
 
     /**
@@ -36,7 +53,7 @@ class PerformanceDataPolicy
      */
     public function create(User $user)
     {
-        return $user->can('enter-and-submit-data-records');
+        return $user->can("enter-and-submit-data-records");
     }
 
     /**
@@ -48,7 +65,10 @@ class PerformanceDataPolicy
      */
     public function update(User $user, PerformanceData $performanceData)
     {
-        if ($user->can('edit-own-data-submissions') && $performanceData->created_by === $user->id) {
+        if (
+            $user->can("edit-own-data-submissions") &&
+            $performanceData->created_by === $user->id
+        ) {
             return true;
         }
         return false;
@@ -63,6 +83,6 @@ class PerformanceDataPolicy
      */
     public function delete(User $user, PerformanceData $performanceData)
     {
-        return $user->can('manage-high-level-settings');
+        return $user->can("manage-high-level-settings");
     }
 }

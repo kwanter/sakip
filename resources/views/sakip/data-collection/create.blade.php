@@ -85,12 +85,14 @@
                                 <label for="instansi_id" class="block text-sm font-medium text-gray-700 mb-2">Instansi *</label>
                                 <select id="instansi_id" name="instansi_id" required class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('instansi_id') border-red-300 @enderror">
                                     <option value="">Pilih Instansi</option>
-                                    @foreach($instansis as $instansi)
-                                        <option value="{{ $instansi->id }}"
-                                            {{ old('instansi_id', $performanceData->instansi_id ?? '') == $instansi->id ? 'selected' : '' }}>
-                                            {{ $instansi->name }}
-                                        </option>
-                                    @endforeach
+                                    @if(isset($instansis))
+                                        @foreach($instansis as $instansi)
+                                            <option value="{{ $instansi->id }}"
+                                                {{ old('instansi_id', $performanceData->instansi_id ?? '') == $instansi->id ? 'selected' : '' }}>
+                                                {{ $instansi->nama_instansi }}
+                                            </option>
+                                        @endforeach
+                                    @endif
                                 </select>
                                 @error('instansi_id')
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>

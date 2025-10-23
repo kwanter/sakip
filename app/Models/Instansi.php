@@ -6,25 +6,34 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Instansi extends Model
 {
-    use HasUuids, HasFactory;
+    use HasUuids, HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'kode_instansi',
-        'nama_instansi',
-        'alamat',
-        'telepon',
-        'email',
-        'website',
-        'kepala_instansi',
-        'nip_kepala',
-        'status'
+        "kode_instansi",
+        "nama_instansi",
+        "alamat",
+        "telepon",
+        "email",
+        "website",
+        "kepala_instansi",
+        "nip_kepala",
+        "status",
     ];
 
     public $incrementing = false;
-    protected $keyType = 'string';
+    protected $keyType = "string";
+
+    /**
+     * Relasi ke Sasaran Strategis
+     */
+    public function sasaranStrategis(): HasMany
+    {
+        return $this->hasMany(SasaranStrategis::class);
+    }
 
     /**
      * Relasi ke Program

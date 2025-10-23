@@ -14,30 +14,44 @@ class User extends Authenticatable
     use HasFactory, Notifiable, HasUuids, HasRoles;
 
     public $incrementing = false;
-    protected $keyType = 'string';
+    protected $keyType = "string";
 
-    protected $fillable = [
-        'name',
-        'email',
-        'password',
-        'email_verified_at',
-    ];
+    protected $fillable = ["name", "email", "password", "email_verified_at"];
 
-    protected $hidden = [
-        'password',
-        'remember_token',
-    ];
+    protected $hidden = ["password", "remember_token"];
 
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
+            "email_verified_at" => "datetime",
+            "password" => "hashed",
         ];
     }
 
     public function auditLogs()
     {
         return $this->hasMany(AuditLog::class);
+    }
+
+    /**
+     * Check if the user is a Super Admin.
+     *
+     * @return bool
+     */
+    public function isAdmin(): bool
+    {
+        return $this->hasRole("Super Admin");
+    }
+
+    /**
+     * Check if the user has a specific permission.
+     * This is a helper method that wraps Spatie's hasPermissionTo method.
+     *
+     * @param string $permission
+     * @return bool
+     */
+    public function hasPermission(string $permission): bool
+    {
+        return $this->hasPermissionTo($permission);
     }
 }

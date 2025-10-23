@@ -271,7 +271,7 @@ class AuditService
     public function runComplianceChecks(int $institutionId, string $period): array
     {
         $complianceResults = [
-            'institution_id' => $institutionId,
+            'instansi_id' => $institutionId,
             'period' => $period,
             'checks' => [],
             'violations' => [],
@@ -327,11 +327,11 @@ class AuditService
      */
     private function checkDataCompleteness(int $institutionId, string $period): array
     {
-        $indicators = PerformanceIndicator::where('institution_id', $institutionId)
+        $indicators = PerformanceIndicator::where('instansi_id', $institutionId)
             ->where('is_active', true)
             ->count();
 
-        $performanceData = PerformanceData::where('institution_id', $institutionId)
+        $performanceData = PerformanceData::where('instansi_id', $institutionId)
             ->where('period', $period)
             ->count();
 
@@ -355,12 +355,12 @@ class AuditService
         $deadline = $periodEnd->copy()->addDays(30); // 30 days after period end
         $now = now();
 
-        $lateSubmissions = PerformanceData::where('institution_id', $institutionId)
+        $lateSubmissions = PerformanceData::where('instansi_id', $institutionId)
             ->where('period', $period)
             ->where('collected_at', '>', $deadline)
             ->count();
 
-        $totalSubmissions = PerformanceData::where('institution_id', $institutionId)
+        $totalSubmissions = PerformanceData::where('instansi_id', $institutionId)
             ->where('period', $period)
             ->count();
 
@@ -381,12 +381,12 @@ class AuditService
      */
     private function checkAssessmentCompleteness(int $institutionId, string $period): array
     {
-        $performanceData = PerformanceData::where('institution_id', $institutionId)
+        $performanceData = PerformanceData::where('instansi_id', $institutionId)
             ->where('period', $period)
             ->count();
 
         $assessments = Assessment::whereHas('performanceData', function ($query) use ($institutionId, $period) {
-                $query->where('institution_id', $institutionId)->where('period', $period);
+                $query->where('instansi_id', $institutionId)->where('period', $period);
             })
             ->where('status', 'completed')
             ->count();
@@ -407,7 +407,7 @@ class AuditService
      */
     private function checkReportSubmission(int $institutionId, string $period): array
     {
-        $reports = Report::where('institution_id', $institutionId)
+        $reports = Report::where('instansi_id', $institutionId)
             ->where('period', $period)
             ->get();
 
@@ -430,7 +430,7 @@ class AuditService
      */
     private function checkEvidenceRequirements(int $institutionId, string $period): array
     {
-        $performanceData = PerformanceData::where('institution_id', $institutionId)
+        $performanceData = PerformanceData::where('instansi_id', $institutionId)
             ->where('period', $period)
             ->with('evidenceDocuments')
             ->get();
@@ -483,16 +483,16 @@ class AuditService
     private function estimateExpectedAuditEvents(int $institutionId, string $period): int
     {
         // Estimate based on data volume
-        $performanceData = PerformanceData::where('institution_id', $institutionId)
+        $performanceData = PerformanceData::where('instansi_id', $institutionId)
             ->where('period', $period)
             ->count();
 
         $assessments = Assessment::whereHas('performanceData', function ($query) use ($institutionId, $period) {
-                $query->where('institution_id', $institutionId)->where('period', $period);
+                $query->where('instansi_id', $institutionId)->where('period', $period);
             })
             ->count();
 
-        $reports = Report::where('institution_id', $institutionId)
+        $reports = Report::where('instansi_id', $institutionId)
             ->where('period', $period)
             ->count();
 

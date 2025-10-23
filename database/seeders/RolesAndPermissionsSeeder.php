@@ -17,55 +17,76 @@ class RolesAndPermissionsSeeder extends Seeder
     public function run()
     {
         // Reset cached roles and permissions
-        app()['cache']->forget('spatie.permission.cache');
+        app()["cache"]->forget("spatie.permission.cache");
 
         // Truncate tables to start from scratch
-        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+        DB::statement("SET FOREIGN_KEY_CHECKS=0;");
         Permission::truncate();
         Role::truncate();
-        DB::table('role_has_permissions')->truncate();
-        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+        DB::table("role_has_permissions")->truncate();
+        DB::statement("SET FOREIGN_KEY_CHECKS=1;");
 
         // Create permissions
         $permissions = [
+            // SAKIP Core Permissions (required by routes and policies)
+            "view-dashboard",
+            "view-sakip-dashboard",
+            "view-performance-indicators",
+            "view-performance-data",
+            "view-assessments",
+            "view-reports",
+            "export-sakip-data",
+
+            // Master Data Permissions
+            "manage-instansi",
+            "manage-sasaran-strategis",
+            "manage-program",
+
+            // Admin Permissions
+            "admin.dashboard",
+            "admin.settings",
+            "manage-users",
+            "manage-roles",
+            "manage-permissions",
+
             // Assessor
-            'view-assessment-reports',
-            'submit-evaluation-findings',
-            'comment-on-assessment-results',
-            'access-assessment-tools',
+            "view-assessment-reports",
+            "submit-evaluation-findings",
+            "comment-on-assessment-results",
+            "access-assessment-tools",
 
             // Data Collector
-            'enter-and-submit-data-records',
-            'edit-own-data-submissions',
-            'view-data-collection-forms',
-            'access-basic-reporting-features',
+            "enter-and-submit-data-records",
+            "edit-own-data-submissions",
+            "view-data-collection-forms",
+            "access-basic-reporting-features",
 
             // Auditor
-            'review-all-system-data',
-            'generate-audit-reports',
-            'flag-data-inconsistencies',
-            'access-historical-records',
-            'export-audit-findings',
+            "review-all-system-data",
+            "generate-audit-reports",
+            "flag-data-inconsistencies",
+            "access-historical-records",
+            "export-audit-findings",
 
             // Collector
-            'gather-and-input-field-data',
-            'update-collection-records',
-            'view-collection-schedules',
-            'submit-completed-work-reports',
+            "gather-and-input-field-data",
+            "update-collection-records",
+            "view-collection-schedules",
+            "submit-completed-work-reports",
 
             // Executive
-            'view-all-reports-and-dashboards',
-            'access-analytics-tools',
-            'approve-system-changes',
-            'manage-high-level-settings',
-            'export-comprehensive-reports',
+            "view-all-reports-and-dashboards",
+            "access-analytics-tools",
+            "approve-system-changes",
+            "manage-high-level-settings",
+            "export-comprehensive-reports",
 
             // Government Official
-            'view-verified-public-data',
-            'access-official-reports',
-            'submit-formal-requests',
-            'review-compliance-documents',
-            'access-restricted-government-portals',
+            "view-verified-public-data",
+            "access-official-reports",
+            "submit-formal-requests",
+            "review-compliance-documents",
+            "access-restricted-government-portals",
         ];
 
         foreach ($permissions as $permission) {
@@ -78,76 +99,109 @@ class RolesAndPermissionsSeeder extends Seeder
 
         // Assessor
         $assessorRole = new Role();
-        $assessorRole->name = 'Assessor';
+        $assessorRole->name = "Assessor";
         $assessorRole->save();
         $assessorRole->givePermissionTo([
-            'view-assessment-reports',
-            'submit-evaluation-findings',
-            'comment-on-assessment-results',
-            'access-assessment-tools',
+            "view-dashboard",
+            "view-sakip-dashboard",
+            "view-assessments",
+            "manage-instansi",
+            "manage-sasaran-strategis",
+            "manage-program",
+            "view-assessment-reports",
+            "submit-evaluation-findings",
+            "comment-on-assessment-results",
+            "access-assessment-tools",
         ]);
 
         // Data Collector
         $dataCollectorRole = new Role();
-        $dataCollectorRole->name = 'Data Collector';
+        $dataCollectorRole->name = "Data Collector";
         $dataCollectorRole->save();
         $dataCollectorRole->givePermissionTo([
-            'enter-and-submit-data-records',
-            'edit-own-data-submissions',
-            'view-data-collection-forms',
-            'access-basic-reporting-features',
+            "view-dashboard",
+            "view-sakip-dashboard",
+            "view-performance-data",
+            "enter-and-submit-data-records",
+            "edit-own-data-submissions",
+            "view-data-collection-forms",
+            "access-basic-reporting-features",
         ]);
 
         // Auditor
         $auditorRole = new Role();
-        $auditorRole->name = 'Auditor';
+        $auditorRole->name = "Auditor";
         $auditorRole->save();
         $auditorRole->givePermissionTo([
-            'review-all-system-data',
-            'generate-audit-reports',
-            'flag-data-inconsistencies',
-            'access-historical-records',
-            'export-audit-findings',
+            "view-dashboard",
+            "view-sakip-dashboard",
+            "view-performance-data",
+            "view-reports",
+            "export-sakip-data",
+            "review-all-system-data",
+            "generate-audit-reports",
+            "flag-data-inconsistencies",
+            "access-historical-records",
+            "export-audit-findings",
         ]);
 
         // Collector
         $collectorRole = new Role();
-        $collectorRole->name = 'Collector';
+        $collectorRole->name = "Collector";
         $collectorRole->save();
         $collectorRole->givePermissionTo([
-            'gather-and-input-field-data',
-            'update-collection-records',
-            'view-collection-schedules',
-            'submit-completed-work-reports',
+            "view-dashboard",
+            "view-sakip-dashboard",
+            "view-performance-data",
+            "gather-and-input-field-data",
+            "update-collection-records",
+            "view-collection-schedules",
+            "submit-completed-work-reports",
         ]);
 
         // Executive
         $executiveRole = new Role();
-        $executiveRole->name = 'Executive';
+        $executiveRole->name = "Executive";
         $executiveRole->save();
         $executiveRole->givePermissionTo([
-            'view-all-reports-and-dashboards',
-            'access-analytics-tools',
-            'approve-system-changes',
-            'manage-high-level-settings',
-            'export-comprehensive-reports',
+            "view-dashboard",
+            "view-sakip-dashboard",
+            "view-performance-indicators",
+            "view-performance-data",
+            "view-assessments",
+            "view-reports",
+            "export-sakip-data",
+            "manage-instansi",
+            "manage-sasaran-strategis",
+            "manage-program",
+            "view-all-reports-and-dashboards",
+            "access-analytics-tools",
+            "approve-system-changes",
+            "manage-high-level-settings",
+            "export-comprehensive-reports",
         ]);
 
         // Government Official
         $governmentOfficialRole = new Role();
-        $governmentOfficialRole->name = 'Government Official';
+        $governmentOfficialRole->name = "Government Official";
         $governmentOfficialRole->save();
         $governmentOfficialRole->givePermissionTo([
-            'view-verified-public-data',
-            'access-official-reports',
-            'submit-formal-requests',
-            'review-compliance-documents',
-            'access-restricted-government-portals',
+            "view-dashboard",
+            "view-sakip-dashboard",
+            "view-reports",
+            "manage-instansi",
+            "manage-sasaran-strategis",
+            "manage-program",
+            "view-verified-public-data",
+            "access-official-reports",
+            "submit-formal-requests",
+            "review-compliance-documents",
+            "access-restricted-government-portals",
         ]);
 
         // Super Admin
         $superAdminRole = new Role();
-        $superAdminRole->name = 'Super Admin';
+        $superAdminRole->name = "Super Admin";
         $superAdminRole->save();
         $superAdminRole->givePermissionTo(Permission::all());
     }

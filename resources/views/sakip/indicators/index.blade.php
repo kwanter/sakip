@@ -7,9 +7,12 @@
             <div class="p-6 bg-white border-b border-gray-200">
                 <div class="flex justify-between items-center mb-6">
                     <h1 class="text-2xl font-semibold text-gray-800">Indikator Kinerja</h1>
-                    <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                        Tambah Indikator
-                    </button>
+                    @can('create', App\Models\PerformanceIndicator::class)
+                        <a href="{{ route('sakip.indicators.create') }}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded inline-block">
+                            <i class="fas fa-plus mr-2"></i>
+                            Tambah Indikator
+                        </a>
+                    @endcan
                 </div>
 
                 <!-- Data Table Component -->

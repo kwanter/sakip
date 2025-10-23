@@ -141,7 +141,7 @@
                     <select id="instansi" name="instansi" class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         <option value="">Semua Instansi</option>
                         @foreach($instansis as $instansi)
-                            <option value="{{ $instansi->id }}">{{ $instansi->name }}</option>
+                            <option value="{{ $instansi->id }}">{{ $instansi->nama_instansi }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -238,31 +238,34 @@
                                 <div class="text-sm text-gray-500">{{ Str::limit($data->indicator->description, 50) }}</div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">{{ $data->period }}</div>
-                                <div class="text-sm text-gray-500">{{ $data->year }}</div>
+                                <div class="text-sm text-gray-900">{{ \Carbon\Carbon::parse($data->period)->format('M Y') }}</div>
+                                <div class="text-sm text-gray-500">{{ \Carbon\Carbon::parse($data->period)->year }}</div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900">{{ number_format($data->value, 2) }}</div>
+                                <div class="text-sm font-medium text-gray-900">{{ number_format($data->actual_value, 2) }}</div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="text-sm text-gray-900">{{ $data->indicator->measurement_unit }}</div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">{{ $data->instansi->name ?? '-' }}</div>
+                                <div class="text-sm text-gray-900">{{ $data->indicator->instansi->nama_instansi ?? '-' }}</div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                    @if($data->validation_status === 'validated') bg-green-100 text-green-800
-                                    @elseif($data->validation_status === 'submitted') bg-blue-100 text-blue-800
-                                    @elseif($data->validation_status === 'rejected') bg-red-100 text-red-800
+                                    @if($data->status === 'approved') bg-green-100 text-green-800
+                                    @elseif($data->status === 'pending') bg-blue-100 text-blue-800
+                                    @elseif($data->status === 'rejected') bg-red-100 text-red-800
+                                    @elseif($data->status === 'needs_review') bg-orange-100 text-orange-800
                                     @else bg-gray-100 text-gray-800
                                     @endif">
-                                    @if($data->validation_status === 'validated')
+                                    @if($data->status === 'approved')
                                         Tervalidasi
-                                    @elseif($data->validation_status === 'submitted')
-                                        Diajukan
-                                    @elseif($data->validation_status === 'rejected')
+                                    @elseif($data->status === 'pending')
+                                        Menunggu
+                                    @elseif($data->status === 'rejected')
                                         Ditolak
+                                    @elseif($data->status === 'needs_review')
+                                        Perlu Review
                                     @else
                                         Draft
                                     @endif
@@ -280,7 +283,7 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                                         </svg>
                                     </a>
-                                    @if($data->validation_status !== 'validated')
+                                    @if($data->status !== 'approved')
                                     <a href="{{ route('sakip.data-collection.edit', $data) }}" class="text-green-600 hover:text-green-900" title="Edit">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>

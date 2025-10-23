@@ -17,7 +17,12 @@ class SakipDashboardPolicy
      */
     public function viewDashboard(User $user)
     {
-        return $user->hasPermissionTo('view-sakip-dashboard');
+        // Super Admin can access everything
+        if ($user->hasRole("Super Admin")) {
+            return true;
+        }
+
+        return $user->hasPermissionTo("view-sakip-dashboard");
     }
 
     /**
@@ -28,7 +33,7 @@ class SakipDashboardPolicy
      */
     public function viewExecutiveDashboard(User $user)
     {
-        return $user->hasPermissionTo('view-executive-dashboard');
+        return $user->hasPermissionTo("view-executive-dashboard");
     }
 
     /**
@@ -39,7 +44,7 @@ class SakipDashboardPolicy
      */
     public function viewDataCollectorDashboard(User $user)
     {
-        return $user->hasPermissionTo('view-data-entry-dashboard');
+        return $user->hasPermissionTo("view-data-entry-dashboard");
     }
 
     /**
@@ -50,7 +55,7 @@ class SakipDashboardPolicy
      */
     public function viewAssessorDashboard(User $user)
     {
-        return $user->hasPermissionTo('view-assessor-dashboard');
+        return $user->hasPermissionTo("view-assessor-dashboard");
     }
 
     /**
@@ -61,6 +66,6 @@ class SakipDashboardPolicy
      */
     public function viewAuditDashboard(User $user)
     {
-        return $user->hasPermissionTo('view-audit-dashboard');
+        return $user->hasPermissionTo("view-audit-dashboard");
     }
 }

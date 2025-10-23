@@ -15,7 +15,7 @@ class ReportGenerationService
     {
         $reportData = [
             'metadata' => [
-                'institution_id' => $institutionId,
+                'instansi_id' => $institutionId,
                 'report_type' => $reportType,
                 'period' => $period,
                 'generated_at' => Carbon::now()->toDateTimeString(),
@@ -58,7 +58,7 @@ class ReportGenerationService
 
     private function generateIndicatorsData($institutionId, $period)
     {
-        return PerformanceIndicator::where('institution_id', $institutionId)
+        return PerformanceIndicator::where('instansi_id', $institutionId)
             ->where('is_active', true)
             ->with(['category', 'measurementType'])
             ->orderBy('code')
@@ -87,7 +87,7 @@ class ReportGenerationService
     private function generatePerformanceData($institutionId, $period)
     {
         return PerformanceData::whereHas('indicator', function ($query) use ($institutionId) {
-                $query->where('institution_id', $institutionId);
+                $query->where('instansi_id', $institutionId);
             })
             ->where('period', $period)
             ->with(['indicator', 'evidence'])
@@ -116,7 +116,7 @@ class ReportGenerationService
     private function generateAssessmentsData($institutionId, $period)
     {
         return Assessment::whereHas('performanceData.indicator', function ($query) use ($institutionId) {
-                $query->where('institution_id', $institutionId);
+                $query->where('instansi_id', $institutionId);
             })
             ->where('period', $period)
             ->with(['performanceData.indicator', 'assessor'])
@@ -149,7 +149,7 @@ class ReportGenerationService
 
         $allPeriods = array_merge(array_reverse($previousPeriods), [$currentPeriod]);
 
-        return PerformanceIndicator::where('institution_id', $institutionId)
+        return PerformanceIndicator::where('instansi_id', $institutionId)
             ->where('is_active', true)
             ->get()
             ->map(function ($indicator) use ($allPeriods) {
@@ -201,7 +201,7 @@ class ReportGenerationService
             ->where('type', $currentInstitution->type)
             ->pluck('id');
 
-        return PerformanceIndicator::where('institution_id', $institutionId)
+        return PerformanceIndicator::where('instansi_id', $institutionId)
             ->where('is_active', true)
             ->get()
             ->map(function ($indicator) use ($period, $peerInstitutions) {
@@ -214,7 +214,7 @@ class ReportGenerationService
                 }
 
                 $peerPerformances = PerformanceData::whereHas('indicator', function ($query) use ($peerInstitutions) {
-                        $query->whereIn('institution_id', $peerInstitutions);
+                        $query->whereIn('instansi_id', $peerInstitutions);
                     })
                     ->where('indicator_id', $indicator->id)
                     ->where('period', $period)

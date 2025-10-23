@@ -20,6 +20,9 @@
     <!-- DataTables CSS -->
     <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet">
 
+    <!-- Vite Assets -->
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+
     <!-- Custom CSS -->
     <style>
         :root {
@@ -283,6 +286,192 @@
             background-color: var(--primary-color);
             border-color: var(--primary-color);
         }
+
+        /* Tailwind + Bootstrap Compatibility */
+        .container-fluid {
+            width: 100%;
+            padding-right: 15px;
+            padding-left: 15px;
+            margin-right: auto;
+            margin-left: auto;
+        }
+
+        /* Ensure Tailwind utilities work with Bootstrap */
+        .max-w-7xl {
+            max-width: 80rem !important;
+        }
+
+        .mx-auto {
+            margin-left: auto !important;
+            margin-right: auto !important;
+        }
+
+        .py-12 {
+            padding-top: 3rem !important;
+            padding-bottom: 3rem !important;
+        }
+
+        .px-6 {
+            padding-left: 1.5rem !important;
+            padding-right: 1.5rem !important;
+        }
+
+        .sm\:px-6 {
+            padding-left: 1.5rem !important;
+            padding-right: 1.5rem !important;
+        }
+
+        .lg\:px-8 {
+            padding-left: 2rem !important;
+            padding-right: 2rem !important;
+        }
+
+        /* Fix grid display */
+        .grid {
+            display: grid !important;
+        }
+
+        .grid-cols-1 {
+            grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+        }
+
+        @media (min-width: 768px) {
+            .md\:grid-cols-2 {
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            }
+            .md\:grid-cols-3 {
+                grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+            }
+        }
+
+        .gap-6 {
+            gap: 1.5rem !important;
+        }
+
+        .gap-4 {
+            gap: 1rem !important;
+        }
+
+        /* Fix flex utilities */
+        .flex {
+            display: flex !important;
+        }
+
+        .items-center {
+            align-items: center !important;
+        }
+
+        .justify-between {
+            justify-content: space-between !important;
+        }
+
+        .space-x-3 > * + * {
+            margin-left: 0.75rem !important;
+        }
+
+        /* Fix text utilities */
+        .text-3xl {
+            font-size: 1.875rem !important;
+            line-height: 2.25rem !important;
+        }
+
+        .text-gray-900 {
+            color: #111827 !important;
+        }
+
+        .text-gray-600 {
+            color: #4b5563 !important;
+        }
+
+        .font-bold {
+            font-weight: 700 !important;
+        }
+
+        /* Fix spacing utilities */
+        .mb-4 {
+            margin-bottom: 1rem !important;
+        }
+
+        .mb-6 {
+            margin-bottom: 1.5rem !important;
+        }
+
+        .mt-2 {
+            margin-top: 0.5rem !important;
+        }
+
+        /* Fix rounded utilities */
+        .rounded-md {
+            border-radius: 0.375rem !important;
+        }
+
+        .rounded-lg {
+            border-radius: 0.5rem !important;
+        }
+
+        .sm\:rounded-lg {
+            border-radius: 0.5rem !important;
+        }
+
+        /* Fix shadow utilities */
+        .shadow-sm {
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+        }
+
+        /* Fix overflow utilities */
+        .overflow-hidden {
+            overflow: hidden !important;
+        }
+
+        /* Fix background utilities */
+        .bg-white {
+            background-color: #ffffff !important;
+        }
+
+        .bg-green-100 {
+            background-color: #d1fae5 !important;
+        }
+
+        .bg-red-100 {
+            background-color: #fee2e2 !important;
+        }
+
+        /* Fix border utilities */
+        .border {
+            border-width: 1px !important;
+        }
+
+        .border-green-400 {
+            border-color: #4ade80 !important;
+        }
+
+        .border-red-400 {
+            border-color: #f87171 !important;
+        }
+
+        .border-transparent {
+            border-color: transparent !important;
+        }
+
+        /* Fix button utilities */
+        .inline-flex {
+            display: inline-flex !important;
+        }
+
+        .uppercase {
+            text-transform: uppercase !important;
+        }
+
+        .tracking-widest {
+            letter-spacing: 0.1em !important;
+        }
+
+        /* Fix responsive padding */
+        @media (min-width: 640px) {
+            .sm\:inline {
+                display: inline !important;
+            }
+        }
     </style>
 
     @stack('styles')
@@ -301,6 +490,29 @@
                             </a>
                         </li>
                         @endcan
+
+                        <!-- Master Data Menu -->
+                        @if(Auth::user()->hasAnyRole(['Super Admin', 'Executive', 'Government Official', 'Assessor']))
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('sakip.instansi.*') ? 'active' : '' }}" href="{{ route('sakip.instansi.index') }}">
+                                <i class="fas fa-building"></i>
+                                Instansi
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('sakip.sasaran-strategis.*') ? 'active' : '' }}" href="{{ route('sakip.sasaran-strategis.index') }}">
+                                <i class="fas fa-bullseye"></i>
+                                Sasaran Strategis
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('sakip.program.*') ? 'active' : '' }}" href="{{ route('sakip.program.index') }}">
+                                <i class="fas fa-tasks"></i>
+                                Program
+                            </a>
+                        </li>
+                        @endif
+
                         @can('manage-sakip')
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('sakip.indicators.*') ? 'active' : '' }}" href="{{ route('sakip.indicators.index') }}">
@@ -357,6 +569,14 @@
                             <a class="nav-link {{ request()->routeIs('admin.roles.*') ? 'active' : '' }}" href="{{ route('admin.roles.index') }}">
                                 <i class="fas fa-user-tag"></i>
                                 Role Management
+                            </a>
+                        </li>
+                        @endcan
+                        @can('manage-permissions')
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('admin.permissions.*') ? 'active' : '' }}" href="{{ route('admin.permissions.index') }}">
+                                <i class="fas fa-key"></i>
+                                Permission Management
                             </a>
                         </li>
                         @endcan

@@ -19,7 +19,7 @@
                 @endcan
 
                 @can('generate-audit-report', App\Models\SakipAudit::class)
-                <a href="{{ route('sakip.audit.export') }}" class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 active:bg-green-900 focus:outline-none focus:border-green-900 focus:ring ring-green-300 disabled:opacity-25 transition ease-in-out duration-150">
+                <a href="{{ route('sakip.audit.export-report') }}" class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 active:bg-green-900 focus:outline-none focus:border-green-900 focus:ring ring-green-300 disabled:opacity-25 transition ease-in-out duration-150">
                     Export Audit Report
                 </a>
                 @endcan
@@ -123,7 +123,7 @@
         <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
             <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
                 <h3 class="text-lg font-medium text-gray-900">Recent Violations</h3>
-                <a href="{{ route('sakip.audit.violations') }}" class="text-sm text-blue-600 hover:text-blue-900">View All</a>
+                <span class="text-sm text-gray-500">{{ count($compliance['violations'] ?? []) }} violations found</span>
             </div>
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
@@ -147,34 +147,29 @@
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
-                        @forelse($violations as $violation)
+                        @forelse($compliance['violations'] ?? [] as $violation)
                         <tr>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                    {{ ucfirst(str_replace('_', ' ', $violation->type)) }}
+                                    {{ ucfirst(str_replace('_', ' ', $violation['type'] ?? 'unknown')) }}
                                 </span>
                             </td>
                             <td class="px-6 py-4">
-                                <div class="text-sm text-gray-900">{{ $violation->description }}</div>
-                                <div class="text-sm text-gray-500">{{ $violation->recommendation }}</div>
+                                <div class="text-sm text-gray-900">{{ $violation['message'] ?? 'No description' }}</div>
+                                <div class="text-sm text-gray-500">{{ $violation['recommendation'] ?? '' }}</div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                    {{ $violation->severity === 'high' ? 'bg-red-100 text-red-800' :
-                                       ($violation->severity === 'medium' ? 'bg-yellow-100 text-yellow-800' : 'bg-blue-100 text-blue-800') }}">
-                                    {{ ucfirst($violation->severity) }}
+                                    {{ ($violation['severity'] ?? 'low') === 'high' ? 'bg-red-100 text-red-800' :
+                                       (($violation['severity'] ?? 'low') === 'medium' ? 'bg-yellow-100 text-yellow-800' : 'bg-blue-100 text-blue-800') }}">
+                                    {{ ucfirst($violation['severity'] ?? 'low') }}
                                 </span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {{ $violation->created_at->format('M d, Y') }}
+                                {{ now()->format('M d, Y') }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <div class="flex space-x-2">
-                                    <a href="{{ route('sakip.audit.violations.show', $violation) }}" class="text-blue-600 hover:text-blue-900">View</a>
-                                    @if($violation->can_fix)
-                                    <button onclick="fixViolation({{ $violation->id }})" class="text-green-600 hover:text-green-900">Fix</button>
-                                    @endif
-                                </div>
+                                <span class="text-gray-400">-</span>
                             </td>
                         </tr>
                         @empty
@@ -193,7 +188,7 @@
         <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
             <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
                 <h3 class="text-lg font-medium text-gray-900">Recent Audit Logs</h3>
-                <a href="{{ route('sakip.audit.logs') }}" class="text-sm text-blue-600 hover:text-blue-900">View All</a>
+                <span class="text-sm text-gray-500">Showing latest activities</span>
             </div>
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
@@ -287,7 +282,7 @@
 <script>
 function runComplianceCheck() {
     if (confirm('This will run a comprehensive compliance check. Continue?')) {
-        fetch('{{ route('sakip.audit.compliance-check') }}', {
+        fetch('{{ route('sakip.audit.run-compliance-check') }}', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

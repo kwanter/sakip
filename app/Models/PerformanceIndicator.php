@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * PerformanceIndicator Model
- * 
+ *
  * Represents performance indicators for SAKIP compliance.
  * Tracks institutional performance metrics with calculation formulas and measurement units.
  */
@@ -21,7 +21,7 @@ class PerformanceIndicator extends Model
      *
      * @var string
      */
-    protected $table = 'performance_indicators';
+    protected $table = "performance_indicators";
 
     /**
      * The attributes that are mass assignable.
@@ -29,21 +29,35 @@ class PerformanceIndicator extends Model
      * @var array<string>
      */
     protected $fillable = [
-        'instansi_id',
-        'code',
-        'name',
-        'description',
-        'measurement_unit',
-        'data_source',
-        'collection_method',
-        'calculation_formula',
-        'frequency',
-        'category',
-        'weight',
-        'is_mandatory',
-        'metadata',
-        'created_by',
-        'updated_by'
+        "instansi_id",
+        "sasaran_strategis_id",
+        "program_id",
+        "kegiatan_id",
+        "code",
+        "name",
+        "description",
+        "measurement_unit",
+        "measurement_type",
+        "data_source",
+        "collection_method",
+        "calculation_formula",
+        "frequency",
+        "category",
+        "weight",
+        "is_mandatory",
+        "metadata",
+        "created_by",
+        "updated_by",
+    ];
+
+    // Protected fields - set automatically
+    protected $guarded = [
+        "id",
+        "created_by",
+        "updated_by",
+        "created_at",
+        "updated_at",
+        "deleted_at",
     ];
 
     /**
@@ -52,13 +66,16 @@ class PerformanceIndicator extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'instansi_id' => 'string',
-        'weight' => 'decimal:2',
-        'is_mandatory' => 'boolean',
-        'metadata' => 'array',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
-        'deleted_at' => 'datetime'
+        "instansi_id" => "string",
+        "created_by" => "string",
+        "updated_by" => "string",
+        "weight" => "decimal:2",
+        "is_mandatory" => "boolean",
+        "metadata" => "array",
+        "calculation_formula" => "array",
+        "created_at" => "datetime",
+        "updated_at" => "datetime",
+        "deleted_at" => "datetime",
     ];
 
     /**
@@ -70,11 +87,35 @@ class PerformanceIndicator extends Model
     }
 
     /**
+     * Get the sasaran strategis that owns the performance indicator.
+     */
+    public function sasaranStrategis()
+    {
+        return $this->belongsTo(SasaranStrategis::class);
+    }
+
+    /**
+     * Get the program that owns the performance indicator.
+     */
+    public function program()
+    {
+        return $this->belongsTo(Program::class);
+    }
+
+    /**
+     * Get the kegiatan that owns the performance indicator.
+     */
+    public function kegiatan()
+    {
+        return $this->belongsTo(Kegiatan::class);
+    }
+
+    /**
      * Get the user who created the performance indicator.
      */
     public function creator()
     {
-        return $this->belongsTo(User::class, 'created_by');
+        return $this->belongsTo(User::class, "created_by");
     }
 
     /**
@@ -82,7 +123,7 @@ class PerformanceIndicator extends Model
      */
     public function updater()
     {
-        return $this->belongsTo(User::class, 'updated_by');
+        return $this->belongsTo(User::class, "updated_by");
     }
 
     /**
@@ -106,7 +147,7 @@ class PerformanceIndicator extends Model
      */
     public function getTargetForYear(int $year)
     {
-        return $this->targets()->where('year', $year)->first();
+        return $this->targets()->where("year", $year)->first();
     }
 
     /**
@@ -114,7 +155,7 @@ class PerformanceIndicator extends Model
      */
     public function getLatestPerformanceData()
     {
-        return $this->performanceData()->latest('period')->first();
+        return $this->performanceData()->latest("period")->first();
     }
 
     /**
@@ -128,7 +169,7 @@ class PerformanceIndicator extends Model
 
         // Parse calculation formula to determine calculation method
         $formula = $this->calculation_formula;
-        
+
         // Default calculation: percentage of target achieved
         return round(($actualValue / $targetValue) * 100, 2);
     }
@@ -138,7 +179,7 @@ class PerformanceIndicator extends Model
      */
     public function scopeMandatory($query)
     {
-        return $query->where('is_mandatory', true);
+        return $query->where("is_mandatory", true);
     }
 
     /**
@@ -146,7 +187,7 @@ class PerformanceIndicator extends Model
      */
     public function scopeByCategory($query, string $category)
     {
-        return $query->where('category', $category);
+        return $query->where("category", $category);
     }
 
     /**
@@ -154,7 +195,7 @@ class PerformanceIndicator extends Model
      */
     public function scopeByFrequency($query, string $frequency)
     {
-        return $query->where('frequency', $frequency);
+        return $query->where("frequency", $frequency);
     }
 
     /**
@@ -162,7 +203,7 @@ class PerformanceIndicator extends Model
      */
     public function scopeForInstansi($query, int $instansiId)
     {
-        return $query->where('instansi_id', $instansiId);
+        return $query->where("instansi_id", $instansiId);
     }
 
     /**
@@ -178,6 +219,6 @@ class PerformanceIndicator extends Model
      */
     public function getWeightPercentageAttribute()
     {
-        return number_format($this->weight, 2) . '%';
+        return number_format($this->weight, 2) . "%";
     }
 }

@@ -19,16 +19,26 @@ class ProgramPolicy
 
     public function create(User $user): bool
     {
-        return $user->hasAnyRole(['superadmin', 'executive']) || $user->isAdmin();
+        return $user->hasAnyRole([
+            "Super Admin",
+            "Executive",
+            "Government Official",
+            "Assessor",
+        ]);
     }
 
     public function update(User $user, Program $program): bool
     {
-        return $user->hasAnyRole(['superadmin', 'executive']) || $user->isAdmin();
+        return $user->hasAnyRole([
+            "Super Admin",
+            "Executive",
+            "Government Official",
+            "Assessor",
+        ]);
     }
 
     public function delete(User $user, Program $program): bool
     {
-        return $user->hasRole('superadmin') || $user->isAdmin();
+        return $user->hasAnyRole(["Super Admin", "Executive"]);
     }
 }

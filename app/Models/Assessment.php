@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * Assessment Model
- * 
+ *
  * Represents performance assessments and evaluations.
  * Stores overall scores, comments, and approval status for performance data.
  */
@@ -21,7 +21,7 @@ class Assessment extends Model
      *
      * @var string
      */
-    protected $table = 'assessments';
+    protected $table = "assessments";
 
     /**
      * The attributes that are mass assignable.
@@ -29,17 +29,25 @@ class Assessment extends Model
      * @var array<string>
      */
     protected $fillable = [
-        'performance_data_id',
-        'assessed_by',
-        'overall_score',
-        'comments',
-        'recommendations',
-        'status',
-        'assessed_at',
-        'approved_at',
-        'metadata',
-        'created_by',
-        'updated_by'
+        "performance_data_id",
+        "overall_score",
+        "comments",
+        "recommendations",
+        "status",
+        "assessed_at",
+        "approved_at",
+        "metadata",
+    ];
+
+    // Protected fields - set automatically
+    protected $guarded = [
+        "id",
+        "assessed_by",
+        "created_by",
+        "updated_by",
+        "created_at",
+        "updated_at",
+        "deleted_at",
     ];
 
     /**
@@ -48,16 +56,16 @@ class Assessment extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'assessed_by' => 'string',
-        'created_by' => 'string',
-        'updated_by' => 'string',
-        'overall_score' => 'decimal:2',
-        'assessed_at' => 'datetime',
-        'approved_at' => 'datetime',
-        'metadata' => 'array',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
-        'deleted_at' => 'datetime'
+        "assessed_by" => "string",
+        "created_by" => "string",
+        "updated_by" => "string",
+        "overall_score" => "decimal:2",
+        "assessed_at" => "datetime",
+        "approved_at" => "datetime",
+        "metadata" => "array",
+        "created_at" => "datetime",
+        "updated_at" => "datetime",
+        "deleted_at" => "datetime",
     ];
 
     /**
@@ -69,11 +77,34 @@ class Assessment extends Model
     }
 
     /**
+     * Get the performance indicator through performance data.
+     */
+    public function indicator()
+    {
+        return $this->hasOneThrough(
+            PerformanceIndicator::class,
+            PerformanceData::class,
+            "id", // Foreign key on performance_data table
+            "id", // Foreign key on performance_indicators table
+            "performance_data_id", // Local key on assessments table
+            "performance_indicator_id", // Local key on performance_data table
+        );
+    }
+
+    /**
      * Get the user who assessed the performance.
      */
     public function assessor()
     {
-        return $this->belongsTo(User::class, 'assessed_by');
+        return $this->belongsTo(User::class, "assessed_by");
+    }
+
+    /**
+     * Get the user who reviewed the assessment (alias for assessor).
+     */
+    public function reviewer()
+    {
+        return $this->assessor();
     }
 
     /**
@@ -81,7 +112,7 @@ class Assessment extends Model
      */
     public function creator()
     {
-        return $this->belongsTo(User::class, 'created_by');
+        return $this->belongsTo(User::class, "created_by");
     }
 
     /**
@@ -89,7 +120,7 @@ class Assessment extends Model
      */
     public function updater()
     {
-        return $this->belongsTo(User::class, 'updated_by');
+        return $this->belongsTo(User::class, "updated_by");
     }
 
     /**
@@ -105,7 +136,7 @@ class Assessment extends Model
      */
     public function scopeByStatus($query, string $status)
     {
-        return $query->where('status', $status);
+        return $query->where("status", $status);
     }
 
     /**
@@ -113,7 +144,7 @@ class Assessment extends Model
      */
     public function scopeByAssessor($query, int $assessorId)
     {
-        return $query->where('assessed_by', $assessorId);
+        return $query->where("assessed_by", $assessorId);
     }
 
     /**
@@ -121,7 +152,7 @@ class Assessment extends Model
      */
     public function scopePending($query)
     {
-        return $query->where('status', 'pending');
+        return $query->where("status", "pending");
     }
 
     /**
@@ -129,7 +160,7 @@ class Assessment extends Model
      */
     public function scopeCompleted($query)
     {
-        return $query->where('status', 'completed');
+        return $query->where("status", "completed");
     }
 
     /**
@@ -137,7 +168,7 @@ class Assessment extends Model
      */
     public function scopeApproved($query)
     {
-        return $query->where('status', 'approved');
+        return $query->where("status", "approved");
     }
 
     /**
@@ -145,7 +176,7 @@ class Assessment extends Model
      */
     public function isPending()
     {
-        return $this->status === 'pending';
+        return $this->status === "pending";
     }
 
     /**
@@ -153,7 +184,7 @@ class Assessment extends Model
      */
     public function isCompleted()
     {
-        return $this->status === 'completed';
+        return $this->status === "completed";
     }
 
     /**
@@ -161,7 +192,7 @@ class Assessment extends Model
      */
     public function isApproved()
     {
-        return $this->status === 'approved';
+        return $this->status === "approved";
     }
 
     /**
@@ -174,15 +205,15 @@ class Assessment extends Model
         }
 
         if ($this->overall_score >= 90) {
-            return 'A';
+            return "A";
         } elseif ($this->overall_score >= 80) {
-            return 'B';
+            return "B";
         } elseif ($this->overall_score >= 70) {
-            return 'C';
+            return "C";
         } elseif ($this->overall_score >= 60) {
-            return 'D';
+            return "D";
         } else {
-            return 'E';
+            return "E";
         }
     }
 
@@ -196,15 +227,15 @@ class Assessment extends Model
         }
 
         if ($this->overall_score >= 90) {
-            return 'Excellent';
+            return "Excellent";
         } elseif ($this->overall_score >= 80) {
-            return 'Good';
+            return "Good";
         } elseif ($this->overall_score >= 70) {
-            return 'Satisfactory';
+            return "Satisfactory";
         } elseif ($this->overall_score >= 60) {
-            return 'Needs Improvement';
+            return "Needs Improvement";
         } else {
-            return 'Poor';
+            return "Poor";
         }
     }
 
@@ -214,8 +245,8 @@ class Assessment extends Model
     public function complete()
     {
         $this->update([
-            'status' => 'completed',
-            'assessed_at' => now()
+            "status" => "completed",
+            "assessed_at" => now(),
         ]);
     }
 
@@ -225,8 +256,8 @@ class Assessment extends Model
     public function approve()
     {
         $this->update([
-            'status' => 'approved',
-            'approved_at' => now()
+            "status" => "approved",
+            "approved_at" => now(),
         ]);
     }
 
@@ -236,7 +267,7 @@ class Assessment extends Model
     public function reject()
     {
         $this->update([
-            'status' => 'rejected'
+            "status" => "rejected",
         ]);
     }
 
@@ -258,19 +289,25 @@ class Assessment extends Model
             $totalWeight += $criterion->weight;
         }
 
-        return $totalWeight > 0 ? round($totalWeightedScore / $totalWeight, 2) : null;
+        return $totalWeight > 0
+            ? round($totalWeightedScore / $totalWeight, 2)
+            : null;
     }
 
     /**
      * Add assessment criterion.
      */
-    public function addCriterion($name, $score, $weight = 1.0, $justification = null)
-    {
+    public function addCriterion(
+        $name,
+        $score,
+        $weight = 1.0,
+        $justification = null,
+    ) {
         return $this->assessmentCriteria()->create([
-            'criteria_name' => $name,
-            'score' => $score,
-            'weight' => $weight,
-            'justification' => $justification
+            "criteria_name" => $name,
+            "score" => $score,
+            "weight" => $weight,
+            "justification" => $justification,
         ]);
     }
 }
