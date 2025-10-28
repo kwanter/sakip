@@ -33,9 +33,6 @@
                             <button type="submit" class="btn btn-primary">Masuk</button>
                         </div>
                     </form>
-                    <div class="mt-3">
-                        <small>Gunakan akun seed: <code>test@example.com</code> / <code>password</code></small>
-                    </div>
                 </div>
             </div>
         </div>

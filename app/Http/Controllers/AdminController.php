@@ -405,13 +405,15 @@ class AdminController extends Controller
     // Helper methods for database backup
     private function backupMySQL($config, $backupPath, $filename)
     {
-        $host = $config["host"];
-        $port = $config["port"];
-        $database = $config["database"];
-        $username = $config["username"];
-        $password = $config["password"];
+        $host = escapeshellarg($config["host"]);
+        $port = escapeshellarg($config["port"]);
+        $database = escapeshellarg($config["database"]);
+        $username = escapeshellarg($config["username"]);
+        $password = !empty($config["password"])
+            ? escapeshellarg($config["password"])
+            : null;
 
-        $backupFile = $backupPath . "/" . $filename . ".sql";
+        $backupFile = escapeshellarg($backupPath . "/" . $filename . ".sql");
 
         $command = "mysqldump --host={$host} --port={$port} --user={$username}";
         if ($password) {
@@ -422,44 +424,54 @@ class AdminController extends Controller
         exec($command, $output, $returnCode);
         if ($returnCode !== 0) {
             throw new \Exception(
-                "Failed to run mysqldump. Ensure mysqldump is installed.",
+                "Failed to run mysqldump. Ensure mysqldump is installed and credentials are correct.",
             );
         }
 
+        $actualBackupFile = $backupPath . "/" . $filename . ".sql";
         return [
             "filename" => $filename . ".sql",
-            "path" => $backupFile,
-            "size" => $this->formatBytes(filesize($backupFile)),
+            "path" => $actualBackupFile,
+            "size" => $this->formatBytes(filesize($actualBackupFile)),
         ];
     }
 
     private function backupPostgreSQL($config, $backupPath, $filename)
     {
-        $host = $config["host"];
-        $port = $config["port"];
-        $database = $config["database"];
-        $username = $config["username"];
+        $host = escapeshellarg($config["host"]);
+        $port = escapeshellarg($config["port"]);
+        $database = escapeshellarg($config["database"]);
+        $username = escapeshellarg($config["username"]);
         $password = $config["password"];
 
-        $backupFile = $backupPath . "/" . $filename . ".sql";
+        $backupFile = escapeshellarg($backupPath . "/" . $filename . ".sql");
 
-        if ($password) {
-            putenv("PGPASSWORD={$password}");
+        if (!empty($password)) {
+            // Sanitize password for environment variable
+            $sanitizedPassword = addslashes($password);
+            putenv("PGPASSWORD={$sanitizedPassword}");
         }
 
         $command = "pg_dump --host={$host} --port={$port} --username={$username} --format=plain --no-owner --no-acl {$database} > {$backupFile}";
 
         exec($command, $output, $returnCode);
+
+        // Clear the password from environment
+        if (!empty($password)) {
+            putenv("PGPASSWORD");
+        }
+
         if ($returnCode !== 0) {
             throw new \Exception(
-                "Failed to run pg_dump. Ensure PostgreSQL client is installed.",
+                "Failed to run pg_dump. Ensure PostgreSQL client is installed and credentials are correct.",
             );
         }
 
+        $actualBackupFile = $backupPath . "/" . $filename . ".sql";
         return [
             "filename" => $filename . ".sql",
-            "path" => $backupFile,
-            "size" => $this->formatBytes(filesize($backupFile)),
+            "path" => $actualBackupFile,
+            "size" => $this->formatBytes(filesize($actualBackupFile)),
         ];
     }
 
@@ -484,19 +496,20 @@ class AdminController extends Controller
 
     private function backupSQLServer($config, $backupPath, $filename)
     {
-        $host = $config["host"];
-        $database = $config["database"];
-        $username = $config["username"];
-        $password = $config["password"];
+        $host = escapeshellarg($config["host"]);
+        $database = escapeshellarg($config["database"]);
+        $username = escapeshellarg($config["username"]);
+        $password = escapeshellarg($config["password"]);
 
         $backupFile = $backupPath . "/" . $filename . ".bak";
+        $escapedBackupFile = escapeshellarg($backupFile);
 
-        $command = "sqlcmd -S {$host} -U {$username} -P {$password} -Q \"BACKUP DATABASE [{$database}] TO DISK = '{$backupFile}'\"";
+        $command = "sqlcmd -S {$host} -U {$username} -P {$password} -Q \"BACKUP DATABASE [{$database}] TO DISK = '{$escapedBackupFile}'\"";
 
         exec($command, $output, $returnCode);
         if ($returnCode !== 0) {
             throw new \Exception(
-                "Failed to run SQL Server backup. Ensure sqlcmd is installed.",
+                "Failed to run SQL Server backup. Ensure sqlcmd is installed and credentials are correct.",
             );
         }
 

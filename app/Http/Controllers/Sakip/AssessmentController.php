@@ -13,6 +13,7 @@ use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
 
@@ -143,7 +144,7 @@ class AssessmentController extends Controller
                 ),
             );
         } catch (\Exception $e) {
-            \Log::error("Assessment index error: " . $e->getMessage());
+            Log::error("Assessment index error: " . $e->getMessage());
             return back()->with(
                 "error",
                 "Terjadi kesalahan saat memuat halaman penilaian.",
@@ -204,7 +205,7 @@ class AssessmentController extends Controller
                 ),
             );
         } catch (\Exception $e) {
-            \Log::error("Assessment create form error: " . $e->getMessage());
+            Log::error("Assessment create form error: " . $e->getMessage());
             return back()->with(
                 "error",
                 "Terjadi kesalahan saat memuat formulir penilaian.",
@@ -324,7 +325,7 @@ class AssessmentController extends Controller
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error("Store assessment error: " . $e->getMessage());
+            Log::error("Store assessment error: " . $e->getMessage());
             return response()->json(
                 [
                     "success" => false,
@@ -387,7 +388,7 @@ class AssessmentController extends Controller
                 ),
             );
         } catch (\Exception $e) {
-            \Log::error("Show assessment error: " . $e->getMessage());
+            Log::error("Show assessment error: " . $e->getMessage());
             return back()->with(
                 "error",
                 "Terjadi kesalahan saat memuat detail penilaian.",
@@ -427,7 +428,7 @@ class AssessmentController extends Controller
                 compact("assessment", "criteria"),
             );
         } catch (\Exception $e) {
-            \Log::error("Edit assessment error: " . $e->getMessage());
+            Log::error("Edit assessment error: " . $e->getMessage());
             return back()->with(
                 "error",
                 "Terjadi kesalahan saat memuat formulir edit penilaian.",
@@ -536,7 +537,7 @@ class AssessmentController extends Controller
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error("Update assessment error: " . $e->getMessage());
+            Log::error("Update assessment error: " . $e->getMessage());
             return response()->json(
                 [
                     "success" => false,
@@ -599,7 +600,7 @@ class AssessmentController extends Controller
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error(
+            Log::error(
                 "Submit assessment for review error: " . $e->getMessage(),
             );
             return response()->json(
@@ -699,7 +700,7 @@ class AssessmentController extends Controller
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error("Review assessment error: " . $e->getMessage());
+            Log::error("Review assessment error: " . $e->getMessage());
             return response()->json(
                 [
                     "success" => false,
@@ -765,7 +766,7 @@ class AssessmentController extends Controller
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error("Delete assessment error: " . $e->getMessage());
+            Log::error("Delete assessment error: " . $e->getMessage());
             return response()->json(
                 [
                     "success" => false,
@@ -794,7 +795,7 @@ class AssessmentController extends Controller
                 "data" => $statistics,
             ]);
         } catch (\Exception $e) {
-            \Log::error("Get assessment statistics error: " . $e->getMessage());
+            Log::error("Get assessment statistics error: " . $e->getMessage());
             return response()->json(
                 [
                     "success" => false,
@@ -918,17 +919,50 @@ class AssessmentController extends Controller
     private function deleteEvidenceDocument($document)
     {
         try {
-            // Delete physical file
+            // Validate and sanitize file path to prevent path traversal attacks
+            $filePath = $document->file_path;
+
+            // Remove any path traversal attempts
+            $filePath = str_replace(["../", "..\\", "./"], "", $filePath);
+
+            // Ensure the file path doesn't start with a slash (absolute path)
+            $filePath = ltrim($filePath, "/\\");
+
+            // Construct the full path
+            $fullPath = storage_path("app/public/" . $filePath);
+
+            // Verify the resolved path is still within the storage directory
+            $storagePath = realpath(storage_path("app/public"));
+            $resolvedPath = realpath(dirname($fullPath));
+
             if (
-                file_exists(storage_path("app/public/" . $document->file_path))
+                $resolvedPath === false ||
+                strpos($resolvedPath, $storagePath) !== 0
             ) {
-                unlink(storage_path("app/public/" . $document->file_path));
+                Log::warning(
+                    "Attempted path traversal detected: " .
+                        $document->file_path,
+                );
+                throw new \Exception("Invalid file path detected.");
+            }
+
+            // Delete physical file if it exists
+            if (file_exists($fullPath) && is_file($fullPath)) {
+                if (!unlink($fullPath)) {
+                    throw new \Exception("Failed to delete file: " . $filePath);
+                }
             }
 
             // Delete database record
             $document->delete();
+
+            return true;
         } catch (\Exception $e) {
-            \Log::error("Delete evidence document error: " . $e->getMessage());
+            Log::error("Delete evidence document error: " . $e->getMessage(), [
+                "document_id" => $document->id ?? null,
+                "file_path" => $document->file_path ?? null,
+            ]);
+            throw $e;
         }
     }
 }

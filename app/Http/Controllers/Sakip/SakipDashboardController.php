@@ -17,6 +17,7 @@ use App\Services\DataValidationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
 /**
@@ -83,7 +84,7 @@ class SakipDashboardController extends Controller
                 ),
             );
         } catch (\Exception $e) {
-            \Log::error("SAKIP Dashboard error: " . $e->getMessage());
+            Log::error("SAKIP Dashboard error: " . $e->getMessage());
             return back()->with(
                 "error",
                 "Terjadi kesalahan saat memuat dashboard SAKIP.",
@@ -384,7 +385,7 @@ class SakipDashboardController extends Controller
                 "year" => $year,
             ]);
         } catch (\Exception $e) {
-            \Log::error("Dashboard data error: " . $e->getMessage());
+            Log::error("Dashboard data error: " . $e->getMessage());
             return response()->json(
                 [
                     "success" => false,
@@ -432,7 +433,7 @@ class SakipDashboardController extends Controller
                 "data" => $trends,
             ]);
         } catch (\Exception $e) {
-            \Log::error("Performance trends error: " . $e->getMessage());
+            Log::error("Performance trends error: " . $e->getMessage());
             return response()->json(
                 [
                     "success" => false,
@@ -506,7 +507,7 @@ class SakipDashboardController extends Controller
 
             return $alerts;
         } catch (\Exception $e) {
-            \Log::error("Alerts generation error: " . $e->getMessage());
+            Log::error("Alerts generation error: " . $e->getMessage());
             return [];
         }
     }
@@ -553,7 +554,7 @@ class SakipDashboardController extends Controller
 
             return $actions;
         } catch (\Exception $e) {
-            \Log::error("Quick actions error: " . $e->getMessage());
+            Log::error("Quick actions error: " . $e->getMessage());
             return [];
         }
     }

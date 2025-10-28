@@ -1,14 +1,12 @@
-@extends('layouts.app')
+<?php $__env->startSection('title', 'Buat Laporan SAKIP'); ?>
 
-@section('title', 'Buat Laporan SAKIP')
-
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="py-6">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <!-- Page Header -->
         <div class="mb-8">
             <div class="flex items-center">
-                <a href="{{ route('sakip.reports.index') }}" class="text-gray-500 hover:text-gray-700">
+                <a href="<?php echo e(route('sakip.reports.index')); ?>" class="text-gray-500 hover:text-gray-700">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
                     </svg>
@@ -19,8 +17,8 @@
         </div>
 
         <!-- Report Form -->
-        <form action="{{ route('sakip.reports.store') }}" method="POST" class="space-y-6">
-            @csrf
+        <form action="<?php echo e(route('sakip.reports.store')); ?>" method="POST" class="space-y-6">
+            <?php echo csrf_field(); ?>
 
             <!-- Basic Information -->
             <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
@@ -30,9 +28,16 @@
                     <div>
                         <label for="title" class="block text-sm font-medium text-gray-700 mb-2">Judul Laporan *</label>
                         <input type="text" name="title" id="title" required class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="Masukkan judul laporan">
-                        @error('title')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
+                        <?php $__errorArgs = ['title'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                            <p class="mt-1 text-sm text-red-600"><?php echo e($message); ?></p>
+                        <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                     </div>
 
                     <div>
@@ -45,9 +50,16 @@
                             <option value="annual">Laporan Tahunan</option>
                             <option value="custom">Laporan Custom</option>
                         </select>
-                        @error('report_type')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
+                        <?php $__errorArgs = ['report_type'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                            <p class="mt-1 text-sm text-red-600"><?php echo e($message); ?></p>
+                        <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                     </div>
 
                     <div>
@@ -59,35 +71,56 @@
                             <option value="compliance">Laporan Kepatuhan</option>
                             <option value="summary">Laporan Ringkasan</option>
                         </select>
-                        @error('category')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
+                        <?php $__errorArgs = ['category'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                            <p class="mt-1 text-sm text-red-600"><?php echo e($message); ?></p>
+                        <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                     </div>
 
                     <div>
                         <label for="period" class="block text-sm font-medium text-gray-700 mb-2">Periode *</label>
                         <select name="period" id="period" required class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
                             <option value="">Pilih Periode</option>
-                            @foreach($availablePeriods as $availablePeriod)
-                                <option value="{{ $availablePeriod['value'] }}">{{ $availablePeriod['label'] }}</option>
-                            @endforeach
+                            <?php $__currentLoopData = $availablePeriods; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $availablePeriod): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <option value="<?php echo e($availablePeriod['value']); ?>"><?php echo e($availablePeriod['label']); ?></option>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </select>
-                        @error('period')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
+                        <?php $__errorArgs = ['period'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                            <p class="mt-1 text-sm text-red-600"><?php echo e($message); ?></p>
+                        <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                     </div>
 
                     <div>
                         <label for="template_id" class="block text-sm font-medium text-gray-700 mb-2">Template Laporan</label>
                         <select name="template_id" id="template_id" class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
                             <option value="">Pilih Template (Opsional)</option>
-                            @foreach($templates as $template)
-                                <option value="{{ $template->id }}">{{ $template->name }}</option>
-                            @endforeach
+                            <?php $__currentLoopData = $templates; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $template): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <option value="<?php echo e($template->id); ?>"><?php echo e($template->name); ?></option>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </select>
-                        @error('template_id')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
+                        <?php $__errorArgs = ['template_id'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                            <p class="mt-1 text-sm text-red-600"><?php echo e($message); ?></p>
+                        <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                     </div>
                 </div>
             </div>
@@ -100,24 +133,31 @@
                     <p class="text-sm text-gray-600">Pilih indikator kinerja yang akan dimasukkan dalam laporan (minimal 1)</p>
 
                     <div class="max-h-64 overflow-y-auto border border-gray-200 rounded-md p-4">
-                        @if($indicators->isEmpty())
+                        <?php if($indicators->isEmpty()): ?>
                             <p class="text-sm text-gray-500 italic">Tidak ada indikator kinerja tersedia</p>
-                        @else
-                            @foreach($indicators as $indicator)
+                        <?php else: ?>
+                            <?php $__currentLoopData = $indicators; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $indicator): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <div class="flex items-start mb-3">
-                                    <input type="checkbox" name="indicators[]" value="{{ $indicator->id }}" id="indicator_{{ $indicator->id }}" class="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
-                                    <label for="indicator_{{ $indicator->id }}" class="ml-3 text-sm">
-                                        <span class="font-medium text-gray-900">{{ $indicator->code }}</span> -
-                                        <span class="text-gray-700">{{ $indicator->name }}</span>
+                                    <input type="checkbox" name="indicators[]" value="<?php echo e($indicator->id); ?>" id="indicator_<?php echo e($indicator->id); ?>" class="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                    <label for="indicator_<?php echo e($indicator->id); ?>" class="ml-3 text-sm">
+                                        <span class="font-medium text-gray-900"><?php echo e($indicator->code); ?></span> -
+                                        <span class="text-gray-700"><?php echo e($indicator->name); ?></span>
                                     </label>
                                 </div>
-                            @endforeach
-                        @endif
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                        <?php endif; ?>
                     </div>
 
-                    @error('indicators')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                    @enderror
+                    <?php $__errorArgs = ['indicators'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                        <p class="mt-1 text-sm text-red-600"><?php echo e($message); ?></p>
+                    <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                 </div>
             </div>
 
@@ -129,9 +169,16 @@
                     <div>
                         <label for="description" class="block text-sm font-medium text-gray-700 mb-2">Deskripsi Laporan</label>
                         <textarea name="description" id="description" rows="3" class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="Masukkan deskripsi laporan (opsional)"></textarea>
-                        @error('description')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
+                        <?php $__errorArgs = ['description'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                            <p class="mt-1 text-sm text-red-600"><?php echo e($message); ?></p>
+                        <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -159,16 +206,23 @@
                             <option value="excel">Excel</option>
                             <option value="word">Word</option>
                         </select>
-                        @error('format')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
+                        <?php $__errorArgs = ['format'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                            <p class="mt-1 text-sm text-red-600"><?php echo e($message); ?></p>
+                        <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                     </div>
                 </div>
             </div>
 
             <!-- Form Actions -->
             <div class="flex items-center justify-between">
-                <a href="{{ route('sakip.reports.index') }}" class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-50 transition-colors">
+                <a href="<?php echo e(route('sakip.reports.index')); ?>" class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-50 transition-colors">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
@@ -223,9 +277,9 @@
         </div>
     </div>
 </div>
-@stop
+<?php $__env->stopSection(); ?>
 
-@section('scripts')
+<?php $__env->startSection('scripts'); ?>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const previewBtn = document.getElementById('preview-btn');
@@ -301,4 +355,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
-@stop
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH /Users/macbook/Developer/php/sakip/resources/views/sakip/reports/create.blade.php ENDPATH**/ ?>

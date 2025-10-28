@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * Report Model
- * 
+ *
  * Represents generated performance reports for SAKIP compliance.
  * Stores report metadata, file paths, and submission status.
  */
@@ -21,7 +21,7 @@ class Report extends Model
      *
      * @var string
      */
-    protected $table = 'reports';
+    protected $table = "reports";
 
     /**
      * The attributes that are mass assignable.
@@ -29,18 +29,18 @@ class Report extends Model
      * @var array<string>
      */
     protected $fillable = [
-        'instansi_id',
-        'generated_by',
-        'report_type',
-        'period',
-        'file_path',
-        'parameters',
-        'status',
-        'generated_at',
-        'submitted_at',
-        'metadata',
-        'created_by',
-        'updated_by'
+        "instansi_id",
+        "generated_by",
+        "report_type",
+        "period",
+        "file_path",
+        "parameters",
+        "status",
+        "generated_at",
+        "submitted_at",
+        "metadata",
+        "created_by",
+        "updated_by",
     ];
 
     /**
@@ -49,17 +49,17 @@ class Report extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'instansi_id' => 'string',
-        'generated_by' => 'string',
-        'created_by' => 'string',
-        'updated_by' => 'string',
-        'parameters' => 'array',
-        'generated_at' => 'datetime',
-        'submitted_at' => 'datetime',
-        'metadata' => 'array',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
-        'deleted_at' => 'datetime'
+        "instansi_id" => "string",
+        "generated_by" => "string",
+        "created_by" => "string",
+        "updated_by" => "string",
+        "parameters" => "array",
+        "generated_at" => "datetime",
+        "submitted_at" => "datetime",
+        "metadata" => "array",
+        "created_at" => "datetime",
+        "updated_at" => "datetime",
+        "deleted_at" => "datetime",
     ];
 
     /**
@@ -75,7 +75,7 @@ class Report extends Model
      */
     public function generator()
     {
-        return $this->belongsTo(User::class, 'generated_by');
+        return $this->belongsTo(User::class, "generated_by");
     }
 
     /**
@@ -83,7 +83,7 @@ class Report extends Model
      */
     public function creator()
     {
-        return $this->belongsTo(User::class, 'created_by');
+        return $this->belongsTo(User::class, "created_by");
     }
 
     /**
@@ -91,7 +91,28 @@ class Report extends Model
      */
     public function updater()
     {
-        return $this->belongsTo(User::class, 'updated_by');
+        return $this->belongsTo(User::class, "updated_by");
+    }
+
+    /**
+     * Get the user who approved the report.
+     */
+    public function approver()
+    {
+        return $this->belongsTo(User::class, "approver_id");
+    }
+
+    /**
+     * Get the performance indicators associated with this report.
+     */
+    public function indicators()
+    {
+        return $this->belongsToMany(
+            PerformanceIndicator::class,
+            "indicator_report",
+            "report_id",
+            "indicator_id",
+        )->withTimestamps();
     }
 
     /**
@@ -99,7 +120,7 @@ class Report extends Model
      */
     public function scopeByType($query, string $type)
     {
-        return $query->where('report_type', $type);
+        return $query->where("report_type", $type);
     }
 
     /**
@@ -107,7 +128,7 @@ class Report extends Model
      */
     public function scopeByStatus($query, string $status)
     {
-        return $query->where('status', $status);
+        return $query->where("status", $status);
     }
 
     /**
@@ -115,7 +136,7 @@ class Report extends Model
      */
     public function scopeForInstansi($query, int $instansiId)
     {
-        return $query->where('instansi_id', $instansiId);
+        return $query->where("instansi_id", $instansiId);
     }
 
     /**
@@ -123,7 +144,7 @@ class Report extends Model
      */
     public function scopeForPeriod($query, string $period)
     {
-        return $query->where('period', $period);
+        return $query->where("period", $period);
     }
 
     /**
@@ -131,7 +152,7 @@ class Report extends Model
      */
     public function scopeGeneratedBy($query, int $userId)
     {
-        return $query->where('generated_by', $userId);
+        return $query->where("generated_by", $userId);
     }
 
     /**
@@ -139,7 +160,7 @@ class Report extends Model
      */
     public function scopeCompleted($query)
     {
-        return $query->where('status', 'completed');
+        return $query->where("status", "completed");
     }
 
     /**
@@ -147,7 +168,7 @@ class Report extends Model
      */
     public function scopeSubmitted($query)
     {
-        return $query->where('status', 'submitted');
+        return $query->where("status", "submitted");
     }
 
     /**
@@ -155,7 +176,7 @@ class Report extends Model
      */
     public function isCompleted()
     {
-        return $this->status === 'completed';
+        return $this->status === "completed";
     }
 
     /**
@@ -163,7 +184,7 @@ class Report extends Model
      */
     public function isSubmitted()
     {
-        return $this->status === 'submitted';
+        return $this->status === "submitted";
     }
 
     /**
@@ -171,7 +192,7 @@ class Report extends Model
      */
     public function isGenerating()
     {
-        return $this->status === 'generating';
+        return $this->status === "generating";
     }
 
     /**
@@ -179,7 +200,7 @@ class Report extends Model
      */
     public function isFailed()
     {
-        return $this->status === 'failed';
+        return $this->status === "failed";
     }
 
     /**
@@ -187,7 +208,7 @@ class Report extends Model
      */
     public function getFileUrlAttribute()
     {
-        return $this->file_path ? asset('storage/' . $this->file_path) : null;
+        return $this->file_path ? asset("storage/" . $this->file_path) : null;
     }
 
     /**
@@ -203,12 +224,12 @@ class Report extends Model
      */
     public function getPeriodDisplayAttribute()
     {
-        if (in_array($this->report_type, ['monthly', 'quarterly'])) {
-            return date('F Y', strtotime($this->period . '-01'));
-        } elseif ($this->report_type === 'annual') {
-            return date('Y', strtotime($this->period . '-01-01'));
+        if (in_array($this->report_type, ["monthly", "quarterly"])) {
+            return date("F Y", strtotime($this->period . "-01"));
+        } elseif ($this->report_type === "annual") {
+            return date("Y", strtotime($this->period . "-01-01"));
         }
-        
+
         return $this->period;
     }
 
@@ -218,10 +239,10 @@ class Report extends Model
     public function getTypeDisplayAttribute()
     {
         $types = [
-            'monthly' => 'Monthly',
-            'quarterly' => 'Quarterly',
-            'annual' => 'Annual',
-            'custom' => 'Custom'
+            "monthly" => "Monthly",
+            "quarterly" => "Quarterly",
+            "annual" => "Annual",
+            "custom" => "Custom",
         ];
 
         return $types[$this->report_type] ?? ucfirst($this->report_type);
@@ -233,10 +254,10 @@ class Report extends Model
     public function getStatusDisplayAttribute()
     {
         $statuses = [
-            'generating' => 'Generating',
-            'completed' => 'Completed',
-            'failed' => 'Failed',
-            'submitted' => 'Submitted'
+            "generating" => "Generating",
+            "completed" => "Completed",
+            "failed" => "Failed",
+            "submitted" => "Submitted",
         ];
 
         return $statuses[$this->status] ?? ucfirst($this->status);
@@ -248,9 +269,9 @@ class Report extends Model
     public function markAsCompleted($filePath = null)
     {
         $this->update([
-            'status' => 'completed',
-            'file_path' => $filePath ?? $this->file_path,
-            'generated_at' => now()
+            "status" => "completed",
+            "file_path" => $filePath ?? $this->file_path,
+            "generated_at" => now(),
         ]);
     }
 
@@ -260,7 +281,7 @@ class Report extends Model
     public function markAsFailed()
     {
         $this->update([
-            'status' => 'failed'
+            "status" => "failed",
         ]);
     }
 
@@ -270,8 +291,8 @@ class Report extends Model
     public function submit()
     {
         $this->update([
-            'status' => 'submitted',
-            'submitted_at' => now()
+            "status" => "submitted",
+            "submitted_at" => now(),
         ]);
     }
 
@@ -280,9 +301,12 @@ class Report extends Model
      */
     public function deleteFile()
     {
-        if ($this->file_path && file_exists(storage_path('app/public/' . $this->file_path))) {
-            unlink(storage_path('app/public/' . $this->file_path));
-            $this->update(['file_path' => null]);
+        if (
+            $this->file_path &&
+            file_exists(storage_path("app/public/" . $this->file_path))
+        ) {
+            unlink(storage_path("app/public/" . $this->file_path));
+            $this->update(["file_path" => null]);
         }
     }
 

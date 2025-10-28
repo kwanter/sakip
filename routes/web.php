@@ -75,7 +75,7 @@ Route::middleware("auth")->group(function () {
         \App\Http\Controllers\Auth\EmailVerificationController::class,
         "resend",
     ])
-        ->middleware("throttle:6,1")
+        ->middleware("throttle:email_verification")
         ->name("verification.resend");
 });
 

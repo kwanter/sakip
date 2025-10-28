@@ -7,6 +7,7 @@ use App\Models\Instansi;
 use App\Models\Role;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class UserSeeder extends Seeder
 {
@@ -21,9 +22,29 @@ class UserSeeder extends Seeder
      * - Executive (high-level reporting and analytics)
      * - Collector (field data collection)
      * - Government Official (official reports and compliance)
+     *
+     * SECURITY NOTE: In production, this seeder will NOT create default users
+     * with weak passwords. You must create users manually or via admin panel.
      */
     public function run(): void
     {
+        // CRITICAL: Do not seed test users in production
+        if (app()->environment("production")) {
+            $this->command->error(
+                "❌ SECURITY: User seeding is disabled in production.",
+            );
+            $this->command->error(
+                "   Create users manually via admin panel with strong passwords.",
+            );
+            return;
+        }
+
+        $this->command->warn(
+            "⚠️  WARNING: Creating test users with default passwords.",
+        );
+        $this->command->warn(
+            "   This should ONLY be done in development/testing environments.",
+        );
         // Get first instansi for assignment, or create a default one
         $instansi = Instansi::first();
 
@@ -39,55 +60,58 @@ class UserSeeder extends Seeder
             ]);
         }
 
+        // Generate secure random passwords for non-production environments
+        $securePassword = Str::random(16);
+
         // Define users for each role
         $users = [
             [
                 "role" => "Super Admin",
                 "name" => "Super Administrator",
-                "email" => "superadmin@sakip.go.id",
-                "password" => "password123",
+                "email" => "superadmin@sakip.local",
+                "password" => $securePassword,
                 "instansi_id" => null, // Super admin has access to all instansis
             ],
             [
                 "role" => "Assessor",
                 "name" => "Asesor SAKIP",
-                "email" => "assessor@sakip.go.id",
-                "password" => "password123",
+                "email" => "assessor@sakip.local",
+                "password" => $securePassword,
                 "instansi_id" => $instansi->id,
             ],
             [
                 "role" => "Data Collector",
                 "name" => "Pengumpul Data",
-                "email" => "datacollector@sakip.go.id",
-                "password" => "password123",
+                "email" => "datacollector@sakip.local",
+                "password" => $securePassword,
                 "instansi_id" => $instansi->id,
             ],
             [
                 "role" => "Auditor",
                 "name" => "Auditor Internal",
-                "email" => "auditor@sakip.go.id",
-                "password" => "password123",
+                "email" => "auditor@sakip.local",
+                "password" => $securePassword,
                 "instansi_id" => $instansi->id,
             ],
             [
                 "role" => "Executive",
                 "name" => "Pimpinan Eksekutif",
-                "email" => "executive@sakip.go.id",
-                "password" => "password123",
+                "email" => "executive@sakip.local",
+                "password" => $securePassword,
                 "instansi_id" => $instansi->id,
             ],
             [
                 "role" => "Collector",
                 "name" => "Kolektor Lapangan",
-                "email" => "collector@sakip.go.id",
-                "password" => "password123",
+                "email" => "collector@sakip.local",
+                "password" => $securePassword,
                 "instansi_id" => $instansi->id,
             ],
             [
                 "role" => "Government Official",
                 "name" => "Pejabat Pemerintah",
-                "email" => "official@sakip.go.id",
-                "password" => "password123",
+                "email" => "official@sakip.local",
+                "password" => $securePassword,
                 "instansi_id" => $instansi->id,
             ],
         ];
@@ -130,10 +154,16 @@ class UserSeeder extends Seeder
         $this->command->info("\n📊 User Seeding Summary:");
         $this->command->info("Total users created: " . User::count());
         $this->command->info("\n🔐 Default Login Credentials:");
+        $this->command->info(
+            "   All users have the same password: {$securePassword}",
+        );
+        $this->command->warn(
+            "\n⚠️  IMPORTANT: Change these passwords immediately!",
+        );
         $this->command->table(
-            ["Role", "Email", "Password"],
+            ["Role", "Email"],
             collect($users)
-                ->map(fn($u) => [$u["role"], $u["email"], $u["password"]])
+                ->map(fn($u) => [$u["role"], $u["email"]])
                 ->toArray(),
         );
     }
