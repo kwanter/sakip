@@ -82,6 +82,48 @@ Route::prefix("sakip")
             "destroy" => "sakip.indicators.destroy",
         ]);
 
+        // Target Management (nested under indicators)
+        Route::prefix("indicators/{indicator}/targets")->group(function () {
+            Route::get("/", [
+                \App\Http\Controllers\Sakip\TargetController::class,
+                "index",
+            ])->name("sakip.targets.index");
+            Route::get("/create", [
+                \App\Http\Controllers\Sakip\TargetController::class,
+                "create",
+            ])->name("sakip.targets.create");
+            Route::post("/", [
+                \App\Http\Controllers\Sakip\TargetController::class,
+                "store",
+            ])->name("sakip.targets.store");
+            Route::get("/{target}/edit", [
+                \App\Http\Controllers\Sakip\TargetController::class,
+                "edit",
+            ])->name("sakip.targets.edit");
+            Route::put("/{target}", [
+                \App\Http\Controllers\Sakip\TargetController::class,
+                "update",
+            ])->name("sakip.targets.update");
+            Route::delete("/{target}", [
+                \App\Http\Controllers\Sakip\TargetController::class,
+                "destroy",
+            ])->name("sakip.targets.destroy");
+
+            // Approval workflow
+            Route::post("/{target}/approve", [
+                \App\Http\Controllers\Sakip\TargetController::class,
+                "approve",
+            ])->name("sakip.targets.approve");
+            Route::post("/{target}/reject", [
+                \App\Http\Controllers\Sakip\TargetController::class,
+                "reject",
+            ])->name("sakip.targets.reject");
+            Route::post("/{target}/revise", [
+                \App\Http\Controllers\Sakip\TargetController::class,
+                "revise",
+            ])->name("sakip.targets.revise");
+        });
+
         // Performance Data
         Route::prefix("performance-data")->group(function () {
             Route::get("/", [DataCollectionController::class, "index"])->name(

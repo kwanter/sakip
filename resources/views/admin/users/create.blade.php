@@ -24,7 +24,7 @@
                         <div class="form-group row">
                             <label for="name" class="col-md-3 col-form-label text-md-right">Name</label>
                             <div class="col-md-9">
-                                <input id="name" type="text" class="form-control @error('name') is-invalid @enderror" 
+                                <input id="name" type="text" class="form-control @error('name') is-invalid @enderror"
                                        name="name" value="{{ old('name') }}" required autofocus>
                                 @error('name')
                                     <span class="invalid-feedback" role="alert">
@@ -37,7 +37,7 @@
                         <div class="form-group row">
                             <label for="email" class="col-md-3 col-form-label text-md-right">Email Address</label>
                             <div class="col-md-9">
-                                <input id="email" type="email" class="form-control @error('email') is-invalid @enderror" 
+                                <input id="email" type="email" class="form-control @error('email') is-invalid @enderror"
                                        name="email" value="{{ old('email') }}" required>
                                 @error('email')
                                     <span class="invalid-feedback" role="alert">
@@ -48,9 +48,32 @@
                         </div>
 
                         <div class="form-group row">
+                            <label for="instansi_id" class="col-md-3 col-form-label text-md-right">Instansi</label>
+                            <div class="col-md-9">
+                                <select id="instansi_id" class="form-control @error('instansi_id') is-invalid @enderror"
+                                        name="instansi_id">
+                                    <option value="">-- Select Instansi (Optional) --</option>
+                                    @foreach($instansis as $instansi)
+                                        <option value="{{ $instansi->id }}" {{ old('instansi_id') == $instansi->id ? 'selected' : '' }}>
+                                            {{ $instansi->nama_instansi }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('instansi_id')
+                                    <span class="invalid-feedback" role="alert">
+                                        <strong>{{ $message }}</strong>
+                                    </span>
+                                @enderror
+                                <small class="form-text text-muted">
+                                    Assign user to a specific institution. Leave empty for system-wide access.
+                                </small>
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
                             <label for="password" class="col-md-3 col-form-label text-md-right">Password</label>
                             <div class="col-md-9">
-                                <input id="password" type="password" class="form-control @error('password') is-invalid @enderror" 
+                                <input id="password" type="password" class="form-control @error('password') is-invalid @enderror"
                                        name="password" required>
                                 @error('password')
                                     <span class="invalid-feedback" role="alert">
@@ -63,7 +86,7 @@
                         <div class="form-group row">
                             <label for="password-confirm" class="col-md-3 col-form-label text-md-right">Confirm Password</label>
                             <div class="col-md-9">
-                                <input id="password-confirm" type="password" class="form-control" 
+                                <input id="password-confirm" type="password" class="form-control"
                                        name="password_confirmation" required>
                             </div>
                         </div>
@@ -73,7 +96,7 @@
                             <div class="col-md-9">
                                 @foreach($roles as $role)
                                 <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" name="roles[]" 
+                                    <input class="form-check-input" type="checkbox" name="roles[]"
                                            id="role_{{ $role->id }}" value="{{ $role->id }}"
                                            {{ in_array($role->id, old('roles', [])) ? 'checked' : '' }}>
                                     <label class="form-check-label" for="role_{{ $role->id }}">

@@ -84,7 +84,8 @@ class AdminController extends Controller
     public function createUser()
     {
         $roles = Role::all();
-        return view("admin.users.create", compact("roles"));
+        $instansis = \App\Models\Instansi::orderBy("nama_instansi")->get();
+        return view("admin.users.create", compact("roles", "instansis"));
     }
 
     public function storeUser(Request $request)
@@ -93,6 +94,7 @@ class AdminController extends Controller
             "name" => "required|string|max:255",
             "email" => "required|string|email|max:255|unique:users",
             "password" => "required|string|min:8|confirmed",
+            "instansi_id" => "nullable|exists:instansis,id",
             "roles" => "array",
             "roles.*" => "exists:roles,id",
         ]);
@@ -109,10 +111,11 @@ class AdminController extends Controller
         $user->load("roles");
         $roles = Role::all();
         $permissions = Permission::all();
+        $instansis = \App\Models\Instansi::orderBy("nama_instansi")->get();
 
         return view(
             "admin.users.edit",
-            compact("user", "roles", "permissions"),
+            compact("user", "roles", "permissions", "instansis"),
         );
     }
 
@@ -129,6 +132,7 @@ class AdminController extends Controller
             ],
             "password" => "nullable|string|min:8|confirmed",
             "email_verified" => "sometimes|accepted",
+            "instansi_id" => "nullable|exists:instansis,id",
         ]);
 
         $this->adminService->updateUser($user, $validated);

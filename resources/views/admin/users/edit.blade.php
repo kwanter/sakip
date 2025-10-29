@@ -42,6 +42,27 @@
                             @enderror
                         </div>
 
+                        <!-- Instansi -->
+                        <div class="form-group">
+                            <label for="instansi_id">Instansi</label>
+                            <select id="instansi_id" class="form-control @error('instansi_id') is-invalid @enderror"
+                                    name="instansi_id">
+                                <option value="">-- Select Instansi (Optional) --</option>
+                                @foreach($instansis as $instansi)
+                                    <option value="{{ $instansi->id }}"
+                                            {{ old('instansi_id', $user->instansi_id) == $instansi->id ? 'selected' : '' }}>
+                                        {{ $instansi->nama_instansi }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('instansi_id')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                            <small class="form-text text-muted">
+                                Assign user to a specific institution. Leave empty for system-wide access.
+                            </small>
+                        </div>
+
                         <!-- Password -->
                         <div class="form-group">
                             <label for="password">New Password (leave blank to keep current)</label>

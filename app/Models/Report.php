@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 /**
  * Report Model
@@ -14,7 +15,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class Report extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, HasUuids, SoftDeletes;
 
     /**
      * The table associated with the model.
@@ -31,6 +32,8 @@ class Report extends Model
     protected $fillable = [
         "instansi_id",
         "generated_by",
+        "approver_id",
+        "template_id",
         "report_type",
         "period",
         "file_path",
@@ -100,6 +103,14 @@ class Report extends Model
     public function approver()
     {
         return $this->belongsTo(User::class, "approver_id");
+    }
+
+    /**
+     * Get the template used for this report.
+     */
+    public function template()
+    {
+        return $this->belongsTo(ReportTemplate::class, "template_id");
     }
 
     /**

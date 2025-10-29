@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 /**
  * PerformanceData Model
@@ -14,7 +15,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class PerformanceData extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, HasUuids, SoftDeletes;
 
     /**
      * The table associated with the model.
@@ -227,6 +228,10 @@ class PerformanceData extends Model
      */
     public function getTarget()
     {
+        if (!$this->performanceIndicator) {
+            return null;
+        }
+
         $year = substr($this->period, 0, 4);
         return $this->performanceIndicator->getTargetForYear((int) $year);
     }
@@ -262,7 +267,7 @@ class PerformanceData extends Model
      */
     public function getFormattedActualValueAttribute()
     {
-        $unit = $this->performanceIndicator->measurement_unit ?? "";
+        $unit = $this->performanceIndicator?->measurement_unit ?? "";
         return number_format($this->actual_value, 2) .
             ($unit ? " " . $unit : "");
     }

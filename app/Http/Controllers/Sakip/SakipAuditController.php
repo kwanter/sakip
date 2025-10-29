@@ -519,6 +519,49 @@ class SakipAuditController extends Controller
     }
 
     /**
+     * Run compliance check manually
+     */
+    public function runComplianceCheck(Request $request)
+    {
+        $this->authorize("viewCompliance", AuditLog::class);
+
+        try {
+            $user = Auth::user();
+            $instansiId = $user->instansi_id;
+
+            // Get period from request or default to current year
+            $period = $request->input("period", now()->year);
+
+            // Get options from request
+            $options = $request->input("options", []);
+
+            // Run compliance check through the service
+            $result = $this->complianceService->runComplianceCheck(
+                $instansiId,
+                $period,
+                $options,
+            );
+
+            return response()->json([
+                "success" => true,
+                "message" => "Compliance check completed successfully.",
+                "data" => $result,
+            ]);
+        } catch (\Exception $e) {
+            \Log::error("Run compliance check error: " . $e->getMessage());
+            return response()->json(
+                [
+                    "success" => false,
+                    "message" =>
+                        "An error occurred during compliance check." .
+                        $e->getMessage(),
+                ],
+                500,
+            );
+        }
+    }
+
+    /**
      * Get audit statistics
      */
     private function getAuditStatistics($user, $instansiId, $period = 30)

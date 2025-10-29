@@ -7,8 +7,8 @@ use App\Models\PerformanceIndicator;
 use App\Models\Target;
 use App\Models\Instansi;
 use App\Models\AuditLog;
-use App\Http\Requests\StorePerformanceIndicatorRequest;
-use App\Http\Requests\UpdatePerformanceIndicatorRequest;
+use App\Http\Requests\Sakip\StorePerformanceIndicatorRequest;
+use App\Http\Requests\Sakip\UpdatePerformanceIndicatorRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -163,9 +163,17 @@ class PerformanceIndicatorController extends Controller
                 $request->get("code") ?:
                 $this->generateCode($request->get("name"));
 
+            // Determine instansi_id: use user's instansi_id or from request (for Super Admin)
+            $instansiId = $user->instansi_id ?? $request->get("instansi_id");
+
+            // Validate that instansi_id is provided
+            if (!$instansiId) {
+                throw new \Exception("Instansi ID harus diisi.");
+            }
+
             // Create the indicator
             $indicator = PerformanceIndicator::create([
-                "instansi_id" => $user->instansi_id,
+                "instansi_id" => $instansiId,
                 "code" => $code,
                 "name" => $request->get("name"),
                 "description" => $request->get("description"),
@@ -255,7 +263,7 @@ class PerformanceIndicatorController extends Controller
             $indicator->load([
                 "instansi",
                 "targets" => function ($q) {
-                    $q->orderBy("year", "desc")->orderBy("period");
+                    $q->orderBy("year", "desc");
                 },
                 "performanceData" => function ($q) {
                     $q->orderBy("period", "desc")->limit(12);
@@ -311,7 +319,16 @@ class PerformanceIndicatorController extends Controller
 
         try {
             $user = Auth::user();
-            $instansi = Instansi::find($user->instansi_id);
+
+            // Get all active instansi for dropdown (especially for Super Admin)
+            $instansis = Instansi::where("status", "aktif")
+                ->orderBy("nama_instansi")
+                ->get();
+
+            // Get current user's instansi if exists
+            $userInstansi = $user->instansi_id
+                ? Instansi::find($user->instansi_id)
+                : null;
 
             // Get available categories and frequencies
             $categories = $this->getCategories();
@@ -322,7 +339,8 @@ class PerformanceIndicatorController extends Controller
                 "sakip.indicators.edit",
                 compact(
                     "indicator",
-                    "instansi",
+                    "instansis",
+                    "userInstansi",
                     "categories",
                     "frequencies",
                     "collectionMethods",

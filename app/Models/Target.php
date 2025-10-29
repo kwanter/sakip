@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 /**
  * Target Model
@@ -14,7 +15,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class Target extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, HasUuids, SoftDeletes;
 
     /**
      * Indicates if the model should be auto-discovered for policies.
@@ -42,6 +43,7 @@ class Target extends Model
         "minimum_value",
         "justification",
         "status",
+        "approved_by",
         "approved_at",
         "notes",
         "metadata",
@@ -50,15 +52,7 @@ class Target extends Model
     ];
 
     // Protected fields - set automatically
-    protected $guarded = [
-        "id",
-        "approved_by",
-        "created_by",
-        "updated_by",
-        "created_at",
-        "updated_at",
-        "deleted_at",
-    ];
+    protected $guarded = ["id", "created_at", "updated_at", "deleted_at"];
 
     /**
      * The attributes that should be cast.

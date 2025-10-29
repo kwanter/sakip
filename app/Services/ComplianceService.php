@@ -116,7 +116,7 @@ class ComplianceService
 
         foreach ($mandatoryIndicators as $indicator) {
             $performanceData = PerformanceData::where(
-                "indicator_id",
+                "performance_indicator_id",
                 $indicator->id,
             )
                 ->where("period", $period)
@@ -173,7 +173,7 @@ class ComplianceService
                 $violations[] = [
                     "type" => "low_data_quality",
                     "severity" => "medium",
-                    "indicator_id" => $data->indicator_id,
+                    "indicator_id" => $data->performance_indicator_id,
                     "indicator_code" => $data->indicator->code,
                     "indicator_name" => $data->indicator->name,
                     "message" =>
@@ -190,7 +190,7 @@ class ComplianceService
                 $violations[] = [
                     "type" => "missing_evidence",
                     "severity" => "medium",
-                    "indicator_id" => $data->indicator_id,
+                    "indicator_id" => $data->performance_indicator_id,
                     "indicator_code" => $data->indicator->code,
                     "indicator_name" => $data->indicator->name,
                     "message" => "Tidak ada evidence yang diunggah",
@@ -204,7 +204,7 @@ class ComplianceService
                 $violations[] = [
                     "type" => "unrealistic_achievement",
                     "severity" => "high",
-                    "indicator_id" => $data->indicator_id,
+                    "indicator_id" => $data->performance_indicator_id,
                     "indicator_code" => $data->indicator->code,
                     "indicator_name" => $data->indicator->name,
                     "message" =>
@@ -256,7 +256,8 @@ class ComplianceService
             $violations[] = [
                 "type" => "overdue_assessment",
                 "severity" => "medium",
-                "indicator_id" => $assessment->performanceData->indicator_id,
+                "indicator_id" =>
+                    $assessment->performanceData->performance_indicator_id,
                 "indicator_code" =>
                     $assessment->performanceData->indicator->code,
                 "indicator_name" =>
@@ -293,7 +294,7 @@ class ComplianceService
                     $violations[] = [
                         "type" => "oversized_evidence",
                         "severity" => "low",
-                        "indicator_id" => $data->indicator_id,
+                        "indicator_id" => $data->performance_indicator_id,
                         "indicator_code" => $data->indicator->code,
                         "indicator_name" => $data->indicator->name,
                         "message" => "File evidence terlalu besar",

@@ -88,12 +88,12 @@
 
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-1">Satuan</label>
-                    <p class="text-gray-900">{{ $indicator->unit }}</p>
+                    <p class="text-gray-900">{{ $indicator->measurement_unit }}</p>
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-500 mb-1">Instansi</label>
-                    <p class="text-gray-900">{{ $indicator->instansi->name }}</p>
+                    <p class="text-gray-900">{{ $indicator->instansi->nama_instansi ?? '-' }}</p>
                 </div>
 
                 <div>
@@ -112,30 +112,139 @@
 
         <!-- Target Information -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-            <h3 class="text-lg font-medium text-gray-900 mb-4">Informasi Target</h3>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">Nilai Target</label>
-                    <p class="text-2xl font-bold text-blue-600">{{ number_format($indicator->target_value, 2) }}</p>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">Tahun Target</label>
-                    <p class="text-lg font-semibold text-gray-900">{{ $indicator->target_year }}</p>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">Status</label>
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $indicator->status == 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800' }}">
-                        {{ $indicator->status == 'active' ? 'Aktif' : 'Tidak Aktif' }}
-                    </span>
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-medium text-gray-900">Target Kinerja</h3>
+                <div class="flex items-center space-x-2">
+                    <span class="text-sm text-gray-500">Tahun {{ $currentYear }}</span>
+                    @can('update', $indicator)
+                        <a href="{{ route('sakip.targets.create', $indicator) }}" class="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                            </svg>
+                            Tambah Target
+                        </a>
+                    @endcan
                 </div>
             </div>
+
+            @if($currentTargets && $currentTargets->count() > 0)
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tahun</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nilai Target</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nilai Minimum</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Justifikasi</th>
+                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            @foreach($currentTargets as $target)
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                        {{ $target->year }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        <span class="text-2xl font-bold text-blue-600">{{ number_format($target->target_value, 2) }}</span>
+                                        <span class="text-sm text-gray-500">{{ $indicator->measurement_unit }}</span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        {{ $target->minimum_value ? number_format($target->minimum_value, 2) . ' ' . $indicator->measurement_unit : '-' }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        @php
+                                            $statusClasses = [
+                                                'draft' => 'bg-gray-100 text-gray-800',
+                                                'approved' => 'bg-green-100 text-green-800',
+                                                'rejected' => 'bg-red-100 text-red-800',
+                                                'revised' => 'bg-yellow-100 text-yellow-800'
+                                            ];
+                                            $statusLabels = [
+                                                'draft' => 'Draft',
+                                                'approved' => 'Disetujui',
+                                                'rejected' => 'Ditolak',
+                                                'revised' => 'Revisi'
+                                            ];
+                                        @endphp
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $statusClasses[$target->status] ?? 'bg-gray-100 text-gray-800' }}">
+                                            {{ $statusLabels[$target->status] ?? ucfirst($target->status) }}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 text-sm text-gray-500">
+                                        {{ $target->justification ?? '-' }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                                        {{-- Edit button available for all statuses --}}
+                                        @can('update', $indicator)
+                                            <a href="{{ route('sakip.targets.edit', [$indicator, $target]) }}" class="text-indigo-600 hover:text-indigo-900" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                        @endcan
+
+                                        {{-- Delete button only for draft or rejected --}}
+                                        @if($target->status === 'draft' || $target->status === 'rejected')
+                                            @can('update', $indicator)
+                                                <form action="{{ route('sakip.targets.destroy', [$indicator, $target]) }}" method="POST" class="inline-block" onsubmit="return confirm('Yakin ingin menghapus target ini?')">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="text-red-600 hover:text-red-900" title="Hapus">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </form>
+                                            @endcan
+                                        @endif
+
+                                        {{-- Approval workflow buttons for draft status --}}
+                                        @can('approve-targets')
+                                            @if($target->status === 'draft' || $target->status === 'revised')
+                                                <button onclick="approveTarget({{ $target->id }}, '{{ $indicator->id }}')" class="text-green-600 hover:text-green-900" title="Setujui">
+                                                    <i class="fas fa-check-circle"></i>
+                                                </button>
+                                                <button onclick="reviseTarget({{ $target->id }}, '{{ $indicator->id }}')" class="text-yellow-600 hover:text-yellow-900" title="Minta Revisi">
+                                                    <i class="fas fa-undo"></i>
+                                                </button>
+                                                <button onclick="rejectTarget({{ $target->id }}, '{{ $indicator->id }}')" class="text-red-600 hover:text-red-900" title="Tolak">
+                                                    <i class="fas fa-times-circle"></i>
+                                                </button>
+                                            @endif
+                                        @endcan
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @else
+                <div class="text-center py-12">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                    </svg>
+                    <h3 class="mt-2 text-sm font-medium text-gray-900">Belum ada target</h3>
+                    <p class="mt-1 text-sm text-gray-500">Target untuk tahun {{ $currentYear }} belum ditetapkan.</p>
+                </div>
+            @endif
+
+            <!-- All Targets History -->
+            @if($indicator->targets && $indicator->targets->count() > 0)
+                <div class="mt-6 pt-6 border-t border-gray-200">
+                    <h4 class="text-sm font-medium text-gray-900 mb-3">Riwayat Target</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        @foreach($indicator->targets()->orderBy('year', 'desc')->get() as $target)
+                            <div class="bg-gray-50 rounded-lg p-4">
+                                <div class="text-sm text-gray-500">Tahun {{ $target->year }}</div>
+                                <div class="text-xl font-bold text-gray-900">{{ number_format($target->target_value, 2) }}</div>
+                                <div class="text-xs text-gray-500">{{ $indicator->measurement_unit }}</div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
         </div>
 
         <!-- Assessment Criteria -->
-        @if($indicator->criteria->count() > 0)
+        @if(isset($indicator->criteria) && $indicator->criteria->count() > 0)
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
             <h3 class="text-lg font-medium text-gray-900 mb-4">Kriteria Penilaian</h3>
 
@@ -174,7 +283,7 @@
                 </a>
             </div>
 
-            @if($recentData->count() > 0)
+            @if(isset($recentData) && $recentData->count() > 0)
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
@@ -236,7 +345,7 @@
                 </a>
             </div>
 
-            @if($recentAssessments->count() > 0)
+            @if(isset($recentAssessments) && $recentAssessments->count() > 0)
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
@@ -281,4 +390,76 @@
         </div>
     </div>
 </div>
+
+@push('scripts')
+<script>
+function approveTarget(targetId, indicatorId) {
+    if (!confirm('Apakah Anda yakin ingin menyetujui target ini?')) return;
+
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `/sakip/indicators/${indicatorId}/targets/${targetId}/approve`;
+
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+    const csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = '_token';
+    csrfInput.value = csrfToken;
+    form.appendChild(csrfInput);
+
+    document.body.appendChild(form);
+    form.submit();
+}
+
+function rejectTarget(targetId, indicatorId) {
+    const notes = prompt('Masukkan alasan penolakan:');
+    if (!notes) return;
+
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `/sakip/indicators/${indicatorId}/targets/${targetId}/reject`;
+
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+    const csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = '_token';
+    csrfInput.value = csrfToken;
+    form.appendChild(csrfInput);
+
+    const notesInput = document.createElement('input');
+    notesInput.type = 'hidden';
+    notesInput.name = 'notes';
+    notesInput.value = notes;
+    form.appendChild(notesInput);
+
+    document.body.appendChild(form);
+    form.submit();
+}
+
+function reviseTarget(targetId, indicatorId) {
+    const notes = prompt('Masukkan catatan revisi:');
+    if (!notes) return;
+
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `/sakip/indicators/${indicatorId}/targets/${targetId}/revise`;
+
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+    const csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = '_token';
+    csrfInput.value = csrfToken;
+    form.appendChild(csrfInput);
+
+    const notesInput = document.createElement('input');
+    notesInput.type = 'hidden';
+    notesInput.name = 'notes';
+    notesInput.value = notes;
+    form.appendChild(notesInput);
+
+    document.body.appendChild(form);
+    form.submit();
+}
+</script>
+@endpush
 @stop

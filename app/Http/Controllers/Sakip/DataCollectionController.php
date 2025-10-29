@@ -81,7 +81,7 @@ class DataCollectionController extends Controller
                     ) {
                         $q->whereYear("period", $currentYear)->where(
                             "status",
-                            "pending",
+                            "draft",
                         );
                     });
                 }
@@ -150,7 +150,7 @@ class DataCollectionController extends Controller
                         $q->where("instansi_id", $instansiId);
                     },
                 )
-                    ->where("status", "approved")
+                    ->where("status", "validated")
                     ->count(),
                 "pending_validation" => $statistics["pending_reviews"],
                 "needs_revision" => PerformanceData::whereHas(
@@ -159,7 +159,7 @@ class DataCollectionController extends Controller
                         $q->where("instansi_id", $instansiId);
                     },
                 )
-                    ->where("status", "needs_review")
+                    ->where("status", "rejected")
                     ->count(),
             ];
 
@@ -362,7 +362,7 @@ class DataCollectionController extends Controller
                 "target_value" => $targetValue,
                 "performance_percentage" => $performancePercentage,
                 "notes" => $request->get("notes"),
-                "status" => "pending",
+                "status" => "draft",
                 "created_by" => $user->id,
                 "updated_by" => $user->id,
             ]);
@@ -382,7 +382,7 @@ class DataCollectionController extends Controller
 
             if ($validationResult["has_errors"]) {
                 $performanceData->update([
-                    "status" => "needs_review",
+                    "status" => "submitted",
                     "validation_errors" => $validationResult["errors"],
                 ]);
             }
@@ -571,7 +571,7 @@ class DataCollectionController extends Controller
                 "target_value" => $targetValue,
                 "performance_percentage" => $performancePercentage,
                 "notes" => $request->get("notes"),
-                "status" => "pending",
+                "status" => "draft",
                 "validation_errors" => null,
                 "updated_by" => $user->id,
             ]);
@@ -604,7 +604,7 @@ class DataCollectionController extends Controller
 
             if ($validationResult["has_errors"]) {
                 $performanceData->update([
-                    "status" => "needs_review",
+                    "status" => "submitted",
                     "validation_errors" => $validationResult["errors"],
                 ]);
             }
@@ -811,7 +811,7 @@ class DataCollectionController extends Controller
                         "target_value" => $targetValue,
                         "performance_percentage" => $performancePercentage,
                         "notes" => $notes,
-                        "status" => "pending",
+                        "status" => "draft",
                         "created_by" => $user->id,
                         "updated_by" => $user->id,
                     ]);
@@ -922,7 +922,7 @@ class DataCollectionController extends Controller
             $q->where("instansi_id", $instansiId);
         })
             ->whereYear("period", $year)
-            ->where("status", "needs_review")
+            ->where("status", "submitted")
             ->count();
 
         return [

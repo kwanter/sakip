@@ -5,23 +5,24 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 /**
  * AssessmentCriterion Model
- * 
+ *
  * Represents detailed assessment criteria and scores.
  * Stores individual criterion scores with weights and justifications.
  */
 class AssessmentCriterion extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, HasUuids, SoftDeletes;
 
     /**
      * The table associated with the model.
      *
      * @var string
      */
-    protected $table = 'assessment_criteria';
+    protected $table = "assessment_criteria";
 
     /**
      * The attributes that are mass assignable.
@@ -29,14 +30,14 @@ class AssessmentCriterion extends Model
      * @var array<string>
      */
     protected $fillable = [
-        'assessment_id',
-        'criteria_name',
-        'score',
-        'weight',
-        'justification',
-        'metadata',
-        'created_by',
-        'updated_by'
+        "assessment_id",
+        "criteria_name",
+        "score",
+        "weight",
+        "justification",
+        "metadata",
+        "created_by",
+        "updated_by",
     ];
 
     /**
@@ -45,12 +46,12 @@ class AssessmentCriterion extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'score' => 'decimal:2',
-        'weight' => 'decimal:2',
-        'metadata' => 'array',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
-        'deleted_at' => 'datetime'
+        "score" => "decimal:2",
+        "weight" => "decimal:2",
+        "metadata" => "array",
+        "created_at" => "datetime",
+        "updated_at" => "datetime",
+        "deleted_at" => "datetime",
     ];
 
     /**
@@ -66,7 +67,7 @@ class AssessmentCriterion extends Model
      */
     public function creator()
     {
-        return $this->belongsTo(User::class, 'created_by');
+        return $this->belongsTo(User::class, "created_by");
     }
 
     /**
@@ -74,7 +75,7 @@ class AssessmentCriterion extends Model
      */
     public function updater()
     {
-        return $this->belongsTo(User::class, 'updated_by');
+        return $this->belongsTo(User::class, "updated_by");
     }
 
     /**
@@ -91,15 +92,15 @@ class AssessmentCriterion extends Model
     public function getGradeAttribute()
     {
         if ($this->score >= 90) {
-            return 'A';
+            return "A";
         } elseif ($this->score >= 80) {
-            return 'B';
+            return "B";
         } elseif ($this->score >= 70) {
-            return 'C';
+            return "C";
         } elseif ($this->score >= 60) {
-            return 'D';
+            return "D";
         } else {
-            return 'E';
+            return "E";
         }
     }
 
@@ -109,15 +110,15 @@ class AssessmentCriterion extends Model
     public function getPerformanceLevelAttribute()
     {
         if ($this->score >= 90) {
-            return 'Excellent';
+            return "Excellent";
         } elseif ($this->score >= 80) {
-            return 'Good';
+            return "Good";
         } elseif ($this->score >= 70) {
-            return 'Satisfactory';
+            return "Satisfactory";
         } elseif ($this->score >= 60) {
-            return 'Needs Improvement';
+            return "Needs Improvement";
         } else {
-            return 'Poor';
+            return "Poor";
         }
     }
 
@@ -126,7 +127,7 @@ class AssessmentCriterion extends Model
      */
     public function scopeByAssessment($query, int $assessmentId)
     {
-        return $query->where('assessment_id', $assessmentId);
+        return $query->where("assessment_id", $assessmentId);
     }
 
     /**
@@ -134,7 +135,7 @@ class AssessmentCriterion extends Model
      */
     public function scopeByName($query, string $name)
     {
-        return $query->where('criteria_name', $name);
+        return $query->where("criteria_name", $name);
     }
 
     /**
@@ -142,7 +143,7 @@ class AssessmentCriterion extends Model
      */
     public function scopeHighScore($query, float $threshold = 80)
     {
-        return $query->where('score', '>=', $threshold);
+        return $query->where("score", ">=", $threshold);
     }
 
     /**
@@ -150,7 +151,7 @@ class AssessmentCriterion extends Model
      */
     public function scopeLowScore($query, float $threshold = 60)
     {
-        return $query->where('score', '<', $threshold);
+        return $query->where("score", "<", $threshold);
     }
 
     /**
@@ -159,14 +160,14 @@ class AssessmentCriterion extends Model
     public function updateScore($newScore, $justification = null)
     {
         $this->update([
-            'score' => $newScore,
-            'justification' => $justification ?? $this->justification
+            "score" => $newScore,
+            "justification" => $justification ?? $this->justification,
         ]);
 
         // Recalculate assessment overall score
         if ($this->assessment) {
             $newOverallScore = $this->assessment->calculateWeightedScore();
-            $this->assessment->update(['overall_score' => $newOverallScore]);
+            $this->assessment->update(["overall_score" => $newOverallScore]);
         }
     }
 
@@ -199,7 +200,7 @@ class AssessmentCriterion extends Model
      */
     public function getFormattedScoreAttribute()
     {
-        return number_format($this->score, 2) . '%';
+        return number_format($this->score, 2) . "%";
     }
 
     /**

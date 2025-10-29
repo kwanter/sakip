@@ -165,7 +165,7 @@ class AssessmentController extends Controller
 
             // Get performance data for the indicator
             $performanceData = PerformanceData::where(
-                "indicator_id",
+                "performance_indicator_id",
                 $indicator->id,
             )
                 ->whereYear("period", $currentYear)

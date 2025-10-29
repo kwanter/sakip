@@ -8,10 +8,14 @@ return new class extends Migration
 {
     /**
      * Run the migrations.
+     *
+     * Adds soft deletes to programs table.
      */
     public function up(): void
     {
-        //
+        Schema::table('programs', function (Blueprint $table) {
+            $table->softDeletes()->after('updated_at');
+        });
     }
 
     /**
@@ -19,6 +23,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        //
+        Schema::table('programs', function (Blueprint $table) {
+            $table->dropColumn('deleted_at');
+        });
     }
 };

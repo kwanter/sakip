@@ -16,7 +16,13 @@ class User extends Authenticatable
     public $incrementing = false;
     protected $keyType = "string";
 
-    protected $fillable = ["name", "email", "password", "email_verified_at"];
+    protected $fillable = [
+        "name",
+        "email",
+        "password",
+        "email_verified_at",
+        "instansi_id",
+    ];
 
     protected $hidden = ["password", "remember_token"];
 
@@ -31,6 +37,14 @@ class User extends Authenticatable
     public function auditLogs()
     {
         return $this->hasMany(AuditLog::class);
+    }
+
+    /**
+     * Get the instansi that the user belongs to.
+     */
+    public function instansi()
+    {
+        return $this->belongsTo(Instansi::class, "instansi_id");
     }
 
     /**

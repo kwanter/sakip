@@ -24,14 +24,23 @@
                             <span class="h3 mb-0">{{ substr($user->name, 0, 1) }}</span>
                         </div>
                     </div>
-                    
+
                     <dl class="row">
                         <dt class="col-sm-4">Name:</dt>
                         <dd class="col-sm-8">{{ $user->name }}</dd>
-                        
+
                         <dt class="col-sm-4">Email:</dt>
                         <dd class="col-sm-8">{{ $user->email }}</dd>
-                        
+
+                        <dt class="col-sm-4">Instansi:</dt>
+                        <dd class="col-sm-8">
+                            @if($user->instansi_id)
+                                <span class="badge badge-info">{{ $user->instansi->nama_instansi ?? 'N/A' }}</span>
+                            @else
+                                <span class="badge badge-secondary">System Wide</span>
+                            @endif
+                        </dd>
+
                         <dt class="col-sm-4">Status:</dt>
                         <dd class="col-sm-8">
                             @if($user->email_verified_at)
@@ -40,10 +49,10 @@
                                 <span class="badge badge-warning">Unverified</span>
                             @endif
                         </dd>
-                        
+
                         <dt class="col-sm-4">Created:</dt>
                         <dd class="col-sm-8">{{ $user->created_at->format('Y-m-d H:i') }}</dd>
-                        
+
                         <dt class="col-sm-4">Updated:</dt>
                         <dd class="col-sm-8">{{ $user->updated_at->format('Y-m-d H:i') }}</dd>
                     </dl>
@@ -53,7 +62,7 @@
                             <i class="fas fa-edit"></i> Edit User
                         </a>
                         @if($user->id !== auth()->id())
-                            <form action="{{ route('admin.users.destroy', $user) }}" method="POST" 
+                            <form action="{{ route('admin.users.destroy', $user) }}" method="POST"
                                   onsubmit="return confirm('Are you sure you want to delete this user?')">
                                 @csrf
                                 @method('DELETE')
