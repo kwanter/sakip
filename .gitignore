@@ -23,7 +23,8 @@ Homestead.json
 Homestead.yaml
 Thumbs.db
 *.md
-.trae
+/.trae
+/Track
 
 # Debug and test files
 test_*.php
