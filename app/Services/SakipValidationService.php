@@ -17,6 +17,18 @@ use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 use Exception;
 
+/**
+ * SAKIP Validation Service
+ *
+ * @deprecated Use \App\Services\Validation\PerformanceDataValidator,
+ *             \App\Services\Validation\TargetValidator,
+ *             \App\Services\Validation\EvidenceValidator,
+ *             \App\Services\Validation\AssessmentValidator, and
+ *             \App\Services\Validation\DataIntegrityChecker instead.
+ *
+ *             This service is maintained for backward compatibility only.
+ *             New code should use the specialized validators directly.
+ */
 class SakipValidationService
 {
     protected $cacheTimeout = 3600; // 1 hour

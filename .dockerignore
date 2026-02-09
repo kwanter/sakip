@@ -1,0 +1,82 @@
+# Git files
+.git
+.gitignore
+.gitattributes
+
+# Docker files
+docker-compose.yml
+docker-compose.*.yml
+Dockerfile
+.docker
+
+# Documentation
+README.md
+LICENSE
+
+# IDE files
+.idea
+.vscode
+*.sublime-*
+.DS_Store
+.hive
+
+# Node modules (if using frontend build)
+node_modules
+npm-debug.log
+yarn-error.log
+
+# Local environment files
+.env.local
+.env.*.local
+.env.backup
+
+# Testing
+/tests
+/phpunit.xml
+.phpunit.result.cache
+/.phpunit.cache
+
+# Vendor (will be installed in container)
+/vendor
+composer.lock
+
+# Storage (will be mounted as volume)
+/storage/*.key
+/storage/logs/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+!storage/.gitignore
+
+# Cache
+bootstrap/cache/*
+!bootstrap/cache/.gitignore
+
+# Build files
+.hive
+/build
+
+# Temporary files
+*.tmp
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Telescope (debugging tool)
+telescope
+
+# Logs
+*.log
+npm-debug.log
+yarn-error.log
+
+# PHPUnit
+.phpunit.result.cache
+phpunit.xml
+
+# Deployment
+deploy.php

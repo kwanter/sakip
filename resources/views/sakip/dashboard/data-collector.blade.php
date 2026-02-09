@@ -6,15 +6,15 @@
     <div class="header-content">
         <h1 class="page-title">Dashboard Pengumpul Data</h1>
         <div class="header-actions">
-            <button class="btn btn-outline-secondary" onclick="window.print()">
+            <button class="btn btn-outline-secondary" data-onclick="window.print()">
                 <i class="fas fa-print"></i>
                 Cetak
             </button>
-            <button class="btn btn-outline-secondary" onclick="toggleFullscreen()">
+            <button class="btn btn-outline-secondary" data-onclick="toggleFullscreen()">
                 <i class="fas fa-expand"></i>
                 Layar Penuh
             </button>
-            <button class="btn btn-primary" onclick="refreshDashboard()">
+            <button class="btn btn-primary" data-onclick="refreshDashboard()">
                 <i class="fas fa-sync-alt"></i>
                 Segarkan
             </button>
@@ -104,7 +104,7 @@
                             <option value="in-progress">Dalam Proses</option>
                             <option value="overdue">Terlambat</option>
                         </select>
-                        <button class="btn btn-sm btn-primary" onclick="createNewTask()">
+                        <button class="btn btn-sm btn-primary" data-onclick="createNewTask()">
                             <i class="fas fa-plus"></i>
                             Baru
                         </button>
@@ -139,13 +139,13 @@
                                 </div>
                             </div>
                             <div class="task-actions">
-                                <button class="btn btn-sm btn-outline-primary" onclick="editTask({{ $task['id'] }})" title="Edit">
+                                <button class="btn btn-sm btn-outline-primary" data-onclick="editTask({{ $task['id'] }})" title="Edit">
                                     <i class="fas fa-edit"></i>
                                 </button>
-                                <button class="btn btn-sm btn-outline-success" onclick="submitData({{ $task['id'] }})" title="Kirim Data">
+                                <button class="btn btn-sm btn-outline-success" data-onclick="submitData({{ $task['id'] }})" title="Kirim Data">
                                     <i class="fas fa-upload"></i>
                                 </button>
-                                <button class="btn btn-sm btn-outline-warning" onclick="uploadEvidence({{ $task['id'] }})" title="Unggah Bukti">
+                                <button class="btn btn-sm btn-outline-warning" data-onclick="uploadEvidence({{ $task['id'] }})" title="Unggah Bukti">
                                     <i class="fas fa-paperclip"></i>
                                 </button>
                             </div>
@@ -164,7 +164,7 @@
                 </div>
                 <div class="panel-body">
                     <div class="action-grid">
-                        <button class="action-btn" onclick="submitData()">
+                        <button class="action-btn" data-onclick="submitData()">
                             <div class="action-icon">
                                 <i class="fas fa-upload"></i>
                             </div>
@@ -174,7 +174,7 @@
                             </div>
                         </button>
 
-                        <button class="action-btn" onclick="uploadEvidence()">
+                        <button class="action-btn" data-onclick="uploadEvidence()">
                             <div class="action-icon">
                                 <i class="fas fa-paperclip"></i>
                             </div>
@@ -184,7 +184,7 @@
                             </div>
                         </button>
 
-                        <button class="action-btn" onclick="bulkImport()">
+                        <button class="action-btn" data-onclick="bulkImport()">
                             <div class="action-icon">
                                 <i class="fas fa-file-import"></i>
                             </div>
@@ -194,7 +194,7 @@
                             </div>
                         </button>
 
-                        <button class="action-btn" onclick="viewHistory()">
+                        <button class="action-btn" data-onclick="viewHistory()">
                             <div class="action-icon">
                                 <i class="fas fa-history"></i>
                             </div>
@@ -248,7 +248,7 @@
                             <option value="pending">Menunggu</option>
                         </select>
                         <input type="date" class="form-control form-control-sm" id="historyDate" onchange="filterHistory()">
-                        <button class="btn btn-sm btn-outline-primary" onclick="exportHistory()">
+                        <button class="btn btn-sm btn-outline-primary" data-onclick="exportHistory()">
                             <i class="fas fa-download"></i>
                             Ekspor
                         </button>
@@ -295,11 +295,11 @@
                                     </td>
                                     <td>
                                         <div class="action-buttons">
-                                            <button class="btn btn-sm btn-outline-primary" onclick="viewSubmission({{ $submission['id'] }})" title="Lihat Detail">
+                                            <button class="btn btn-sm btn-outline-primary" data-onclick="viewSubmission({{ $submission['id'] }})" title="Lihat Detail">
                                                 <i class="fas fa-eye"></i>
                                             </button>
                                             @if($submission['status'] === 'rejected')
-                                            <button class="btn btn-sm btn-outline-warning" onclick="resubmitData({{ $submission['id'] }})" title="Kirim Ulang">
+                                            <button class="btn btn-sm btn-outline-warning" data-onclick="resubmitData({{ $submission['id'] }})" title="Kirim Ulang">
                                                 <i class="fas fa-redo"></i>
                                             </button>
                                             @endif
@@ -327,7 +327,7 @@
                         <div class="bulk-item">
                             <h6>Impor Data</h6>
                             <p>Unggah data dalam format Excel untuk beberapa indikator sekaligus</p>
-                            <button class="btn btn-outline-primary" onclick="bulkImport()">
+                            <button class="btn btn-outline-primary" data-onclick="bulkImport()">
                                 <i class="fas fa-file-excel"></i>
                                 Pilih File Excel
                             </button>
@@ -336,7 +336,7 @@
                         <div class="bulk-item">
                             <h6>Ekspor Template</h6>
                             <p>Unduh template Excel untuk pengisian data massal</p>
-                            <button class="btn btn-outline-secondary" onclick="exportTemplate()">
+                            <button class="btn btn-outline-secondary" data-onclick="exportTemplate()">
                                 <i class="fas fa-download"></i>
                                 Unduh Template
                             </button>
@@ -345,7 +345,7 @@
                         <div class="bulk-item">
                             <h6>Validasi Data</h6>
                             <p>Periksa kelayakan data sebelum pengiriman</p>
-                            <button class="btn btn-outline-info" onclick="validateData()">
+                            <button class="btn btn-outline-info" data-onclick="validateData()">
                                 <i class="fas fa-check-double"></i>
                                 Validasi Sekarang
                             </button>
@@ -1131,7 +1131,7 @@ function showNotification(message, type = 'info') {
 
 // Add drag and drop functionality for file uploads
 document.addEventListener('DOMContentLoaded', function() {
-    const bulkImportBtn = document.querySelector('[onclick="bulkImport()"]');
+    const bulkImportBtn = document.querySelector('[data-onclick="bulkImport()"]');
     if (bulkImportBtn) {
         // Add drag and drop to the button
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {

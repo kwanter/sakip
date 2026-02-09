@@ -195,7 +195,11 @@ class PerformanceIndicatorController extends Controller
             ]);
 
             // Create targets from the request
+            // PERFORMANCE: Use bulk insert to avoid N+1 query problem
             if ($request->has("targets")) {
+                $targetsData = [];
+                $now = now();
+                
                 foreach ($request->get("targets") as $targetData) {
                     // Skip empty target rows
                     if (
@@ -205,7 +209,7 @@ class PerformanceIndicatorController extends Controller
                         continue;
                     }
 
-                    Target::create([
+                    $targetsData[] = [
                         "performance_indicator_id" => $indicator->id,
                         "year" => $targetData["year"],
                         "target_value" => $targetData["target_value"],
@@ -214,7 +218,14 @@ class PerformanceIndicatorController extends Controller
                         "status" => "draft",
                         "created_by" => $user->id,
                         "updated_by" => $user->id,
-                    ]);
+                        "created_at" => $now,
+                        "updated_at" => $now,
+                    ];
+                }
+                
+                // Bulk insert in single query
+                if (!empty($targetsData)) {
+                    \DB::table('targets')->insert($targetsData);
                 }
             }
 

@@ -1,96 +1,99 @@
-@extends('layouts.app')
+@extends('layouts.modern')
 
 @section('title', 'Daftar Instansi')
 
 @section('content')
-<div class="container-fluid">
-    <!-- Page Heading -->
-    <div class="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 class="h3 mb-0 text-gray-800">
-            <i class="fas fa-building"></i> Daftar Instansi
-        </h1>
-        @can('create', App\Models\Instansi::class)
-        <a href="{{ route('sakip.instansi.create') }}" class="btn btn-primary btn-sm">
-            <i class="fas fa-plus"></i> Tambah Instansi
-        </a>
-        @endcan
+<div class="container py-4">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="page-header-layout">
+            <div>
+                <h1 class="page-header-title">Daftar Instansi</h1>
+                <p class="page-header-subtitle">Kelola data instansi pemerintahan</p>
+            </div>
+            <div class="page-header-actions">
+                @can('create', App\Models\Instansi::class)
+                <a href="{{ route('sakip.instansi.create') }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i>
+                    <span class="ms-1">Tambah Instansi</span>
+                </a>
+                @endcan
+            </div>
+        </div>
     </div>
 
-    <!-- Search and Filter -->
-    <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Filter & Pencarian</h6>
-        </div>
+    <!-- Filters Card -->
+    <div class="card mb-4">
         <div class="card-body">
-            <form method="GET" action="{{ route('sakip.instansi.index') }}">
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <input type="text" name="search" class="form-control" placeholder="Cari nama, kode, atau kepala instansi..." value="{{ request('search') }}">
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="form-group">
-                            <select name="status" class="form-control">
-                                <option value="">Semua Status</option>
-                                <option value="aktif" {{ request('status') == 'aktif' ? 'selected' : '' }}>Aktif</option>
-                                <option value="nonaktif" {{ request('status') == 'nonaktif' ? 'selected' : '' }}>Non-Aktif</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <button type="submit" class="btn btn-primary btn-block">
-                            <i class="fas fa-search"></i> Cari
-                        </button>
-                    </div>
+            <form method="GET" action="{{ route('sakip.instansi.index') }}" class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Pencarian</label>
+                    <input type="text" name="search" class="form-control" placeholder="Cari nama, kode, atau kepala instansi..." value="{{ request('search') }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Status</label>
+                    <select name="status" class="form-select">
+                        <option value="">Semua Status</option>
+                        <option value="aktif" {{ request('status') == 'aktif' ? 'selected' : '' }}>Aktif</option>
+                        <option value="nonaktif" {{ request('status') == 'nonaktif' ? 'selected' : '' }}>Non-Aktif</option>
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-secondary w-100">
+                        <i class="fas fa-search"></i>
+                        <span class="ms-1">Cari</span>
+                    </button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- DataTable -->
-    <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Data Instansi</h6>
-        </div>
+    <!-- Table Card -->
+    <div class="card">
         <div class="card-body">
+            @if(session('success'))
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle alert-icon"></i>
+                <span>{{ session('success') }}</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            @endif
+
             <div class="table-responsive">
-                <table class="table table-bordered table-hover" id="dataTable" width="100%" cellspacing="0">
-                    <thead>
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
                         <tr>
                             <th>No</th>
                             <th>Kode</th>
                             <th>Nama Instansi</th>
                             <th>Kepala Instansi</th>
                             <th>Telepon</th>
-                            <th>Email</th>
                             <th>Status</th>
-                            <th>Aksi</th>
+                            <th class="text-end">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse($instansis as $key => $instansi)
+                        @forelse($instansis ?? [] as $key => $instansi)
                         <tr>
                             <td>{{ $instansis->firstItem() + $key }}</td>
-                            <td><strong>{{ $instansi->kode_instansi }}</strong></td>
-                            <td>{{ $instansi->nama_instansi }}</td>
+                            <td><span class="badge bg-light text-dark">{{ $instansi->kode_instansi }}</span></td>
+                            <td><strong>{{ $instansi->nama_instansi }}</strong></td>
                             <td>{{ $instansi->kepala_instansi ?? '-' }}</td>
                             <td>{{ $instansi->telepon ?? '-' }}</td>
-                            <td>{{ $instansi->email ?? '-' }}</td>
                             <td>
                                 @if($instansi->status == 'aktif')
-                                    <span class="badge badge-success">Aktif</span>
+                                    <span class="badge bg-success">Aktif</span>
                                 @else
-                                    <span class="badge badge-secondary">Non-Aktif</span>
+                                    <span class="badge bg-secondary">Non-Aktif</span>
                                 @endif
                             </td>
-                            <td>
-                                <div class="btn-group" role="group">
-                                    <a href="{{ route('sakip.instansi.show', $instansi) }}" class="btn btn-info btn-sm" title="Detail">
+                            <td class="text-end">
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{{ route('sakip.instansi.show', $instansi) }}" class="btn btn-outline-primary" title="Detail">
                                         <i class="fas fa-eye"></i>
                                     </a>
                                     @can('update', $instansi)
-                                    <a href="{{ route('sakip.instansi.edit', $instansi) }}" class="btn btn-warning btn-sm" title="Edit">
+                                    <a href="{{ route('sakip.instansi.edit', $instansi) }}" class="btn btn-outline-secondary" title="Edit">
                                         <i class="fas fa-edit"></i>
                                     </a>
                                     @endcan
@@ -98,7 +101,7 @@
                                     <form action="{{ route('sakip.instansi.destroy', $instansi) }}" method="POST" class="d-inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus instansi ini?')">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="btn btn-danger btn-sm" title="Hapus">
+                                        <button type="submit" class="btn btn-outline-danger" title="Hapus">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </form>
@@ -108,26 +111,25 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="8" class="text-center">Tidak ada data instansi</td>
+                            <td colspan="7" class="text-center py-5">
+                                <div class="empty-state">
+                                    <i class="fas fa-building text-muted"></i>
+                                    <p class="mb-0">Tidak ada data instansi</p>
+                                    <small class="text-muted">Silakan tambahkan data instansi baru</small>
+                                </div>
+                            </td>
                         </tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
 
-            <!-- Pagination -->
+            @if(isset($instansis) && $instansis->hasPages())
             <div class="mt-3">
                 {{ $instansis->links() }}
             </div>
+            @endif
         </div>
     </div>
 </div>
 @endsection
-
-@push('scripts')
-<script>
-$(document).ready(function() {
-    // DataTables initialization if needed
-});
-</script>
-@endpush

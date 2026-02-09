@@ -5,6 +5,7 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\View;
 use App\Models\Program;
 use App\Models\Kegiatan;
 use App\Models\Instansi;
@@ -44,7 +45,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Register CSP nonce as a singleton for security headers
+        $this->app->singleton('csp-nonce', function () {
+            return bin2hex(random_bytes(16));
+        });
     }
 
     /**
@@ -52,6 +56,17 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // SECURITY: Validate APP_KEY in production
+        if (app()->environment("production")) {
+            $appKey = config("app.key");
+            if (empty($appKey) || strlen($appKey) < 32) {
+                throw new \Exception(
+                    "Invalid APP_KEY. A proper encryption key is required for production. " .
+                        "Run: php artisan key:generate",
+                );
+            }
+        }
+
         Gate::policy(Program::class, ProgramPolicy::class);
         Gate::policy(Kegiatan::class, KegiatanPolicy::class);
         Gate::policy(Instansi::class, InstansiPolicy::class);
@@ -163,6 +178,19 @@ class AppServiceProvider extends ServiceProvider
         Blade::if("permission", function ($permission) {
             $user = auth()->user();
             return $user && $user->hasPermission($permission);
+        });
+
+        // NEW: Blade directive for CSP nonce
+        // Usage in Blade templates: @cspnonce
+        // Renders: nonce="random_value"
+        Blade::directive("cspnonce", function () {
+            return "<?php echo 'nonce=\"' . (app('csp-nonce') ?? '') . '\"'; ?>";
+        });
+
+        // NEW: Share csp_nonce helper with all views
+        // Usage: {{ csp_nonce() }}
+        View::composer("*", function ($view) {
+            $view->with("csp_nonce_value", app("csp-nonce") ?? "");
         });
 
         // Slow query logging (threshold: 150ms)

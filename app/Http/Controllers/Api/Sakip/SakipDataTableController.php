@@ -6,11 +6,23 @@ use App\Http\Controllers\Controller;
 use App\Services\SakipDataTableService;
 use App\Services\SakipService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
+/**
+ * SAKIP Data Table Controller
+ *
+ * Handles DataTable server-side processing for SAKIP module with a unified
+ * error handling approach to eliminate code duplication.
+ */
 class SakipDataTableController extends Controller
 {
     protected $sakipService;
     protected $dataTableService;
+
+    /**
+     * Allowed data table types for validation.
+     */
+    private const ALLOWED_TYPES = ['indicators', 'programs', 'activities', 'reports'];
 
     public function __construct(
         SakipService $sakipService,
@@ -21,150 +33,168 @@ class SakipDataTableController extends Controller
     }
 
     /**
-     * Get data table configuration
+     * Get data table configuration.
+     *
+     * @param string $type The data table type
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function configuration(string $type)
+    public function configuration(string $type): \Illuminate\Http\JsonResponse
     {
-        try {
-            $config = $this->dataTableService->getDataTableConfig($type);
-            
-            return response()->json([
-                'success' => true,
-                'data' => $config,
-                'timestamp' => now()->toIso8601String(),
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to fetch data table configuration',
-                'error' => $e->getMessage(),
-            ], 500);
-        }
+        return $this->handleDataTableRequest(
+            fn() => $this->dataTableService->getDataTableConfig($type),
+            'data',
+            'Failed to fetch data table configuration'
+        );
     }
 
     /**
-     * Process indicators data table
+     * Process indicators data table.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function indicators(Request $request)
+    public function indicators(Request $request): \Illuminate\Http\JsonResponse
     {
-        try {
-            $data = $this->dataTableService->processRequest($request, 'indicators');
-            
-            return response()->json([
-                'success' => true,
-                'data' => $data,
-                'timestamp' => now()->toIso8601String(),
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to process indicators data table',
-                'error' => $e->getMessage(),
-            ], 500);
-        }
+        return $this->processDataTable($request, 'indicators');
     }
 
     /**
-     * Process programs data table
+     * Process programs data table.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function programs(Request $request)
+    public function programs(Request $request): \Illuminate\Http\JsonResponse
     {
-        try {
-            $data = $this->dataTableService->processRequest($request, 'programs');
-            
-            return response()->json([
-                'success' => true,
-                'data' => $data,
-                'timestamp' => now()->toIso8601String(),
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to process programs data table',
-                'error' => $e->getMessage(),
-            ], 500);
-        }
+        return $this->processDataTable($request, 'programs');
     }
 
     /**
-     * Process activities data table
+     * Process activities data table.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function activities(Request $request)
+    public function activities(Request $request): \Illuminate\Http\JsonResponse
     {
-        try {
-            $data = $this->dataTableService->processRequest($request, 'activities');
-            
-            return response()->json([
-                'success' => true,
-                'data' => $data,
-                'timestamp' => now()->toIso8601String(),
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to process activities data table',
-                'error' => $e->getMessage(),
-            ], 500);
-        }
+        return $this->processDataTable($request, 'activities');
     }
 
     /**
-     * Process reports data table
+     * Process reports data table.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function reports(Request $request)
+    public function reports(Request $request): \Illuminate\Http\JsonResponse
     {
-        try {
-            $data = $this->dataTableService->processRequest($request, 'reports');
-            
-            return response()->json([
-                'success' => true,
-                'data' => $data,
-                'timestamp' => now()->toIso8601String(),
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to process reports data table',
-                'error' => $e->getMessage(),
-            ], 500);
-        }
+        return $this->processDataTable($request, 'reports');
     }
 
     /**
-     * Export data table data
+     * Export data table data.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param string $type The data table type
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function export(Request $request, string $type)
+    public function export(Request $request, string $type): \Illuminate\Http\JsonResponse
     {
+        if (!in_array($type, self::ALLOWED_TYPES, true)) {
+            return $this->errorResponse('Invalid data table type.', 400);
+        }
+
         try {
             // Get all data without pagination for export
             $request->merge(['per_page' => 999999]);
             $data = $this->dataTableService->processRequest($request, $type);
-            
-            // Format data for export
+
             $exportData = $this->formatExportData($data['data'], $type);
-            
-            return response()->json([
-                'success' => true,
+
+            return $this->successResponse('Data exported successfully', [
                 'data' => $exportData,
                 'timestamp' => now()->toIso8601String(),
             ]);
         } catch (\Exception $e) {
+            Log::error('Data table export failed', [
+                'type' => $type,
+                'error' => $e->getMessage(),
+                'user_id' => auth()->id(),
+            ]);
+
+            return $this->errorResponse('Failed to export data');
+        }
+    }
+
+    /**
+     * Process a unified data table request.
+     *
+     * This method eliminates code duplication by providing a single
+     * implementation for all data table types.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param string $type The data table type
+     * @return \Illuminate\Http\JsonResponse
+     */
+    protected function processDataTable(Request $request, string $type): \Illuminate\Http\JsonResponse
+    {
+        if (!in_array($type, self::ALLOWED_TYPES, true)) {
+            return $this->errorResponse('Invalid data table type.', 400);
+        }
+
+        return $this->handleDataTableRequest(
+            fn() => $this->dataTableService->processRequest($request, $type),
+            'data',
+            "Failed to process {$type} data table"
+        );
+    }
+
+    /**
+     * Handle data table requests with unified error handling.
+     *
+     * @param callable $callback The operation to execute
+     * @param string $dataKey The key for the data in the response
+     * @param string $errorMessage Error message for failures
+     * @return \Illuminate\Http\JsonResponse
+     */
+    protected function handleDataTableRequest(
+        callable $callback,
+        string $dataKey,
+        string $errorMessage
+    ): \Illuminate\Http\JsonResponse {
+        try {
+            $result = $callback();
+
+            return response()->json([
+                'success' => true,
+                $dataKey => $result,
+                'timestamp' => now()->toIso8601String(),
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Data table request failed', [
+                'error' => $e->getMessage(),
+                'user_id' => auth()->id(),
+            ]);
+
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to export data',
-                'error' => $e->getMessage(),
+                'message' => $errorMessage,
             ], 500);
         }
     }
 
     /**
-     * Format data for export
+     * Format data for export.
+     *
+     * @param array $data The raw data to format
+     * @param string $type The data table type
+     * @return array Formatted data with headers
      */
-    protected function formatExportData($data, string $type): array
+    protected function formatExportData(array $data, string $type): array
     {
         $headers = $this->getExportHeaders($type);
         $formattedData = [];
-        
+
         foreach ($data as $item) {
             $row = [];
             foreach ($headers as $key => $header) {
@@ -172,7 +202,7 @@ class SakipDataTableController extends Controller
             }
             $formattedData[] = $row;
         }
-        
+
         return [
             'headers' => array_values($headers),
             'data' => $formattedData,
@@ -180,7 +210,10 @@ class SakipDataTableController extends Controller
     }
 
     /**
-     * Get export headers
+     * Get export headers for a specific data table type.
+     *
+     * @param string $type The data table type
+     * @return array The export headers mapping
      */
     protected function getExportHeaders(string $type): array
     {
@@ -230,7 +263,7 @@ class SakipDataTableController extends Controller
                 'created_at' => 'Dibuat Pada',
             ],
         ];
-        
+
         return $headers[$type] ?? $headers['indicators'];
     }
 }

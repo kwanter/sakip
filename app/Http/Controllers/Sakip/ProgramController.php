@@ -3,15 +3,26 @@
 namespace App\Http\Controllers\Sakip;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Sakip\ProgramFormRequest;
 use App\Models\Program;
 use App\Models\Instansi;
 use App\Models\SasaranStrategis;
+use App\Constants\Pagination;
+use App\Constants\Status;
+use App\Constants\ValidationRules;
+use App\Traits\WithDatabaseTransactions;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth;
 
+/**
+ * Program Controller
+ *
+ * Refactored to use Form Request validation and Transaction trait.
+ * Eliminates duplicate validation and transaction handling code.
+ */
 class ProgramController extends Controller
 {
+    use WithDatabaseTransactions;
+
     /**
      * Display a listing of the resource.
      */
@@ -56,11 +67,17 @@ class ProgramController extends Controller
             $query->where("tahun", $request->get("tahun"));
         }
 
-        $programs = $query->orderBy("created_at", "desc")->paginate(15);
-        $instansis = Instansi::where("status", "aktif")
+        // REFACTORED: Use constant instead of magic number
+        $programs = $query
+            ->orderBy("created_at", "desc")
+            ->paginate(Pagination::DEFAULT);
+
+        // REFACTORED: Use constant for status filter
+        $instansis = Instansi::where("status", Status::ACTIVE)
             ->orderBy("nama_instansi")
             ->get();
-        $sasaranStrategis = SasaranStrategis::where("status", "aktif")
+
+        $sasaranStrategis = SasaranStrategis::where("status", Status::ACTIVE)
             ->orderBy("nama_strategis")
             ->get();
 
@@ -77,12 +94,13 @@ class ProgramController extends Controller
     {
         $this->authorize("create", Program::class);
 
-        $instansis = Instansi::where("status", "aktif")
+        // REFACTORED: Use constant for status filter
+        $instansis = Instansi::where("status", Status::ACTIVE)
             ->orderBy("nama_instansi")
             ->get();
 
         // Check if there are any sasaran strategis
-        $sasaranStrategis = SasaranStrategis::where("status", "aktif")
+        $sasaranStrategis = SasaranStrategis::where("status", Status::ACTIVE)
             ->orderBy("nama_strategis")
             ->get();
 
@@ -103,39 +121,23 @@ class ProgramController extends Controller
 
     /**
      * Store a newly created resource in storage.
+     *
+     * REFACTORED: Uses ProgramFormRequest for validation and runInTransaction for transaction handling
      */
-    public function store(Request $request)
+    public function store(ProgramFormRequest $request)
     {
         $this->authorize("create", Program::class);
 
-        $validated = $request->validate([
-            "instansi_id" => "required|exists:instansis,id",
-            "sasaran_strategis_id" => "required|exists:sasaran_strategis,id",
-            "kode_program" =>
-                "required|string|max:255|unique:programs,kode_program",
-            "nama_program" => "required|string|max:255",
-            "deskripsi" => "nullable|string",
-            "anggaran" => "nullable|numeric|min:0",
-            "tahun" => "required|integer|min:2000|max:2100",
-            "penanggung_jawab" => "nullable|string|max:255",
-            "status" => "required|in:draft,aktif,selesai",
-        ]);
-
-        try {
-            $program = Program::create($validated);
-
-            return redirect()
-                ->route("sakip.program.index")
-                ->with("success", "Program berhasil ditambahkan.");
-        } catch (\Exception $e) {
-            \Log::error("Error creating program: " . $e->getMessage());
-            return back()
-                ->withInput()
-                ->with(
-                    "error",
-                    "Terjadi kesalahan saat menyimpan data program.",
-                );
-        }
+        // REFACTORED: Use trait to handle transactions and errors automatically
+        return $this->runInTransactionWithErrorHandling(
+            function () use ($request) {
+                $program = Program::create($request->validated());
+                return $program;
+            },
+            "program.store",
+            "Program berhasil ditambahkan.",
+            "Terjadi kesalahan saat menyimpan data program.",
+        );
     }
 
     /**
@@ -162,14 +164,16 @@ class ProgramController extends Controller
     {
         $this->authorize("update", $program);
 
-        $instansis = Instansi::where("status", "aktif")
+        // REFACTORED: Use constant for status filter
+        $instansis = Instansi::where("status", Status::ACTIVE)
             ->orderBy("nama_instansi")
             ->get();
+
         $sasaranStrategis = SasaranStrategis::where(
             "instansi_id",
             $program->instansi_id,
         )
-            ->where("status", "aktif")
+            ->where("status", Status::ACTIVE)
             ->orderBy("nama_strategis")
             ->get();
 
@@ -181,56 +185,41 @@ class ProgramController extends Controller
 
     /**
      * Update the specified resource in storage.
+     *
+     * REFACTORED: Uses ProgramFormRequest for validation and runInTransaction for transaction handling
      */
-    public function update(Request $request, Program $program)
+    public function update(ProgramFormRequest $request, Program $program)
     {
         $this->authorize("update", $program);
 
-        $validated = $request->validate([
-            "instansi_id" => "required|exists:instansis,id",
-            "sasaran_strategis_id" => "required|exists:sasaran_strategis,id",
-            "kode_program" =>
-                "required|string|max:255|unique:programs,kode_program," .
-                $program->id,
-            "nama_program" => "required|string|max:255",
-            "deskripsi" => "nullable|string",
-            "anggaran" => "nullable|numeric|min:0",
-            "tahun" => "required|integer|min:2000|max:2100",
-            "penanggung_jawab" => "nullable|string|max:255",
-            "status" => "required|in:draft,aktif,selesai",
-        ]);
-
-        try {
-            $program->update($validated);
-
-            return redirect()
-                ->route("sakip.program.index")
-                ->with("success", "Program berhasil diperbarui.");
-        } catch (\Exception $e) {
-            \Log::error("Error updating program: " . $e->getMessage());
-            return back()
-                ->withInput()
-                ->with(
-                    "error",
-                    "Terjadi kesalahan saat memperbarui data program.",
-                );
-        }
+        // REFACTORED: Use trait to handle transactions and errors automatically
+        return $this->runInTransactionWithErrorHandling(
+            function () use ($request, $program) {
+                $program->update($request->validated());
+                return $program;
+            },
+            "program.update",
+            "Program berhasil diperbarui.",
+            "Terjadi kesalahan saat memperbarui data program.",
+        );
     }
 
     /**
      * Remove the specified resource from storage.
+     *
+     * REFACTORED: Uses runInTransaction for transaction handling
      */
     public function destroy(Program $program)
     {
         $this->authorize("delete", $program);
 
-        try {
+        // REFACTORED: Use trait to handle transactions automatically
+        return $this->runInTransaction(function () use ($program) {
             // Check if program has related kegiatans
             $hasKegiatans = $program->kegiatans()->count() > 0;
 
             if ($hasKegiatans) {
-                return back()->with(
-                    "error",
+                throw new \Exception(
                     "Program tidak dapat dihapus karena memiliki Kegiatan terkait.",
                 );
             }
@@ -240,22 +229,18 @@ class ProgramController extends Controller
             return redirect()
                 ->route("sakip.program.index")
                 ->with("success", "Program berhasil dihapus.");
-        } catch (\Exception $e) {
-            \Log::error("Error deleting program: " . $e->getMessage());
-            return back()->with(
-                "error",
-                "Terjadi kesalahan saat menghapus program.",
-            );
-        }
+        }, "program.destroy");
     }
 
     /**
      * Get programs by sasaran strategis (for AJAX)
+     *
+     * REFACTORED: Use constant for status filter
      */
     public function bySasaranStrategis($sasaranStrategisId)
     {
         $programs = Program::where("sasaran_strategis_id", $sasaranStrategisId)
-            ->where("status", "aktif")
+            ->where("status", Status::ACTIVE)
             ->orderBy("nama_program")
             ->get(["id", "kode_program", "nama_program", "tahun"]);
 

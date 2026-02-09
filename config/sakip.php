@@ -6,116 +6,172 @@ return [
     | SAKIP Configuration
     |--------------------------------------------------------------------------
     |
-    | This file contains the configuration for the SAKIP (Sistem Akuntabilitas
-    | Kinerja Instansi Pemerintah) system.
+    | This file contains configuration settings specific to the SAKIP
+    | (Sistem Akuntabilitas Kinerja Instansi Pemerintah) module.
     |
     */
 
-    'enabled' => env('SAKIP_ENABLED', true),
-
-    'api' => [
-        'prefix' => 'sakip/api',
-        'middleware' => ['auth', 'api'],
-        'rate_limit' => env('SAKIP_API_RATE_LIMIT', 60),
-    ],
-
-    'cache' => [
-        'enabled' => env('SAKIP_CACHE_ENABLED', true),
-        'ttl' => env('SAKIP_CACHE_TTL', 3600), // 1 hour
-        'prefix' => 'sakip',
-    ],
-
-    'dashboard' => [
-        'default_period' => 'current_year',
-        'chart_colors' => [
-            '#3B82F6', '#EF4444', '#10B981', '#F59E0B',
-            '#8B5CF6', '#EC4899', '#06B6D4', '#84CC16'
+    "performance" => [
+        /*
+         |--------------------------------------------------------------------------
+         | Performance Thresholds
+         |--------------------------------------------------------------------------
+         |
+         | Threshold values for calculating performance ratings and classifications.
+         | These are used to determine if performance is excellent, good, satisfactory,
+         | or needs improvement.
+         |
+         */
+        "thresholds" => [
+            "excellent" => 100,
+            "good" => 80,
+            "satisfactory" => 60,
+            "minimum" => 0,
         ],
+
+        /*
+         |--------------------------------------------------------------------------
+         | Performance Calculation Method
+         |--------------------------------------------------------------------------
+         |
+         | Default method for calculating performance percentages.
+         | Options: 'simple', 'weighted', 'formula_based'
+         |
+         */
+        "calculation_method" => env("SAKIP_CALCULATION_METHOD", "simple"),
+
+        /*
+         |--------------------------------------------------------------------------
+         | Maximum Performance Percentage
+         |--------------------------------------------------------------------------
+         |
+         | Maximum allowed performance percentage to prevent unrealistic values.
+         | This caps the performance at 200% for exceptional overachievement.
+         |
+         */
+        "max_percentage" => 200,
     ],
 
-    'assessment' => [
-        'scoring' => [
-            'excellent' => ['min' => 90, 'max' => 100, 'label' => 'Sangat Baik'],
-            'good' => ['min' => 80, 'max' => 89, 'label' => 'Baik'],
-            'adequate' => ['min' => 70, 'max' => 79, 'label' => 'Cukup'],
-            'poor' => ['min' => 60, 'max' => 69, 'label' => 'Kurang'],
-            'very_poor' => ['min' => 0, 'max' => 59, 'label' => 'Sangat Kurang'],
+    "validation" => [
+        /*
+         |--------------------------------------------------------------------------
+         | File Upload Settings
+         |--------------------------------------------------------------------------
+         |
+         | Configure file upload validation rules for evidence documents
+         | and supporting materials.
+         |
+         */
+        "max_file_size" => env("SAKIP_MAX_FILE_SIZE", 10240), // 10MB in KB
+
+        "allowed_mime_types" => [
+            "application/pdf",
+            "application/msword",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "application/vnd.ms-excel",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "image/jpeg",
+            "image/png",
+            "image/jpg",
         ],
-    ],
 
-    'indicators' => [
-        'categories' => [
-            'outcome' => 'Outcome',
-            'output' => 'Output',
-            'input' => 'Input',
-            'process' => 'Process',
+        "allowed_extensions" => [
+            "pdf",
+            "doc",
+            "docx",
+            "xls",
+            "xlsx",
+            "jpg",
+            "jpeg",
+            "png",
         ],
-        'units' => [
-            'percentage' => 'Persentase (%)',
-            'number' => 'Angka',
-            'rupiah' => 'Rupiah (Rp)',
-            'unit' => 'Satuan',
-            'time' => 'Waktu',
-        ],
+
+        /*
+         |--------------------------------------------------------------------------
+         | Data Quality Validation
+         |--------------------------------------------------------------------------
+         |
+         | Configure automatic data quality validation rules.
+         |
+         */
+        "require_target" => true,
+        "require_actual_value" => true,
+        "allow_negative_targets" => true,
+        "allow_negative_actual" => false,
     ],
 
-    'reports' => [
-        'types' => [
-            'quarterly' => 'Triwulan',
-            'semester' => 'Semester',
-            'annual' => 'Tahunan',
-            'monthly' => 'Bulanan',
-        ],
-        'formats' => ['pdf', 'excel', 'word'],
+    "reporting" => [
+        /*
+         |--------------------------------------------------------------------------
+         | Report Generation Settings
+         |--------------------------------------------------------------------------
+         |
+         | Configure report generation parameters.
+         |
+         */
+        "default_template" => "standard",
+        "include_charts" => true,
+        "include_evidence_summary" => true,
+        "max_report_size_mb" => 50,
     ],
 
-    'notifications' => [
-        'enabled' => env('SAKIP_NOTIFICATIONS_ENABLED', true),
-        'channels' => ['database', 'mail'],
-        'email' => [
-            'from' => env('SAKIP_NOTIFICATION_EMAIL_FROM', env('MAIL_FROM_ADDRESS')),
-            'subject_prefix' => env('SAKIP_NOTIFICATION_SUBJECT_PREFIX', '[SAKIP]'),
-        ],
+    "assessment" => [
+        /*
+         |--------------------------------------------------------------------------
+         | Assessment Configuration
+         |--------------------------------------------------------------------------
+         |
+         | Configure assessment and evaluation parameters.
+         |
+         */
+        "auto_calculate_score" => true,
+        "require_evidence" => true,
+        "min_assessors" => 1,
+        "max_assessors" => 5,
     ],
 
-    'audit' => [
-        'enabled' => env('SAKIP_AUDIT_ENABLED', true),
-        'retention_days' => env('SAKIP_AUDIT_RETENTION_DAYS', 365),
-        'log_types' => [
-            'create', 'update', 'delete', 'view', 'export', 'import', 'login', 'logout'
-        ],
+    "export" => [
+        /*
+         |--------------------------------------------------------------------------
+         | Export Settings
+         |--------------------------------------------------------------------------
+         |
+         | Configure data export parameters.
+         |
+         */
+        "default_format" => "xlsx",
+        "include_metadata" => false,
+        "max_rows_per_export" => 10000,
+        "enable_csv_sanitize" => true,
     ],
 
-    'file_upload' => [
-        'max_size' => env('SAKIP_FILE_MAX_SIZE', 10240), // 10MB in KB
-        'allowed_types' => ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'jpg', 'jpeg', 'png'],
-        'storage_path' => env('SAKIP_FILE_STORAGE_PATH', 'sakip/uploads'),
+    "audit" => [
+        /*
+         |--------------------------------------------------------------------------
+         | Audit Trail Configuration
+         |--------------------------------------------------------------------------
+         |
+         | Configure audit trail and logging parameters.
+         |
+         */
+        "enabled" => env("SAKIP_AUDIT_ENABLED", true),
+        "log_all_changes" => true,
+        "log_read_access" => false,
+        "retention_days" => 365,
     ],
 
-    'compliance' => [
-        'warning_threshold' => env('SAKIP_COMPLIANCE_WARNING_THRESHOLD', 7), // days
-        'critical_threshold' => env('SAKIP_COMPLIANCE_CRITICAL_THRESHOLD', 3), // days
-    ],
-
-    'roles' => [
-        'superadmin' => 'Super Admin',
-        'executive' => 'Executive',
-        'data_collector' => 'Data Collector',
-        'assessor' => 'Assessor',
-        'auditor' => 'Auditor',
-        'government_agency' => 'Government Agency',
-    ],
-
-    'permissions' => [
-        'view_dashboard' => 'View Dashboard',
-        'manage_indicators' => 'Manage Indicators',
-        'manage_programs' => 'Manage Programs',
-        'manage_activities' => 'Manage Activities',
-        'manage_reports' => 'Manage Reports',
-        'manage_assessments' => 'Manage Assessments',
-        'manage_users' => 'Manage Users',
-        'view_audit_logs' => 'View Audit Logs',
-        'export_data' => 'Export Data',
-        'import_data' => 'Import Data',
+    "dashboard" => [
+        /*
+         |--------------------------------------------------------------------------
+         | Dashboard Settings
+         |--------------------------------------------------------------------------
+         |
+         | Configure dashboard behavior and data display.
+         |
+         */
+        "cache_enabled" => env("SAKIP_DASHBOARD_CACHE", true),
+        "cache_ttl_minutes" => 5,
+        "show_trends" => true,
+        "trend_period_days" => 30,
     ],
 ];

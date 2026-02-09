@@ -96,7 +96,7 @@
                         <i class="fas fa-history"></i> Audit Trail Terbaru
                     </h5>
                     <div class="card-tools">
-                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="refreshAuditTrail()">
+                        <button type="button" class="btn btn-sm btn-outline-primary" data-onclick="refreshAuditTrail()">
                             <i class="fas fa-sync-alt"></i> Segarkan
                         </button>
                     </div>
@@ -125,7 +125,7 @@
                                 <input type="date" class="form-control form-control-sm" id="auditDateFilter">
                             </div>
                             <div class="col-md-3">
-                                <button class="btn btn-sm btn-primary w-100" onclick="applyAuditFilters()">
+                                <button class="btn btn-sm btn-primary w-100" data-onclick="applyAuditFilters()">
                                     <i class="fas fa-filter"></i> Terapkan
                                 </button>
                             </div>
@@ -216,16 +216,16 @@
                 </div>
                 <div class="card-body">
                     <div class="d-grid gap-2">
-                        <button class="btn btn-primary" onclick="generateComplianceReport()">
+                        <button class="btn btn-primary" data-onclick="generateComplianceReport()">
                             <i class="fas fa-file-alt"></i> Laporan Kepatuhan
                         </button>
-                        <button class="btn btn-outline-primary" onclick="exportAuditLog()">
+                        <button class="btn btn-outline-primary" data-onclick="exportAuditLog()">
                             <i class="fas fa-download"></i> Export Audit Log
                         </button>
-                        <button class="btn btn-outline-warning" onclick="scheduleAudit()">
+                        <button class="btn btn-outline-warning" data-onclick="scheduleAudit()">
                             <i class="fas fa-calendar-plus"></i> Jadwalkan Audit
                         </button>
-                        <button class="btn btn-outline-info" onclick="viewComplianceMatrix()">
+                        <button class="btn btn-outline-info" data-onclick="viewComplianceMatrix()">
                             <i class="fas fa-table"></i> Matriks Kepatuhan
                         </button>
                     </div>
@@ -351,7 +351,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                <button type="button" class="btn btn-primary" onclick="exportAuditDetail()">Export Detail</button>
+                <button type="button" class="btn btn-primary" data-onclick="exportAuditDetail()">Export Detail</button>
             </div>
         </div>
     </div>

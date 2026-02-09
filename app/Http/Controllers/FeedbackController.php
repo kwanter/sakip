@@ -24,7 +24,10 @@ class FeedbackController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
+        // SECURITY: Ensure only authenticated users can submit feedback
+        $this->authorize('createFeedback', \App\Models\Feedback::class);
+        
+        $validated = $request->validate([[
             'subject' => 'required|string|max:255',
             'message' => 'required|string',
             'category' => 'required|string|max:100',

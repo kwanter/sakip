@@ -3,14 +3,23 @@
 namespace App\Http\Controllers\Sakip;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Sakip\KegiatanFormRequest;
 use App\Models\Kegiatan;
 use App\Models\Program;
+use App\Constants\Pagination;
+use App\Traits\WithDatabaseTransactions;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 
+/**
+ * Kegiatan Controller
+ *
+ * Refactored to use Form Request validation and Transaction trait.
+ * Eliminates duplicate validation and transaction handling code.
+ */
 class KegiatanController extends Controller
 {
+    use WithDatabaseTransactions;
+
     /**
      * Display a listing of kegiatan
      */
@@ -43,7 +52,10 @@ class KegiatanController extends Controller
             $query->where("status", $request->get("status"));
         }
 
-        $kegiatans = $query->orderBy("created_at", "desc")->paginate(15);
+        // REFACTORED: Use constant instead of magic number
+        $kegiatans = $query
+            ->orderBy("created_at", "desc")
+            ->paginate(Pagination::DEFAULT);
 
         return view("sakip.kegiatan.index", compact("kegiatans"));
     }
@@ -76,40 +88,21 @@ class KegiatanController extends Controller
 
     /**
      * Store a newly created kegiatan
+     *
+     * REFACTORED: Uses KegiatanFormRequest for validation and runInTransaction for transaction handling
      */
-    public function store(Request $request)
+    public function store(KegiatanFormRequest $request)
     {
         $this->authorize("create", Kegiatan::class);
 
-        $validated = $request->validate([
-            "program_id" => "required|exists:programs,id",
-            "kode_kegiatan" =>
-                "required|string|max:50|unique:kegiatans,kode_kegiatan",
-            "nama_kegiatan" => "required|string|max:255",
-            "deskripsi" => "nullable|string",
-            "anggaran" => "required|numeric|min:0",
-            "tanggal_mulai" => "nullable|date",
-            "tanggal_selesai" => "nullable|date|after_or_equal:tanggal_mulai",
-            "penanggung_jawab" => "nullable|string|max:255",
-            "status" => "required|in:draft,aktif,selesai",
-        ]);
-
-        DB::beginTransaction();
-        try {
-            $kegiatan = Kegiatan::create($validated);
-
-            DB::commit();
+        // REFACTORED: Use trait to handle transactions automatically
+        return $this->runInTransaction(function () use ($request) {
+            $kegiatan = Kegiatan::create($request->validated());
 
             return redirect()
                 ->route("sakip.kegiatan.show", $kegiatan)
                 ->with("success", "Kegiatan berhasil dibuat.");
-        } catch (\Exception $e) {
-            DB::rollBack();
-            \Log::error("Create kegiatan error: " . $e->getMessage());
-            return back()
-                ->withInput()
-                ->with("error", "Terjadi kesalahan saat membuat kegiatan.");
-        }
+        }, "kegiatan.store");
     }
 
     /**
@@ -144,70 +137,43 @@ class KegiatanController extends Controller
 
     /**
      * Update the specified kegiatan
+     *
+     * REFACTORED: Uses KegiatanFormRequest for validation and runInTransaction for transaction handling
      */
-    public function update(Request $request, Kegiatan $kegiatan)
+    public function update(KegiatanFormRequest $request, Kegiatan $kegiatan)
     {
         $this->authorize("update", $kegiatan);
 
-        $validated = $request->validate([
-            "program_id" => "required|exists:programs,id",
-            "kode_kegiatan" =>
-                "required|string|max:50|unique:kegiatans,kode_kegiatan," .
-                $kegiatan->id,
-            "nama_kegiatan" => "required|string|max:255",
-            "deskripsi" => "nullable|string",
-            "anggaran" => "required|numeric|min:0",
-            "tanggal_mulai" => "nullable|date",
-            "tanggal_selesai" => "nullable|date|after_or_equal:tanggal_mulai",
-            "penanggung_jawab" => "nullable|string|max:255",
-            "status" => "required|in:draft,aktif,selesai",
-        ]);
-
-        DB::beginTransaction();
-        try {
-            $kegiatan->update($validated);
-
-            DB::commit();
+        // REFACTORED: Use trait to handle transactions automatically
+        return $this->runInTransaction(function () use ($request, $kegiatan) {
+            $kegiatan->update($request->validated());
 
             return redirect()
                 ->route("sakip.kegiatan.show", $kegiatan)
                 ->with("success", "Kegiatan berhasil diperbarui.");
-        } catch (\Exception $e) {
-            DB::rollBack();
-            \Log::error("Update kegiatan error: " . $e->getMessage());
-            return back()
-                ->withInput()
-                ->with("error", "Terjadi kesalahan saat memperbarui kegiatan.");
-        }
+        }, "kegiatan.update");
     }
 
     /**
      * Remove the specified kegiatan
+     *
+     * REFACTORED: Uses runInTransaction for transaction handling
      */
     public function destroy(Kegiatan $kegiatan)
     {
         $this->authorize("delete", $kegiatan);
 
-        DB::beginTransaction();
-        try {
+        // REFACTORED: Use trait to handle transactions automatically
+        return $this->runInTransaction(function () use ($kegiatan) {
             $kegiatanName = $kegiatan->nama_kegiatan;
             $programId = $kegiatan->program_id;
 
             $kegiatan->delete();
 
-            DB::commit();
-
             return redirect()
                 ->route("sakip.program.show", $programId)
                 ->with("success", "Kegiatan berhasil dihapus.");
-        } catch (\Exception $e) {
-            DB::rollBack();
-            \Log::error("Delete kegiatan error: " . $e->getMessage());
-            return back()->with(
-                "error",
-                "Terjadi kesalahan saat menghapus kegiatan.",
-            );
-        }
+        }, "kegiatan.destroy");
     }
 
     /**

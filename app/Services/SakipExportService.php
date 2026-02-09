@@ -2,24 +2,17 @@
 
 namespace App\Services;
 
+use App\Services\Export\CsvExportService;
+use App\Services\Export\ExcelExportService;
+use App\Services\Export\JsonExportService;
+use App\Services\Export\PdfExportService;
 use App\Models\PerformanceIndicator;
 use App\Models\PerformanceData;
 use App\Models\Assessment;
 use App\Models\Target;
 use App\Models\Report;
 use App\Models\EvidenceDocument;
-use App\Models\Instansi;
 use App\Models\AuditLog;
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
-use PhpOffice\PhpSpreadsheet\Writer\Csv;
-use PhpOffice\PhpSpreadsheet\Style\Alignment;
-use PhpOffice\PhpSpreadsheet\Style\Border;
-use PhpOffice\PhpSpreadsheet\Style\Fill;
-use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
-use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
-use Dompdf\Dompdf;
-use Dompdf\Options;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
@@ -27,20 +20,26 @@ use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 use Exception;
 
+/**
+ * SAKIP Export Service
+ *
+ * Main orchestration service for exporting SAKIP data in various formats.
+ * Delegates format-specific operations to dedicated export services.
+ */
 class SakipExportService
 {
-    protected $cacheTimeout = 3600; // 1 hour
-    protected $exportPath = "exports/sakip/";
-    protected $tempPath = "temp/";
+    protected int $cacheTimeout = 3600; // 1 hour
+    protected string $exportPath = "exports/sakip/";
+    protected string $tempPath = "temp/";
 
-    protected $exportFormats = [
+    protected array $exportFormats = [
         "excel" => "xlsx",
         "csv" => "csv",
         "pdf" => "pdf",
         "json" => "json",
     ];
 
-    protected $reportTypes = [
+    protected array $reportTypes = [
         "performance_summary" => "Performance Summary",
         "indicator_analysis" => "Indicator Analysis",
         "assessment_results" => "Assessment Results",
@@ -53,8 +52,39 @@ class SakipExportService
         "compliance_report" => "Compliance Report",
     ];
 
+    protected ExcelExportService $excelExport;
+    protected CsvExportService $csvExport;
+    protected PdfExportService $pdfExport;
+    protected JsonExportService $jsonExport;
+
+    public function __construct(
+        ExcelExportService $excelExport,
+        CsvExportService $csvExport,
+        PdfExportService $pdfExport,
+        JsonExportService $jsonExport
+    ) {
+        $this->excelExport = $excelExport;
+        $this->csvExport = $csvExport;
+        $this->pdfExport = $pdfExport;
+        $this->jsonExport = $jsonExport;
+
+        // Synchronize export paths
+        $this->syncExportPaths();
+    }
+
     /**
-     * Export performance indicators
+     * Synchronize export paths across all services.
+     */
+    protected function syncExportPaths(): void
+    {
+        $this->excelExport->setExportPath($this->exportPath);
+        $this->csvExport->setExportPath($this->exportPath);
+        $this->pdfExport->setExportPath($this->exportPath);
+        $this->jsonExport->setExportPath($this->exportPath);
+    }
+
+    /**
+     * Export performance indicators.
      */
     public function exportPerformanceIndicators(
         array $filters = [],
@@ -63,50 +93,29 @@ class SakipExportService
     ): array {
         try {
             $data = $this->getPerformanceIndicatorsData($filters);
-            $filename = $this->generateFilename(
-                "performance_indicators",
-                $format,
-            );
+            $filename = $this->generateFilename("performance_indicators", $format);
             $filePath = $this->exportPath . $filename;
 
-            $exportResult = match ($format) {
-                "excel" => $this->exportToExcel($data, $filename, $options),
-                "csv" => $this->exportToCsv($data, $filename, $options),
-                "pdf" => $this->exportToPdf($data, $filename, $options),
-                "json" => $this->exportToJson($data, $filename, $options),
-                default => throw new Exception(
-                    "Unsupported format: {$format}",
-                ),
-            };
+            $this->performExport($data, $filename, $format, $options);
 
             $this->logActivity(
                 "export_performance_indicators",
                 $filename,
-                "Performance indicators exported",
+                "Performance indicators exported"
             );
 
-            return [
-                "success" => true,
-                "filename" => $filename,
-                "file_path" => $filePath,
-                "file_size" => Storage::size($filePath),
-                "download_url" => Storage::url($filePath),
-                "exported_at" => now()->toDateTimeString(),
-                "record_count" => count($data),
-            ];
+            return $this->buildExportResult($filename, $filePath, count($data));
         } catch (Exception $e) {
-            Log::error("Export performance indicators failed", [
-                "error" => $e->getMessage(),
+            $this->logError("Export performance indicators failed", $e, [
                 "filters" => $filters,
                 "format" => $format,
             ]);
-
             throw $e;
         }
     }
 
     /**
-     * Export performance data
+     * Export performance data.
      */
     public function exportPerformanceData(
         array $filters = [],
@@ -118,44 +127,26 @@ class SakipExportService
             $filename = $this->generateFilename("performance_data", $format);
             $filePath = $this->exportPath . $filename;
 
-            $exportResult = match ($format) {
-                "excel" => $this->exportToExcel($data, $filename, $options),
-                "csv" => $this->exportToCsv($data, $filename, $options),
-                "pdf" => $this->exportToPdf($data, $filename, $options),
-                "json" => $this->exportToJson($data, $filename, $options),
-                default => throw new Exception(
-                    "Unsupported format: {$format}",
-                ),
-            };
+            $this->performExport($data, $filename, $format, $options);
 
             $this->logActivity(
                 "export_performance_data",
                 $filename,
-                "Performance data exported",
+                "Performance data exported"
             );
 
-            return [
-                "success" => true,
-                "filename" => $filename,
-                "file_path" => $filePath,
-                "file_size" => Storage::size($filePath),
-                "download_url" => Storage::url($filePath),
-                "exported_at" => now()->toDateTimeString(),
-                "record_count" => count($data),
-            ];
+            return $this->buildExportResult($filename, $filePath, count($data));
         } catch (Exception $e) {
-            Log::error("Export performance data failed", [
-                "error" => $e->getMessage(),
+            $this->logError("Export performance data failed", $e, [
                 "filters" => $filters,
                 "format" => $format,
             ]);
-
             throw $e;
         }
     }
 
     /**
-     * Export assessments
+     * Export assessments.
      */
     public function exportAssessments(
         array $filters = [],
@@ -167,44 +158,22 @@ class SakipExportService
             $filename = $this->generateFilename("assessments", $format);
             $filePath = $this->exportPath . $filename;
 
-            $exportResult = match ($format) {
-                "excel" => $this->exportToExcel($data, $filename, $options),
-                "csv" => $this->exportToCsv($data, $filename, $options),
-                "pdf" => $this->exportToPdf($data, $filename, $options),
-                "json" => $this->exportToJson($data, $filename, $options),
-                default => throw new Exception(
-                    "Unsupported format: {$format}",
-                ),
-            };
+            $this->performExport($data, $filename, $format, $options);
 
-            $this->logActivity(
-                "export_assessments",
-                $filename,
-                "Assessments exported",
-            );
+            $this->logActivity("export_assessments", $filename, "Assessments exported");
 
-            return [
-                "success" => true,
-                "filename" => $filename,
-                "file_path" => $filePath,
-                "file_size" => Storage::size($filePath),
-                "download_url" => Storage::url($filePath),
-                "exported_at" => now()->toDateTimeString(),
-                "record_count" => count($data),
-            ];
+            return $this->buildExportResult($filename, $filePath, count($data));
         } catch (Exception $e) {
-            Log::error("Export assessments failed", [
-                "error" => $e->getMessage(),
+            $this->logError("Export assessments failed", $e, [
                 "filters" => $filters,
                 "format" => $format,
             ]);
-
             throw $e;
         }
     }
 
     /**
-     * Export targets
+     * Export targets.
      */
     public function exportTargets(
         array $filters = [],
@@ -216,40 +185,22 @@ class SakipExportService
             $filename = $this->generateFilename("targets", $format);
             $filePath = $this->exportPath . $filename;
 
-            $exportResult = match ($format) {
-                "excel" => $this->exportToExcel($data, $filename, $options),
-                "csv" => $this->exportToCsv($data, $filename, $options),
-                "pdf" => $this->exportToPdf($data, $filename, $options),
-                "json" => $this->exportToJson($data, $filename, $options),
-                default => throw new Exception(
-                    "Unsupported format: {$format}",
-                ),
-            };
+            $this->performExport($data, $filename, $format, $options);
 
             $this->logActivity("export_targets", $filename, "Targets exported");
 
-            return [
-                "success" => true,
-                "filename" => $filename,
-                "file_path" => $filePath,
-                "file_size" => Storage::size($filePath),
-                "download_url" => Storage::url($filePath),
-                "exported_at" => now()->toDateTimeString(),
-                "record_count" => count($data),
-            ];
+            return $this->buildExportResult($filename, $filePath, count($data));
         } catch (Exception $e) {
-            Log::error("Export targets failed", [
-                "error" => $e->getMessage(),
+            $this->logError("Export targets failed", $e, [
                 "filters" => $filters,
                 "format" => $format,
             ]);
-
             throw $e;
         }
     }
 
     /**
-     * Generate comprehensive report
+     * Generate comprehensive report.
      */
     public function generateReport(
         string $reportType,
@@ -262,34 +213,12 @@ class SakipExportService
             $filename = $this->generateFilename($reportType, $format);
             $filePath = $this->exportPath . $filename;
 
-            $exportResult = match ($format) {
-                "excel" => $this->exportReportToExcel(
-                    $data,
-                    $reportType,
-                    $filename,
-                    $options,
-                ),
-                "pdf" => $this->exportReportToPdf(
-                    $data,
-                    $reportType,
-                    $filename,
-                    $options,
-                ),
-                "json" => $this->exportReportToJson(
-                    $data,
-                    $reportType,
-                    $filename,
-                    $options,
-                ),
-                default => throw new Exception(
-                    "Unsupported format: {$format}",
-                ),
-            };
+            $this->performReportExport($data, $reportType, $filename, $format, $options);
 
             $this->logActivity(
                 "generate_report",
                 $filename,
-                "Report {$reportType} generated",
+                "Report {$reportType} generated"
             );
 
             return [
@@ -303,19 +232,17 @@ class SakipExportService
                 "data_summary" => $this->getReportSummary($data),
             ];
         } catch (Exception $e) {
-            Log::error("Generate report failed", [
-                "error" => $e->getMessage(),
+            $this->logError("Generate report failed", $e, [
                 "report_type" => $reportType,
                 "filters" => $filters,
                 "format" => $format,
             ]);
-
             throw $e;
         }
     }
 
     /**
-     * Export audit trail
+     * Export audit trail.
      */
     public function exportAuditTrail(
         array $filters = [],
@@ -327,44 +254,22 @@ class SakipExportService
             $filename = $this->generateFilename("audit_trail", $format);
             $filePath = $this->exportPath . $filename;
 
-            $exportResult = match ($format) {
-                "excel" => $this->exportToExcel($data, $filename, $options),
-                "csv" => $this->exportToCsv($data, $filename, $options),
-                "pdf" => $this->exportToPdf($data, $filename, $options),
-                "json" => $this->exportToJson($data, $filename, $options),
-                default => throw new Exception(
-                    "Unsupported format: {$format}",
-                ),
-            };
+            $this->performExport($data, $filename, $format, $options);
 
-            $this->logActivity(
-                "export_audit_trail",
-                $filename,
-                "Audit trail exported",
-            );
+            $this->logActivity("export_audit_trail", $filename, "Audit trail exported");
 
-            return [
-                "success" => true,
-                "filename" => $filename,
-                "file_path" => $filePath,
-                "file_size" => Storage::size($filePath),
-                "download_url" => Storage::url($filePath),
-                "exported_at" => now()->toDateTimeString(),
-                "record_count" => count($data),
-            ];
+            return $this->buildExportResult($filename, $filePath, count($data));
         } catch (Exception $e) {
-            Log::error("Export audit trail failed", [
-                "error" => $e->getMessage(),
+            $this->logError("Export audit trail failed", $e, [
                 "filters" => $filters,
                 "format" => $format,
             ]);
-
             throw $e;
         }
     }
 
     /**
-     * Export evidence documents
+     * Export evidence documents.
      */
     public function exportEvidenceDocuments(
         array $filters = [],
@@ -376,44 +281,26 @@ class SakipExportService
             $filename = $this->generateFilename("evidence_documents", $format);
             $filePath = $this->exportPath . $filename;
 
-            $exportResult = match ($format) {
-                "excel" => $this->exportToExcel($data, $filename, $options),
-                "csv" => $this->exportToCsv($data, $filename, $options),
-                "pdf" => $this->exportToPdf($data, $filename, $options),
-                "json" => $this->exportToJson($data, $filename, $options),
-                default => throw new Exception(
-                    "Unsupported format: {$format}",
-                ),
-            };
+            $this->performExport($data, $filename, $format, $options);
 
             $this->logActivity(
                 "export_evidence_documents",
                 $filename,
-                "Evidence documents exported",
+                "Evidence documents exported"
             );
 
-            return [
-                "success" => true,
-                "filename" => $filename,
-                "file_path" => $filePath,
-                "file_size" => Storage::size($filePath),
-                "download_url" => Storage::url($filePath),
-                "exported_at" => now()->toDateTimeString(),
-                "record_count" => count($data),
-            ];
+            return $this->buildExportResult($filename, $filePath, count($data));
         } catch (Exception $e) {
-            Log::error("Export evidence documents failed", [
-                "error" => $e->getMessage(),
+            $this->logError("Export evidence documents failed", $e, [
                 "filters" => $filters,
                 "format" => $format,
             ]);
-
             throw $e;
         }
     }
 
     /**
-     * Bulk export
+     * Bulk export multiple items.
      */
     public function bulkExport(
         array $exportRequests,
@@ -448,11 +335,7 @@ class SakipExportService
                     }
                 }
 
-                $this->logActivity(
-                    "bulk_export",
-                    $zipFilename,
-                    "Bulk export completed",
-                );
+                $this->logActivity("bulk_export", $zipFilename, "Bulk export completed");
 
                 return [
                     "success" => true,
@@ -470,18 +353,16 @@ class SakipExportService
                 "error" => "No exports processed",
             ];
         } catch (Exception $e) {
-            Log::error("Bulk export failed", [
-                "error" => $e->getMessage(),
+            $this->logError("Bulk export failed", $e, [
                 "export_requests" => $exportRequests,
                 "format" => $format,
             ]);
-
             throw $e;
         }
     }
 
     /**
-     * Get export statistics
+     * Get export statistics.
      */
     public function getExportStatistics(): array
     {
@@ -522,14 +403,17 @@ class SakipExportService
         });
     }
 
+    // =====================================================
+    // DATA RETRIEVAL METHODS
+    // =====================================================
+
     /**
-     * Get performance indicators data
+     * Get performance indicators data.
      */
     protected function getPerformanceIndicatorsData(array $filters = []): array
     {
         $query = PerformanceIndicator::with(["instansi", "category", "unit"]);
 
-        // Apply filters
         if (isset($filters["instansi_id"])) {
             $query->where("instansi_id", $filters["instansi_id"]);
         }
@@ -555,28 +439,24 @@ class SakipExportService
                     "Kode Indikator" => $indicator->indicator_code,
                     "Nama Indikator" => $indicator->name,
                     "Deskripsi" => $indicator->description,
-                    "Kategori" => $indicator->category->name ?? "-",
-                    "Instansi" => $indicator->instansi->name ?? "-",
-                    "Satuan" => $indicator->unit->name ?? "-",
+                    "Kategori" => $indicator->category?->name ?? "-",
+                    "Instansi" => $indicator->instansi?->name ?? "-",
+                    "Satuan" => $indicator->unit?->name ?? "-",
                     "Frekuensi" => $indicator->collection_frequency,
                     "Metode Koleksi" => $indicator->collection_method,
                     "Status" => $indicator->status,
-                    "Target" =>
-                        $indicator->targets->where("year", date("Y"))->first()
-                            ->target_value ?? "-",
-                    "Tanggal Dibuat" => $indicator->created_at->format(
-                        "Y-m-d H:i:s",
-                    ),
-                    "Tanggal Diperbarui" => $indicator->updated_at->format(
-                        "Y-m-d H:i:s",
-                    ),
+                    "Target" => $indicator->targets
+                        ->where("year", date("Y"))
+                        ->first()?->target_value ?? "-",
+                    "Tanggal Dibuat" => $indicator->created_at->format("Y-m-d H:i:s"),
+                    "Tanggal Diperbarui" => $indicator->updated_at->format("Y-m-d H:i:s"),
                 ];
             })
             ->toArray();
     }
 
     /**
-     * Get performance data
+     * Get performance data.
      */
     protected function getPerformanceData(array $filters = []): array
     {
@@ -586,20 +466,20 @@ class SakipExportService
             "evidenceDocuments",
         ]);
 
-        // Apply filters
         if (isset($filters["instansi_id"])) {
             $query->where("instansi_id", $filters["instansi_id"]);
         }
 
         if (isset($filters["performance_indicator_id"])) {
-            $query->where(
-                "performance_indicator_id",
-                $filters["performance_indicator_id"],
-            );
+            $query->where("performance_indicator_id", $filters["performance_indicator_id"]);
         }
 
-        if (isset($filters["period_year"])) {
-            $query->whereYear("period", $filters["period_year"]);
+        if (isset($filters["period"])) {
+            $query->where("period", "like", $filters["period"] . "%");
+        }
+
+        if (isset($filters["year"])) {
+            $query->whereYear("period", $filters["year"]);
         }
 
         if (isset($filters["status"])) {
@@ -610,57 +490,45 @@ class SakipExportService
 
         return $performanceData
             ->map(function ($data) {
-                $achievement = $data->calculateAchievement();
+                $achievement = $this->calculateAchievement($data);
+
                 return [
                     "ID" => $data->id,
                     "Indikator" => $data->performanceIndicator?->name ?? "-",
-                    "Instansi" => $data->instansi->name ?? "-",
+                    "Instansi" => $data->instansi?->name ?? "-",
                     "Periode" => $data->period,
                     "Nilai Aktual" => $data->actual_value,
-                    "Pencapaian (%)" => $achievement
-                        ? round($achievement, 2)
-                        : "-",
+                    "Nilai Target" => $data->target_value,
+                    "Capaian (%)" => $achievement,
                     "Status" => $data->status,
-                    "Kualitas Data" => $data->data_quality,
-                    "Dokumen Bukti" => $data->evidenceDocuments->count(),
-                    "Tanggal Submit" =>
-                        $data->submitted_at?->format("Y-m-d H:i:s") ?? "-",
-                    "Tanggal Validasi" =>
-                        $data->validated_at?->format("Y-m-d H:i:s") ?? "-",
+                    "Sumber Data" => $data->data_source ?? "-",
+                    "Metode Koleksi" => $data->collection_method ?? "-",
+                    "Jumlah Bukti" => $data->evidenceDocuments->count(),
+                    "Tanggal Dibuat" => $data->created_at->format("Y-m-d H:i:s"),
                 ];
             })
             ->toArray();
     }
 
     /**
-     * Get assessments data
+     * Get assessments data.
      */
     protected function getAssessmentsData(array $filters = []): array
     {
-        $query = Assessment::with([
-            "performanceIndicator",
-            "instansi",
-            "assessor",
-        ]);
+        $query = Assessment::with(["performanceData.performanceIndicator", "assessor"]);
 
-        // Apply filters
         if (isset($filters["instansi_id"])) {
-            $query->where("instansi_id", $filters["instansi_id"]);
+            $query->whereHas("performanceData", function ($q) use ($filters) {
+                $q->where("instansi_id", $filters["instansi_id"]);
+            });
         }
 
-        if (isset($filters["performance_indicator_id"])) {
-            $query->where(
-                "performance_indicator_id",
-                $filters["performance_indicator_id"],
-            );
+        if (isset($filters["period"])) {
+            $query->where("assessment_period", "like", $filters["period"] . "%");
         }
 
         if (isset($filters["status"])) {
             $query->where("status", $filters["status"]);
-        }
-
-        if (isset($filters["assessor_id"])) {
-            $query->where("assessor_id", $filters["assessor_id"]);
         }
 
         $assessments = $query->get();
@@ -669,54 +537,40 @@ class SakipExportService
             ->map(function ($assessment) {
                 return [
                     "ID" => $assessment->id,
-                    "Indikator" =>
-                        $assessment->performanceIndicator->name ?? "-",
-                    "Instansi" => $assessment->instansi->name ?? "-",
-                    "Penilai" => $assessment->assessor->name ?? "-",
+                    "Indikator" => $assessment->performanceData
+                        ?->performanceIndicator?->name ?? "-",
+                    "Periode Penilaian" => $assessment->assessment_period,
                     "Skor" => $assessment->score,
-                    "Kategori" => $assessment->rating_category,
+                    "Grade" => $assessment->grade,
+                    "Penilai" => $assessment->assessor?->name ?? "-",
+                    "Catatan" => $assessment->notes ?? "-",
+                    "Rekomendasi" => $assessment->recommendations ?? "-",
                     "Status" => $assessment->status,
-                    "Tanggal Penilaian" => $assessment->assessment_date->format(
-                        "Y-m-d H:i:s",
-                    ),
-                    "Tanggal Selesai" =>
-                        $assessment->completion_date?->format("Y-m-d H:i:s") ??
-                        "-",
-                    "Komentar" => $assessment->comments ?? "-",
+                    "Tanggal Dibuat" => $assessment->created_at->format("Y-m-d H:i:s"),
                 ];
             })
             ->toArray();
     }
 
     /**
-     * Get targets data
+     * Get targets data.
      */
     protected function getTargetsData(array $filters = []): array
     {
-        $query = Target::with([
-            "performanceIndicator",
-            "instansi",
-            "approvedBy",
-        ]);
+        $query = Target::with(["performanceIndicator.instansi"]);
 
-        // Apply filters
         if (isset($filters["instansi_id"])) {
-            $query->where("instansi_id", $filters["instansi_id"]);
-        }
-
-        if (isset($filters["performance_indicator_id"])) {
-            $query->where(
-                "performance_indicator_id",
-                $filters["performance_indicator_id"],
-            );
+            $query->whereHas("performanceIndicator", function ($q) use ($filters) {
+                $q->where("instansi_id", $filters["instansi_id"]);
+            });
         }
 
         if (isset($filters["year"])) {
             $query->where("year", $filters["year"]);
         }
 
-        if (isset($filters["status"])) {
-            $query->where("status", $filters["status"]);
+        if (isset($filters["period"])) {
+            $query->where("period", $filters["period"]);
         }
 
         $targets = $query->get();
@@ -726,30 +580,25 @@ class SakipExportService
                 return [
                     "ID" => $target->id,
                     "Indikator" => $target->performanceIndicator?->name ?? "-",
+                    "Instansi" => $target->performanceIndicator?->instansi?->name ?? "-",
                     "Tahun" => $target->year,
+                    "Periode" => $target->period,
                     "Nilai Target" => $target->target_value,
-                    "Nilai Minimum" => $target->minimum_value ?? "-",
-                    "Justifikasi" => $target->justification ?? "-",
-                    "Status" => $target->status,
-                    "Tanggal Dibuat" => $target->created_at->format(
-                        "Y-m-d H:i:s",
-                    ),
-                    "Tanggal Diperbarui" => $target->updated_at->format(
-                        "Y-m-d H:i:s",
-                    ),
+                    "Satuan" => $target->unit ?? "-",
+                    "Deskripsi" => $target->description ?? "-",
+                    "Tanggal Dibuat" => $target->created_at->format("Y-m-d H:i:s"),
                 ];
             })
             ->toArray();
     }
 
     /**
-     * Get audit trail data
+     * Get audit trail data.
      */
     protected function getAuditTrailData(array $filters = []): array
     {
         $query = AuditLog::with(["user", "instansi"]);
 
-        // Apply filters
         if (isset($filters["user_id"])) {
             $query->where("user_id", $filters["user_id"]);
         }
@@ -762,37 +611,29 @@ class SakipExportService
             $query->where("module", $filters["module"]);
         }
 
-        if (isset($filters["activity"])) {
-            $query->where("activity", $filters["activity"]);
+        if (isset($filters["action"])) {
+            $query->where("action", "like", "%" . $filters["action"] . "%");
         }
 
         if (isset($filters["date_from"])) {
-            $query->whereDate("created_at", ">=", $filters["date_from"]);
+            $query->where("created_at", ">=", $filters["date_from"]);
         }
 
         if (isset($filters["date_to"])) {
-            $query->whereDate("created_at", "<=", $filters["date_to"]);
+            $query->where("created_at", "<=", $filters["date_to"]);
         }
 
-        $auditLogs = $query->get();
+        $logs = $query->orderBy("created_at", "desc")->get();
 
-        return $auditLogs
+        return $logs
             ->map(function ($log) {
                 return [
                     "ID" => $log->id,
-                    "Pengguna" => $log->user->name ?? "-",
-                    "Instansi" => $log->instansi->name ?? "-",
-                    "Modul" => $log->module,
-                    "Aktivitas" => $log->activity,
-                    "Deskripsi" => $log->description,
-                    "Nilai Lama" => $log->old_values
-                        ? json_encode($log->old_values)
-                        : "-",
-                    "Nilai Baru" => $log->new_values
-                        ? json_encode($log->new_values)
-                        : "-",
-                    "Alamat IP" => $log->ip_address ?? "-",
-                    "Agen Pengguna" => $log->user_agent ?? "-",
+                    "User" => $log->user?->name ?? "-",
+                    "Module" => $log->module,
+                    "Activity" => $log->activity,
+                    "Description" => $log->description,
+                    "IP Address" => $log->ip_address ?? "-",
                     "Tanggal" => $log->created_at->format("Y-m-d H:i:s"),
                 ];
             })
@@ -800,288 +641,117 @@ class SakipExportService
     }
 
     /**
-     * Get evidence documents data
+     * Get evidence documents data.
      */
     protected function getEvidenceDocumentsData(array $filters = []): array
     {
         $query = EvidenceDocument::with([
-            "performanceData",
-            "instansi",
-            "uploadedBy",
+            "performanceData.performanceIndicator",
+            "performanceData.instansi",
         ]);
 
-        // Apply filters
         if (isset($filters["instansi_id"])) {
-            $query->where("instansi_id", $filters["instansi_id"]);
+            $query->whereHas("performanceData", function ($q) use ($filters) {
+                $q->where("instansi_id", $filters["instansi_id"]);
+            });
         }
 
-        if (isset($filters["performance_data_id"])) {
-            $query->where(
-                "performance_data_id",
-                $filters["performance_data_id"],
-            );
-        }
-
-        if (isset($filters["validation_status"])) {
-            $query->where("validation_status", $filters["validation_status"]);
-        }
-
-        if (isset($filters["file_type"])) {
-            $query->where("file_type", $filters["file_type"]);
+        if (isset($filters["document_type"])) {
+            $query->where("document_type", $filters["document_type"]);
         }
 
         $documents = $query->get();
 
         return $documents
-            ->map(function ($document) {
+            ->map(function ($doc) {
                 return [
-                    "ID" => $document->id,
-                    "Nama File" => $document->file_name,
-                    "Tipe File" => $document->file_type,
-                    "Ukuran" => $this->formatFileSize($document->file_size),
-                    "Indikator" =>
-                        $document->performanceData->performanceIndicator
-                            ->name ?? "-",
-                    "Instansi" => $document->instansi->name ?? "-",
-                    "Diunggah Oleh" => $document->uploadedBy->name ?? "-",
-                    "Status Validasi" => $document->validation_status,
-                    "Tanggal Unggah" => $document->upload_date->format(
-                        "Y-m-d H:i:s",
-                    ),
-                    "Tanggal Validasi" =>
-                        $document->validation_date?->format("Y-m-d H:i:s") ??
-                        "-",
-                    "Komentar" => $document->validation_comments ?? "-",
+                    "ID" => $doc->id,
+                    "Indikator" => $doc->performanceData
+                        ?->performanceIndicator?->name ?? "-",
+                    "Instansi" => $doc->performanceData?->instansi?->name ?? "-",
+                    "Nama Dokumen" => $doc->file_name,
+                    "Tipe Dokumen" => $doc->document_type ?? "-",
+                    "Ukuran File" => $this->formatFileSize($doc->file_size),
+                    "Uploader" => $doc->uploader?->name ?? "-",
+                    "Tanggal Upload" => $doc->created_at->format("Y-m-d H:i:s"),
                 ];
             })
             ->toArray();
     }
 
     /**
-     * Get report data
+     * Get report data.
      */
-    protected function getReportData(
+    protected function getReportData(string $reportType, array $filters = []): array
+    {
+        return match ($reportType) {
+            "performance_summary" => $this->getPerformanceSummaryReport($filters),
+            "indicator_analysis" => $this->getIndicatorAnalysisReport($filters),
+            "assessment_results" => $this->getAssessmentResultsReport($filters),
+            "target_achievement" => $this->getTargetAchievementReport($filters),
+            default => ["data" => [], "summary" => []],
+        };
+    }
+
+    // =====================================================
+    // EXPORT ORCHESTRATION METHODS
+    // =====================================================
+
+    /**
+     * Perform export based on format.
+     */
+    protected function performExport(
+        array $data,
+        string $filename,
+        string $format,
+        array $options = []
+    ): void {
+        match ($format) {
+            "excel" => $this->excelExport->export($data, $filename, $options),
+            "csv" => $this->csvExport->export($data, $filename, $options),
+            "pdf" => $this->pdfExport->export($data, $filename, $options),
+            "json" => $this->jsonExport->export($data, $filename, $options),
+            default => throw new Exception("Unsupported format: {$format}"),
+        };
+    }
+
+    /**
+     * Perform report export based on format.
+     */
+    protected function performReportExport(
+        array $data,
         string $reportType,
-        array $filters = [],
-    ): array {
-        $method = "get" . ucfirst(camel_case($reportType)) . "ReportData";
-
-        if (!method_exists($this, $method)) {
-            throw new Exception("Report type '{$reportType}' not supported");
-        }
-
-        return $this->$method($filters);
-    }
-
-    /**
-     * Get performance summary report data
-     */
-    protected function getPerformanceSummaryReportData(
-        array $filters = [],
-    ): array {
-        $instansiId = $filters["instansi_id"] ?? null;
-        $year = $filters["year"] ?? date("Y");
-
-        $indicators = PerformanceIndicator::when(
-            $instansiId,
-            fn($q) => $q->where("instansi_id", $instansiId),
-        )
-            ->with(["targets", "performanceData"])
-            ->get();
-
-        $summary = [
-            "total_indicators" => $indicators->count(),
-            "active_indicators" => $indicators
-                ->where("status", "active")
-                ->count(),
-            "indicators_with_targets" => $indicators
-                ->filter(
-                    fn($i) => $i->targets->where("year", $year)->isNotEmpty(),
-                )
-                ->count(),
-            "indicators_with_data" => $indicators
-                ->filter(
-                    fn($i) => $i->performanceData
-                        ->filter(fn($pd) => substr($pd->period, 0, 4) == $year)
-                        ->isNotEmpty(),
-                )
-                ->count(),
-        ];
-
-        $byCategory = $indicators
-            ->groupBy("category.name")
-            ->map(function ($group) use ($year) {
-                return [
-                    "total" => $group->count(),
-                    "with_targets" => $group
-                        ->filter(
-                            fn($i) => $i->targets
-                                ->where("year", $year)
-                                ->isNotEmpty(),
-                        )
-                        ->count(),
-                    "with_data" => $group
-                        ->filter(
-                            fn($i) => $i->performanceData
-                                ->filter(
-                                    fn($pd) => substr($pd->period, 0, 4) ==
-                                        $year,
-                                )
-                                ->isNotEmpty(),
-                        )
-                        ->count(),
-                ];
-            });
-
-        return [
-            "summary" => $summary,
-            "by_category" => $byCategory,
-            "indicators" => $indicators->map(function ($indicator) use ($year) {
-                $target = $indicator->targets->where("year", $year)->first();
-                $perfData = $indicator->performanceData
-                    ->filter(fn($pd) => substr($pd->period, 0, 4) == $year)
-                    ->first();
-
-                return [
-                    "name" => $indicator->name,
-                    "category" => $indicator->category->name ?? "-",
-                    "target" => $target?->target_value ?? "-",
-                    "actual" => $perfData?->actual_value ?? "-",
-                    "achievement" => $perfData
-                        ? $perfData->calculateAchievement() ?? "-"
-                        : "-",
-                ];
-            }),
-        ];
-    }
-
-    /**
-     * Export to Excel
-     */
-    protected function exportToExcel(
-        array $data,
         string $filename,
-        array $options = [],
+        string $format,
+        array $options = []
     ): void {
-        $spreadsheet = new Spreadsheet();
-        $sheet = $spreadsheet->getActiveSheet();
-
-        // Set headers
-        if (!empty($data)) {
-            $headers = array_keys(reset($data));
-            $sheet->fromArray($headers, null, "A1");
-            $sheet->fromArray($data, null, "A2");
-
-            // Apply styling
-            $this->applyExcelStyling($sheet, count($headers), count($data));
-        }
-
-        // Save file
-        $writer = new Xlsx($spreadsheet);
-        $filePath = Storage::path($this->exportPath . $filename);
-
-        // Ensure directory exists
-        $directory = dirname($filePath);
-        if (!is_dir($directory)) {
-            mkdir($directory, 0755, true);
-        }
-
-        $writer->save($filePath);
+        match ($format) {
+            "excel" => $this->excelExport->exportReport($data, $reportType, $filename, $options),
+            "pdf" => $this->pdfExport->exportReport($data, $reportType, $filename, $options),
+            "json" => $this->jsonExport->exportReport($data, $reportType, $filename, $options),
+            default => throw new Exception("Unsupported format: {$format}"),
+        };
     }
 
+    // =====================================================
+    // HELPER METHODS
+    // =====================================================
+
     /**
-     * Export to CSV
+     * Calculate achievement percentage.
      */
-    protected function exportToCsv(
-        array $data,
-        string $filename,
-        array $options = [],
-    ): void {
-        $spreadsheet = new Spreadsheet();
-        $sheet = $spreadsheet->getActiveSheet();
-
-        if (!empty($data)) {
-            $sheet->fromArray($data, null, "A1");
+    protected function calculateAchievement($data): float|string
+    {
+        if (!$data->target_value || $data->target_value == 0) {
+            return $data->actual_value ? round($data->actual_value, 2) : "-";
         }
 
-        $writer = new Csv($spreadsheet);
-        $writer->setDelimiter(",");
-        $writer->setEnclosure('"');
-        $writer->setLineEnding("\r\n");
-        $writer->setSheetIndex(0);
-
-        $filePath = Storage::path($this->exportPath . $filename);
-
-        // Ensure directory exists
-        $directory = dirname($filePath);
-        if (!is_dir($directory)) {
-            mkdir($directory, 0755, true);
-        }
-
-        $writer->save($filePath);
+        $percentage = ($data->actual_value / $data->target_value) * 100;
+        return round(min(max($percentage, 0), 100), 2);
     }
 
     /**
-     * Export to PDF
-     */
-    protected function exportToPdf(
-        array $data,
-        string $filename,
-        array $options = [],
-    ): void {
-        $options = new Options();
-        $options->set("defaultFont", "Arial");
-        $options->set("isHtml5ParserEnabled", true);
-        $options->set("isRemoteEnabled", true);
-
-        $dompdf = new Dompdf($options);
-
-        $html = $this->generatePdfHtml($data, $options);
-        $dompdf->loadHtml($html);
-        $dompdf->setPaper("A4", "landscape");
-        $dompdf->render();
-
-        $filePath = Storage::path($this->exportPath . $filename);
-
-        // Ensure directory exists
-        $directory = dirname($filePath);
-        if (!is_dir($directory)) {
-            mkdir($directory, 0755, true);
-        }
-
-        file_put_contents($filePath, $dompdf->output());
-    }
-
-    /**
-     * Export to JSON
-     */
-    protected function exportToJson(
-        array $data,
-        string $filename,
-        array $options = [],
-    ): void {
-        $filePath = Storage::path($this->exportPath . $filename);
-
-        // Ensure directory exists
-        $directory = dirname($filePath);
-        if (!is_dir($directory)) {
-            mkdir($directory, 0755, true);
-        }
-
-        $jsonData = [
-            "exported_at" => now()->toDateTimeString(),
-            "record_count" => count($data),
-            "data" => $data,
-        ];
-
-        file_put_contents(
-            $filePath,
-            json_encode($jsonData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE),
-        );
-    }
-
-    /**
-     * Generate filename
+     * Generate filename.
      */
     protected function generateFilename(string $type, string $format): string
     {
@@ -1091,311 +761,23 @@ class SakipExportService
     }
 
     /**
-     * Apply Excel styling
+     * Build export result array.
      */
-    protected function applyExcelStyling(
-        $sheet,
-        int $columnCount,
-        int $rowCount,
-    ): void {
-        // Header styling
-        $headerRange =
-            "A1:" .
-            \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex(
-                $columnCount,
-            ) .
-            "1";
-        $sheet->getStyle($headerRange)->applyFromArray([
-            "font" => [
-                "bold" => true,
-                "color" => ["rgb" => "FFFFFF"],
-            ],
-            "fill" => [
-                "fillType" => Fill::FILL_SOLID,
-                "startColor" => ["rgb" => "4472C4"],
-            ],
-            "alignment" => [
-                "horizontal" => Alignment::HORIZONTAL_CENTER,
-                "vertical" => Alignment::VERTICAL_CENTER,
-            ],
-            "borders" => [
-                "allBorders" => [
-                    "borderStyle" => Border::BORDER_THIN,
-                    "color" => ["rgb" => "000000"],
-                ],
-            ],
-        ]);
-
-        // Data styling
-        $dataRange =
-            "A2:" .
-            \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex(
-                $columnCount,
-            ) .
-            ($rowCount + 1);
-        $sheet->getStyle($dataRange)->applyFromArray([
-            "borders" => [
-                "allBorders" => [
-                    "borderStyle" => Border::BORDER_THIN,
-                    "color" => ["rgb" => "000000"],
-                ],
-            ],
-            "alignment" => [
-                "vertical" => Alignment::VERTICAL_TOP,
-            ],
-        ]);
-
-        // Auto-size columns
-        for ($col = 1; $col <= $columnCount; $col++) {
-            $sheet->getColumnDimensionByColumn($col)->setAutoSize(true);
-        }
-    }
-
-    /**
-     * Generate PDF HTML
-     */
-    protected function generatePdfHtml(array $data, array $options = []): string
+    protected function buildExportResult(string $filename, string $filePath, int $count): array
     {
-        $title = $options["title"] ?? "SAKIP Export";
-        $subtitle = $options["subtitle"] ?? "Performance Data Export";
-        $date = now()->format("d F Y H:i:s");
-
-        $html = "
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <meta charset=\"UTF-8\">
-                <title>{$title}</title>
-                <style>
-                    body { font-family: Arial, sans-serif; margin: 20px; }
-                    .header { text-align: center; margin-bottom: 30px; }
-                    .title { font-size: 24px; font-weight: bold; margin-bottom: 10px; }
-                    .subtitle { font-size: 16px; color: #666; margin-bottom: 20px; }
-                    .date { font-size: 12px; color: #999; }
-                    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-                    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-                    th { background-color: #4472C4; color: white; font-weight: bold; }
-                    tr:nth-child(even) { background-color: #f9f9f9; }
-                    .footer { margin-top: 30px; font-size: 12px; color: #666; }
-                </style>
-            </head>
-            <body>
-                <div class=\"header\">
-                    <div class=\"title\">{$title}</div>
-                    <div class=\"subtitle\">{$subtitle}</div>
-                    <div class=\"date\">Generated on: {$date}</div>
-                </div>
-        ";
-
-        if (!empty($data)) {
-            $html .= "<table>\n<thead>\n<tr>";
-            $headers = array_keys(reset($data));
-            foreach ($headers as $header) {
-                $html .= "<th>{$header}</th>";
-            }
-            $html .= "</tr>\n</thead>\n<tbody>\n";
-
-            foreach ($data as $row) {
-                $html .= "<tr>";
-                foreach ($row as $value) {
-                    $html .= "<td>" . htmlspecialchars($value) . "</td>";
-                }
-                $html .= "</tr>\n";
-            }
-
-            $html .= "</tbody>\n</table>";
-        }
-
-        $html .=
-            "
-                <div class=\"footer\">
-                    <p>Total Records: " .
-            count($data) .
-            "</p>
-                    <p>This document was generated automatically by the SAKIP System.</p>
-                </div>
-            </body>
-            </html>
-        ";
-
-        return $html;
-    }
-
-    /**
-     * Export report to Excel
-     */
-    protected function exportReportToExcel(
-        array $data,
-        string $reportType,
-        string $filename,
-        array $options = [],
-    ): void {
-        $spreadsheet = new Spreadsheet();
-        $sheet = $spreadsheet->getActiveSheet();
-        $sheet->setTitle("Report");
-
-        // Add report header
-        $sheet->setCellValue("A1", "SAKIP Report");
-        $sheet->setCellValue(
-            "A2",
-            $this->reportTypes[$reportType] ?? $reportType,
-        );
-        $sheet->setCellValue(
-            "A3",
-            "Generated: " . now()->format("Y-m-d H:i:s"),
-        );
-
-        // Add data
-        if (isset($data["summary"])) {
-            $row = 5;
-            $sheet->setCellValue("A{$row}", "Summary");
-            $row++;
-            foreach ($data["summary"] as $key => $value) {
-                $sheet->setCellValue(
-                    "A{$row}",
-                    ucfirst(str_replace("_", " ", $key)),
-                );
-                $sheet->setCellValue("B{$row}", $value);
-                $row++;
-            }
-        }
-
-        // Save file
-        $writer = new Xlsx($spreadsheet);
-        $filePath = Storage::path($this->exportPath . $filename);
-
-        // Ensure directory exists
-        $directory = dirname($filePath);
-        if (!is_dir($directory)) {
-            mkdir($directory, 0755, true);
-        }
-
-        $writer->save($filePath);
-    }
-
-    /**
-     * Export report to PDF
-     */
-    protected function exportReportToPdf(
-        array $data,
-        string $reportType,
-        string $filename,
-        array $options = [],
-    ): void {
-        $options = new Options();
-        $options->set("defaultFont", "Arial");
-
-        $dompdf = new Dompdf($options);
-
-        $html = $this->generateReportHtml($data, $reportType, $options);
-        $dompdf->loadHtml($html);
-        $dompdf->setPaper("A4", "portrait");
-        $dompdf->render();
-
-        $filePath = Storage::path($this->exportPath . $filename);
-
-        // Ensure directory exists
-        $directory = dirname($filePath);
-        if (!is_dir($directory)) {
-            mkdir($directory, 0755, true);
-        }
-
-        file_put_contents($filePath, $dompdf->output());
-    }
-
-    /**
-     * Export report to JSON
-     */
-    protected function exportReportToJson(
-        array $data,
-        string $reportType,
-        string $filename,
-        array $options = [],
-    ): void {
-        $filePath = Storage::path($this->exportPath . $filename);
-
-        // Ensure directory exists
-        $directory = dirname($filePath);
-        if (!is_dir($directory)) {
-            mkdir($directory, 0755, true);
-        }
-
-        $jsonData = [
-            "report_type" => $reportType,
-            "report_name" => $this->reportTypes[$reportType] ?? $reportType,
-            "generated_at" => now()->toDateTimeString(),
-            "filters" => $options["filters"] ?? [],
-            "data" => $data,
+        return [
+            "success" => true,
+            "filename" => $filename,
+            "file_path" => $filePath,
+            "file_size" => Storage::size($filePath),
+            "download_url" => Storage::url($filePath),
+            "exported_at" => now()->toDateTimeString(),
+            "record_count" => $count,
         ];
-
-        file_put_contents(
-            $filePath,
-            json_encode($jsonData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE),
-        );
     }
 
     /**
-     * Generate report HTML
-     */
-    protected function generateReportHtml(
-        array $data,
-        string $reportType,
-        array $options = [],
-    ): string {
-        $title = $this->reportTypes[$reportType] ?? $reportType;
-        $date = now()->format("d F Y H:i:s");
-
-        $html = "
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <meta charset=\"UTF-8\">
-                <title>{$title}</title>
-                <style>
-                    body { font-family: Arial, sans-serif; margin: 30px; }
-                    .header { text-align: center; margin-bottom: 40px; border-bottom: 2px solid #4472C4; padding-bottom: 20px; }
-                    .title { font-size: 28px; font-weight: bold; color: #4472C4; margin-bottom: 10px; }
-                    .subtitle { font-size: 18px; color: #666; margin-bottom: 20px; }
-                    .date { font-size: 14px; color: #999; }
-                    .summary { margin: 30px 0; padding: 20px; background-color: #f5f5f5; border-radius: 5px; }
-                    .summary h3 { color: #4472C4; margin-top: 0; }
-                    .summary-item { margin: 10px 0; }
-                    .summary-label { font-weight: bold; display: inline-block; width: 200px; }
-                    .footer { margin-top: 40px; text-align: center; font-size: 12px; color: #666; border-top: 1px solid #ddd; padding-top: 20px; }
-                </style>
-            </head>
-            <body>
-                <div class=\"header\">
-                    <div class=\"title\">SAKIP System</div>
-                    <div class=\"subtitle\">{$title}</div>
-                    <div class=\"date\">Generated on: {$date}</div>
-                </div>
-        ";
-
-        // Add summary section
-        if (isset($data["summary"])) {
-            $html .= "<div class=\"summary\">\n<h3>Executive Summary</h3>\n";
-            foreach ($data["summary"] as $key => $value) {
-                $label = ucfirst(str_replace("_", " ", $key));
-                $html .= "<div class=\"summary-item\"><span class=\"summary-label\">{$label}:</span> {$value}</div>\n";
-            }
-            $html .= "</div>\n";
-        }
-
-        $html .= "
-                <div class=\"footer\">
-                    <p>This report was generated automatically by the SAKIP System.</p>
-                    <p>For inquiries, please contact the system administrator.</p>
-                </div>
-            </body>
-            </html>
-        ";
-
-        return $html;
-    }
-
-    /**
-     * Get report summary
+     * Get report summary.
      */
     protected function getReportSummary(array $data): array
     {
@@ -1413,7 +795,7 @@ class SakipExportService
     }
 
     /**
-     * Process export request
+     * Process export request.
      */
     protected function processExportRequest(array $request): array
     {
@@ -1422,7 +804,7 @@ class SakipExportService
         $format = $request["format"] ?? "excel";
         $options = $request["options"] ?? [];
 
-        $method = "export" . ucfirst(camel_case($type));
+        $method = "export" . ucfirst(str_replace(" ", "", $type));
 
         if (!method_exists($this, $method)) {
             return [
@@ -1435,7 +817,7 @@ class SakipExportService
     }
 
     /**
-     * Create ZIP archive
+     * Create ZIP archive.
      */
     protected function createZipArchive(array $files, string $zipPath): void
     {
@@ -1455,7 +837,7 @@ class SakipExportService
     }
 
     /**
-     * Format file size
+     * Format file size.
      */
     protected function formatFileSize(int $bytes): string
     {
@@ -1471,7 +853,7 @@ class SakipExportService
     }
 
     /**
-     * Log activity
+     * Log activity.
      */
     protected function logActivity(
         string $action,
@@ -1487,5 +869,97 @@ class SakipExportService
             "old_values" => null,
             "new_values" => ["filename" => $filename],
         ]);
+    }
+
+    /**
+     * Log error with context.
+     */
+    protected function logError(string $message, Exception $e, array $context = []): void
+    {
+        Log::error($message, array_merge([
+            "error" => $e->getMessage(),
+            "trace" => $e->getTraceAsString(),
+            "user_id" => auth()->id(),
+        ], $context));
+    }
+
+    // =====================================================
+    // REPORT GENERATION METHODS
+    // =====================================================
+
+    /**
+     * Get performance summary report data.
+     */
+    protected function getPerformanceSummaryReport(array $filters): array
+    {
+        $data = $this->getPerformanceData($filters);
+
+        return [
+            "summary" => [
+                "total_indicators" => count($data),
+                "average_achievement" => collect($data)
+                    ->pluck("Capaian (%)")
+                    ->filter(fn($v) => $v !== "-")
+                    ->avg() ?: 0,
+                "excellents_count" => collect($data)
+                    ->where("Capaian (%)", ">=", 90)
+                    ->count(),
+                "good_count" => collect($data)
+                    ->where("Capaian (%)", ">=", 70)
+                    ->where("Capaian (%)", "<", 90)
+                    ->count(),
+            ],
+            "data" => array_slice($data, 0, 100), // Limit to 100 records for report
+        ];
+    }
+
+    /**
+     * Get indicator analysis report data.
+     */
+    protected function getIndicatorAnalysisReport(array $filters): array
+    {
+        $data = $this->getPerformanceIndicatorsData($filters);
+
+        return [
+            "summary" => [
+                "total_indicators" => count($data),
+                "by_category" => collect($data)->countBy("Kategori")->toArray(),
+                "by_status" => collect($data)->countBy("Status")->toArray(),
+            ],
+            "data" => $data,
+        ];
+    }
+
+    /**
+     * Get assessment results report data.
+     */
+    protected function getAssessmentResultsReport(array $filters): array
+    {
+        $data = $this->getAssessmentsData($filters);
+
+        return [
+            "summary" => [
+                "total_assessments" => count($data),
+                "average_score" => collect($data)->avg("Skor") ?: 0,
+                "by_grade" => collect($data)->countBy("Grade")->toArray(),
+            ],
+            "data" => $data,
+        ];
+    }
+
+    /**
+     * Get target achievement report data.
+     */
+    protected function getTargetAchievementReport(array $filters): array
+    {
+        $data = $this->getTargetsData($filters);
+
+        return [
+            "summary" => [
+                "total_targets" => count($data),
+                "total_target_value" => collect($data)->sum("Nilai Target"),
+            ],
+            "data" => $data,
+        ];
     }
 }

@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.modern')
 
 @section('title', 'Tambah Indikator Kinerja')
 
@@ -72,7 +72,7 @@
                                         <input type="text" class="form-control @error('code') is-invalid @enderror"
                                                id="code" name="code" value="{{ old('code') }}" required
                                                placeholder="Contoh: IK-001" maxlength="50">
-                                        <button type="button" class="btn btn-outline-secondary" onclick="generateCode()" title="Generate otomatis">
+                                        <button type="button" class="btn btn-outline-secondary" data-onclick="generateCode()" title="Generate otomatis">
                                             <i class="fas fa-sync"></i>
                                         </button>
                                     </div>
@@ -325,7 +325,7 @@
                                             </div>
 
                                             <div class="col-md-3 d-flex align-items-end">
-                                                <button type="button" class="btn btn-sm btn-danger w-100" onclick="removeTargetRow(0)"
+                                                <button type="button" class="btn btn-sm btn-danger w-100" data-onclick="removeTargetRow(0)"
                                                         style="display: none;" id="remove-btn-0">
                                                     <i class="fas fa-trash"></i> Hapus
                                                 </button>
@@ -349,7 +349,7 @@
                             </div>
                         </div>
 
-                        <button type="button" class="btn btn-success btn-sm mt-3" onclick="addTargetRow()">
+                        <button type="button" class="btn btn-success btn-sm mt-3" data-onclick="addTargetRow()">
                             <i class="fas fa-plus"></i> Tambah Tahun Target
                         </button>
                     </div>
@@ -549,7 +549,7 @@ function addTargetRow() {
                     </div>
 
                     <div class="col-md-3 d-flex align-items-end">
-                        <button type="button" class="btn btn-sm btn-danger w-100" onclick="removeTargetRow(${rowCount})">
+                        <button type="button" class="btn btn-sm btn-danger w-100" data-onclick="removeTargetRow(${rowCount})">
                             <i class="fas fa-trash"></i> Hapus
                         </button>
                     </div>

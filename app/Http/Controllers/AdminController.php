@@ -4,10 +4,15 @@ namespace App\Http\Controllers;
 
 use App\Services\AdminService;
 use App\Services\SystemSettingsService;
+use App\Services\DropdownCacheService;
 use App\Models\User;
 use App\Models\Role;
 use App\Models\AuditLog;
 use App\Models\Permission;
+use App\Http\Requests\Admin\StoreUserRequest;
+use App\Http\Requests\Admin\UpdateUserRequest;
+use App\Http\Requests\Admin\UpdateRolesRequest;
+use App\Http\Requests\Admin\UpdateSystemSettingsRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
@@ -17,13 +22,16 @@ class AdminController extends Controller
 {
     protected $adminService;
     protected $settingsService;
+    protected $dropdownCache;
 
     public function __construct(
         AdminService $adminService,
         SystemSettingsService $settingsService,
+        DropdownCacheService $dropdownCache,
     ) {
         $this->adminService = $adminService;
         $this->settingsService = $settingsService;
+        $this->dropdownCache = $dropdownCache;
         $this->middleware("can:manage-high-level-settings");
     }
 
@@ -75,6 +83,8 @@ class AdminController extends Controller
 
     public function showUser(User $user)
     {
+        $this->authorize('view', $user);
+
         $user->load(["roles.permissions", "auditLogs"]);
         $roles = Role::all();
 
@@ -84,20 +94,13 @@ class AdminController extends Controller
     public function createUser()
     {
         $roles = Role::all();
-        $instansis = \App\Models\Instansi::orderBy("nama_instansi")->get();
+        $instansis = $this->dropdownCache->getActiveInstansi();
         return view("admin.users.create", compact("roles", "instansis"));
     }
 
-    public function storeUser(Request $request)
+    public function storeUser(StoreUserRequest $request)
     {
-        $validated = $request->validate([
-            "name" => "required|string|max:255",
-            "email" => "required|string|email|max:255|unique:users",
-            "password" => "required|string|min:8|confirmed",
-            "instansi_id" => "nullable|exists:instansis,id",
-            "roles" => "array",
-            "roles.*" => "exists:roles,id",
-        ]);
+        $validated = $request->validated();
 
         $user = $this->adminService->createUser($validated);
 
@@ -108,10 +111,12 @@ class AdminController extends Controller
 
     public function editUser(User $user)
     {
+        $this->authorize('update', $user);
+
         $user->load("roles");
         $roles = Role::all();
         $permissions = Permission::all();
-        $instansis = \App\Models\Instansi::orderBy("nama_instansi")->get();
+        $instansis = $this->dropdownCache->getActiveInstansi();
 
         return view(
             "admin.users.edit",
@@ -119,21 +124,9 @@ class AdminController extends Controller
         );
     }
 
-    public function updateUser(Request $request, User $user)
+    public function updateUser(UpdateUserRequest $request, User $user)
     {
-        $validated = $request->validate([
-            "name" => "required|string|max:255",
-            "email" => [
-                "required",
-                "string",
-                "email",
-                "max:255",
-                Rule::unique("users")->ignore($user->id),
-            ],
-            "password" => "nullable|string|min:8|confirmed",
-            "email_verified" => "sometimes|accepted",
-            "instansi_id" => "nullable|exists:instansis,id",
-        ]);
+        $validated = $request->validated();
 
         $this->adminService->updateUser($user, $validated);
 
@@ -145,12 +138,9 @@ class AdminController extends Controller
     /**
      * Update user roles separately
      */
-    public function updateRoles(Request $request, User $user)
+    public function updateRoles(UpdateRolesRequest $request, User $user)
     {
-        $validated = $request->validate([
-            "roles" => "array",
-            "roles.*" => "exists:roles,id",
-        ]);
+        $validated = $request->validated();
 
         $this->adminService->assignRoles($user, $validated["roles"] ?? []);
 
@@ -162,12 +152,9 @@ class AdminController extends Controller
     /**
      * Update user permissions separately
      */
-    public function updatePermissions(Request $request, User $user)
+    public function updatePermissions(UpdatePermissionsRequest $request, User $user)
     {
-        $validated = $request->validate([
-            "permissions" => "array",
-            "permissions.*" => "exists:permissions,id",
-        ]);
+        $validated = $request->validated();
 
         $this->adminService->assignPermissions(
             $user,
@@ -181,6 +168,8 @@ class AdminController extends Controller
 
     public function destroyUser(User $user)
     {
+        $this->authorize('delete', $user);
+
         if ($user->id === auth()->id()) {
             return redirect()
                 ->route("admin.users.index")
@@ -213,15 +202,21 @@ class AdminController extends Controller
         }
 
         if ($request->has("date_from")) {
-            $query->where("created_at", ">=", $request->get("date_from"));
+            try {
+                $dateFrom = \Carbon\Carbon::parse($request->get("date_from"))->startOfDay();
+                $query->where("created_at", ">=", $dateFrom);
+            } catch (\Exception $e) {
+                // Invalid date format, skip this filter
+            }
         }
 
         if ($request->has("date_to")) {
-            $query->where(
-                "created_at",
-                "<=",
-                $request->get("date_to") . " 23:59:59",
-            );
+            try {
+                $dateTo = \Carbon\Carbon::parse($request->get("date_to"))->endOfDay();
+                $query->where("created_at", "<=", $dateTo);
+            } catch (\Exception $e) {
+                // Invalid date format, skip this filter
+            }
         }
 
         $logs = $query->latest()->paginate(50);
@@ -242,24 +237,11 @@ class AdminController extends Controller
         return view("admin.settings.index", compact("settings"));
     }
 
-    public function updateSettings(Request $request)
+    public function updateSettings(UpdateSystemSettingsRequest $request)
     {
         $this->authorize("manage-high-level-settings");
 
-        $rules = [
-            "settings" => "required|array",
-            "settings.*.key" => "required|string",
-            "settings.*.value" => "required",
-            "settings.*.type" =>
-                "required|string|in:string,integer,float,boolean,array,json",
-            "settings.*.description" => "nullable|string",
-            // Specific application settings constraints
-            "settings.app\.name.value" => "sometimes|required|string|max:150",
-            "settings.app\.description.value" =>
-                "sometimes|nullable|string|max:500",
-        ];
-
-        $validated = $request->validate($rules);
+        $validated = $request->validated();
 
         foreach ($validated["settings"] as $setting) {
             $this->settingsService->set(
@@ -274,255 +256,14 @@ class AdminController extends Controller
             "settings" => $validated["settings"],
         ]);
 
+        // Clear dropdown cache when settings change
+        $this->dropdownCache->clearCache();
+
         return redirect()
             ->route("admin.settings.index")
             ->with("success", "Settings updated successfully.");
     }
 
-    /**
-     * Clear application caches (unified maintenance action).
-     */
-    public function clearCache()
-    {
-        $this->authorize("manage-high-level-settings");
-        try {
-            \Artisan::call("cache:clear");
-            \Artisan::call("config:clear");
-            \Artisan::call("route:clear");
-            \Artisan::call("view:clear");
-
-            return response()->json([
-                "success" => true,
-                "message" => "Cache cleared successfully!",
-            ]);
-        } catch (\Exception $e) {
-            return response()->json(
-                [
-                    "success" => false,
-                    "message" => "Failed to clear cache: " . $e->getMessage(),
-                ],
-                500,
-            );
-        }
-    }
-
-    /**
-     * Optimize application (unified maintenance action).
-     */
-    public function optimizeApp()
-    {
-        $this->authorize("manage-high-level-settings");
-        try {
-            \Artisan::call("optimize");
-            \Artisan::call("config:cache");
-            \Artisan::call("route:cache");
-            \Artisan::call("view:cache");
-
-            return response()->json([
-                "success" => true,
-                "message" => "Application optimized successfully!",
-            ]);
-        } catch (\Exception $e) {
-            return response()->json(
-                [
-                    "success" => false,
-                    "message" =>
-                        "Failed to optimize application: " . $e->getMessage(),
-                ],
-                500,
-            );
-        }
-    }
-
-    /**
-     * Backup database based on detected database engine (unified maintenance action).
-     */
-    public function backupDatabase()
-    {
-        $this->authorize("manage-high-level-settings");
-        try {
-            $connection = config("database.default");
-            $config = config("database.connections.{$connection}");
-            $driver = $config["driver"];
-
-            $backupPath = storage_path("app/backups");
-            if (!file_exists($backupPath)) {
-                mkdir($backupPath, 0755, true);
-            }
-
-            $timestamp = date("Y-m-d_H-i-s");
-            $filename = "backup_{$timestamp}";
-
-            switch ($driver) {
-                case "mysql":
-                case "mariadb":
-                    $result = $this->backupMySQL(
-                        $config,
-                        $backupPath,
-                        $filename,
-                    );
-                    break;
-                case "pgsql":
-                    $result = $this->backupPostgreSQL(
-                        $config,
-                        $backupPath,
-                        $filename,
-                    );
-                    break;
-                case "sqlite":
-                    $result = $this->backupSQLite(
-                        $config,
-                        $backupPath,
-                        $filename,
-                    );
-                    break;
-                case "sqlsrv":
-                    $result = $this->backupSQLServer(
-                        $config,
-                        $backupPath,
-                        $filename,
-                    );
-                    break;
-                default:
-                    throw new \Exception(
-                        "Database driver '{$driver}' not supported for backup.",
-                    );
-            }
-
-            return response()->json([
-                "success" => true,
-                "message" => "Database backup created! File: {$result["filename"]}",
-                "file_path" => $result["path"],
-                "file_size" => $result["size"],
-            ]);
-        } catch (\Exception $e) {
-            return response()->json(
-                [
-                    "success" => false,
-                    "message" => "Failed to create backup: " . $e->getMessage(),
-                ],
-                500,
-            );
-        }
-    }
-
-    // Helper methods for database backup
-    private function backupMySQL($config, $backupPath, $filename)
-    {
-        $host = escapeshellarg($config["host"]);
-        $port = escapeshellarg($config["port"]);
-        $database = escapeshellarg($config["database"]);
-        $username = escapeshellarg($config["username"]);
-        $password = !empty($config["password"])
-            ? escapeshellarg($config["password"])
-            : null;
-
-        $backupFile = escapeshellarg($backupPath . "/" . $filename . ".sql");
-
-        $command = "mysqldump --host={$host} --port={$port} --user={$username}";
-        if ($password) {
-            $command .= " --password={$password}";
-        }
-        $command .= " --single-transaction --routines --triggers {$database} > {$backupFile}";
-
-        exec($command, $output, $returnCode);
-        if ($returnCode !== 0) {
-            throw new \Exception(
-                "Failed to run mysqldump. Ensure mysqldump is installed and credentials are correct.",
-            );
-        }
-
-        $actualBackupFile = $backupPath . "/" . $filename . ".sql";
-        return [
-            "filename" => $filename . ".sql",
-            "path" => $actualBackupFile,
-            "size" => $this->formatBytes(filesize($actualBackupFile)),
-        ];
-    }
-
-    private function backupPostgreSQL($config, $backupPath, $filename)
-    {
-        $host = escapeshellarg($config["host"]);
-        $port = escapeshellarg($config["port"]);
-        $database = escapeshellarg($config["database"]);
-        $username = escapeshellarg($config["username"]);
-        $password = $config["password"];
-
-        $backupFile = escapeshellarg($backupPath . "/" . $filename . ".sql");
-
-        if (!empty($password)) {
-            // Sanitize password for environment variable
-            $sanitizedPassword = addslashes($password);
-            putenv("PGPASSWORD={$sanitizedPassword}");
-        }
-
-        $command = "pg_dump --host={$host} --port={$port} --username={$username} --format=plain --no-owner --no-acl {$database} > {$backupFile}";
-
-        exec($command, $output, $returnCode);
-
-        // Clear the password from environment
-        if (!empty($password)) {
-            putenv("PGPASSWORD");
-        }
-
-        if ($returnCode !== 0) {
-            throw new \Exception(
-                "Failed to run pg_dump. Ensure PostgreSQL client is installed and credentials are correct.",
-            );
-        }
-
-        $actualBackupFile = $backupPath . "/" . $filename . ".sql";
-        return [
-            "filename" => $filename . ".sql",
-            "path" => $actualBackupFile,
-            "size" => $this->formatBytes(filesize($actualBackupFile)),
-        ];
-    }
-
-    private function backupSQLite($config, $backupPath, $filename)
-    {
-        $databasePath = $config["database"];
-        if (!file_exists($databasePath)) {
-            throw new \Exception("SQLite database file not found.");
-        }
-
-        $backupFile = $backupPath . "/" . $filename . ".sqlite";
-        if (!copy($databasePath, $backupFile)) {
-            throw new \Exception("Failed to copy SQLite database file.");
-        }
-
-        return [
-            "filename" => $filename . ".sqlite",
-            "path" => $backupFile,
-            "size" => $this->formatBytes(filesize($backupFile)),
-        ];
-    }
-
-    private function backupSQLServer($config, $backupPath, $filename)
-    {
-        $host = escapeshellarg($config["host"]);
-        $database = escapeshellarg($config["database"]);
-        $username = escapeshellarg($config["username"]);
-        $password = escapeshellarg($config["password"]);
-
-        $backupFile = $backupPath . "/" . $filename . ".bak";
-        $escapedBackupFile = escapeshellarg($backupFile);
-
-        $command = "sqlcmd -S {$host} -U {$username} -P {$password} -Q \"BACKUP DATABASE [{$database}] TO DISK = '{$escapedBackupFile}'\"";
-
-        exec($command, $output, $returnCode);
-        if ($returnCode !== 0) {
-            throw new \Exception(
-                "Failed to run SQL Server backup. Ensure sqlcmd is installed and credentials are correct.",
-            );
-        }
-
-        return [
-            "filename" => $filename . ".bak",
-            "path" => $backupFile,
-            "size" => $this->formatBytes(filesize($backupFile)),
-        ];
-    }
 
     // =====================================================
     // ROLE MANAGEMENT

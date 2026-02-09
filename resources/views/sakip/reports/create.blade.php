@@ -1,304 +1,380 @@
-@extends('layouts.app')
+@extends('layouts.modern')
 
 @section('title', 'Buat Laporan SAKIP')
 
 @section('content')
-<div class="py-6">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <!-- Page Header -->
-        <div class="mb-8">
-            <div class="flex items-center">
-                <a href="{{ route('sakip.reports.index') }}" class="text-gray-500 hover:text-gray-700">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
-                    </svg>
+<div class="container py-4">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="page-header-layout">
+            <div>
+                <a href="{{ route('sakip.reports.index') }}" class="btn btn-outline-secondary btn-sm mb-2">
+                    <i class="fas fa-arrow-left"></i>
+                    <span class="ms-1">Kembali</span>
                 </a>
-                <h1 class="ml-4 text-3xl font-bold text-gray-900">Buat Laporan SAKIP</h1>
+                <h1 class="page-header-title">Buat Laporan SAKIP</h1>
+                <p class="page-header-subtitle">Generate laporan kinerja dari data yang telah dikumpulkan</p>
             </div>
-            <p class="mt-2 text-gray-600">Buat laporan kinerja berdasarkan data yang telah dikumpulkan</p>
         </div>
+    </div>
 
-        <!-- Report Form -->
-        <form action="{{ route('sakip.reports.store') }}" method="POST" class="space-y-6">
-            @csrf
+    <!-- Alert Section -->
+    @if($errors->any())
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-circle alert-icon"></i>
+        <div>
+            <strong>Terjadi kesalahan</strong>
+            <ul class="mb-0 mt-2">
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    @endif
 
-            <!-- Basic Information -->
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <h3 class="text-lg font-medium text-gray-900 mb-4">Informasi Dasar</h3>
+    <!-- Report Form -->
+    <div class="card">
+        <div class="card-body">
+            <form action="{{ route('sakip.reports.store') }}" method="POST" id="reportForm">
+                @csrf
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label for="title" class="block text-sm font-medium text-gray-700 mb-2">Judul Laporan *</label>
-                        <input type="text" name="title" id="title" required class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="Masukkan judul laporan">
-                        @error('title')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
+                <!-- Section: Informasi Dasar -->
+                <div class="form-section mb-4">
+                    <div class="form-section-header">
+                        <i class="fas fa-info-circle"></i>
+                        <span>Informasi Dasar</span>
                     </div>
-
-                    <div>
-                        <label for="report_type" class="block text-sm font-medium text-gray-700 mb-2">Jenis Laporan *</label>
-                        <select name="report_type" id="report_type" required class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                            <option value="">Pilih Jenis Laporan</option>
-                            <option value="monthly">Laporan Bulanan</option>
-                            <option value="quarterly">Laporan Triwulan</option>
-                            <option value="semester">Laporan Semester</option>
-                            <option value="annual">Laporan Tahunan</option>
-                            <option value="custom">Laporan Custom</option>
-                        </select>
-                        @error('report_type')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <div>
-                        <label for="category" class="block text-sm font-medium text-gray-700 mb-2">Kategori Laporan *</label>
-                        <select name="category" id="category" required class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                            <option value="">Pilih Kategori</option>
-                            <option value="performance">Laporan Kinerja</option>
-                            <option value="assessment">Laporan Penilaian</option>
-                            <option value="compliance">Laporan Kepatuhan</option>
-                            <option value="summary">Laporan Ringkasan</option>
-                        </select>
-                        @error('category')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <div>
-                        <label for="period" class="block text-sm font-medium text-gray-700 mb-2">Periode *</label>
-                        <select name="period" id="period" required class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                            <option value="">Pilih Periode</option>
-                            @foreach($availablePeriods as $availablePeriod)
-                                <option value="{{ $availablePeriod['value'] }}">{{ $availablePeriod['label'] }}</option>
-                            @endforeach
-                        </select>
-                        @error('period')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <div>
-                        <label for="template_id" class="block text-sm font-medium text-gray-700 mb-2">Template Laporan</label>
-                        <select name="template_id" id="template_id" class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                            <option value="">Pilih Template (Opsional)</option>
-                            @foreach($templates as $template)
-                                <option value="{{ $template->id }}">{{ $template->name }}</option>
-                            @endforeach
-                        </select>
-                        @error('template_id')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label for="title" class="form-label">Judul Laporan <span class="text-danger">*</span></label>
+                                <input type="text" name="title" id="title" required class="form-control @error('title') is-invalid @enderror" placeholder="Masukkan judul laporan">
+                                @error('title')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label for="report_type" class="form-label">Jenis Laporan <span class="text-danger">*</span></label>
+                                <select name="report_type" id="report_type" required class="form-select @error('report_type') is-invalid @enderror">
+                                    <option value="">Pilih Jenis Laporan</option>
+                                    <option value="monthly">Laporan Bulanan</option>
+                                    <option value="quarterly">Laporan Triwulan</option>
+                                    <option value="semester">Laporan Semester</option>
+                                    <option value="annual">Laporan Tahunan</option>
+                                    <option value="custom">Laporan Custom</option>
+                                </select>
+                                @error('report_type')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label for="category" class="form-label">Kategori Laporan <span class="text-danger">*</span></label>
+                                <select name="category" id="category" required class="form-select @error('category') is-invalid @enderror">
+                                    <option value="">Pilih Kategori</option>
+                                    <option value="performance">Laporan Kinerja</option>
+                                    <option value="assessment">Laporan Penilaian</option>
+                                    <option value="compliance">Laporan Kepatuhan</option>
+                                    <option value="summary">Laporan Ringkasan</option>
+                                </select>
+                                @error('category')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label for="period" class="form-label">Periode <span class="text-danger">*</span></label>
+                                <select name="period" id="period" required class="form-select @error('period') is-invalid @enderror">
+                                    <option value="">Pilih Periode</option>
+                                    @foreach($availablePeriods ?? [] as $availablePeriod)
+                                        <option value="{{ $availablePeriod['value'] }}">{{ $availablePeriod['label'] }}</option>
+                                    @endforeach
+                                </select>
+                                @error('period')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label for="template_id" class="form-label">Template Laporan</label>
+                                <select name="template_id" id="template_id" class="form-select @error('template_id') is-invalid @enderror">
+                                    <option value="">Pilih Template (Opsional)</option>
+                                    @foreach($templates ?? [] as $template)
+                                        <option value="{{ $template->id }}">{{ $template->name }}</option>
+                                    @endforeach
+                                </select>
+                                @error('template_id')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Performance Indicators Selection -->
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <h3 class="text-lg font-medium text-gray-900 mb-4">Indikator Kinerja *</h3>
+                <!-- Section: Indikator Kinerja -->
+                <div class="form-section mb-4">
+                    <div class="form-section-header">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Indikator Kinerja</span>
+                    </div>
+                    <div class="form-text mb-3">Pilih indikator kinerja yang akan dimasukkan dalam laporan (minimal 1)</div>
 
-                <div class="space-y-4">
-                    <p class="text-sm text-gray-600">Pilih indikator kinerja yang akan dimasukkan dalam laporan (minimal 1)</p>
-
-                    <div class="max-h-64 overflow-y-auto border border-gray-200 rounded-md p-4">
-                        @if($indicators->isEmpty())
-                            <p class="text-sm text-gray-500 italic">Tidak ada indikator kinerja tersedia</p>
-                        @else
-                            @foreach($indicators as $indicator)
-                                <div class="flex items-start mb-3">
-                                    <input type="checkbox" name="indicators[]" value="{{ $indicator->id }}" id="indicator_{{ $indicator->id }}" class="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
-                                    <label for="indicator_{{ $indicator->id }}" class="ml-3 text-sm">
-                                        <span class="font-medium text-gray-900">{{ $indicator->code }}</span> -
-                                        <span class="text-gray-700">{{ $indicator->name }}</span>
-                                    </label>
+                    <div class="indicator-list">
+                        @if(isset($indicators) && $indicators->isEmpty())
+                            <div class="text-center text-muted py-4">
+                                <i class="fas fa-inbox fa-2x mb-2"></i>
+                                <p class="mb-0">Tidak ada indikator kinerja tersedia</p>
+                            </div>
+                        @elseif(isset($indicators))
+                            <div class="row">
+                                @foreach($indicators as $indicator)
+                                <div class="col-md-6 mb-2">
+                                    <div class="form-check form-check-card p-2 rounded">
+                                        <input type="checkbox" name="indicators[]" value="{{ $indicator->id }}" id="indicator_{{ $indicator->id }}" class="form-check-input">
+                                        <label for="indicator_{{ $indicator->id }}" class="form-check-label">
+                                            <span class="badge bg-light text-dark me-1">{{ $indicator->code }}</span>
+                                            {{ $indicator->name }}
+                                        </label>
+                                    </div>
                                 </div>
-                            @endforeach
+                                @endforeach
+                            </div>
                         @endif
                     </div>
 
                     @error('indicators')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        <div class="invalid-feedback d-block">{{ $message }}</div>
                     @enderror
                 </div>
-            </div>
 
-            <!-- Report Options -->
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <h3 class="text-lg font-medium text-gray-900 mb-4">Opsi Laporan</h3>
-
-                <div class="space-y-4">
-                    <div>
-                        <label for="description" class="block text-sm font-medium text-gray-700 mb-2">Deskripsi Laporan</label>
-                        <textarea name="description" id="description" rows="3" class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="Masukkan deskripsi laporan (opsional)"></textarea>
-                        @error('description')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
+                <!-- Section: Opsi Laporan -->
+                <div class="form-section mb-4">
+                    <div class="form-section-header">
+                        <i class="fas fa-cog"></i>
+                        <span>Opsi Laporan</span>
                     </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="flex items-center">
-                            <input type="checkbox" name="include_assessments" id="include_assessments" value="1" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
-                            <label for="include_assessments" class="ml-2 text-sm text-gray-700">Sertakan Penilaian</label>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="form-group mb-3">
+                                <label for="description" class="form-label">Deskripsi Laporan</label>
+                                <textarea name="description" id="description" rows="3" class="form-control @error('description') is-invalid @enderror" placeholder="Masukkan deskripsi laporan (opsional)"></textarea>
+                                @error('description')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
                         </div>
-
-                        <div class="flex items-center">
-                            <input type="checkbox" name="include_benchmarks" id="include_benchmarks" value="1" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
-                            <label for="include_benchmarks" class="ml-2 text-sm text-gray-700">Sertakan Benchmark</label>
+                        <div class="col-md-4">
+                            <div class="form-check mb-3">
+                                <input type="checkbox" name="include_assessments" id="include_assessments" value="1" class="form-check-input">
+                                <label for="include_assessments" class="form-check-label">Sertakan Penilaian</label>
+                            </div>
                         </div>
-
-                        <div class="flex items-center">
-                            <input type="checkbox" name="include_recommendations" id="include_recommendations" value="1" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
-                            <label for="include_recommendations" class="ml-2 text-sm text-gray-700">Sertakan Rekomendasi</label>
+                        <div class="col-md-4">
+                            <div class="form-check mb-3">
+                                <input type="checkbox" name="include_benchmarks" id="include_benchmarks" value="1" class="form-check-input">
+                                <label for="include_benchmarks" class="form-check-label">Sertakan Benchmark</label>
+                            </div>
                         </div>
-                    </div>
-
-                    <div>
-                        <label for="format" class="block text-sm font-medium text-gray-700 mb-2">Format Output *</label>
-                        <select name="format" id="format" required class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                            <option value="">Pilih Format</option>
-                            <option value="pdf">PDF</option>
-                            <option value="excel">Excel</option>
-                            <option value="word">Word</option>
-                        </select>
-                        @error('format')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
+                        <div class="col-md-4">
+                            <div class="form-check mb-3">
+                                <input type="checkbox" name="include_recommendations" id="include_recommendations" value="1" class="form-check-input">
+                                <label for="include_recommendations" class="form-check-label">Sertakan Rekomendasi</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-0">
+                                <label for="format" class="form-label">Format Output <span class="text-danger">*</span></label>
+                                <select name="format" id="format" required class="form-select @error('format') is-invalid @enderror">
+                                    <option value="">Pilih Format</option>
+                                    <option value="pdf">PDF</option>
+                                    <option value="excel">Excel</option>
+                                    <option value="word">Word</option>
+                                </select>
+                                @error('format')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Form Actions -->
-            <div class="flex items-center justify-between">
-                <a href="{{ route('sakip.reports.index') }}" class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-50 transition-colors">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                    </svg>
-                    Batal
-                </a>
-
-                <div class="flex items-center space-x-3">
-                    <button type="button" id="preview-btn" class="inline-flex items-center px-4 py-2 bg-gray-600 text-white text-sm font-medium rounded-md hover:bg-gray-700 transition-colors">
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                        </svg>
-                        Pratinjau
-                    </button>
-
-                    <button type="submit" class="inline-flex items-center px-4 py-2 bg-blue-800 text-white text-sm font-medium rounded-md hover:bg-blue-900 transition-colors">
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                        </svg>
-                        Buat Laporan
-                    </button>
+                <!-- Form Actions -->
+                <div class="form-actions">
+                    <a href="{{ route('sakip.reports.index') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-times"></i>
+                        <span class="ms-1">Batal</span>
+                    </a>
+                    <div class="btn-group">
+                        <button type="button" id="preview-btn" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#previewModal">
+                            <i class="fas fa-eye"></i>
+                            <span class="ms-1">Pratinjau</span>
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-file-alt"></i>
+                            <span class="ms-1">Buat Laporan</span>
+                        </button>
+                    </div>
                 </div>
-            </div>
-        </form>
+            </form>
+        </div>
     </div>
 </div>
 
 <!-- Preview Modal -->
-<div id="preview-modal" class="fixed inset-0 bg-gray-500 bg-opacity-75 hidden z-50">
-    <div class="flex items-center justify-center min-h-screen px-4">
-        <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div class="px-6 py-4 border-b border-gray-200">
-                <div class="flex items-center justify-between">
-                    <h3 class="text-lg font-medium text-gray-900">Pratinjau Laporan</h3>
-                    <button type="button" id="close-preview" class="text-gray-400 hover:text-gray-500">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                        </svg>
-                    </button>
+<div class="modal fade" id="previewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-eye me-2 text-primary"></i>
+                    Pratinjau Laporan
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="preview-content">
+                <div class="text-center text-muted py-5">
+                    <i class="fas fa-file-alt fa-3x mb-3"></i>
+                    <p>Isi form dan klik Pratinjau untuk melihat hasil</p>
                 </div>
             </div>
-            <div class="p-6">
-                <div id="preview-content">
-                    <!-- Preview content will be populated by JavaScript -->
-                </div>
-            </div>
-            <div class="px-6 py-4 border-t border-gray-200 flex justify-end">
-                <button type="button" id="close-preview-bottom" class="px-4 py-2 bg-gray-600 text-white text-sm font-medium rounded-md hover:bg-gray-700 transition-colors">
-                    Tutup
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i>
+                    <span class="ms-1">Tutup</span>
                 </button>
             </div>
         </div>
     </div>
 </div>
-@stop
 
-@section('scripts')
+@push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const previewBtn = document.getElementById('preview-btn');
-    const previewModal = document.getElementById('preview-modal');
-    const closePreview = document.getElementById('close-preview');
-    const closePreviewBottom = document.getElementById('close-preview-bottom');
     const previewContent = document.getElementById('preview-content');
 
     previewBtn.addEventListener('click', function() {
         const title = document.getElementById('title').value;
-        const type = document.getElementById('type').value;
-        const period = document.getElementById('period').value;
-        const year = document.getElementById('year').value;
-        const instansi = document.getElementById('instansi_id').selectedOptions[0]?.text;
-        const executiveSummary = document.getElementById('executive_summary').value;
-        const content = document.getElementById('content').value;
-        const conclusions = document.getElementById('conclusions').value;
-        const recommendations = document.getElementById('recommendations').value;
+        const reportType = document.getElementById('report_type');
+        const typeText = reportType.options[reportType.selectedIndex]?.text || '[Jenis Laporan]';
+        const period = document.getElementById('period');
+        const periodText = period.options[period.selectedIndex]?.text || '[Periode]';
+        const description = document.getElementById('description').value;
+        const format = document.getElementById('format');
+        const formatText = format.options[format.selectedIndex]?.text || '[Format]';
 
-        previewContent.innerHTML = `
-            <div class="space-y-6">
-                <div class="text-center border-b border-gray-200 pb-4">
-                    <h2 class="text-2xl font-bold text-gray-900">${title || '[Judul Laporan]'}</h2>
-                    <p class="text-gray-600 mt-2">${type ? type.charAt(0).toUpperCase() + type.slice(1) : '[Jenis Laporan]'} - ${period ? period.charAt(0).toUpperCase() + period.slice(1) : '[Periode]'} ${year || '[Tahun]'}</p>
-                    <p class="text-gray-600">${instansi || '[Instansi]'}</p>
-                </div>
+        // Get selected indicators using DOM methods
+        const selectedIndicators = [];
+        document.querySelectorAll('input[name="indicators[]"]:checked').forEach(function(checkbox) {
+            const label = document.querySelector('label[for="' + checkbox.id + '"]');
+            if (label) {
+                selectedIndicators.push(label.textContent.trim());
+            }
+        });
 
-                ${executiveSummary ? `
-                <div>
-                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Ringkasan Eksekutif</h3>
-                    <div class="text-gray-700">${executiveSummary.replace(/\n/g, '<br>')}</div>
-                </div>
-                ` : ''}
+        // Build preview content using DOM methods - no innerHTML with user content
+        previewContent.textContent = '';
+        
+        const container = document.createElement('div');
+        
+        // Header
+        const header = document.createElement('div');
+        header.className = 'text-center mb-4 pb-3 border-bottom';
+        
+        const titleEl = document.createElement('h4');
+        titleEl.className = 'mb-2';
+        titleEl.textContent = title || '[Judul Laporan]';
+        
+        const metaInfo = document.createElement('p');
+        metaInfo.className = 'text-muted mb-1';
+        metaInfo.textContent = typeText + ' - ' + periodText;
+        
+        const formatInfo = document.createElement('p');
+        formatInfo.className = 'text-muted small mb-0';
+        formatInfo.innerHTML = '<i class="fas fa-file-export me-1"></i>' + formatText;
+        
+        header.appendChild(titleEl);
+        header.appendChild(metaInfo);
+        header.appendChild(formatInfo);
+        container.appendChild(header);
 
-                ${content ? `
-                <div>
-                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Isi Laporan</h3>
-                    <div class="text-gray-700">${content.replace(/\n/g, '<br>')}</div>
-                </div>
-                ` : ''}
-
-                ${conclusions ? `
-                <div>
-                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Kesimpulan</h3>
-                    <div class="text-gray-700">${conclusions.replace(/\n/g, '<br>')}</div>
-                </div>
-                ` : ''}
-
-                ${recommendations ? `
-                <div>
-                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Rekomendasi</h3>
-                    <div class="text-gray-700">${recommendations.replace(/\n/g, '<br>')}</div>
-                </div>
-                ` : ''}
-            </div>
-        `;
-
-        previewModal.classList.remove('hidden');
-    });
-
-    closePreview.addEventListener('click', function() {
-        previewModal.classList.add('hidden');
-    });
-
-    closePreviewBottom.addEventListener('click', function() {
-        previewModal.classList.add('hidden');
-    });
-
-    previewModal.addEventListener('click', function(e) {
-        if (e.target === previewModal) {
-            previewModal.classList.add('hidden');
+        if (description) {
+            const descSection = document.createElement('div');
+            descSection.className = 'mb-3';
+            
+            const descTitle = document.createElement('h6');
+            descTitle.innerHTML = '<i class="fas fa-align-left me-2 text-muted"></i>Deskripsi:';
+            
+            const descText = document.createElement('div');
+            descText.className = 'p-3 bg-light rounded small';
+            descText.textContent = description;
+            
+            descSection.appendChild(descTitle);
+            descSection.appendChild(descText);
+            container.appendChild(descSection);
         }
+
+        if (selectedIndicators.length > 0) {
+            const indicatorSection = document.createElement('div');
+            
+            const indTitle = document.createElement('h6');
+            indTitle.innerHTML = '<i class="fas fa-chart-line me-2 text-muted"></i>Indikator yang dipilih:';
+            
+            const badgeContainer = document.createElement('div');
+            badgeContainer.className = 'd-flex flex-wrap gap-2';
+            
+            selectedIndicators.forEach(function(ind) {
+                const badge = document.createElement('span');
+                badge.className = 'badge bg-primary';
+                badge.textContent = ind;
+                badgeContainer.appendChild(badge);
+            });
+            
+            indicatorSection.appendChild(indTitle);
+            indicatorSection.appendChild(badgeContainer);
+            container.appendChild(indicatorSection);
+        }
+
+        // Options selected
+        const optionsSection = document.createElement('div');
+        const optionsTitle = document.createElement('h6');
+        optionsTitle.innerHTML = '<i class="fas fa-cog me-2 text-muted"></i>Opsi:';
+        
+        const optionsList = document.createElement('ul');
+        optionsList.className = 'list-unstyled small';
+        
+        const options = [];
+        if (document.getElementById('include_assessments').checked) {
+            options.push('Sertakan Penilaian');
+        }
+        if (document.getElementById('include_benchmarks').checked) {
+            options.push('Sertakan Benchmark');
+        }
+        if (document.getElementById('include_recommendations').checked) {
+            options.push('Sertakan Rekomendasi');
+        }
+        
+        if (options.length > 0) {
+            options.forEach(function(opt) {
+                const li = document.createElement('li');
+                li.innerHTML = '<i class="fas fa-check text-success me-2"></i>' + opt;
+                optionsList.appendChild(li);
+            });
+            optionsSection.appendChild(optionsTitle);
+            optionsSection.appendChild(optionsList);
+            container.appendChild(optionsSection);
+        }
+
+        previewContent.appendChild(container);
     });
 });
 </script>
-@stop
+@endpush
+@endsection

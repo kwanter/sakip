@@ -10,6 +10,8 @@ use App\Models\Assessment;
 use App\Models\AuditLog;
 use App\Services\ReportGenerationService;
 use App\Services\TemplateService;
+use App\Services\ReportCalculationService;
+use App\Services\DropdownCacheService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -28,6 +30,8 @@ class ReportController extends Controller
 {
     protected ReportGenerationService $reportService;
     protected TemplateService $templateService;
+    protected ReportCalculationService $calculationService;
+    protected DropdownCacheService $dropdownCache;
 
     /**
      * Constructor with dependency injection
@@ -35,9 +39,13 @@ class ReportController extends Controller
     public function __construct(
         ReportGenerationService $reportService,
         TemplateService $templateService,
+        ReportCalculationService $calculationService,
+        DropdownCacheService $dropdownCache,
     ) {
         $this->reportService = $reportService;
         $this->templateService = $templateService;
+        $this->calculationService = $calculationService;
+        $this->dropdownCache = $dropdownCache;
     }
 
     /**
@@ -88,7 +96,10 @@ class ReportController extends Controller
             $reports = $query->orderBy("created_at", "desc")->paginate(15);
 
             // Get report statistics
-            $statistics = $this->getReportStatistics($user, $currentYear);
+            $statistics = $this->calculationService->getReportStatistics(
+                $user,
+                $currentYear,
+            );
 
             // Get available templates
             $templates = $this->templateService->getAvailableTemplates("sakip");
@@ -141,8 +152,8 @@ class ReportController extends Controller
             // Get available templates
             $templates = $this->templateService->getAvailableTemplates("sakip");
 
-            // Get all institutions for dropdown
-            $instansis = \App\Models\Instansi::orderBy("nama_instansi")->get();
+            // Get all institutions for dropdown (cached)
+            $instansis = $this->dropdownCache->getActiveInstansi();
 
             // Get performance data for report generation
             $indicators = PerformanceIndicator::where(
@@ -162,12 +173,16 @@ class ReportController extends Controller
                             "approved",
                         );
                     },
+                    "instansi",
+                    "targets" => function ($q) use ($currentYear) {
+                        $q->where("year", $currentYear);
+                    },
                 ])
                 ->orderBy("name")
                 ->get();
 
             // Get available periods
-            $availablePeriods = $this->getAvailableReportPeriods();
+            $availablePeriods = $this->calculationService->getAvailableReportPeriods();
 
             return view(
                 "sakip.reports.create",
@@ -292,9 +307,7 @@ class ReportController extends Controller
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error(
-                "Store report error: " . $e->getMessage(),
-            );
+            Log::error("Store report error: " . $e->getMessage());
             return response()->json(
                 [
                     "success" => false,
@@ -468,9 +481,7 @@ class ReportController extends Controller
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error(
-                "Submit report for approval error: " . $e->getMessage(),
-            );
+            Log::error("Submit report for approval error: " . $e->getMessage());
             return response()->json(
                 [
                     "success" => false,
@@ -592,9 +603,13 @@ class ReportController extends Controller
                 "new_values" => ["file_path" => $report->file_path],
             ]);
 
+            // Sanitize filename to prevent path traversal and injection
+            $sanitizedFilename = $this->sanitizeFilename($report->title);
+            $downloadFilename = $sanitizedFilename . "." . $report->file_format;
+
             return Storage::download(
                 $report->file_path,
-                $report->title . "." . $report->file_format,
+                $downloadFilename,
             );
         } catch (\Exception $e) {
             Log::error("Download report error: " . $e->getMessage());
@@ -606,6 +621,39 @@ class ReportController extends Controller
                 500,
             );
         }
+    }
+
+    /**
+     * Sanitize filename to prevent path traversal and injection attacks
+     *
+     * @param string $filename The filename to sanitize
+     * @return string The sanitized filename
+     */
+    private function sanitizeFilename(string $filename): string
+    {
+        // Remove any directory traversal components
+        $filename = basename($filename);
+
+        // Remove any dangerous characters
+        $filename = preg_replace('/[^a-zA-Z0-9._-]/', '_', $filename);
+
+        // Remove multiple consecutive underscores
+        $filename = preg_replace('/_+/', '_', $filename);
+
+        // Trim underscores from start and end
+        $filename = trim($filename, '_');
+
+        // Ensure filename is not empty
+        if (empty($filename)) {
+            $filename = 'laporan_' . date('Y-m-d_His');
+        }
+
+        // Limit filename length (255 bytes is typical filesystem limit)
+        if (strlen($filename) > 200) {
+            $filename = substr($filename, 0, 200);
+        }
+
+        return $filename;
     }
 
     /**
@@ -694,38 +742,8 @@ class ReportController extends Controller
      */
     private function getReportStatistics($user, $year)
     {
-        $query = Report::whereYear("period", $year);
-
-        if (!$user->hasRole("superadmin")) {
-            $query->where(function ($q) use ($user) {
-                $q->where("created_by", $user->id)->orWhere(
-                    "instansi_id",
-                    $user->instansi_id,
-                );
-            });
-        }
-
-        $totalReports = $query->count();
-        $byStatus = $query
-            ->select("status", DB::raw("count(*) as count"))
-            ->groupBy("status")
-            ->pluck("count", "status")
-            ->toArray();
-
-        $byType = $query
-            ->select("report_type", DB::raw("count(*) as count"))
-            ->groupBy("report_type")
-            ->pluck("count", "report_type")
-            ->toArray();
-
-        return [
-            "total_reports" => $totalReports,
-            "by_status" => $byStatus,
-            "by_type" => $byType,
-            "pending_approval" => $byStatus["pending_approval"] ?? 0,
-            "approved" => $byStatus["approved"] ?? 0,
-            "rejected" => $byStatus["rejected"] ?? 0,
-        ];
+        // DELEGATED: Moved to ReportCalculationService
+        return $this->calculationService->getReportStatistics($user, $year);
     }
 
     /**
@@ -826,28 +844,8 @@ class ReportController extends Controller
      */
     private function getReportData(Report $report)
     {
-        try {
-            $report->load(["indicators.performanceData", "indicators.targets"]);
-
-            // Calculate summary statistics
-            $summary = $this->calculateReportSummary($report);
-
-            // Get performance trends
-            $trends = $this->getReportTrends($report);
-
-            // Get benchmark data
-            $benchmarks = $this->getReportBenchmarks($report);
-
-            return [
-                "report" => $report,
-                "summary" => $summary,
-                "trends" => $trends,
-                "benchmarks" => $benchmarks,
-            ];
-        } catch (\Exception $e) {
-            Log::error("Get report data error: " . $e->getMessage());
-            throw $e;
-        }
+        // DELEGATED: Moved to ReportCalculationService
+        return $this->calculationService->getReportData($report);
     }
 
     /**
@@ -855,38 +853,8 @@ class ReportController extends Controller
      */
     private function calculateReportSummary(Report $report)
     {
-        $indicators = $report->indicators;
-
-        $totalIndicators = $indicators->count();
-        $indicatorsWithData = $indicators
-            ->filter(function ($indicator) {
-                return $indicator->performanceData->isNotEmpty();
-            })
-            ->count();
-
-        $averagePerformance = $indicators->avg(function ($indicator) {
-            return $indicator->performanceData->avg("performance_percentage") ??
-                0;
-        });
-
-        $achievedIndicators = $indicators
-            ->filter(function ($indicator) {
-                return $indicator->performanceData->avg(
-                    "performance_percentage",
-                ) >= 100;
-            })
-            ->count();
-
-        return [
-            "total_indicators" => $totalIndicators,
-            "indicators_with_data" => $indicatorsWithData,
-            "average_performance" => round($averagePerformance, 2),
-            "achieved_indicators" => $achievedIndicators,
-            "achievement_rate" =>
-                $totalIndicators > 0
-                    ? round(($achievedIndicators / $totalIndicators) * 100, 2)
-                    : 0,
-        ];
+        // DELEGATED: Moved to ReportCalculationService
+        return $this->calculationService->calculateReportSummary($report);
     }
 
     /**
@@ -894,29 +862,8 @@ class ReportController extends Controller
      */
     private function getReportTrends(Report $report)
     {
-        $year = Carbon::parse($report->period)->year;
-        $trends = [];
-
-        // Get monthly trends for the year
-        for ($month = 1; $month <= 12; $month++) {
-            $monthlyData = PerformanceData::whereIn(
-                "indicator_id",
-                $report->indicators->pluck("id"),
-            )
-                ->whereYear("period", $year)
-                ->whereMonth("period", $month)
-                ->get();
-
-            $trends[] = [
-                "month" => Carbon::create($year, $month, 1)->format("M"),
-                "average_performance" => $monthlyData->isNotEmpty()
-                    ? round($monthlyData->avg("performance_percentage"), 2)
-                    : 0,
-                "data_points" => $monthlyData->count(),
-            ];
-        }
-
-        return $trends;
+        // DELEGATED: Moved to ReportCalculationService
+        return $this->calculationService->getReportTrends($report);
     }
 
     /**
@@ -924,123 +871,14 @@ class ReportController extends Controller
      */
     private function getReportBenchmarks(Report $report)
     {
-        $instansiId = $report->instansi_id;
-        $year = Carbon::parse($report->period)->year;
-
-        // Get institution performance
-        $institutionPerformance = $this->calculateInstitutionPerformance(
-            $instansiId,
-            $year,
-        );
-
-        // Get regional performance
-        $regionalPerformance = $this->calculateRegionalPerformance(
-            $instansiId,
-            $year,
-        );
-
-        // Get national performance
-        $nationalPerformance = $this->calculateNationalPerformance($year);
-
-        return [
-            "institution" => $institutionPerformance,
-            "regional" => $regionalPerformance,
-            "national" => $nationalPerformance,
-        ];
+        // DELEGATED: Moved to ReportCalculationService
+        return $this->calculationService->getReportBenchmarks($report);
     }
 
-    /**
-     * Calculate institution performance
-     */
-    private function calculateInstitutionPerformance($instansiId, $year)
-    {
-        return PerformanceData::whereHas("indicator", function ($q) use (
-            $instansiId,
-        ) {
-            $q->where("instansi_id", $instansiId);
-        })
-            ->whereYear("period", $year)
-            ->avg("performance_percentage") ?? 0;
-    }
-
-    /**
-     * Calculate regional performance
-     */
-    private function calculateRegionalPerformance($instansiId, $year)
-    {
-        return PerformanceData::whereHas("indicator.instansi", function (
-            $q,
-        ) use ($instansiId) {
-            $q->where("region_id", function ($subQuery) use ($instansiId) {
-                $subQuery
-                    ->select("region_id")
-                    ->from("instansis")
-                    ->where("id", $instansiId);
-            });
-        })
-            ->whereYear("period", $year)
-            ->avg("performance_percentage") ?? 0;
-    }
-
-    /**
-     * Calculate national performance
-     */
-    private function calculateNationalPerformance($year)
-    {
-        return PerformanceData::whereYear("period", $year)->avg(
-            "performance_percentage",
-        ) ?? 0;
-    }
-
-    /**
-     * Get available report periods
-     */
-    private function getAvailableReportPeriods()
-    {
-        $currentYear = Carbon::now()->year;
-        $periods = [];
-
-        // Monthly periods
-        for ($month = 1; $month <= 12; $month++) {
-            $periods[] = [
-                "value" => Carbon::create($currentYear, $month, 1)->format(
-                    "Y-m-d",
-                ),
-                "label" => Carbon::create($currentYear, $month, 1)->format(
-                    "F Y",
-                ),
-            ];
-        }
-
-        // Quarterly periods
-        foreach ([1, 4, 7, 10] as $month) {
-            $periods[] = [
-                "value" => Carbon::create($currentYear, $month, 1)->format(
-                    "Y-m-d",
-                ),
-                "label" => "Q" . ceil($month / 3) . " " . $currentYear,
-            ];
-        }
-
-        // Semester periods
-        foreach ([1, 7] as $month) {
-            $periods[] = [
-                "value" => Carbon::create($currentYear, $month, 1)->format(
-                    "Y-m-d",
-                ),
-                "label" =>
-                    ($month === 1 ? "Semester 1" : "Semester 2") .
-                    " " .
-                    $currentYear,
-            ];
-        }
-
-        // Annual period
-        $periods[] = [
-            "value" => Carbon::create($currentYear, 1, 1)->format("Y-m-d"),
-            "label" => "Tahun " . $currentYear,
-        ];
-
-        return $periods;
-    }
+    // All calculation methods have been moved to ReportCalculationService
+    // These methods are now delegated to the service:
+    // - calculateInstitutionPerformance()
+    // - calculateRegionalPerformance()
+    // - calculateNationalPerformance()
+    // - getAvailableReportPeriods()
 }

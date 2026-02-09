@@ -1,76 +1,143 @@
-@extends('layouts.app')
+@extends('layouts.modern')
 
 @section('title', 'Profil Saya')
 
+@section('page-title', 'Profil Saya')
+
 @section('content')
-<div class="container py-4">
-    <div class="row">
-        <div class="col-lg-8 mx-auto">
-            <div class="card shadow-sm">
-                <div class="card-header d-flex align-items-center justify-content-between">
-                    <h5 class="mb-0">Profil Saya</h5>
-                    @if(Route::has('settings.account'))
-                        <a href="{{ route('settings.account') }}" class="btn btn-primary btn-sm">
-                            <i class="fas fa-cog me-1"></i> Pengaturan Akun
-                        </a>
-                    @endif
+@php($user = $user ?? auth()->user())
+<style>
+    .profile-avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: var(--radius-xl);
+        background: linear-gradient(135deg, var(--primary-400), var(--primary-600));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 2rem;
+    }
+
+    .info-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius-lg);
+        padding: var(--space-lg);
+    }
+
+    .info-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: var(--space-md) 0;
+        border-bottom: 1px solid var(--border-light);
+    }
+
+    .info-item:last-child {
+        border-bottom: none;
+    }
+
+    .info-label {
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+    }
+
+    .info-value {
+        font-weight: 500;
+        color: var(--text-primary);
+    }
+</style>
+
+<!-- Profile Header -->
+<div style="max-width: 800px; margin: 0 auto;">
+    <div class="modern-card" style="margin-bottom: var(--space-lg);">
+        <div class="card-body">
+            <div style="display: flex; align-items: center; gap: var(--space-lg);">
+                <div class="profile-avatar">
+                    <i class="fas fa-user"></i>
                 </div>
-                <div class="card-body">
-                    @php($user = $user ?? auth()->user())
-
-                    <div class="d-flex align-items-center mb-4">
-                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width:64px; height:64px;">
-                            <i class="fas fa-user fa-lg"></i>
-                        </div>
-                        <div class="ms-3">
-                            <h4 class="mb-1">{{ $user->name }}</h4>
-                            <div class="text-muted">{{ $user->email }}</div>
-                        </div>
-                    </div>
-
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <div class="border rounded p-3 h-100">
-                                <div class="mb-2 fw-semibold">Peran</div>
-                                <div>
-                                    @php($roles = method_exists($user, 'roles') ? $user->roles->pluck('name')->all() : [])
-                                    @forelse($roles as $role)
-                                        <span class="badge bg-secondary me-1">{{ ucfirst(str_replace('_', ' ', $role)) }}</span>
-                                    @empty
-                                        <span class="text-muted">Tidak ada peran</span>
-                                    @endforelse
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="border rounded p-3 h-100">
-                                <div class="mb-2 fw-semibold">Institusi</div>
-                                @php($institution = $user->institution ?? $user->instansi ?? null)
-                                @if($institution)
-                                    <div>{{ $institution->name ?? $institution->nama ?? '—' }}</div>
-                                    @if(Route::has('institution.profile'))
-                                        <a href="{{ route('institution.profile') }}" class="small">Lihat profil institusi</a>
-                                    @endif
-                                @else
-                                    <div class="text-muted">Belum terdaftar pada institusi</div>
-                                @endif
-                            </div>
-                        </div>
-                    </div>
-
-                    <hr class="my-4">
-
-                    <div class="d-flex justify-content-between">
-                        <div class="text-muted">
-                            Terakhir login: {{ optional($user->last_login_at)->format('Y-m-d H:i') ?? '—' }}
-                        </div>
-                        @if(Route::has('settings.account'))
-                            <a class="btn btn-outline-primary" href="{{ route('settings.account') }}">
-                                <i class="fas fa-edit me-1"></i> Edit Profil
-                            </a>
-                        @endif
-                    </div>
+                <div style="flex: 1;">
+                    <h2 style="margin: 0 0 var(--space-xs) 0; font-size: 1.5rem; font-weight: 600; color: var(--text-primary);">
+                        {{ $user->name }}
+                    </h2>
+                    <p style="margin: 0; color: var(--text-secondary);">{{ $user->email }}</p>
                 </div>
+                @if(Route::has('settings.account'))
+                    <a href="{{ route('settings.account') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-cog"></i>
+                        <span style="margin-left: var(--space-sm);">Pengaturan Akun</span>
+                    </a>
+                @endif
+            </div>
+        </div>
+    </div>
+
+    <!-- Info Cards Grid -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--space-lg);">
+        <!-- Roles Card -->
+        <div class="info-card">
+            <div style="display: flex; align-items: center; gap: var(--space-md); margin-bottom: var(--space-md);">
+                <div style="width: 40px; height: 40px; border-radius: var(--radius-md); background: var(--primary-50); display: flex; align-items: center; justify-content: center; color: var(--primary-600);">
+                    <i class="fas fa-user-tag"></i>
+                </div>
+                <h3 style="margin: 0; font-size: 1rem; font-weight: 600;">Peran</h3>
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: var(--space-sm);">
+                @php($roles = method_exists($user, 'roles') ? $user->roles->pluck('name')->all() : [])
+                @forelse($roles as $role)
+                    <span class="badge badge-neutral">{{ ucfirst(str_replace('_', ' ', $role)) }}</span>
+                @empty
+                    <span style="color: var(--text-tertiary);">Tidak ada peran</span>
+                @endforelse
+            </div>
+        </div>
+
+        <!-- Institution Card -->
+        <div class="info-card">
+            <div style="display: flex; align-items: center; gap: var(--space-md); margin-bottom: var(--space-md);">
+                <div style="width: 40px; height: 40px; border-radius: var(--radius-md); background: var(--info-light); display: flex; align-items: center; justify-content: center; color: var(--info);">
+                    <i class="fas fa-building"></i>
+                </div>
+                <h3 style="margin: 0; font-size: 1rem; font-weight: 600;">Institusi</h3>
+            </div>
+            @php($institution = $user->institution ?? $user->instansi ?? null)
+            @if($institution)
+                <div style="color: var(--text-primary);">
+                    {{ $institution->name ?? $institution->nama ?? '—' }}
+                </div>
+                @if(Route::has('institution.profile'))
+                    <a href="{{ route('institution.profile') }}" style="color: var(--primary-600); font-size: 0.875rem; text-decoration: none; display: inline-flex; align-items: center; gap: var(--space-xs); margin-top: var(--space-sm);">
+                        Lihat profil institusi <i class="fas fa-arrow-right" style="font-size: 0.75rem;"></i>
+                    </a>
+                @endif
+            @else
+                <div style="color: var(--text-tertiary);">Belum terdaftar pada institusi</div>
+            @endif
+        </div>
+    </div>
+
+    <!-- Account Details Card -->
+    <div class="modern-card" style="margin-top: var(--space-lg);">
+        <div class="card-header">
+            <h3 style="margin: 0; font-size: 1rem; font-weight: 600;">Detail Akun</h3>
+        </div>
+        <div class="card-body">
+            <div class="info-item">
+                <span class="info-label">Nama Lengkap</span>
+                <span class="info-value">{{ $user->name }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Email</span>
+                <span class="info-value">{{ $user->email }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Terdaftar Sejak</span>
+                <span class="info-value">{{ $user->created_at->format('d M Y') }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Terakhir Login</span>
+                <span class="info-value">{{ optional($user->last_login_at)->format('d M Y, H:i') ?? '—' }}</span>
             </div>
         </div>
     </div>

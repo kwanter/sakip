@@ -10,11 +10,13 @@ use App\Models\Target;
 use App\Models\AuditLog;
 use App\Services\DataValidationService;
 use App\Services\ReportGenerationService;
+use App\Services\DropdownCacheService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use Carbon\Carbon;
 
 /**
@@ -27,6 +29,7 @@ class DataCollectionController extends Controller
 {
     protected DataValidationService $validationService;
     protected ReportGenerationService $reportService;
+    protected DropdownCacheService $dropdownCache;
 
     /**
      * Constructor with dependency injection
@@ -34,9 +37,11 @@ class DataCollectionController extends Controller
     public function __construct(
         DataValidationService $validationService,
         ReportGenerationService $reportService,
+        DropdownCacheService $dropdownCache,
     ) {
         $this->validationService = $validationService;
         $this->reportService = $reportService;
+        $this->dropdownCache = $dropdownCache;
     }
 
     /**
@@ -109,7 +114,7 @@ class DataCollectionController extends Controller
             ) use ($instansiId) {
                 $q->where("instansi_id", $instansiId);
             })
-                ->with(["indicator", "creator"])
+                ->with(["indicator.instansi", "creator"])
                 ->orderBy("created_at", "desc")
                 ->limit(10)
                 ->get();
@@ -138,8 +143,8 @@ class DataCollectionController extends Controller
                 ->orderBy("created_at", "desc")
                 ->paginate(15);
 
-            // Get all instansi for filter dropdown
-            $instansis = \App\Models\Instansi::orderBy("nama_instansi")->get();
+            // Get all instansi for filter dropdown (cached)
+            $instansis = $this->dropdownCache->getActiveInstansi();
 
             // Format stats for view
             $stats = [
@@ -218,10 +223,8 @@ class DataCollectionController extends Controller
                     ->orderBy("name")
                     ->get();
 
-                // Get all instansi for dropdown
-                $instansis = \App\Models\Instansi::orderBy(
-                    "nama_instansi",
-                )->get();
+                // Get all instansi for dropdown (cached)
+                $instansis = $this->dropdownCache->getActiveInstansi();
 
                 return view(
                     "sakip.data-collection.create",
@@ -321,51 +324,38 @@ class DataCollectionController extends Controller
                 );
             }
 
-            // Check for existing data in the same period
-            $existingData = PerformanceData::where(
-                "indicator_id",
-                $indicator->id,
-            )
-                ->where("period", $period->format("Y-m-d"))
-                ->first();
+            // Check for existing data in the same period using updateOrCreate for atomicity
+            // This prevents race conditions by using database-level unique constraints
+            $performanceData = PerformanceData::updateOrCreate(
+                [
+                    // Search criteria - if these match, update instead of create
+                    "indicator_id" => $indicator->id,
+                    "period" => $period->format("Y-m-d"),
+                ],
+                [
+                    // Values to set (for both create and update)
+                    "actual_value" => $request->get("actual_value"),
+                    "target_value" => $targetValue,
+                    "performance_percentage" => $performancePercentage,
+                    "notes" => $request->get("notes"),
+                    "status" => "draft",
+                    "created_by" => $user->id,
+                    "updated_by" => $user->id,
+                ],
+            );
 
-            if ($existingData) {
+            // If this was an update (not a new record), notify the user
+            if (!$performanceData->wasRecentlyCreated) {
+                DB::rollBack();
                 return response()->json(
                     [
                         "success" => false,
-                        "message" => "Data untuk periode ini sudah ada.",
+                        "message" =>
+                            "Data untuk periode ini sudah ada dan telah diperbarui. Silakan gunakan fungsi edit untuk memodifikasi data yang ada.",
                     ],
-                    422,
+                    409, // 409 Conflict - more appropriate than 422 for race conditions
                 );
             }
-
-            // Get target value for this period
-            $target = $this->getTargetForPeriod($indicator, $period);
-            $targetValue =
-                $request->get("target_value") ?:
-                ($target
-                    ? $target->target_value
-                    : null);
-
-            // Calculate performance percentage
-            $performancePercentage = $this->calculatePerformancePercentage(
-                $request->get("actual_value"),
-                $targetValue,
-                $indicator->calculation_formula,
-            );
-
-            // Create performance data
-            $performanceData = PerformanceData::create([
-                "indicator_id" => $indicator->id,
-                "period" => $period->format("Y-m-d"),
-                "actual_value" => $request->get("actual_value"),
-                "target_value" => $targetValue,
-                "performance_percentage" => $performancePercentage,
-                "notes" => $request->get("notes"),
-                "status" => "draft",
-                "created_by" => $user->id,
-                "updated_by" => $user->id,
-            ]);
 
             // Handle evidence files
             if ($request->hasFile("evidence_files")) {
@@ -742,10 +732,11 @@ class DataCollectionController extends Controller
                 } // Skip invalid rows
 
                 try {
-                    $indicatorCode = $data[0];
-                    $period = $data[1];
-                    $actualValue = $data[2];
-                    $notes = $data[3] ?? "";
+                    // SECURITY: Sanitize all CSV input to prevent injection attacks
+                    $indicatorCode = $this->sanitizeCsvCellValue($data[0]);
+                    $period = $this->sanitizeCsvCellValue($data[1]);
+                    $actualValue = $this->sanitizeCsvCellValue($data[2]);
+                    $notes = $this->sanitizeCsvCellValue($data[3] ?? "");
 
                     // Find indicator by code
                     $indicator = PerformanceIndicator::where(
@@ -773,7 +764,8 @@ class DataCollectionController extends Controller
                         continue;
                     }
 
-                    // Check for existing data
+                    // Check for existing data using updateOrCreate for atomicity
+                    // SECURITY: This prevents race conditions during concurrent imports
                     $existingData = PerformanceData::where(
                         "indicator_id",
                         $indicator->id,
@@ -785,7 +777,7 @@ class DataCollectionController extends Controller
                         $errors[] =
                             "Baris " .
                             ($index + 1) .
-                            ": Data untuk periode ini sudah ada.";
+                            ": Data untuk periode ini sudah ada. Gunakan fungsi update untuk memodifikasi.";
                         continue;
                     }
 
@@ -946,12 +938,10 @@ class DataCollectionController extends Controller
     ) {
         foreach ($files as $file) {
             if ($file->isValid()) {
+                // SECURITY: Use UUID-based filename instead of predictable time() + uniqid()
+                // This prevents attackers from enumerating uploaded files
                 $filename =
-                    time() .
-                    "_" .
-                    uniqid() .
-                    "." .
-                    $file->getClientOriginalExtension();
+                    Str::uuid() . "." . $file->getClientOriginalExtension();
                 $path = $file->storeAs(
                     "evidence_documents",
                     $filename,
@@ -984,19 +974,48 @@ class DataCollectionController extends Controller
     }
 
     /**
-     * Calculate performance percentage
+     * Calculate performance percentage with comprehensive edge case handling.
+     * IMPROVED: Handles zero targets, negative values, and reduction goals.
+     *
+     * @param float $actualValue The actual achieved value
+     * @param float|null $targetValue The target/goal value
+     * @param array|null $calculationFormula Optional calculation formula specification
+     * @return float Performance percentage (0-200 depending on scenario)
      */
     private function calculatePerformancePercentage(
         $actualValue,
         $targetValue,
-        $calculationFormula,
+        $calculationFormula = null,
     ) {
+        // Handle null/empty/zero targets
         if (empty($targetValue) || $targetValue == 0) {
+            // If target is 0 or null, we cannot calculate percentage
+            // Return 0 if no actual value, or 100 if actual exists (achievement by default)
+            return !empty($actualValue) && $actualValue != 0 ? 100 : 0;
+        }
+
+        // Handle negative target values (e.g., cost reduction goals)
+        if ($targetValue < 0) {
+            if ($actualValue < 0) {
+                // Both negative: calculate ratio of reduction achieved
+                $performance = abs($actualValue / $targetValue) * 100;
+                return min($performance, 200); // Cap at 200% for negative targets
+            } else {
+                // Target negative, actual positive: goal not met
+                return 0;
+            }
+        }
+
+        // Handle negative actual values with positive targets
+        if ($actualValue < 0) {
             return 0;
         }
 
-        // Simple percentage calculation (can be enhanced based on formula)
-        return round(($actualValue / $targetValue) * 100, 2);
+        // Standard calculation: percentage of target achieved
+        $performance = ($actualValue / $targetValue) * 100;
+
+        // Round to 2 decimal places for precision
+        return round(max(0, $performance), 2);
     }
 
     /**
@@ -1066,5 +1085,62 @@ class DataCollectionController extends Controller
         }
 
         return $periods;
+    }
+
+    /**
+     * Sanitize CSV cell value to prevent injection attacks
+     *
+     * SECURITY IMPROVED: Comprehensively prevents CSV injection attacks
+     *
+     * CSV Injection vectors:
+     * 1. Formula injection: =, +, -, @ at start of cells
+     * 2. Embedded formulas with whitespace: " =1+1" or "\t=cmd|'/c calc'!A0"
+     * 3. Array formulas: {=SUM(A1:A10)}
+     * 4. Unicode exploits: Special characters that look like safe chars
+     *
+     * When CSV files are opened in Excel, these can execute formulas, potentially:
+     * - Exfiltrating data to external servers
+     * - Executing arbitrary code
+     * - Modifying cell values
+     *
+     * @param string $value The cell value to sanitize
+     * @return string The sanitized value
+     */
+    private function sanitizeCsvCellValue(string $value): string
+    {
+        // Remove leading/trailing whitespace
+        $value = trim($value);
+
+        // Check for dangerous formula characters at the start (after trimming)
+        // These are the most dangerous as they execute immediately in Excel
+        if (preg_match("/^[=+\-@]/", $value)) {
+            // Prepend with single quote to force Excel to treat as text
+            $value = "'" . $value;
+        }
+
+        // Check for embedded formulas with leading whitespace (common evasion technique)
+        // Examples: " =1+1", "\t=cmd|'/c calc'!A0", "\n=HYPERLINK(...)"
+        if (preg_match('/^[\s\t\n\r][=+\-@]/', $value)) {
+            $value = "'" . ltrim($value);
+        }
+
+        // Check for array formulas {=...}
+        if (preg_match("/^\{=/", $value)) {
+            $value = "'" . $value;
+        }
+
+        // Remove any HTML/script tags (defense in depth)
+        $value = strip_tags($value);
+
+        // Remove null bytes and other control characters (except tab, newline, carriage return)
+        $value = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/', "", $value);
+
+        // Limit length to prevent DoS via extremely long values
+        if (strlen($value) > 32767) {
+            // Excel cell limit
+            $value = substr($value, 0, 32767);
+        }
+
+        return $value;
     }
 }

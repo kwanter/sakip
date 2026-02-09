@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.modern')
 
 @section('title', 'Detail Indikator Kinerja')
 
@@ -199,13 +199,13 @@
                                         {{-- Approval workflow buttons for draft status --}}
                                         @can('approve-targets')
                                             @if($target->status === 'draft' || $target->status === 'revised')
-                                                <button onclick="approveTarget({{ $target->id }}, '{{ $indicator->id }}')" class="text-green-600 hover:text-green-900" title="Setujui">
+                                                <button data-onclick="approveTarget({{ $target->id }}, '{{ $indicator->id }}')" class="text-green-600 hover:text-green-900" title="Setujui">
                                                     <i class="fas fa-check-circle"></i>
                                                 </button>
-                                                <button onclick="reviseTarget({{ $target->id }}, '{{ $indicator->id }}')" class="text-yellow-600 hover:text-yellow-900" title="Minta Revisi">
+                                                <button data-onclick="reviseTarget({{ $target->id }}, '{{ $indicator->id }}')" class="text-yellow-600 hover:text-yellow-900" title="Minta Revisi">
                                                     <i class="fas fa-undo"></i>
                                                 </button>
-                                                <button onclick="rejectTarget({{ $target->id }}, '{{ $indicator->id }}')" class="text-red-600 hover:text-red-900" title="Tolak">
+                                                <button data-onclick="rejectTarget({{ $target->id }}, '{{ $indicator->id }}')" class="text-red-600 hover:text-red-900" title="Tolak">
                                                     <i class="fas fa-times-circle"></i>
                                                 </button>
                                             @endif

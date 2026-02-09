@@ -12,389 +12,397 @@ use App\Http\Controllers\Sakip\SakipAuditController;
 use App\Http\Controllers\Api\Sakip\SakipDataTableController;
 
 /*
-|--------------------------------------------------------------------------
-| SAKIP API Routes
-|--------------------------------------------------------------------------
-|
-| API routes for SAKIP (Sistem Akuntabilitas Kinerja Instansi Pemerintah)
-| All routes are prefixed with /sakip/api and use API middleware
-|
-*/
+ |--------------------------------------------------------------------------
+ | SAKIP API Routes
+ |--------------------------------------------------------------------------
+ |
+ | API routes for SAKIP (Sistem Akuntabilitas Kinerja Instansi Pemerintah)
+ | All routes are prefixed with /sakip/api and use API middleware
+ |
+ */
 
 Route::prefix("sakip")
     ->middleware(["auth:web", "permission:view-dashboard", "throttle:api"])
     ->group(function () {
         // Dashboard Routes
         Route::get("/dashboard-data", [
-            SakipDashboardController::class,
+            SakipDashboardController::class ,
             "getDashboardData",
         ])->name("sakip.api.dashboard.data");
 
         Route::get("/dashboard-charts", [
-            SakipDashboardController::class,
+            SakipDashboardController::class ,
             "getDashboardCharts",
         ])->name("sakip.api.dashboard.charts");
 
         Route::get("/dashboard-kpi", [
-            SakipDashboardController::class,
+            SakipDashboardController::class ,
             "getDashboardKPI",
         ])->name("sakip.api.dashboard.kpi");
 
         Route::get("/dashboard-notifications", [
-            SakipDashboardController::class,
+            SakipDashboardController::class ,
             "getDashboardNotifications",
         ])->name("sakip.api.dashboard.notifications");
 
         // Performance Indicators Routes
         Route::get("/performance-indicators", [
-            PerformanceIndicatorController::class,
+            PerformanceIndicatorController::class ,
             "getIndicators",
         ])->name("sakip.api.performance-indicators.list");
 
         Route::get("/performance-indicators/{id}", [
-            PerformanceIndicatorController::class,
+            PerformanceIndicatorController::class ,
             "getIndicator",
         ])->name("sakip.api.performance-indicators.detail");
 
         Route::post("/performance-indicators", [
-            PerformanceIndicatorController::class,
+            PerformanceIndicatorController::class ,
             "storeIndicator",
         ])
             ->middleware("throttle:api_strict")
             ->name("sakip.api.performance-indicators.store");
 
         Route::put("/performance-indicators/{id}", [
-            PerformanceIndicatorController::class,
+            PerformanceIndicatorController::class ,
             "updateIndicator",
         ])
             ->middleware("throttle:api_strict")
             ->name("sakip.api.performance-indicators.update");
 
         Route::delete("/performance-indicators/{id}", [
-            PerformanceIndicatorController::class,
+            PerformanceIndicatorController::class ,
             "deleteIndicator",
         ])
             ->middleware("throttle:api_strict")
             ->name("sakip.api.performance-indicators.delete");
 
         Route::get("/performance-indicators/{id}/targets", [
-            PerformanceIndicatorController::class,
+            PerformanceIndicatorController::class ,
             "getIndicatorTargets",
         ])->name("sakip.api.performance-indicators.targets");
 
         // Data Collection Routes
         Route::get("/data-collection", [
-            DataCollectionController::class,
+            DataCollectionController::class ,
             "getDataCollection",
         ])->name("sakip.api.data-collection.list");
 
         Route::get("/data-collection/{id}", [
-            DataCollectionController::class,
+            DataCollectionController::class ,
             "getDataCollectionDetail",
         ])->name("sakip.api.data-collection.detail");
 
         Route::post("/data-collection", [
-            DataCollectionController::class,
+            DataCollectionController::class ,
             "storeDataCollection",
         ])
             ->middleware("throttle:api_strict")
             ->name("sakip.api.data-collection.store");
 
         Route::put("/data-collection/{id}", [
-            DataCollectionController::class,
+            DataCollectionController::class ,
             "updateDataCollection",
-        ])->name("sakip.api.data-collection.update");
+        ])
+            ->middleware("throttle:api_strict")
+            ->name("sakip.api.data-collection.update");
 
         Route::delete("/data-collection/{id}", [
-            DataCollectionController::class,
+            DataCollectionController::class ,
             "deleteDataCollection",
-        ])->name("sakip.api.data-collection.delete");
+        ])
+            ->middleware("throttle:api_strict")
+            ->name("sakip.api.data-collection.delete");
 
         Route::post("/data-collection/bulk-import", [
-            DataCollectionController::class,
+            DataCollectionController::class ,
             "bulkImport",
         ])
             ->middleware("throttle:bulk_operations")
             ->name("sakip.api.data-collection.bulk-import");
 
         Route::get("/data-collection/templates/download", [
-            DataCollectionController::class,
+            DataCollectionController::class ,
             "downloadTemplate",
         ])->name("sakip.api.data-collection.template.download");
 
         // Performance Measurement Routes
         Route::get("/performance-measurement", [
-            PerformanceMeasurementController::class,
+            PerformanceMeasurementController::class ,
             "getMeasurements",
         ])->name("sakip.api.performance-measurement.list");
 
         Route::get("/performance-measurement/{id}", [
-            PerformanceMeasurementController::class,
+            PerformanceMeasurementController::class ,
             "getMeasurement",
         ])->name("sakip.api.performance-measurement.detail");
 
         Route::post("/performance-measurement", [
-            PerformanceMeasurementController::class,
+            PerformanceMeasurementController::class ,
             "storeMeasurement",
         ])->name("sakip.api.performance-measurement.store");
 
         Route::put("/performance-measurement/{id}", [
-            PerformanceMeasurementController::class,
+            PerformanceMeasurementController::class ,
             "updateMeasurement",
         ])->name("sakip.api.performance-measurement.update");
 
         Route::delete("/performance-measurement/{id}", [
-            PerformanceMeasurementController::class,
+            PerformanceMeasurementController::class ,
             "deleteMeasurement",
         ])->name("sakip.api.performance-measurement.delete");
 
         Route::get("/performance-measurement/{id}/trend", [
-            PerformanceMeasurementController::class,
+            PerformanceMeasurementController::class ,
             "getMeasurementTrend",
         ])->name("sakip.api.performance-measurement.trend");
 
         Route::get("/performance-measurement/{id}/comparison", [
-            PerformanceMeasurementController::class,
+            PerformanceMeasurementController::class ,
             "getMeasurementComparison",
         ])->name("sakip.api.performance-measurement.comparison");
 
         // Assessment Routes
         Route::get("/assessments", [
-            AssessmentController::class,
+            AssessmentController::class ,
             "getAssessments",
         ])->name("sakip.api.assessments.list");
 
         Route::get("/assessments/{id}", [
-            AssessmentController::class,
+            AssessmentController::class ,
             "getAssessment",
         ])->name("sakip.api.assessments.detail");
 
         Route::post("/assessments", [
-            AssessmentController::class,
+            AssessmentController::class ,
             "storeAssessment",
         ])
             ->middleware("throttle:api_strict")
             ->name("sakip.api.assessments.store");
 
         Route::put("/assessments/{id}", [
-            AssessmentController::class,
+            AssessmentController::class ,
             "updateAssessment",
-        ])->name("sakip.api.assessments.update");
+        ])
+            ->middleware("throttle:api_strict")
+            ->name("sakip.api.assessments.update");
 
         Route::delete("/assessments/{id}", [
-            AssessmentController::class,
+            AssessmentController::class ,
             "deleteAssessment",
-        ])->name("sakip.api.assessments.delete");
+        ])
+            ->middleware("throttle:api_strict")
+            ->name("sakip.api.assessments.delete");
 
         Route::post("/assessments/{id}/submit", [
-            AssessmentController::class,
+            AssessmentController::class ,
             "submitAssessment",
         ])->name("sakip.api.assessments.submit");
 
         Route::post("/assessments/{id}/verify", [
-            AssessmentController::class,
+            AssessmentController::class ,
             "verifyAssessment",
         ])->name("sakip.api.assessments.verify");
 
         Route::post("/assessments/{id}/approve", [
-            AssessmentController::class,
+            AssessmentController::class ,
             "approveAssessment",
         ])->name("sakip.api.assessments.approve");
 
         Route::get("/assessments/{id}/scoring", [
-            AssessmentController::class,
+            AssessmentController::class ,
             "getAssessmentScoring",
         ])->name("sakip.api.assessments.scoring");
 
         Route::post("/assessments/{id}/scoring", [
-            AssessmentController::class,
+            AssessmentController::class ,
             "updateAssessmentScoring",
         ])->name("sakip.api.assessments.scoring.update");
 
         Route::get("/assessments/{id}/criteria", [
-            AssessmentController::class,
+            AssessmentController::class ,
             "getAssessmentCriteria",
         ])->name("sakip.api.assessments.criteria");
 
         Route::post("/assessments/batch-assess", [
-            AssessmentController::class,
+            AssessmentController::class ,
             "batchAssess",
         ])
             ->middleware("throttle:bulk_operations")
             ->name("sakip.api.assessments.batch-assess");
 
         // Report Routes
-        Route::get("/reports", [ReportController::class, "getReports"])->name(
+        Route::get("/reports", [ReportController::class , "getReports"])->name(
             "sakip.api.reports.list",
         );
 
         Route::get("/reports/{id}", [
-            ReportController::class,
+            ReportController::class ,
             "getReport",
         ])->name("sakip.api.reports.detail");
 
-        Route::post("/reports", [ReportController::class, "generateReport"])
+        Route::post("/reports", [ReportController::class , "generateReport"])
             ->middleware("throttle:report_generation")
             ->name("sakip.api.reports.generate");
 
         Route::delete("/reports/{id}", [
-            ReportController::class,
+            ReportController::class ,
             "deleteReport",
         ])->name("sakip.api.reports.delete");
 
         Route::get("/reports/{id}/download", [
-            ReportController::class,
+            ReportController::class ,
             "downloadReport",
         ])
             ->middleware("throttle:export")
             ->name("sakip.api.reports.download");
 
         Route::get("/reports/templates", [
-            ReportController::class,
+            ReportController::class ,
             "getReportTemplates",
         ])->name("sakip.api.reports.templates");
 
         Route::get("/reports/chart-data", [
-            ReportController::class,
+            ReportController::class ,
             "getChartData",
         ])->name("sakip.api.reports.chart-data");
 
         // Audit Trail Routes
         Route::get("/audit-trail", [
-            SakipAuditController::class,
+            SakipAuditController::class ,
             "getAuditTrail",
         ])->name("sakip.api.audit-trail.list");
 
         Route::get("/audit-trail/{id}", [
-            SakipAuditController::class,
+            SakipAuditController::class ,
             "getAuditEntry",
         ])->name("sakip.api.audit-trail.detail");
 
         Route::get("/audit-trail/export", [
-            SakipAuditController::class,
+            SakipAuditController::class ,
             "exportAuditTrail",
         ])->name("sakip.api.audit-trail.export");
 
         Route::get("/audit-trail/statistics", [
-            SakipAuditController::class,
+            SakipAuditController::class ,
             "getAuditStatistics",
         ])->name("sakip.api.audit-trail.statistics");
 
         // Compliance Routes
         Route::get("/compliance/status", [
-            SakipDashboardController::class,
+            SakipDashboardController::class ,
             "getComplianceStatus",
         ])->name("sakip.api.compliance.status");
 
         Route::get("/compliance/issues", [
-            SakipDashboardController::class,
+            SakipDashboardController::class ,
             "getComplianceIssues",
         ])->name("sakip.api.compliance.issues");
 
         Route::post("/compliance/issues", [
-            SakipDashboardController::class,
+            SakipDashboardController::class ,
             "storeComplianceIssue",
         ])->name("sakip.api.compliance.issues.store");
 
         Route::put("/compliance/issues/{id}", [
-            SakipDashboardController::class,
+            SakipDashboardController::class ,
             "updateComplianceIssue",
         ])->name("sakip.api.compliance.issues.update");
 
         Route::delete("/compliance/issues/{id}", [
-            SakipDashboardController::class,
+            SakipDashboardController::class ,
             "deleteComplianceIssue",
         ])->name("sakip.api.compliance.issues.delete");
 
         // Notification Routes
         Route::get("/notifications", [
-            SakipDashboardController::class,
+            SakipDashboardController::class ,
             "getNotifications",
         ])->name("sakip.api.notifications.list");
 
         Route::get("/notifications/unread", [
-            SakipDashboardController::class,
+            SakipDashboardController::class ,
             "getUnreadNotifications",
         ])->name("sakip.api.notifications.unread");
 
         Route::put("/notifications/{id}/read", [
-            SakipDashboardController::class,
+            SakipDashboardController::class ,
             "markNotificationRead",
         ])->name("sakip.api.notifications.read");
 
         Route::put("/notifications/read-all", [
-            SakipDashboardController::class,
+            SakipDashboardController::class ,
             "markAllNotificationsRead",
         ])->name("sakip.api.notifications.read-all");
 
         Route::delete("/notifications/{id}", [
-            SakipDashboardController::class,
+            SakipDashboardController::class ,
             "deleteNotification",
         ])->name("sakip.api.notifications.delete");
 
         // File Upload Routes
         Route::post("/upload/evidence", [
-            DataCollectionController::class,
+            DataCollectionController::class ,
             "uploadEvidence",
         ])
             ->middleware("throttle:upload")
             ->name("sakip.api.upload.evidence");
 
         Route::post("/upload/report", [
-            ReportController::class,
+            ReportController::class ,
             "uploadReportFile",
         ])
             ->middleware("throttle:upload")
             ->name("sakip.api.upload.report");
 
         Route::delete("/upload/{id}", [
-            DataCollectionController::class,
+            DataCollectionController::class ,
             "deleteUpload",
         ])->name("sakip.api.upload.delete");
 
         // Statistics and Analytics Routes
         Route::get("/statistics/performance", [
-            SakipDashboardController::class,
+            SakipDashboardController::class ,
             "getPerformanceStatistics",
         ])->name("sakip.api.statistics.performance");
 
         Route::get("/statistics/assessment", [
-            SakipDashboardController::class,
+            SakipDashboardController::class ,
             "getAssessmentStatistics",
         ])->name("sakip.api.statistics.assessment");
 
         Route::get("/statistics/compliance", [
-            SakipDashboardController::class,
+            SakipDashboardController::class ,
             "getComplianceStatistics",
         ])->name("sakip.api.statistics.compliance");
 
         Route::get("/analytics/trends", [
-            SakipDashboardController::class,
+            SakipDashboardController::class ,
             "getTrendsAnalytics",
         ])->name("sakip.api.analytics.trends");
 
         Route::get("/analytics/comparison", [
-            SakipDashboardController::class,
+            SakipDashboardController::class ,
             "getComparisonAnalytics",
         ])->name("sakip.api.analytics.comparison");
 
         // Export Routes
         Route::get("/export/performance-data", [
-            DataCollectionController::class,
+            DataCollectionController::class ,
             "exportPerformanceData",
         ])
             ->middleware("throttle:export")
             ->name("sakip.api.export.performance-data");
 
         Route::get("/export/assessment-results", [
-            AssessmentController::class,
+            AssessmentController::class ,
             "exportAssessmentResults",
         ])
             ->middleware("throttle:export")
             ->name("sakip.api.export.assessment-results");
 
         Route::get("/export/compliance-report", [
-            SakipDashboardController::class,
+            SakipDashboardController::class ,
             "exportComplianceReport",
         ])
             ->middleware("throttle:export")
@@ -402,21 +410,21 @@ Route::prefix("sakip")
 
         // Bulk Operations Routes
         Route::post("/bulk/update-targets", [
-            PerformanceIndicatorController::class,
+            PerformanceIndicatorController::class ,
             "bulkUpdateTargets",
         ])
             ->middleware("throttle:bulk_operations")
             ->name("sakip.api.bulk.update-targets");
 
         Route::post("/bulk/verify-data", [
-            DataCollectionController::class,
+            DataCollectionController::class ,
             "bulkVerifyData",
         ])
             ->middleware("throttle:bulk_operations")
             ->name("sakip.api.bulk.verify-data");
 
         Route::post("/bulk/export-reports", [
-            ReportController::class,
+            ReportController::class ,
             "bulkExportReports",
         ])
             ->middleware("throttle:bulk_operations")
@@ -425,28 +433,29 @@ Route::prefix("sakip")
         // DataTables Routes
         Route::prefix("datatables")->group(function () {
             Route::get("/indicator", [
-                SakipDataTableController::class,
+                SakipDataTableController::class ,
                 "indicators",
             ])->name("sakip.api.datatables.indicator");
             Route::get("/program", [
-                SakipDataTableController::class,
+                SakipDataTableController::class ,
                 "programs",
             ])->name("sakip.api.datatables.program");
             Route::get("/kegiatan", [
-                SakipDataTableController::class,
+                SakipDataTableController::class ,
                 "activities",
             ])->name("sakip.api.datatables.kegiatan");
             Route::get("/laporan", [
-                SakipDataTableController::class,
+                SakipDataTableController::class ,
                 "reports",
             ])->name("sakip.api.datatables.laporan");
             Route::get("/export/{type}", [
-                SakipDataTableController::class,
+                SakipDataTableController::class ,
                 "export",
             ])->name("sakip.api.datatables.export");
             Route::get("/config/{type}", [
-                SakipDataTableController::class,
+                SakipDataTableController::class ,
                 "configuration",
             ])->name("sakip.api.datatables.configuration");
-        });
+        }
+        );
     });

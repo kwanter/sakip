@@ -1,0 +1,7 @@
+# MySQL Backups Directory
+#
+# This directory is mounted to /backups inside the MySQL container
+# Use it to store database dumps and exports
+#
+# Example backup command:
+# docker exec sakip-mysql mysqldump -u root -proot sakip > /backups/sakip-backup-$(date +%Y%m%d).sql

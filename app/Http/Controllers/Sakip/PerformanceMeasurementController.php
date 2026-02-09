@@ -246,14 +246,28 @@ class PerformanceMeasurementController extends Controller
             );
 
             // Update performance data with calculated values
+            // PERFORMANCE: Use bulk update instead of loop to avoid N+1 query problem
+            $now = Carbon::now();
+            $updateData = [];
+            
             foreach ($performanceData as $data) {
-                $data->update([
-                    "performance_percentage" =>
-                        $calculationResult["individual_scores"][$data->id] ??
-                        null,
-                    "calculated_at" => Carbon::now(),
-                    "updated_by" => Auth::id(),
-                ]);
+                if (isset($calculationResult["individual_scores"][$data->id])) {
+                    $updateData[] = [
+                        'id' => $data->id,
+                        'performance_percentage' => $calculationResult["individual_scores"][$data->id],
+                        'calculated_at' => $now,
+                        'updated_by' => Auth::id(),
+                    ];
+                }
+            }
+            
+            // Bulk update using upsert (single query instead of N queries)
+            if (!empty($updateData)) {
+                \DB::table('performance_data')->upsert(
+                    $updateData,
+                    ['id'],
+                    ['performance_percentage', 'calculated_at', 'updated_by']
+                );
             }
 
             // Log the activity

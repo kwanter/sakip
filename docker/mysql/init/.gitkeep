@@ -1,0 +1,13 @@
+# MySQL Initialization Scripts
+#
+# Any .sql or .sh files placed here will be executed automatically
+# when the MySQL container starts for the FIRST TIME only.
+#
+# Use this for:
+# - Creating additional databases
+# - Setting up initial users/permissions
+# - Running initial schema migrations
+# - Importing seed data
+#
+# Files are executed in alphabetical order.
+# Prefix with numbers like 01-, 02- to control execution order.

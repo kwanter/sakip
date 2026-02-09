@@ -108,26 +108,26 @@ class SakipDashboardController extends Controller
 
     /**
      * Get system-wide metrics for superadmin
+     *
+     * OPTIMIZED: Uses single query with conditional aggregation for performance data counts.
      */
     private function getSystemWideMetrics($year)
     {
+        // Get counts using single aggregated query
+        $performanceDataStats = PerformanceData::selectRaw(
+            'COUNT(*) as total,
+            SUM(CASE WHEN actual_value IS NOT NULL THEN 1 ELSE 0 END) as with_value,
+            SUM(CASE WHEN actual_value IS NULL THEN 1 ELSE 0 END) as missing_value'
+        )
+            ->where("period", "like", $year . "%")
+            ->first();
+
         return [
             "total_indicators" => PerformanceIndicator::count(),
             "total_targets" => Target::where("year", $year)->count(),
-            "total_performance_data" => PerformanceData::where(
-                "period",
-                "like",
-                $year . "%",
-            )->count(),
-            "total_assessments" => Assessment::whereYear(
-                "created_at",
-                $year,
-            )->count(),
-            "total_reports" => Report::where(
-                "period",
-                "like",
-                $year . "%",
-            )->count(),
+            "total_performance_data" => $performanceDataStats->total ?? 0,
+            "total_assessments" => Assessment::whereYear("created_at", $year)->count(),
+            "total_reports" => Report::whereYear("period", $year)->count(),
             "average_performance" => $this->calculateAveragePerformance($year),
             "compliance_rate" => $this->calculateComplianceRate(),
             "pending_actions" => $this->getPendingActions(),
@@ -151,7 +151,7 @@ class SakipDashboardController extends Controller
                     $q->where("instansi_id", $instansiId);
                 },
             )
-                ->where("period", "like", $year . "%")
+                ->whereYear("period", $year)
                 ->count(),
             "total_assessments" => Assessment::whereYear(
                 "created_at",
@@ -192,7 +192,7 @@ class SakipDashboardController extends Controller
                 "created_by",
                 $user->id,
             )
-                ->where("period", "like", $year . "%")
+                ->whereYear("period", $year)
                 ->count(),
             "my_assessments" => Assessment::where("assessed_by", $user->id)
                 ->whereYear("created_at", $year)
@@ -207,7 +207,7 @@ class SakipDashboardController extends Controller
      */
     private function calculateAveragePerformance($year)
     {
-        $performanceData = PerformanceData::where("period", "like", $year . "%")
+        $performanceData = PerformanceData::whereYear("period", $year)
             ->whereNotNull("actual_value")
             ->avg("actual_value");
 
@@ -225,7 +225,7 @@ class SakipDashboardController extends Controller
                 $q->where("instansi_id", $instansiId);
             },
         )
-            ->where("period", "like", $year . "%")
+            ->whereYear("period", $year)
             ->whereNotNull("actual_value")
             ->avg("actual_value");
 
@@ -265,7 +265,7 @@ class SakipDashboardController extends Controller
                 $q->where("instansi_id", $instansiId);
             },
         )
-            ->where("period", "like", $year . "%")
+            ->whereYear("period", $year)
             ->count();
 
         return $totalIndicators > 0
@@ -275,21 +275,16 @@ class SakipDashboardController extends Controller
 
     /**
      * Get pending actions for superadmin
+     *
+     * OPTIMIZED: Each count is independent, keep separate queries for clarity.
+     * These run on different tables so cannot be combined efficiently.
      */
     private function getPendingActions()
     {
         return [
-            "unverified_reports" => Report::where(
-                "status",
-                "submitted",
-            )->count(),
-            "pending_assessments" => Assessment::where(
-                "status",
-                "pending",
-            )->count(),
-            "missing_data_sets" => PerformanceData::whereNull(
-                "actual_value",
-            )->count(),
+            "unverified_reports" => Report::where("status", "submitted")->count(),
+            "pending_assessments" => Assessment::where("status", "pending")->count(),
+            "missing_data_sets" => PerformanceData::whereNull("actual_value")->count(),
         ];
     }
 
@@ -322,15 +317,20 @@ class SakipDashboardController extends Controller
     }
 
     /**
-     * Get recent activities based on institution
+     * Get recent activities based on institution with eager loading
+     * PERFORMANCE: Eager load all relationships to prevent N+1 query problem
+     * Without eager loading: 11 queries (1 + 5 for performanceIndicator + 5 for creator)
+     * With eager loading: 2 queries (1 for PerformanceData with relationships + 1 for nested loads)
      */
     private function getRecentActivities($instansiId)
     {
-        return PerformanceData::whereHas("performanceIndicator", function (
-            $q,
-        ) use ($instansiId) {
-            $q->where("instansi_id", $instansiId);
-        })
+        return PerformanceData::with([
+            "performanceIndicator", // Eager load to prevent N+1
+            "creator", // Eager load creator relationship
+        ])
+            ->whereHas("performanceIndicator", function ($q) use ($instansiId) {
+                $q->where("instansi_id", $instansiId);
+            })
             ->orderBy("created_at", "desc")
             ->limit(5)
             ->get()
@@ -400,6 +400,8 @@ class SakipDashboardController extends Controller
      * Get performance trends data
      *
      * Authorization: Uses 'sakip.dashboard.view' so only dashboard-authorized users can access trends.
+     *
+     * OPTIMIZED: Single aggregated query with GROUP BY instead of N+1 loop queries.
      */
     public function getPerformanceTrends(Request $request)
     {
@@ -408,23 +410,29 @@ class SakipDashboardController extends Controller
         try {
             $user = Auth::user();
             $instansiId = $user->instansi_id;
-            $years = range(Carbon::now()->year - 4, Carbon::now()->year);
+            $startYear = Carbon::now()->year - 4;
+            $endYear = Carbon::now()->year;
 
+            // Single aggregated query with GROUP BY - eliminates N+1 problem
+            $trendsData = PerformanceData::selectRaw(
+                'YEAR(period) as year, AVG(actual_value) as avg_performance'
+            )
+                ->whereHas("performanceIndicator", function ($q) use ($instansiId) {
+                    $q->where("instansi_id", $instansiId);
+                })
+                ->whereYear("period", ">=", $startYear)
+                ->whereYear("period", "<=", $endYear)
+                ->whereNotNull("actual_value")
+                ->groupBy("year")
+                ->orderBy("year")
+                ->pluck("avg_performance", "year");
+
+            // Build complete trend array with all years (filling missing with 0)
             $trends = [];
-            foreach ($years as $year) {
-                $avgPerformance = PerformanceData::whereHas(
-                    "performanceIndicator",
-                    function ($q) use ($instansiId) {
-                        $q->where("instansi_id", $instansiId);
-                    },
-                )
-                    ->where("period", "like", $year . "%")
-                    ->whereNotNull("actual_value")
-                    ->avg("actual_value");
-
+            for ($year = $startYear; $year <= $endYear; $year++) {
                 $trends[] = [
                     "year" => $year,
-                    "performance" => round($avgPerformance ?? 0, 2),
+                    "performance" => round($trendsData->get($year, 0), 2),
                 ];
             }
 
@@ -462,7 +470,7 @@ class SakipDashboardController extends Controller
                     $q->where("instansi_id", $instansiId);
                 },
             )
-                ->where("period", "like", $year . "%")
+                ->whereYear("period", $year)
                 ->whereNull("actual_value")
                 ->count();
 

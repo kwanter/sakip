@@ -34,6 +34,16 @@ class SakipAuditController extends Controller
     }
 
     /**
+     * Check if user can view all audit logs (system-wide access)
+     * This replaces hardcoded hasRole('superadmin') checks with policy-based authorization
+     */
+    private function canViewAllAuditLogs($user): bool
+    {
+        return $user->can("viewAny", AuditLog::class) &&
+            $user->hasRole("Super Admin");
+    }
+
+    /**
      * Display audit dashboard
      */
     public function index(Request $request)
@@ -49,8 +59,8 @@ class SakipAuditController extends Controller
                 ->where("module", "SAKIP")
                 ->orderBy("created_at", "desc");
 
-            // Role-based filtering
-            if (!$user->hasRole("superadmin")) {
+            // Role-based filtering (using policy-based authorization)
+            if (!$this->canViewAllAuditLogs($user)) {
                 $query->where(function ($q) use ($user, $instansiId) {
                     $q->where("user_id", $user->id)->orWhere(
                         "instansi_id",
@@ -399,8 +409,8 @@ class SakipAuditController extends Controller
                 $query->where("user_id", $request->get("user_id"));
             }
 
-            // Role-based filtering
-            if (!$user->hasRole("superadmin")) {
+            // Role-based filtering (using policy-based authorization)
+            if (!$this->canViewAllAuditLogs($user)) {
                 $query->where(function ($q) use ($user, $instansiId) {
                     $q->where("user_id", $user->id)->orWhere(
                         "instansi_id",
@@ -573,7 +583,7 @@ class SakipAuditController extends Controller
             $startDate,
         );
 
-        if (!$user->hasRole("superadmin")) {
+        if (!$this->canViewAllAuditLogs($user)) {
             $query->where(function ($q) use ($user, $instansiId) {
                 $q->where("user_id", $user->id)->orWhere(
                     "instansi_id",
@@ -624,7 +634,7 @@ class SakipAuditController extends Controller
             ->orderBy("created_at", "desc")
             ->limit(20);
 
-        if (!$user->hasRole("superadmin")) {
+        if (!$this->canViewAllAuditLogs($user)) {
             $query->where(function ($q) use ($user, $instansiId) {
                 $q->where("user_id", $user->id)->orWhere(
                     "instansi_id",

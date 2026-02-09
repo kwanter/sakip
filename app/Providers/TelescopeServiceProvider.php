@@ -3,20 +3,22 @@
 namespace App\Providers;
 
 use Illuminate\Support\Facades\Gate;
-use Laravel\Telescope\IncomingEntry;
-use Laravel\Telescope\Telescope;
-use Laravel\Telescope\TelescopeApplicationServiceProvider;
+use Illuminate\Support\ServiceProvider;
 
-class TelescopeServiceProvider extends TelescopeApplicationServiceProvider
+class TelescopeServiceProvider extends ServiceProvider
 {
     /**
      * Register any application services.
      */
     public function register(): void
     {
+        if (! class_exists(\Laravel\Telescope\Telescope::class)) {
+            return;
+        }
+
         // Completely disable Telescope in production
         if ($this->app->environment("production")) {
-            Telescope::$stopRecording = true;
+            \Laravel\Telescope\Telescope::stopRecording();
             return;
         }
 
@@ -26,7 +28,7 @@ class TelescopeServiceProvider extends TelescopeApplicationServiceProvider
 
         $isLocal = $this->app->environment("local");
 
-        Telescope::filter(function (IncomingEntry $entry) use ($isLocal) {
+        \Laravel\Telescope\Telescope::filter(function (\Laravel\Telescope\IncomingEntry $entry) use ($isLocal) {
             return $isLocal ||
                 $entry->isReportableException() ||
                 $entry->isFailedRequest() ||
@@ -41,12 +43,16 @@ class TelescopeServiceProvider extends TelescopeApplicationServiceProvider
      */
     protected function hideSensitiveRequestDetails(): void
     {
+        if (! class_exists(\Laravel\Telescope\Telescope::class)) {
+            return;
+        }
+
         if ($this->app->environment("local")) {
             return;
         }
 
         // Hide sensitive request parameters
-        Telescope::hideRequestParameters([
+        \Laravel\Telescope\Telescope::hideRequestParameters([
             "_token",
             "password",
             "password_confirmation",
@@ -56,7 +62,7 @@ class TelescopeServiceProvider extends TelescopeApplicationServiceProvider
         ]);
 
         // Hide sensitive headers
-        Telescope::hideRequestHeaders([
+        \Laravel\Telescope\Telescope::hideRequestHeaders([
             "cookie",
             "x-csrf-token",
             "x-xsrf-token",
@@ -81,5 +87,15 @@ class TelescopeServiceProvider extends TelescopeApplicationServiceProvider
                     // DO NOT commit actual admin emails to version control
                 ]);
         });
+    }
+
+    /**
+     * Bootstrap any application services.
+     */
+    public function boot(): void
+    {
+        if (class_exists(\Laravel\Telescope\TelescopeApplicationServiceProvider::class)) {
+            $this->gate();
+        }
     }
 }

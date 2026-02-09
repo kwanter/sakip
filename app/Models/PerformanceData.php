@@ -6,6 +6,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use App\Models\Scopes\WithStatusScope;
+use App\Models\Scopes\RecentScope;
+use App\Models\Scopes\SearchScope;
+use App\Models\Scopes\ForYearTrait;
 
 /**
  * PerformanceData Model
@@ -16,6 +20,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 class PerformanceData extends Model
 {
     use HasFactory, HasUuids, SoftDeletes;
+    use WithStatusScope, RecentScope, SearchScope, ForYearTrait;
 
     /**
      * The table associated with the model.

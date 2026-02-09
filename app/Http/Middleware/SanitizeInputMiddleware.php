@@ -19,7 +19,7 @@ class SanitizeInputMiddleware
     public function handle(Request $request, Closure $next): Response
     {
         // Only sanitize for non-GET requests (POST, PUT, PATCH, DELETE)
-        if (!$request->isMethod('GET')) {
+        if (!$request->isMethod("GET")) {
             $this->sanitizeInput($request);
         }
 
@@ -36,13 +36,26 @@ class SanitizeInputMiddleware
     {
         $input = $request->all();
 
-        array_walk_recursive($input, function (&$value) {
-            if (is_string($value)) {
-                $value = $this->sanitizeString($value);
-            }
-        });
+        $this->sanitizeArray($input);
 
         $request->merge($input);
+    }
+
+    /**
+     * Recursively sanitize array data with field key checking.
+     *
+     * @param array $data
+     * @return void
+     */
+    protected function sanitizeArray(array &$data): void
+    {
+        foreach ($data as $key => &$value) {
+            if (is_array($value)) {
+                $this->sanitizeArray($value);
+            } elseif (is_string($value) && !$this->isExemptField($key)) {
+                $value = $this->sanitizeString($value);
+            }
+        }
     }
 
     /**
@@ -54,10 +67,14 @@ class SanitizeInputMiddleware
     protected function sanitizeString(string $value): string
     {
         // Remove null bytes
-        $value = str_replace("\0", '', $value);
+        $value = str_replace("\0", "", $value);
 
         // Remove invisible characters except spaces, tabs, and line breaks
-        $value = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u', '', $value);
+        $value = preg_replace(
+            '/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u',
+            "",
+            $value,
+        );
 
         // Trim whitespace
         $value = trim($value);
@@ -85,25 +102,25 @@ class SanitizeInputMiddleware
     protected function removeSqlInjectionPatterns(string $value): string
     {
         // Remove SQL comments
-        $value = preg_replace('/--.*$/m', '', $value);
-        $value = preg_replace('/\/\*.*?\*\//s', '', $value);
+        $value = preg_replace('/--.*$/m', "", $value);
+        $value = preg_replace("/\/\*.*?\*\//s", "", $value);
 
         // Remove multiple semicolons (often used in SQL injection)
-        $value = preg_replace('/;+/', ';', $value);
+        $value = preg_replace("/;+/", ";", $value);
 
         // Remove dangerous SQL keywords when followed by suspicious patterns
         $patterns = [
-            '/\b(UNION\s+SELECT)\b/i',
-            '/\b(OR\s+1\s*=\s*1)\b/i',
-            '/\b(DROP\s+TABLE)\b/i',
-            '/\b(DROP\s+DATABASE)\b/i',
-            '/\b(EXEC\s*\()\b/i',
-            '/\b(EXECUTE\s*\()\b/i',
-            '/\b(SCRIPT\s*>)/i',
+            "/\b(UNION\s+SELECT)\b/i",
+            "/\b(OR\s+1\s*=\s*1)\b/i",
+            "/\b(DROP\s+TABLE)\b/i",
+            "/\b(DROP\s+DATABASE)\b/i",
+            "/\b(EXEC\s*\()\b/i",
+            "/\b(EXECUTE\s*\()\b/i",
+            "/\b(SCRIPT\s*>)/i",
         ];
 
         foreach ($patterns as $pattern) {
-            $value = preg_replace($pattern, '', $value);
+            $value = preg_replace($pattern, "", $value);
         }
 
         return $value;
@@ -118,31 +135,35 @@ class SanitizeInputMiddleware
     protected function removeXssPatterns(string $value): string
     {
         // Remove script tags
-        $value = preg_replace('/<script\b[^>]*>(.*?)<\/script>/is', '', $value);
+        $value = preg_replace("/<script\b[^>]*>(.*?)<\/script>/is", "", $value);
 
         // Remove javascript: protocol
-        $value = preg_replace('/javascript:/i', '', $value);
+        $value = preg_replace("/javascript:/i", "", $value);
 
         // Remove vbscript: protocol
-        $value = preg_replace('/vbscript:/i', '', $value);
+        $value = preg_replace("/vbscript:/i", "", $value);
 
         // Remove data: protocol with base64
-        $value = preg_replace('/data:text\/html/i', '', $value);
+        $value = preg_replace("/data:text\/html/i", "", $value);
 
         // Remove on* event handlers
-        $value = preg_replace('/\bon\w+\s*=/i', '', $value);
+        $value = preg_replace("/\bon\w+\s*=/i", "", $value);
 
         // Remove iframe tags
-        $value = preg_replace('/<iframe\b[^>]*>(.*?)<\/iframe>/is', '', $value);
+        $value = preg_replace("/<iframe\b[^>]*>(.*?)<\/iframe>/is", "", $value);
 
         // Remove object tags
-        $value = preg_replace('/<object\b[^>]*>(.*?)<\/object>/is', '', $value);
+        $value = preg_replace("/<object\b[^>]*>(.*?)<\/object>/is", "", $value);
 
         // Remove embed tags
-        $value = preg_replace('/<embed\b[^>]*>/is', '', $value);
+        $value = preg_replace("/<embed\b[^>]*>/is", "", $value);
 
         // Remove meta refresh
-        $value = preg_replace('/<meta\b[^>]*http-equiv=["\']?refresh["\']?[^>]*>/i', '', $value);
+        $value = preg_replace(
+            '/<meta\b[^>]*http-equiv=["\']?refresh["\']?[^>]*>/i',
+            "",
+            $value,
+        );
 
         return $value;
     }
@@ -156,14 +177,19 @@ class SanitizeInputMiddleware
     protected function removeCommandInjectionPatterns(string $value): string
     {
         // Remove shell command separators
-        $dangersous = ['&&', '||', '|', ';', '`', '$', '$(', '${'];
+        $dangerous = ["&&", "||", "|", ";", "`", '$', '$(', '${'];
 
-        foreach ($dangersous as $dangerous) {
+        foreach ($dangerous as $char) {
             // Only remove if they appear in suspicious contexts
-            if (strpos($value, $dangerous) !== false) {
+            if (strpos($value, $char) !== false) {
                 // Check if this looks like a command (has common shell commands)
-                if (preg_match('/\b(cat|ls|rm|mv|cp|chmod|chown|curl|wget|nc|bash|sh|python|perl|ruby)\b/i', $value)) {
-                    $value = str_replace($dangerous, '', $value);
+                if (
+                    preg_match(
+                        "/\b(cat|ls|rm|mv|cp|chmod|chown|curl|wget|nc|bash|sh|python|perl|ruby)\b/i",
+                        $value,
+                    )
+                ) {
+                    $value = str_replace($char, "", $value);
                 }
             }
         }
@@ -182,12 +208,12 @@ class SanitizeInputMiddleware
     protected function isExemptField(string $key): bool
     {
         $exemptFields = [
-            'password',
-            'password_confirmation',
-            'current_password',
-            'new_password',
-            '_token',
-            '_method',
+            "password",
+            "password_confirmation",
+            "current_password",
+            "new_password",
+            "_token",
+            "_method",
         ];
 
         return in_array($key, $exemptFields);

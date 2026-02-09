@@ -11,16 +11,16 @@
                 <div class="mb-6">
                     <h2 class="text-lg font-medium text-gray-700 mb-3">Test Notification System</h2>
                     <div class="flex space-x-2">
-                        <button onclick="testNotification('success')" class="sakip-btn sakip-btn-success">
+                        <button data-onclick="testNotification('success')" class="sakip-btn sakip-btn-success">
                             Test Success
                         </button>
-                        <button onclick="testNotification('error')" class="sakip-btn sakip-btn-danger">
+                        <button data-onclick="testNotification('error')" class="sakip-btn sakip-btn-danger">
                             Test Error
                         </button>
-                        <button onclick="testNotification('warning')" class="sakip-btn sakip-btn-secondary">
+                        <button data-onclick="testNotification('warning')" class="sakip-btn sakip-btn-secondary">
                             Test Warning
                         </button>
-                        <button onclick="testNotification('info')" class="sakip-btn sakip-btn-primary">
+                        <button data-onclick="testNotification('info')" class="sakip-btn sakip-btn-primary">
                             Test Info
                         </button>
                     </div>
@@ -60,13 +60,13 @@
                 <div class="mb-6">
                     <h2 class="text-lg font-medium text-gray-700 mb-3">Test API Integration</h2>
                     <div class="flex space-x-2">
-                        <button onclick="testApi('dashboard')" class="sakip-btn sakip-btn-primary">
+                        <button data-onclick="testApi('dashboard')" class="sakip-btn sakip-btn-primary">
                             Test Dashboard API
                         </button>
-                        <button onclick="testApi('datatable')" class="sakip-btn sakip-btn-primary">
+                        <button data-onclick="testApi('datatable')" class="sakip-btn sakip-btn-primary">
                             Test DataTable API
                         </button>
-                        <button onclick="testApi('configuration')" class="sakip-btn sakip-btn-primary">
+                        <button data-onclick="testApi('configuration')" class="sakip-btn sakip-btn-primary">
                             Test Configuration API
                         </button>
                     </div>

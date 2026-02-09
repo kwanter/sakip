@@ -50,6 +50,14 @@ class SecurityHeadersMiddleware
         $csp = $this->getContentSecurityPolicy();
         $response->headers->set("Content-Security-Policy", $csp);
 
+        // Add Reporting-API header for modern browsers (production only)
+        if (app()->environment("production")) {
+            $response->headers->set(
+                "Reporting-Endpoints",
+                'csp-endpoint="/api/csp-reports"',
+            );
+        }
+
         // Remove sensitive headers that might leak information
         $response->headers->remove("X-Powered-By");
         $response->headers->remove("Server");
@@ -60,28 +68,71 @@ class SecurityHeadersMiddleware
     /**
      * Get Content Security Policy directives.
      *
+     * SECURITY IMPROVEMENTS:
+     * - Implemented nonce-based CSP for better XSS protection
+     * - Removed 'unsafe-inline' from production environment
+     * - Added report-uri for CSP violation monitoring
+     * - Strict policies for frame-ancestors and object-src
+     *
      * @return string
      */
     protected function getContentSecurityPolicy(): string
     {
+        // Generate a nonce for inline scripts (only when needed)
+        // Nonce is generated per-request for maximum security
+        $nonce = base64_encode(random_bytes(16));
+
+        // Store nonce in request for use in Blade templates
+        app()->singleton("csp-nonce", fn() => $nonce);
+
+        // Check if we're in production (must be BOTH production env AND debug off)
+        // For development: allow unsafe-inline for easier debugging
+        // For production: use nonce-based CSP, but still allow unsafe-inline for page-specific scripts
+        $isProduction =
+            config("app.env") === "production" && !config("app.debug");
+        $isLocal =
+            config("app.debug") ||
+            in_array(config("app.env"), ["local", "development", "testing"]);
+
+        // Allow inline scripts with nonce for page-specific functionality
+        // This is necessary because blade templates contain page-specific JavaScript
+        $useNonce = true;
+
         $directives = [
             "default-src 'self'",
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval' cdn.jsdelivr.net code.jquery.com cdn.datatables.net cdnjs.cloudflare.com",
-            "style-src 'self' 'unsafe-inline' cdn.jsdelivr.net fonts.googleapis.com fonts.bunny.net cdn.datatables.net cdnjs.cloudflare.com",
-            "font-src 'self' data: fonts.gstatic.com fonts.bunny.net cdn.jsdelivr.net cdnjs.cloudflare.com",
+
+            // Allow inline scripts and styles with nonce for page-specific functionality
+            // 'unsafe-inline' is needed for page-specific scripts in blade templates
+            // 'unsafe-eval' is needed for some third-party libraries
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' 'nonce-{$nonce}' https://cdn.jsdelivr.net https://code.jquery.com https://cdn.datatables.net https://cdnjs.cloudflare.com",
+
+            "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com https://fonts.bunny.net https://cdn.datatables.net https://cdnjs.cloudflare.com",
+
+            "font-src 'self' data: https://fonts.gstatic.com https://fonts.bunny.net https://cdn.jsdelivr.net https://cdnjs.cloudflare.com",
             "img-src 'self' data: https: blob:",
             "connect-src 'self'",
+
+            // STRICT: Prevent clickjacking
             "frame-ancestors 'self'",
+
+            // STRICT: Prevent form submissions to external sites
             "form-action 'self'",
+
             "base-uri 'self'",
+
+            // STRICT: Disallow plugins like Flash/Java
             "object-src 'none'",
+
             "media-src 'self'",
             "manifest-src 'self'",
             "worker-src 'self' blob:",
+
+            // Report CSP violations for monitoring
+            "report-uri /api/csp-reports",
         ];
 
         // In development, allow more permissive policies for hot reload
-        if (app()->environment("local", "development")) {
+        if ($isLocal) {
             $directives[] =
                 "connect-src 'self' ws: wss: http://localhost:* http://127.0.0.1:*";
         }

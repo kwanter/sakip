@@ -96,7 +96,7 @@
                         <i class="fas fa-tasks"></i> Antrian Penilaian
                     </h5>
                     <div class="card-tools">
-                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="refreshAssessmentQueue()">
+                        <button type="button" class="btn btn-sm btn-outline-primary" data-onclick="refreshAssessmentQueue()">
                             <i class="fas fa-sync-alt"></i> Segarkan
                         </button>
                     </div>
@@ -137,7 +137,7 @@
                                             <a href="{{ route('sakip.assessments.review', 1) }}" class="btn btn-primary btn-sm" title="Mulai Penilaian">
                                                 <i class="fas fa-play"></i>
                                             </a>
-                                            <button class="btn btn-outline-secondary btn-sm" title="Lihat Detail" onclick="viewAssessmentDetail(1)">
+                                            <button class="btn btn-outline-secondary btn-sm" title="Lihat Detail" data-onclick="viewAssessmentDetail(1)">
                                                 <i class="fas fa-eye"></i>
                                             </button>
                                         </div>
@@ -163,7 +163,7 @@
                                             <a href="{{ route('sakip.assessments.review', 2) }}" class="btn btn-primary btn-sm" title="Mulai Penilaian">
                                                 <i class="fas fa-play"></i>
                                             </a>
-                                            <button class="btn btn-outline-secondary btn-sm" title="Lihat Detail" onclick="viewAssessmentDetail(2)">
+                                            <button class="btn btn-outline-secondary btn-sm" title="Lihat Detail" data-onclick="viewAssessmentDetail(2)">
                                                 <i class="fas fa-eye"></i>
                                             </button>
                                         </div>
@@ -189,7 +189,7 @@
                                             <a href="{{ route('sakip.assessments.review', 3) }}" class="btn btn-primary btn-sm" title="Lanjutkan Penilaian">
                                                 <i class="fas fa-play"></i>
                                             </a>
-                                            <button class="btn btn-outline-secondary btn-sm" title="Lihat Detail" onclick="viewAssessmentDetail(3)">
+                                            <button class="btn btn-outline-secondary btn-sm" title="Lihat Detail" data-onclick="viewAssessmentDetail(3)">
                                                 <i class="fas fa-eye"></i>
                                             </button>
                                         </div>
@@ -224,10 +224,10 @@
                         <a href="{{ route('sakip.assessments.index') }}" class="btn btn-primary">
                             <i class="fas fa-tasks"></i> Lihat Semua Penilaian
                         </a>
-                        <button class="btn btn-outline-primary" onclick="showAssessmentGuidelines()">
+                        <button class="btn btn-outline-primary" data-onclick="showAssessmentGuidelines()">
                             <i class="fas fa-book"></i> Panduan Penilaian
                         </button>
-                        <button class="btn btn-outline-secondary" onclick="showAssessmentCriteria()">
+                        <button class="btn btn-outline-secondary" data-onclick="showAssessmentCriteria()">
                             <i class="fas fa-list"></i> Kriteria Penilaian
                         </button>
                     </div>

@@ -2,6 +2,13 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\UserManagementController;
+use App\Http\Controllers\Admin\RoleManagementController;
+use App\Http\Controllers\Admin\PermissionManagementController;
+use App\Http\Controllers\Admin\AuditLogController;
+use App\Http\Controllers\Admin\SystemSettingsController;
+use App\Http\Controllers\Admin\MaintenanceController;
 
 // Dashboard Route with auth/verification-aware redirect
 Route::get("/", function () {
@@ -51,7 +58,9 @@ Route::get("/login", [
 Route::post("/login", [
     \App\Http\Controllers\Auth\LoginController::class,
     "login",
-])->name("auth.login");
+])
+    ->middleware("throttle:login")
+    ->name("auth.login");
 Route::post("/logout", [
     \App\Http\Controllers\Auth\LogoutController::class,
     "logout",
@@ -116,6 +125,12 @@ Route::middleware(["auth", "verified"])->group(function () {
         \App\Http\Controllers\AccountSettingsController::class,
         "show",
     ])->name("settings.account");
+
+    // Update Password
+    Route::put("/settings/password", [
+        \App\Http\Controllers\AccountSettingsController::class,
+        "updatePassword",
+    ])->name("settings.password.update");
 
     // Help page
     Route::get("/help", [
@@ -182,154 +197,196 @@ Route::middleware(["auth", "verified"])->group(function () {
 
     // Admin Routes (Comprehensive Admin System)
     Route::prefix("admin")
-        ->middleware("can:admin.dashboard")
+        ->middleware(["auth", "can:admin.dashboard", "throttle:60,1"])
         ->group(function () {
             // Dashboard
-            Route::get("/", [AdminController::class, "dashboard"])->name(
+            Route::get("/", [AdminDashboardController::class, "index"])->name(
                 "admin.dashboard",
             );
 
             // User Management
-            Route::prefix("users")->group(function () {
-                Route::get("/", [AdminController::class, "users"])->name(
-                    "admin.users.index",
-                );
-                Route::get("/create", [
-                    AdminController::class,
-                    "createUser",
-                ])->name("admin.users.create");
-                Route::post("/", [AdminController::class, "storeUser"])->name(
-                    "admin.users.store",
-                );
-                Route::get("/{user}", [
-                    AdminController::class,
-                    "showUser",
-                ])->name("admin.users.show");
-                Route::get("/{user}/edit", [
-                    AdminController::class,
-                    "editUser",
-                ])->name("admin.users.edit");
-                Route::put("/{user}", [
-                    AdminController::class,
-                    "updateUser",
-                ])->name("admin.users.update");
-                // Separate submission routes for roles and permissions management
-                Route::post("/{user}/roles", [
-                    AdminController::class,
-                    "updateRoles",
-                ])->name("admin.users.roles.update");
-                Route::post("/{user}/permissions", [
-                    AdminController::class,
-                    "updatePermissions",
-                ])->name("admin.users.permissions.update");
-                // Cleanup legacy roles & permissions for a user (supports dry_run)
-                Route::post("/{user}/cleanup-access", [
-                    AdminController::class,
-                    "cleanupAccess",
-                ])->name("admin.users.cleanup-access");
-                Route::delete("/{user}", [
-                    AdminController::class,
-                    "destroyUser",
-                ])->name("admin.users.destroy");
-            });
+            Route::prefix("users")
+                ->middleware(["auth", "can:manage-users"])
+                ->group(function () {
+                    Route::get("/", [
+                        UserManagementController::class,
+                        "index",
+                    ])->name("admin.users.index");
+                    Route::get("/create", [
+                        UserManagementController::class,
+                        "create",
+                    ])->name("admin.users.create");
+                    Route::post("/", [
+                        UserManagementController::class,
+                        "store",
+                    ])->name("admin.users.store");
+                    Route::get("/{user}", [
+                        UserManagementController::class,
+                        "show",
+                    ])->name("admin.users.show");
+                    Route::get("/{user}/edit", [
+                        UserManagementController::class,
+                        "edit",
+                    ])->name("admin.users.edit");
+                    Route::put("/{user}", [
+                        UserManagementController::class,
+                        "update",
+                    ])->name("admin.users.update");
+                    // Separate submission routes for roles and permissions management
+                    Route::post("/{user}/roles", [
+                        UserManagementController::class,
+                        "updateRoles",
+                    ])->name("admin.users.roles.update");
+                    Route::post("/{user}/permissions", [
+                        UserManagementController::class,
+                        "updatePermissions",
+                    ])->name("admin.users.permissions.update");
+                    // Cleanup legacy roles & permissions for a user (supports dry_run)
+                    Route::post("/{user}/cleanup-access", [
+                        AdminController::class,
+                        "cleanupAccess",
+                    ])->name("admin.users.cleanup-access");
+                    Route::delete("/{user}", [
+                        UserManagementController::class,
+                        "destroy",
+                    ])->name("admin.users.destroy");
+                });
 
             // Role Management
-            Route::prefix("roles")->group(function () {
-                Route::get("/", [AdminController::class, "roles"])->name(
-                    "admin.roles.index",
-                );
-                Route::get("/create", [
-                    AdminController::class,
-                    "createRole",
-                ])->name("admin.roles.create");
-                Route::post("/", [AdminController::class, "storeRole"])->name(
-                    "admin.roles.store",
-                );
-                Route::get("/{role}", [
-                    AdminController::class,
-                    "showRole",
-                ])->name("admin.roles.show");
-                Route::get("/{role}/edit", [
-                    AdminController::class,
-                    "editRole",
-                ])->name("admin.roles.edit");
-                Route::put("/{role}", [
-                    AdminController::class,
-                    "updateRole",
-                ])->name("admin.roles.update");
-                Route::delete("/{role}", [
-                    AdminController::class,
-                    "destroyRole",
-                ])->name("admin.roles.destroy");
-                Route::post("/{role}/permissions", [
-                    AdminController::class,
-                    "updateRolePermissions",
-                ])->name("admin.roles.permissions.update");
-            });
+            Route::prefix("roles")
+                ->middleware(["auth", "can:manage-roles"])
+                ->group(function () {
+                    Route::get("/", [
+                        RoleManagementController::class,
+                        "index",
+                    ])->name("admin.roles.index");
+                    Route::get("/create", [
+                        RoleManagementController::class,
+                        "create",
+                    ])->name("admin.roles.create");
+                    Route::post("/", [
+                        RoleManagementController::class,
+                        "store",
+                    ])->name("admin.roles.store");
+                    Route::get("/{role}", [
+                        RoleManagementController::class,
+                        "show",
+                    ])->name("admin.roles.show");
+                    Route::get("/{role}/edit", [
+                        RoleManagementController::class,
+                        "edit",
+                    ])->name("admin.roles.edit");
+                    Route::put("/{role}", [
+                        RoleManagementController::class,
+                        "update",
+                    ])->name("admin.roles.update");
+                    Route::delete("/{role}", [
+                        RoleManagementController::class,
+                        "destroy",
+                    ])->name("admin.roles.destroy");
+                    Route::post("/{role}/permissions", [
+                        RoleManagementController::class,
+                        "updatePermissions",
+                    ])->name("admin.roles.permissions.update");
+                });
 
             // Permission Management
             Route::prefix("permissions")
-                ->middleware("can:manage-permissions")
+                ->middleware(["auth", "can:manage-permissions"])
                 ->group(function () {
                     Route::get("/", [
-                        AdminController::class,
-                        "permissions",
+                        PermissionManagementController::class,
+                        "index",
                     ])->name("admin.permissions.index");
                     Route::get("/create", [
-                        AdminController::class,
-                        "createPermission",
+                        PermissionManagementController::class,
+                        "create",
                     ])->name("admin.permissions.create");
                     Route::post("/", [
-                        AdminController::class,
-                        "storePermission",
+                        PermissionManagementController::class,
+                        "store",
                     ])->name("admin.permissions.store");
                     Route::get("/{permission}", [
-                        AdminController::class,
-                        "showPermission",
+                        PermissionManagementController::class,
+                        "show",
                     ])->name("admin.permissions.show");
                     Route::get("/{permission}/edit", [
-                        AdminController::class,
-                        "editPermission",
+                        PermissionManagementController::class,
+                        "edit",
                     ])->name("admin.permissions.edit");
                     Route::put("/{permission}", [
-                        AdminController::class,
-                        "updatePermission",
+                        PermissionManagementController::class,
+                        "update",
                     ])->name("admin.permissions.update");
                     Route::delete("/{permission}", [
-                        AdminController::class,
-                        "destroyPermission",
+                        PermissionManagementController::class,
+                        "destroy",
                     ])->name("admin.permissions.destroy");
                 });
 
             // Audit Logs
             Route::get("/audit-logs", [
-                AdminController::class,
-                "auditLogs",
+                AuditLogController::class,
+                "index",
             ])->name("admin.audit-logs");
 
-            // System Settings + Maintenance (Unified)
-            Route::middleware("can:admin.settings")->group(function () {
-                Route::get("/settings", [
-                    AdminController::class,
-                    "systemSettings",
-                ])->name("admin.settings.index");
-                Route::post("/settings", [
-                    AdminController::class,
-                    "updateSettings",
-                ])->name("admin.settings.update");
-                Route::post("/settings/clear-cache", [
-                    AdminController::class,
-                    "clearCache",
-                ])->name("admin.settings.clear-cache");
-                Route::post("/settings/optimize", [
-                    AdminController::class,
-                    "optimizeApp",
-                ])->name("admin.settings.optimize");
-                Route::post("/settings/backup", [
-                    AdminController::class,
-                    "backupDatabase",
-                ])->name("admin.settings.backup");
-            });
+            // System Settings
+            Route::prefix("settings")
+                ->middleware(["auth", "can:admin.settings"])
+                ->group(function () {
+                    Route::get("/", [
+                        SystemSettingsController::class,
+                        "index",
+                    ])->name("admin.settings.index");
+                    Route::post("/", [
+                        SystemSettingsController::class,
+                        "update",
+                    ])->name("admin.settings.update");
+
+                    // Maintenance actions
+                    Route::get("/maintenance", [
+                        MaintenanceController::class,
+                        "index",
+                    ])->name("admin.maintenance.index");
+                    Route::post("/maintenance/clear-cache", [
+                        MaintenanceController::class,
+                        "clearCache",
+                    ])->name("admin.maintenance.clear-cache");
+                    Route::post("/maintenance/optimize", [
+                        MaintenanceController::class,
+                        "optimizeApp",
+                    ])->name("admin.maintenance.optimize");
+                    Route::post("/maintenance/backup", [
+                        MaintenanceController::class,
+                        "backupDatabase",
+                    ])->name("admin.maintenance.backup");
+                    Route::get("/maintenance/backup/{filename}", [
+                        MaintenanceController::class,
+                        "downloadBackup",
+                    ])->name("admin.maintenance.backup.download");
+                    Route::delete("/maintenance/backup/{filename}", [
+                        MaintenanceController::class,
+                        "deleteBackup",
+                    ])->name("admin.maintenance.backup.delete");
+                    Route::get("/maintenance/health", [
+                        MaintenanceController::class,
+                        "healthCheck",
+                    ])->name("admin.maintenance.health");
+
+                    // Legacy route aliases (preserve compatibility)
+                    Route::post("/clear-cache", [
+                        MaintenanceController::class,
+                        "clearCache",
+                    ])->name("admin.settings.clear-cache");
+                    Route::post("/optimize", [
+                        MaintenanceController::class,
+                        "optimizeApp",
+                    ])->name("admin.settings.optimize");
+                    Route::post("/backup", [
+                        MaintenanceController::class,
+                        "backupDatabase",
+                    ])->name("admin.settings.backup");
+                });
         });
 });
 
@@ -338,41 +395,47 @@ require __DIR__ . "/web_sakip.php";
 
 // SAKIP Test Routes (Development only)
 if (app()->environment("local", "development")) {
-    Route::prefix("sakip-test")->group(function () {
-        Route::get("/dashboard", [
-            \App\Http\Controllers\SakipTestController::class,
-            "testDashboard",
-        ])->name("sakip.test.dashboard");
-        Route::get("/datatable", [
-            \App\Http\Controllers\SakipTestController::class,
-            "testDataTable",
-        ])->name("sakip.test.datatable");
-        Route::get("/notification", [
-            \App\Http\Controllers\SakipTestController::class,
-            "testNotification",
-        ])->name("sakip.test.notification");
-        Route::get("/configuration", [
-            \App\Http\Controllers\SakipTestController::class,
-            "testConfiguration",
-        ])->name("sakip.test.configuration");
-        Route::get("/helpers", [
-            \App\Http\Controllers\SakipTestController::class,
-            "testHelpers",
-        ])->name("sakip.test.helpers");
-    });
+    Route::prefix("sakip-test")
+        ->middleware(["auth", "can:debug"])
+        ->group(function () {
+            Route::get("/dashboard", [
+                \App\Http\Controllers\SakipTestController::class,
+                "testDashboard",
+            ])->name("sakip.test.dashboard");
+            Route::get("/datatable", [
+                \App\Http\Controllers\SakipTestController::class,
+                "testDataTable",
+            ])->name("sakip.test.datatable");
+            Route::get("/notification", [
+                \App\Http\Controllers\SakipTestController::class,
+                "testNotification",
+            ])->name("sakip.test.notification");
+            Route::get("/configuration", [
+                \App\Http\Controllers\SakipTestController::class,
+                "testConfiguration",
+            ])->name("sakip.test.configuration");
+            Route::get("/helpers", [
+                \App\Http\Controllers\SakipTestController::class,
+                "testHelpers",
+            ])->name("sakip.test.helpers");
+        });
 
     /**
      * Health check endpoint for local debugging.
      * Returns HTTP 200 with a simple body to confirm server is responsive.
+     * SECURED: Requires authentication and debug permission
      */
     Route::get("/healthz", function () {
         return response("ok", 200);
-    })->name("healthz");
+    })
+        ->middleware(["auth", "can:debug"])
+        ->name("healthz");
 
     /**
      * Session and authentication debug endpoint (local only).
      * Helps diagnose cookie, session domain, and redirect issues by exposing
      * minimal, non-sensitive runtime state for the current request.
+     * SECURED: Requires authentication and debug permission
      */
     Route::get("/debug/session", function (\Illuminate\Http\Request $request) {
         $user = \Illuminate\Support\Facades\Auth::user();
@@ -390,12 +453,14 @@ if (app()->environment("local", "development")) {
             "session_secure" => config("session.secure"),
             "session_same_site" => config("session.same_site"),
         ]);
-    })->name("debug.session");
+    })
+        ->middleware(["auth", "can:debug"])
+        ->name("debug.session");
 }
 
 // API Routes untuk AJAX (Legacy redirects)
 Route::prefix("api")
-    ->middleware("auth")
+    ->middleware(["auth", "throttle:api"])
     ->group(function () {
         // Map: /api/program/by-instansi/{instansi} -> /api/sakip/datatables/program?instansi_id=...
         Route::get("program/by-instansi/{instansi}", function ($instansi) {

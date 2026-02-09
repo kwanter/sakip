@@ -6,15 +6,15 @@
     <div class="header-content">
         <h1 class="page-title">Dashboard Eksekutif</h1>
         <div class="header-actions">
-            <button class="btn btn-outline-secondary" onclick="window.print()">
+            <button class="btn btn-outline-secondary" data-onclick="window.print()">
                 <i class="fas fa-print"></i>
                 Cetak
             </button>
-            <button class="btn btn-outline-secondary" onclick="toggleFullscreen()">
+            <button class="btn btn-outline-secondary" data-onclick="toggleFullscreen()">
                 <i class="fas fa-expand"></i>
                 Layar Penuh
             </button>
-            <button class="btn btn-primary" onclick="refreshDashboard()">
+            <button class="btn btn-primary" data-onclick="refreshDashboard()">
                 <i class="fas fa-sync-alt"></i>
                 Segarkan
             </button>
@@ -103,7 +103,7 @@
                             <option value="monthly" selected>Bulanan</option>
                             <option value="weekly">Mingguan</option>
                         </select>
-                        <button class="btn btn-sm btn-outline-secondary" onclick="exportChart('achievement-trend')">
+                        <button class="btn btn-sm btn-outline-secondary" data-onclick="exportChart('achievement-trend')">
                             <i class="fas fa-download"></i>
                         </button>
                     </div>
@@ -120,7 +120,7 @@
                 <div class="chart-header">
                     <h5 class="chart-title">Distribusi Pencapaian Unit</h5>
                     <div class="chart-controls">
-                        <button class="btn btn-sm btn-outline-secondary" onclick="exportChart('department-distribution')">
+                        <button class="btn btn-sm btn-outline-secondary" data-onclick="exportChart('department-distribution')">
                             <i class="fas fa-download"></i>
                         </button>
                     </div>
@@ -145,7 +145,7 @@
                             <option value="operational">Operasional</option>
                             <option value="financial">Keuangan</option>
                         </select>
-                        <button class="btn btn-sm btn-outline-secondary" onclick="exportChart('category-performance')">
+                        <button class="btn btn-sm btn-outline-secondary" data-onclick="exportChart('category-performance')">
                             <i class="fas fa-download"></i>
                         </button>
                     </div>
@@ -240,7 +240,7 @@
                                     </span>
                                 </td>
                                 <td>
-                                    <button class="btn btn-sm btn-outline-primary" onclick="viewIssue({{ $issue['id'] }})">
+                                    <button class="btn btn-sm btn-outline-primary" data-onclick="viewIssue({{ $issue['id'] }})">
                                         <i class="fas fa-eye"></i>
                                     </button>
                                 </td>
@@ -265,11 +265,11 @@
                 <i class="fas fa-file-alt"></i>
                 Buat Laporan
             </a>
-            <button class="btn btn-outline-secondary" onclick="exportDashboard()">
+            <button class="btn btn-outline-secondary" data-onclick="exportDashboard()">
                 <i class="fas fa-download"></i>
                 Ekspor Dashboard
             </button>
-            <button class="btn btn-outline-info" onclick="scheduleReport()">
+            <button class="btn btn-outline-info" data-onclick="scheduleReport()">
                 <i class="fas fa-calendar"></i>
                 Jadwalkan Laporan
             </button>

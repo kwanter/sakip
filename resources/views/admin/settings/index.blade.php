@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.modern')
 
 @section('title', 'System Settings')
 
@@ -188,15 +188,15 @@
         </div>
         <div class="card-body">
           <div class="d-grid gap-2">
-            <button type="button" class="btn btn-outline-primary btn-sm" onclick="clearCache()">
+            <button type="button" class="btn btn-outline-primary btn-sm" data-onclick="clearCache()">
               <i class="fas fa-broom me-2"></i>
               Clear Cache
             </button>
-            <button type="button" class="btn btn-outline-info btn-sm" onclick="optimizeApp()">
+            <button type="button" class="btn btn-outline-info btn-sm" data-onclick="optimizeApp()">
               <i class="fas fa-rocket me-2"></i>
               Optimize App
             </button>
-            <button type="button" class="btn btn-outline-warning btn-sm" onclick="backupDatabase()">
+            <button type="button" class="btn btn-outline-warning btn-sm" data-onclick="backupDatabase()">
               <i class="fas fa-database me-2"></i>
               Backup Database
             </button>
@@ -210,170 +210,13 @@
 
 @push('scripts')
 <script>
-  $.ajaxSetup({
-    headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }
-  });
-
-  function clearCache() {
-    if (confirm('Are you sure you want to clear application cache?')) {
-      $.ajax({
-        url: '{{ route("admin.settings.clear-cache") }}',
-        type: 'POST',
-        beforeSend: function() {
-          $('button[onclick="clearCache()"]').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Clearing...');
-        },
-        success: function(response) {
-          alert((response.success ? '✅ ' : '❌ ') + response.message);
-        },
-        error: function(xhr) {
-          let message = 'Error clearing cache';
-          if (xhr.responseJSON && xhr.responseJSON.message) { message = xhr.responseJSON.message; }
-          alert('❌ ' + message);
-        },
-        complete: function() {
-          $('button[onclick="clearCache()"]').prop('disabled', false).html('<i class="fas fa-broom"></i> Clear Cache');
-        }
-      });
-    }
-  }
-
-  function optimizeApp() {
-    if (confirm('Are you sure you want to optimize the application?')) {
-      $.ajax({
-        url: '{{ route("admin.settings.optimize") }}',
-        type: 'POST',
-        beforeSend: function() {
-          $('button[onclick="optimizeApp()"]').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Optimizing...');
-        },
-        success: function(response) {
-          alert((response.success ? '✅ ' : '❌ ') + response.message);
-        },
-        error: function(xhr) {
-          let message = 'Error optimizing application';
-          if (xhr.responseJSON && xhr.responseJSON.message) { message = xhr.responseJSON.message; }
-          alert('❌ ' + message);
-        },
-        complete: function() {
-          $('button[onclick="optimizeApp()"]').prop('disabled', false).html('<i class="fas fa-rocket"></i> Optimize App');
-        }
-      });
-    }
-  }
-
-  function backupDatabase() {
-    if (confirm('Are you sure you want to create a database backup?')) {
-      $.ajax({
-        url: '{{ route("admin.settings.backup") }}',
-        type: 'POST',
-        beforeSend: function() {
-          $('button[onclick="backupDatabase()"]').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Backing up...');
-        },
-        success: function(response) {
-          let message = (response.success ? '✅ ' : '❌ ') + response.message;
-          if (response.file_size) { message += '\nSize: ' + response.file_size; }
-          if (response.file_path) { message += '\nPath: ' + response.file_path; }
-          alert(message);
-        },
-        error: function(xhr) {
-          let message = 'Error creating backup';
-          if (xhr.responseJSON && xhr.responseJSON.message) { message = xhr.responseJSON.message; }
-          alert('❌ ' + message);
-        },
-        complete: function() {
-          $('button[onclick="backupDatabase()"]').prop('disabled', false).html('<i class="fas fa-database"></i> Backup Database');
-        }
-      });
-    }
-  }
-
-  // Application Settings: client-side validation and AJAX save
-  (function() {
-    // Cache inputs and feedback elements
-    const appNameInput = document.getElementById('app_name');
-    const appDescInput = document.getElementById('app_description');
-    const descCount = document.getElementById('descCount');
-    const descFeedback = document.getElementById('descFeedback');
-
-    // Update description char counter and validity
-    function updateDescCount() {
-      if (!appDescInput || !descCount || !descFeedback) return;
-      const len = appDescInput.value.length;
-      descCount.textContent = len;
-      if (len > 500) {
-        descFeedback.style.display = 'inline';
-        appDescInput.classList.add('is-invalid');
-      } else {
-        descFeedback.style.display = 'none';
-        appDescInput.classList.remove('is-invalid');
-      }
-    }
-    appDescInput && appDescInput.addEventListener('input', updateDescCount);
-    updateDescCount();
-
-    appNameInput && appNameInput.addEventListener('input', function() {
-      if (appNameInput.value.trim() === '') {
-        appNameInput.classList.add('is-invalid');
-      } else {
-        appNameInput.classList.remove('is-invalid');
-      }
-    });
-
-    /**
-     * Save Application Settings via AJAX
-     * Performs client-side validation, posts to server, and updates UI.
-     */
-    window.saveAppSettings = function(e) {
-      e.preventDefault();
-      const btn = document.getElementById('appSettingsSaveBtn');
-      const name = appNameInput ? appNameInput.value.trim() : '';
-      const desc = appDescInput ? appDescInput.value : '';
-
-      // Client-side checks
-      let hasError = false;
-      if (!name && appNameInput) { appNameInput.classList.add('is-invalid'); hasError = true; }
-      if (desc.length > 500 && appDescInput) { appDescInput.classList.add('is-invalid'); hasError = true; }
-      if (hasError) { return false; }
-
-      $.ajax({
-        url: '{{ route("admin.settings.update") }}',
-        type: 'POST',
-        data: {
-          _token: $('meta[name="csrf-token"]').attr('content'),
-          settings: {
-            'app.name': { key: 'app.name', value: name, type: 'string', description: 'Application name' },
-            'app.description': { key: 'app.description', value: desc, type: 'string', description: 'Application description' }
-          }
-        },
-        beforeSend: function() {
-          if (btn) {
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-          }
-        },
-        success: function(res) {
-          const newName = name;
-          if (newName) {
-            document.title = newName + ' • Admin Settings';
-            const navBrand = document.querySelector('.navbar-brand');
-            if (navBrand) { navBrand.textContent = newName; }
-            document.querySelectorAll('[data-app-name]').forEach(function(el) { el.textContent = newName; });
-          }
-          alert('✅ Application settings saved successfully.');
-        },
-        error: function(xhr) {
-          let message = 'Error saving application settings';
-          if (xhr.responseJSON && xhr.responseJSON.message) { message = xhr.responseJSON.message; }
-          alert('❌ ' + message);
-        },
-        complete: function() {
-          if (btn) {
-            btn.disabled = false;
-            btn.innerHTML = 'Save Application Settings';
-          }
-        }
-      });
-      return false;
-    };
-  })();
+  // Define routes for admin settings
+  window.adminRoutes = {
+    clearCache: '{{ route("admin.settings.clear-cache") }}',
+    optimize: '{{ route("admin.settings.optimize") }}',
+    backup: '{{ route("admin.settings.backup") }}',
+    update: '{{ route("admin.settings.update") }}'
+  };
 </script>
+<script src="{{ asset('js/admin-settings.js') }}"></script>
 @endpush

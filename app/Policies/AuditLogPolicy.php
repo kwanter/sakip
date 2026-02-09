@@ -8,7 +8,7 @@ use Illuminate\Auth\Access\HandlesAuthorization;
 
 /**
  * AuditLogPolicy
- * 
+ *
  * Handles authorization for audit log viewing and management operations.
  * Implements role-based access control for audit trail functionality.
  */
@@ -24,7 +24,12 @@ class AuditLogPolicy
      */
     public function viewAny(User $user)
     {
-        return $user->hasPermissionTo('view-audit-trails');
+        // Super Admins can view all audit logs
+        if ($user->hasRole("Super Admin")) {
+            return true;
+        }
+
+        return $user->hasPermissionTo("view-audit-trails");
     }
 
     /**
@@ -36,7 +41,7 @@ class AuditLogPolicy
      */
     public function view(User $user, AuditLog $auditLog)
     {
-        return $user->hasPermissionTo('view-audit-trails');
+        return $user->hasPermissionTo("view-audit-trails");
     }
 
     /**
@@ -47,7 +52,7 @@ class AuditLogPolicy
      */
     public function export(User $user)
     {
-        return $user->hasPermissionTo('export-audit-data');
+        return $user->hasPermissionTo("export-audit-data");
     }
 
     /**
@@ -58,7 +63,7 @@ class AuditLogPolicy
      */
     public function viewStatistics(User $user)
     {
-        return $user->hasPermissionTo('view-audit-statistics');
+        return $user->hasPermissionTo("view-audit-statistics");
     }
 
     /**
@@ -69,6 +74,6 @@ class AuditLogPolicy
      */
     public function viewCompliance(User $user)
     {
-        return $user->hasPermissionTo('view-compliance-reports');
+        return $user->hasPermissionTo("view-compliance-reports");
     }
 }

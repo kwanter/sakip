@@ -291,15 +291,24 @@ class AssessmentController extends Controller
             ]);
 
             // Store criteria scores
-            foreach (
-                $request->get("criteria_scores")
-                as $criterionId => $score
-            ) {
-                $assessment->criteriaScores()->create([
+            // PERFORMANCE: Use bulk insert instead of loop to avoid N+1 query problem
+            $criteriaScoresData = [];
+            $now = now();
+            
+            foreach ($request->get("criteria_scores") as $criterionId => $score) {
+                $criteriaScoresData[] = [
+                    "assessment_id" => $assessment->id,
                     "assessment_criterion_id" => $criterionId,
                     "score" => $score,
                     "created_by" => $user->id,
-                ]);
+                    "created_at" => $now,
+                    "updated_at" => $now,
+                ];
+            }
+            
+            // Bulk insert in single query using relationship
+            if (!empty($criteriaScoresData)) {
+                $assessment->criteriaScores()->insert($criteriaScoresData);
             }
 
             // Log the activity
@@ -491,27 +500,48 @@ class AssessmentController extends Controller
             ]);
 
             // Update criteria scores
-            foreach (
-                $request->get("criteria_scores")
-                as $criterionId => $score
-            ) {
-                $criteriaScore = $assessment
-                    ->criteriaScores()
-                    ->where("assessment_criterion_id", $criterionId)
-                    ->first();
-
-                if ($criteriaScore) {
-                    $criteriaScore->update([
-                        "score" => $score,
-                        "updated_by" => $user->id,
-                    ]);
+            // PERFORMANCE: Use bulk operations to avoid N+1 query problem
+            $now = now();
+            $criteriaScores = $assessment
+                ->criteriaScores()
+                ->whereIn('assessment_criterion_id', array_keys($request->get("criteria_scores")))
+                ->get()
+                ->keyBy('assessment_criterion_id');
+            
+            $updateData = [];
+            $insertData = [];
+            
+            foreach ($request->get("criteria_scores") as $criterionId => $score) {
+                if (isset($criteriaScores[$criterionId])) {
+                    $updateData[] = [
+                        'id' => $criteriaScores[$criterionId]->id,
+                        'score' => $score,
+                        'updated_by' => $user->id,
+                        'updated_at' => $now,
+                    ];
                 } else {
-                    $assessment->criteriaScores()->create([
+                    $insertData[] = [
+                        "assessment_id" => $assessment->id,
                         "assessment_criterion_id" => $criterionId,
                         "score" => $score,
                         "created_by" => $user->id,
-                    ]);
+                        "created_at" => $now,
+                        "updated_at" => $now,
+                    ];
                 }
+            }
+            
+            // Bulk update and insert
+            if (!empty($updateData)) {
+                \DB::table('assessment_criteria_scores')->upsert(
+                    $updateData,
+                    ['id'],
+                    ['score', 'updated_by', 'updated_at']
+                );
+            }
+            
+            if (!empty($insertData)) {
+                $assessment->criteriaScores()->insert($insertData);
             }
 
             // Log the activity
