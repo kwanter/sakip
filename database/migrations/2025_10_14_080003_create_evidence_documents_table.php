@@ -24,6 +24,7 @@ return new class extends Migration {
             $table->string("file_type", 100)->nullable();
             $table->integer("file_size")->nullable();
             $table->text("description")->nullable();
+            $table->softDeletes();
             $table->timestamps();
 
             // Indexes for performance optimization

@@ -10,11 +10,6 @@ abstract class TestCase extends BaseTestCase
     use RefreshDatabase;
 
     /**
-     * Indicates whether the default seeder should run before each test.
-     */
-    protected $seeder = true;
-
-    /**
      * Create a user with a specific role.
      */
     protected function createUserWithRole(string $roleName)
