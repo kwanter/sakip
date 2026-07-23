@@ -109,4 +109,4 @@ jobs:
     runs-on: ubuntu-latest
     needs: [lint-check, unit-feature-tests, security-audit, build-assets]
     steps:
-      - run: echo "Deploy pipeline — wire to your platform: docker push, rsync, Forge/Envoyer webhook, etc."
+      - run: echo "Deploy pipeline -- wire to your platform: docker push, rsync, Forge/Envoyer webhook, etc."
