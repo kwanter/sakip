@@ -26,6 +26,8 @@ return new class extends Migration {
             $table->string("data_source", 255)->nullable();
             $table->string("collection_method", 100)->nullable();
             $table->json("calculation_formula")->nullable();
+            $table->string("calculation_method", 100)->nullable();
+            $table->enum("polarity", ["maximize", "minimize"])->default("maximize");
             $table->enum("frequency", [
                 "monthly",
                 "quarterly",

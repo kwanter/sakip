@@ -403,6 +403,35 @@ class PerformanceCalculationService
     }
 
     /**
+     * Calculate percentage achievement with polarity support.
+     */
+    public function calculatePercentage($actual, $target, $polarity = 'maximize')
+    {
+        if ($target == 0) {
+            return 0.0;
+        }
+
+        $percentage = ($actual / $target) * 100;
+
+        if ($polarity === 'minimize') {
+            $percentage = (1 - ($actual - $target) / $target) * 100;
+        }
+
+        return (float) min($percentage, 200.0);
+    }
+
+    /**
+     * Get achievement rating from percentage score.
+     */
+    public function getAchievementRating($score)
+    {
+        if ($score >= 90) return 'excellent';
+        if ($score >= 75) return 'good';
+        if ($score >= 50) return 'satisfactory';
+        return 'poor';
+    }
+
+    /**
      * Validate against historical data
      */
     private function validateAgainstHistoricalData($indicatorId, $actualValue, $period, $year)

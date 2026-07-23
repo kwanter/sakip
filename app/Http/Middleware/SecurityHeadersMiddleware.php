@@ -89,10 +89,10 @@ class SecurityHeadersMiddleware
         // For development: allow unsafe-inline for easier debugging
         // For production: use nonce-based CSP, but still allow unsafe-inline for page-specific scripts
         $isProduction =
-            config("app.env") === "production" && !config("app.debug");
+            app()->environment("production") && !config("app.debug");
         $isLocal =
-            config("app.debug") ||
-            in_array(config("app.env"), ["local", "development", "testing"]);
+            app()->environment(["local", "development"]) ||
+            config("app.debug");
 
         // Allow inline scripts with nonce for page-specific functionality
         // This is necessary because blade templates contain page-specific JavaScript

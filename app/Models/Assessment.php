@@ -78,6 +78,21 @@ class Assessment extends Model
     }
 
     /**
+     * Get evidence documents through performance data.
+     */
+    public function evidenceDocuments()
+    {
+        return $this->hasManyThrough(
+            EvidenceDocument::class,
+            PerformanceData::class,
+            "id",
+            "performance_data_id",
+            "performance_data_id",
+            "id",
+        );
+    }
+
+    /**
      * Get the performance indicator through performance data.
      */
     public function indicator()

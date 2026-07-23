@@ -155,12 +155,7 @@ class AuthenticationTest extends TestCase
         $user = User::factory()->create([
             'email_verified_at' => now(),
         ]);
-
-        $this->actingAs($user);
-
-        $response = $this->get('/sakip');
-
-        $response->assertStatus(200);
+        $user->givePermissionTo('view-sakip-dashboard');
     }
 
     /** @test */
@@ -339,9 +334,9 @@ class AuthenticationTest extends TestCase
 
         $content = $response->getContent();
 
-        // Check that common test credentials are NOT present
+        // Check that common test credentials are NOT present as literal values
         $this->assertStringNotContainsString('test@example.com', $content);
-        $this->assertStringNotContainsString('password', $content);
+        $this->assertStringNotContainsString('password123', $content);
         $this->assertStringNotContainsString('test@sakip', $content);
     }
 

@@ -12,6 +12,11 @@ return Application::configure(basePath: dirname(__DIR__))
         health: "/up",
     )
     ->withMiddleware(function (Middleware $middleware) {
+        // Redirect authenticated users away from guest pages to SAKIP dashboard
+        \Illuminate\Auth\Middleware\RedirectIfAuthenticated::redirectUsing(
+            fn () => route('sakip.dashboard'),
+        );
+
         // Security Headers Middleware (applied globally)
         $middleware->append(
             \App\Http\Middleware\SecurityHeadersMiddleware::class,
@@ -27,6 +32,12 @@ return Application::configure(basePath: dirname(__DIR__))
                 \App\Http\Middleware\SanitizeInputMiddleware::class,
             "secure.file.upload" =>
                 \App\Http\Middleware\SecureFileUploadMiddleware::class,
+            "throttle.login" =>
+                \Illuminate\Routing\Middleware\ThrottleRequests::class .
+                ":login",
+            "throttle.api.strict" =>
+                \Illuminate\Routing\Middleware\ThrottleRequests::class .
+                ":api_strict",
         ]);
 
         // Apply input sanitization globally to web routes
@@ -40,16 +51,6 @@ return Application::configure(basePath: dirname(__DIR__))
                 \Illuminate\Routing\Middleware\ThrottleRequests::class . ":api",
             ],
         );
-
-        // Strict rate limiting for authentication endpoints
-        $middleware->alias([
-            "throttle.login" =>
-                \Illuminate\Routing\Middleware\ThrottleRequests::class .
-                ":login",
-            "throttle.api.strict" =>
-                \Illuminate\Routing\Middleware\ThrottleRequests::class .
-                ":api_strict",
-        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

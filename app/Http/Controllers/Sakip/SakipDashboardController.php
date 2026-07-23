@@ -16,6 +16,7 @@ use App\Services\AssessmentService;
 use App\Services\DataValidationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
@@ -50,7 +51,7 @@ class SakipDashboardController extends Controller
      */
     public function index(Request $request)
     {
-        $this->authorize("viewDashboard", Auth::user());
+        Gate::authorize("sakip.dashboard.view");
 
         try {
             $user = Auth::user();
@@ -370,7 +371,7 @@ class SakipDashboardController extends Controller
      */
     public function getDashboardData(Request $request)
     {
-        $this->authorize("viewDashboard", Auth::user());
+        Gate::authorize("sakip.dashboard.view");
 
         try {
             $user = Auth::user();
@@ -405,7 +406,7 @@ class SakipDashboardController extends Controller
      */
     public function getPerformanceTrends(Request $request)
     {
-        $this->authorize("viewDashboard", Auth::user());
+        Gate::authorize("sakip.dashboard.view");
 
         try {
             $user = Auth::user();

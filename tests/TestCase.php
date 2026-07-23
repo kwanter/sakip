@@ -10,6 +10,18 @@ abstract class TestCase extends BaseTestCase
     use RefreshDatabase;
 
     /**
+     * Indicates whether the default seeder should run before each test.
+     */
+    protected $seed = true;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        // Spatie caches permissions in memory; clear after RefreshDatabase reseeds
+        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+    }
+
+    /**
      * Create a user with a specific role.
      */
     protected function createUserWithRole(string $roleName)

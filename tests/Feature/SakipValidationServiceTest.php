@@ -38,7 +38,9 @@ class SakipValidationServiceTest extends TestCase
             'performance_indicator_id' => $indicator->id,
             'period_year' => now()->year,
             'period_month' => now()->month,
-            'actual_value' => 80,
+            'value' => 80,
+            'data_source' => 'Manual Entry',
+            'collection_method' => 'Automated',
             'notes' => 'Test performance data',
         ];
 
@@ -76,6 +78,7 @@ class SakipValidationServiceTest extends TestCase
             'target_year' => now()->year,
             'target_period' => 'Q1',
             'target_value' => 100,
+            'weight' => 10,
         ];
 
         $result = $this->service->validateTarget($data);

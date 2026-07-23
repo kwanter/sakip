@@ -18,10 +18,10 @@ class SakipDashboardAccessTest extends TestCase
             'email_verified_at' => $verified ? now() : null,
         ]);
 
-        // Create permissions and assign directly to user
+        // Create permissions and assign via Spatie (bypassing cache issues)
         foreach ($permissionNames as $name) {
             $perm = Permission::firstOrCreate(['name' => $name], ['display_name' => $name]);
-            $user->permissions()->attach($perm);
+            $user->givePermissionTo($perm);
         }
 
         $user->refresh();
@@ -36,14 +36,14 @@ class SakipDashboardAccessTest extends TestCase
 
     public function test_unverified_user_redirects_to_verification_notice_for_sakip_dashboard()
     {
-        $user = $this->createUserWithPermissions(['sakip.dashboard.view'], verified: false);
+        $user = $this->createUserWithPermissions(['view-sakip-dashboard'], verified: false);
         $response = $this->actingAs($user)->get(route('sakip.dashboard'));
         $response->assertRedirect(route('verification.notice'));
     }
 
     public function test_verified_user_with_permission_can_access_sakip_dashboard()
     {
-        $user = $this->createUserWithPermissions(['sakip.dashboard.view'], verified: true);
+        $user = $this->createUserWithPermissions(['view-sakip-dashboard'], verified: true);
         $response = $this->actingAs($user)->get(route('sakip.dashboard'));
         $response->assertStatus(200);
     }
@@ -51,9 +51,8 @@ class SakipDashboardAccessTest extends TestCase
     public function test_verified_superadmin_can_access_sakip_dashboard_without_explicit_permission()
     {
         $user = User::factory()->create(['email_verified_at' => now()]);
-        $role = Role::firstOrCreate(['name' => 'superadmin'], ['display_name' => 'Super Admin']);
-        $user->roles()->attach($role);
-        $user->refresh();
+        $role = Role::firstOrCreate(['name' => 'Super Admin'], ['display_name' => 'Super Admin']);
+        $user->assignRole($role);
 
         $response = $this->actingAs($user)->get(route('sakip.dashboard'));
         $response->assertStatus(200);
@@ -63,9 +62,8 @@ class SakipDashboardAccessTest extends TestCase
     {
         // user with assessor role should access dashboard via policy's hasAnyPermission list
         $user = User::factory()->create(['email_verified_at' => now()]);
-        $assessorRole = Role::firstOrCreate(['name' => 'assessor'], ['display_name' => 'Assessor']);
-        $user->roles()->attach($assessorRole);
-        $user->refresh();
+        $assessorRole = Role::firstOrCreate(['name' => 'Assessor'], ['display_name' => 'Assessor']);
+        $user->assignRole($assessorRole);
 
         $response = $this->actingAs($user)->get(route('sakip.dashboard'));
         $response->assertStatus(200);

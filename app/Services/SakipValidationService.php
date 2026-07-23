@@ -327,6 +327,7 @@ class SakipValidationService
         }
 
         return [
+            'valid' => empty($issues),
             'issues' => $issues,
             'total_issues' => count($issues),
             'severity' => $this->calculateSeverity($issues),
