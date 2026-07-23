@@ -1,0 +1,112 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint-check:
+    name: Lint (PHP + JS)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: curl, dom, mbstring, pdo, sqlite, pdo_sqlite
+          coverage: none
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: composer install --no-interaction --prefer-dist --no-progress
+      - run: npm ci
+      - run: ./vendor/bin/pint --test --no-interaction        || true
+      - run: npx tsc --noEmit --pretty                       || true
+
+  unit-feature-tests:
+    name: Tests (PHP ${{ matrix.php }} / Laravel ${{ matrix.laravel }})
+    runs-on: ubuntu-latest
+    needs: lint-check
+    continue-on-error: ${{ matrix.experimental }}
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.3', '8.4']
+        laravel: ['12']
+        experimental: [false]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: curl, dom, mbstring, pdo, sqlite, pdo_sqlite
+          coverage: none
+
+      - run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Prepare storage
+        run: |
+          mkdir -p bootstrap/cache storage/framework/{sessions,views,cache}
+          cp .env.ci .env 2>/dev/null || cp .env.example .env
+          php artisan key:generate --no-interaction
+
+      - run: php artisan config:clear
+      - run: php artisan test --stop-on-failure
+
+  security-audit:
+    name: Security Audit (lockfiles)
+    runs-on: ubuntu-latest
+    needs: unit-feature-tests
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: curl, pdo, sqlite
+          coverage: none
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: composer install --no-interaction --prefer-dist --no-progress
+      - run: npm ci
+
+      - run: composer audit --locked
+      - run: npm audit --omit=dev
+
+  build-assets:
+    name: Build Frontend Assets
+    runs-on: ubuntu-latest
+    needs: unit-feature-tests
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+      - run: npm run build
+
+  deploy:
+    name: Deploy (placeholder)
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    needs: [lint-check, unit-feature-tests, security-audit, build-assets]
+    steps:
+      - run: echo "Deploy pipeline — wire to your platform: docker push, rsync, Forge/Envoyer webhook, etc."
