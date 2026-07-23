@@ -45,6 +45,38 @@ class DataCollectionController extends Controller
     }
 
     /**
+     * Authorized download for evidence documents (private disk preferred).
+     */
+    public function downloadEvidence(EvidenceDocument $evidence)
+    {
+        $this->authorize("download", $evidence);
+
+        $path = $evidence->file_path;
+        // local = storage/app/private (default); public = legacy web-exposed paths
+        $disk = Storage::disk("local")->exists($path) ? "local" : "public";
+
+        if (!Storage::disk($disk)->exists($path)) {
+            abort(404, "File not found.");
+        }
+
+        AuditLog::create([
+            "user_id" => Auth::id(),
+            "instansi_id" => Auth::user()?->instansi_id,
+            "action" => "DOWNLOAD",
+            "module" => "SAKIP",
+            "description" =>
+                "Download evidence: " . ($evidence->file_name ?? $path),
+            "ip_address" => request()->ip(),
+            "user_agent" => request()->userAgent(),
+        ]);
+
+        return Storage::disk($disk)->download(
+            $path,
+            $evidence->file_name ?? basename($path),
+        );
+    }
+
+    /**
      * Display data collection dashboard
      */
     public function index(Request $request)
@@ -942,10 +974,11 @@ class DataCollectionController extends Controller
                 // This prevents attackers from enumerating uploaded files
                 $filename =
                     Str::uuid() . "." . $file->getClientOriginalExtension();
+                // Store on private disk so files are not web-accessible without auth
                 $path = $file->storeAs(
                     "evidence_documents",
                     $filename,
-                    "public",
+                    "local",
                 );
 
                 EvidenceDocument::create([
@@ -966,7 +999,12 @@ class DataCollectionController extends Controller
     private function deleteEvidenceFile(EvidenceDocument $document)
     {
         try {
-            Storage::disk("public")->delete($document->file_path);
+            foreach (["local", "public"] as $disk) {
+                if (Storage::disk($disk)->exists($document->file_path)) {
+                    Storage::disk($disk)->delete($document->file_path);
+                    break;
+                }
+            }
             $document->delete();
         } catch (\Exception $e) {
             \Log::error("Delete evidence file error: " . $e->getMessage());

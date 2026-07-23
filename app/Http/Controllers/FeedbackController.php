@@ -13,7 +13,7 @@ class FeedbackController extends Controller
      */
     public function index()
     {
-        return view('sakip.feedback.index');
+        return view("sakip.feedback.index");
     }
 
     /**
@@ -24,18 +24,23 @@ class FeedbackController extends Controller
      */
     public function store(Request $request)
     {
-        // SECURITY: Ensure only authenticated users can submit feedback
-        $this->authorize('createFeedback', \App\Models\Feedback::class);
-        
-        $validated = $request->validate([[
-            'subject' => 'required|string|max:255',
-            'message' => 'required|string',
-            'category' => 'required|string|max:100',
+        // Only authenticated users (route middleware) may submit feedback.
+        // No dedicated Feedback model/policy in this codebase — require auth user.
+        abort_unless($request->user() !== null, 403);
+
+        $request->validate([
+            "subject" => "required|string|max:255",
+            "message" => "required|string|max:5000",
+            "category" => "required|string|max:100",
         ]);
 
-        // Here you would typically store the feedback in the database
-        // For now, we'll just flash a success message
+        // Persistence intentionally deferred; validation + auth boundary is the security fix.
 
-        return redirect()->route('feedback')->with('success', 'Terima kasih! Masukan Anda telah berhasil dikirim.');
+        return redirect()
+            ->route("feedback")
+            ->with(
+                "success",
+                "Terima kasih! Masukan Anda telah berhasil dikirim.",
+            );
     }
 }

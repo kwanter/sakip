@@ -18,14 +18,26 @@ class AuditLog extends Model
 
     protected $fillable = [
         "user_id",
+        "instansi_id",
         "action",
+        "module",
+        "activity",
+        "description",
         "details",
+        "old_values",
+        "new_values",
+        "model_type",
         "ip_address",
         "user_agent",
+        "compliance_status",
+        "compliance_notes",
+        "impact_level",
     ];
 
     protected $casts = [
         "details" => "array",
+        "old_values" => "array",
+        "new_values" => "array",
     ];
 
     protected $keyType = "string";
@@ -33,7 +45,6 @@ class AuditLog extends Model
 
     /**
      * Fields that should be masked in audit logs
-     * These contain sensitive information that shouldn't be stored in plain text
      */
     protected static $sensitiveFields = [
         "password",
@@ -52,70 +63,48 @@ class AuditLog extends Model
         "personal_identification",
     ];
 
-    /**
-     * Fields that should be completely excluded from audit logs
-     */
-    protected static $excludedFields = [
-        "notes",
-        "description",
-        "metadata",
-        "attachments",
-    ];
-
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    /**
-     * Boot method to register model events
-     */
+    public function instansi(): BelongsTo
+    {
+        return $this->belongsTo(Instansi::class, "instansi_id");
+    }
+
     protected static function boot()
     {
         parent::boot();
 
-        // Auto-mask sensitive data before creating audit log
         static::creating(function ($auditLog) {
-            if (isset($auditLog->details) && is_array($auditLog->details)) {
-                $auditLog->details = self::maskSensitiveData(
-                    $auditLog->details,
-                );
+            foreach (["details", "old_values", "new_values"] as $field) {
+                if (isset($auditLog->{$field}) && is_array($auditLog->{$field})) {
+                    $auditLog->{$field} = self::maskSensitiveData(
+                        $auditLog->{$field},
+                    );
+                }
             }
         });
 
-        // Auto-mask sensitive data before updating audit log
-        static::updating(function ($auditLog) {
-            if (isset($auditLog->details) && is_array($auditLog->details)) {
-                $auditLog->details = self::maskSensitiveData(
-                    $auditLog->details,
-                );
-            }
+        // Append-only: refuse updates from application code
+        static::updating(function () {
+            return false;
+        });
+
+        static::deleting(function () {
+            return false;
         });
     }
 
-    /**
-     * Mask sensitive data in audit log details
-     * SECURITY: Prevents sensitive information exposure in audit trails
-     *
-     * @param array $data The data to mask
-     * @return array The masked data
-     */
     public static function maskSensitiveData(array $data): array
     {
         foreach ($data as $key => $value) {
-            // Skip excluded fields entirely
-            if (in_array($key, self::$excludedFields)) {
-                unset($data[$key]);
-                continue;
-            }
-
-            // Mask sensitive fields
-            if (in_array($key, self::$sensitiveFields)) {
+            if (in_array($key, self::$sensitiveFields, true)) {
                 $data[$key] = self::maskValue($value);
                 continue;
             }
 
-            // Recursively mask nested arrays
             if (is_array($value)) {
                 $data[$key] = self::maskSensitiveData($value);
             }
@@ -124,13 +113,6 @@ class AuditLog extends Model
         return $data;
     }
 
-    /**
-     * Mask a sensitive value
-     * Shows first 4 and last 4 characters with asterisks in between
-     *
-     * @param mixed $value The value to mask
-     * @return string The masked value
-     */
     protected static function maskValue($value): string
     {
         if (empty($value)) {
@@ -140,12 +122,10 @@ class AuditLog extends Model
         $stringValue = (string) $value;
         $length = strlen($stringValue);
 
-        // For short values, mask completely
         if ($length <= 8) {
             return str_repeat("*", $length);
         }
 
-        // For longer values, show first 4 and last 4 characters
         $start = substr($stringValue, 0, 4);
         $end = substr($stringValue, -4);
         $middle = str_repeat("*", $length - 8);
@@ -153,17 +133,12 @@ class AuditLog extends Model
         return $start . $middle . $end;
     }
 
-    /**
-     * Create audit log with automatic data masking
-     *
-     * @param array $data
-     * @return AuditLog
-     */
     public static function createWithMasking(array $data): AuditLog
     {
-        // Ensure sensitive data is masked
-        if (isset($data["details"])) {
-            $data["details"] = self::maskSensitiveData($data["details"]);
+        foreach (["details", "old_values", "new_values"] as $field) {
+            if (isset($data[$field]) && is_array($data[$field])) {
+                $data[$field] = self::maskSensitiveData($data[$field]);
+            }
         }
 
         return static::create($data);

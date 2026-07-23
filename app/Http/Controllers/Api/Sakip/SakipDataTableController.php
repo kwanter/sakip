@@ -105,8 +105,8 @@ class SakipDataTableController extends Controller
         }
 
         try {
-            // Get all data without pagination for export
-            $request->merge(['per_page' => 999999]);
+            // Cap export size (never dump entire tables)
+            $request->merge(['per_page' => 100, 'page' => 1]);
             $data = $this->dataTableService->processRequest($request, $type);
 
             $exportData = $this->formatExportData($data['data'], $type);

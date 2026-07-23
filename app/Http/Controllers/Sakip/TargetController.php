@@ -152,6 +152,10 @@ class TargetController extends Controller
     public function edit(PerformanceIndicator $indicator, Target $target)
     {
         $this->authorize("update", $indicator);
+        abort_unless(
+            $target->performance_indicator_id === $indicator->id,
+            404,
+        );
 
         // Allow editing for all statuses including approved
         try {
@@ -174,6 +178,10 @@ class TargetController extends Controller
         Target $target,
     ) {
         $this->authorize("update", $indicator);
+        abort_unless(
+            $target->performance_indicator_id === $indicator->id,
+            404,
+        );
 
         // Allow editing for all statuses including approved
         $validator = Validator::make($request->all(), [
@@ -246,6 +254,10 @@ class TargetController extends Controller
     public function destroy(PerformanceIndicator $indicator, Target $target)
     {
         $this->authorize("update", $indicator);
+        abort_unless(
+            $target->performance_indicator_id === $indicator->id,
+            404,
+        );
 
         // Only allow deletion if status is draft or rejected
         if (!in_array($target->status, ["draft", "rejected"])) {
@@ -293,6 +305,11 @@ class TargetController extends Controller
      */
     public function approve(PerformanceIndicator $indicator, Target $target)
     {
+        abort_unless(
+            $target->performance_indicator_id === $indicator->id,
+            404,
+        );
+
         // Check if user has permission to approve
         $user = Auth::user();
         if (!$user->can("approve-targets")) {
@@ -349,6 +366,11 @@ class TargetController extends Controller
         PerformanceIndicator $indicator,
         Target $target,
     ) {
+        abort_unless(
+            $target->performance_indicator_id === $indicator->id,
+            404,
+        );
+
         // Check if user has permission to reject
         $user = Auth::user();
         if (!$user->can("approve-targets")) {
@@ -416,6 +438,11 @@ class TargetController extends Controller
         PerformanceIndicator $indicator,
         Target $target,
     ) {
+        abort_unless(
+            $target->performance_indicator_id === $indicator->id,
+            404,
+        );
+
         // Check if user has permission
         $user = Auth::user();
         if (!$user->can("approve-targets")) {

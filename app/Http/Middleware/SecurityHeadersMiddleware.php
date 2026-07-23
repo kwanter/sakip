@@ -98,36 +98,26 @@ class SecurityHeadersMiddleware
         // This is necessary because blade templates contain page-specific JavaScript
         $useNonce = true;
 
+        // Production: nonce-based scripts, no unsafe-eval.
+        // Local/dev: still allow unsafe-inline for Vite HMR convenience.
+        $scriptSrc = $isLocal
+            ? "script-src 'self' 'unsafe-inline' 'nonce-{$nonce}' https://cdn.jsdelivr.net https://code.jquery.com https://cdn.datatables.net https://cdnjs.cloudflare.com"
+            : "script-src 'self' 'nonce-{$nonce}' https://cdn.jsdelivr.net https://code.jquery.com https://cdn.datatables.net https://cdnjs.cloudflare.com";
+
         $directives = [
             "default-src 'self'",
-
-            // Allow inline scripts and styles with nonce for page-specific functionality
-            // 'unsafe-inline' is needed for page-specific scripts in blade templates
-            // 'unsafe-eval' is needed for some third-party libraries
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval' 'nonce-{$nonce}' https://cdn.jsdelivr.net https://code.jquery.com https://cdn.datatables.net https://cdnjs.cloudflare.com",
-
+            $scriptSrc,
             "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com https://fonts.bunny.net https://cdn.datatables.net https://cdnjs.cloudflare.com",
-
             "font-src 'self' data: https://fonts.gstatic.com https://fonts.bunny.net https://cdn.jsdelivr.net https://cdnjs.cloudflare.com",
             "img-src 'self' data: https: blob:",
             "connect-src 'self'",
-
-            // STRICT: Prevent clickjacking
             "frame-ancestors 'self'",
-
-            // STRICT: Prevent form submissions to external sites
             "form-action 'self'",
-
             "base-uri 'self'",
-
-            // STRICT: Disallow plugins like Flash/Java
             "object-src 'none'",
-
             "media-src 'self'",
             "manifest-src 'self'",
             "worker-src 'self' blob:",
-
-            // Report CSP violations for monitoring
             "report-uri /api/csp-reports",
         ];
 

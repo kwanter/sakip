@@ -230,7 +230,7 @@
                                     <span>{{ $document->file_name }}</span>
                                 </div>
                                 <div>
-                                    <a href="{{ Storage::url($document->file_path) }}" target="_blank" class="btn btn-sm btn-outline-primary me-1">
+                                    <a href="{{ route('sakip.evidence.download', $document) }}" target="_blank" class="btn btn-sm btn-outline-primary me-1">
                                         <i class="fas fa-eye"></i>
                                     </a>
                                     <button type="button" onclick="removeEvidence({{ $document->id }})" class="btn btn-sm btn-outline-danger">

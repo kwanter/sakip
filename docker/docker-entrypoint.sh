@@ -59,9 +59,25 @@ if [ ! -z "$REDIS_HOST" ]; then
     done
 fi
 
-# Check if APP_KEY is set
+# Fail fast if production secrets are missing (never bake defaults into runtime)
+if [ "${APP_ENV:-production}" = "production" ]; then
+    if [ -z "$APP_KEY" ] || [ "$APP_KEY" = "base64:" ] || [ "$APP_KEY" = "base64:CHANGE_THIS_TO_YOUR_APP_KEY" ]; then
+        echo -e "${RED}FATAL: APP_KEY must be set for production. Generate with: php artisan key:generate --show${NC}"
+        exit 1
+    fi
+    if [ -z "$DB_PASSWORD" ] || [ "$DB_PASSWORD" = "secret" ] || [ "$DB_PASSWORD" = "CHANGE_THIS_SECURE_PASSWORD" ]; then
+        echo -e "${RED}FATAL: DB_PASSWORD must be set to a non-default value in production.${NC}"
+        exit 1
+    fi
+    if [ -z "$REDIS_PASSWORD" ]; then
+        echo -e "${RED}FATAL: REDIS_PASSWORD must be set in production.${NC}"
+        exit 1
+    fi
+fi
+
+# Local/dev only: generate APP_KEY if missing
 if [ -z "$APP_KEY" ] || [ "$APP_KEY" = "base64:" ]; then
-    echo -e "${YELLOW}Generating APP_KEY...${NC}"
+    echo -e "${YELLOW}Generating APP_KEY (non-production)...${NC}"
     php artisan key:generate --force
 fi
 
@@ -71,7 +87,7 @@ if [ "$AUTO_MIGRATE" = "true" ]; then
     php artisan migrate --force
 fi
 
-# Clear and cache config if needed
+# Cache config only at runtime after secrets are injected
 if [ "$CACHE_CONFIG" = "true" ]; then
     echo -e "${YELLOW}Caching configuration...${NC}"
     php artisan config:cache

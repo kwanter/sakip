@@ -32,14 +32,16 @@ class AdminUserSeeder extends Seeder
     public function run(): void
     {
         // CRITICAL: Do not seed admin user in production
-        /*
-        if (app()->environment('production')) {
-            $this->command->error('❌ SECURITY: Admin user seeding is disabled in production.');
-            $this->command->error('   Create admin users manually via admin panel.');
+        if (app()->environment("production")) {
+            $this->command->error(
+                "❌ SECURITY: Admin user seeding is disabled in production.",
+            );
+            $this->command->error(
+                "   Create admin users manually via admin panel.",
+            );
 
             return;
         }
-        */
 
         $this->command->warn(
             "⚠️  WARNING: Creating admin user with default credentials.",

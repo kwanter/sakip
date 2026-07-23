@@ -263,26 +263,54 @@
         });
     }, 5000);
 
-    // Event delegation for inline onclick handlers (CSP compliance)
-    // This executes onclick attributes that were moved to data-onclick attributes
+    // Event delegation for data-action handlers (NO eval / new Function)
+    // Prefer data-action="handlerName" with data-* args. Legacy data-onclick
+    // with simple "fnName()" or "fnName(arg)" forms is supported via allowlist.
     document.body.addEventListener("click", function (e) {
-        const target = e.target.closest("[data-onclick]");
+        const target = e.target.closest("[data-action], [data-onclick]");
         if (target) {
             e.preventDefault();
             e.stopPropagation();
-            const onclickCode = target.getAttribute("data-onclick");
-            if (onclickCode) {
-                try {
-                    // Safe execution of onclick code
-                    new Function(onclickCode).call(target);
-                } catch (error) {
-                    console.error(
-                        "Error executing onclick handler:",
-                        error,
-                        "Code:",
-                        onclickCode,
+            try {
+                if (target.hasAttribute("data-action")) {
+                    const name = target.getAttribute("data-action");
+                    if (name && typeof window[name] === "function") {
+                        window[name].call(target, target.dataset);
+                    }
+                } else {
+                    const onclickCode = target.getAttribute("data-onclick") || "";
+                    // Only allow: Identifier() or Identifier(arg) with simple args
+                    const m = onclickCode.trim().match(
+                        /^([A-Za-z_$][\w$]*)\((.*)\)$/,
                     );
+                    if (m && typeof window[m[1]] === "function") {
+                        const args = m[2]
+                            .split(",")
+                            .map(function (s) {
+                                s = s.trim();
+                                if (
+                                    (s.startsWith("'") && s.endsWith("'")) ||
+                                    (s.startsWith('"') && s.endsWith('"'))
+                                ) {
+                                    return s.slice(1, -1);
+                                }
+                                if (s === "") return undefined;
+                                if (!isNaN(Number(s))) return Number(s);
+                                return s;
+                            })
+                            .filter(function (v) {
+                                return v !== undefined;
+                            });
+                        window[m[1]].apply(target, args);
+                    } else {
+                        console.warn(
+                            "Blocked unsafe data-onclick (use data-action):",
+                            onclickCode,
+                        );
+                    }
                 }
+            } catch (error) {
+                console.error("Error executing data-action handler:", error);
             }
         }
 

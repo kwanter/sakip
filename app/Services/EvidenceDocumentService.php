@@ -44,8 +44,8 @@ class EvidenceDocumentService
             $fileName = $this->generateFileName($file);
             $filePath = $this->getUploadPath($data['instansi_id'] ?? null) . '/' . $fileName;
 
-            // Store file
-            $storedPath = $file->storeAs($this->uploadPath, $filePath, 'public');
+            // Store on private local disk (not web-accessible)
+            $storedPath = $file->storeAs($this->uploadPath, $filePath, 'local');
 
             if (!$storedPath) {
                 throw new Exception('Failed to upload file');
@@ -271,9 +271,13 @@ class EvidenceDocumentService
     public function deleteEvidence(EvidenceDocument $evidence): bool
     {
         return DB::transaction(function () use ($evidence) {
-            // Delete file if exists
-            if ($evidence->file_path && Storage::disk('public')->exists($evidence->file_path)) {
-                Storage::disk('public')->delete($evidence->file_path);
+            if ($evidence->file_path) {
+                foreach (['local', 'public'] as $disk) {
+                    if (Storage::disk($disk)->exists($evidence->file_path)) {
+                        Storage::disk($disk)->delete($evidence->file_path);
+                        break;
+                    }
+                }
             }
 
             // Log activity
@@ -290,11 +294,19 @@ class EvidenceDocumentService
     }
 
     /**
-     * Download evidence document
+     * Download evidence document (private local preferred; public legacy fallback)
      */
     public function downloadEvidence(EvidenceDocument $evidence): array
     {
-        if (!$evidence->file_path || !Storage::disk('public')->exists($evidence->file_path)) {
+        if (!$evidence->file_path) {
+            throw new Exception('Evidence document file not found');
+        }
+
+        $disk = Storage::disk('local')->exists($evidence->file_path)
+            ? 'local'
+            : 'public';
+
+        if (!Storage::disk($disk)->exists($evidence->file_path)) {
             throw new Exception('Evidence document file not found');
         }
 
@@ -305,6 +317,7 @@ class EvidenceDocumentService
         $this->logActivity('download', $evidence, 'Evidence document downloaded');
 
         return [
+            'disk' => $disk,
             'file_path' => $evidence->file_path,
             'file_name' => $evidence->file_name,
             'mime_type' => $evidence->file_type,
@@ -494,7 +507,10 @@ class EvidenceDocumentService
      */
     protected function extractFileMetadata(EvidenceDocument $evidence): array
     {
-        $filePath = Storage::disk('public')->path($evidence->file_path);
+        $disk = Storage::disk('local')->exists($evidence->file_path)
+            ? 'local'
+            : 'public';
+        $filePath = Storage::disk($disk)->path($evidence->file_path);
         
         if (!file_exists($filePath)) {
             return [];

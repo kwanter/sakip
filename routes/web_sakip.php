@@ -83,7 +83,9 @@ Route::prefix("sakip")
         ]);
 
         // Target Management (nested under indicators)
-        Route::prefix("indicators/{indicator}/targets")->group(function () {
+        Route::prefix("indicators/{indicator}/targets")
+            ->scopeBindings()
+            ->group(function () {
             Route::get("/", [
                 \App\Http\Controllers\Sakip\TargetController::class,
                 "index",
@@ -122,7 +124,13 @@ Route::prefix("sakip")
                 \App\Http\Controllers\Sakip\TargetController::class,
                 "revise",
             ])->name("sakip.targets.revise");
-        });
+            });
+
+        // Authorized evidence download (never expose public disk URLs)
+        Route::get("/evidence/{evidence}/download", [
+            DataCollectionController::class,
+            "downloadEvidence",
+        ])->name("sakip.evidence.download");
 
         // Performance Data
         Route::prefix("performance-data")->group(function () {

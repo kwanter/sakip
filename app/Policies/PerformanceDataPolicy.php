@@ -5,84 +5,63 @@ namespace App\Policies;
 use App\Models\PerformanceData;
 use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
-use Carbon\Carbon;
 
-/**
- * PerformanceDataPolicy
- *
- * Handles authorization for performance data collection, submission, and validation operations.
- * Implements role-based access control with workflow stage permissions and deadline enforcement.
- */
 class PerformanceDataPolicy
 {
     use HandlesAuthorization;
 
-    /**
-     * Determine whether the user can view any models.
-     *
-     * @param  \App\Models\User  $user
-     * @return \Illuminate\Auth\Access\Response|bool
-     */
     public function viewAny(User $user)
     {
-        return $user->can("view-data-collection-forms");
+        return $user->can("view-data-collection-forms")
+            || $user->can("view-performance-data");
     }
 
-    /**
-     * Determine whether the user can view the model.
-     *
-     * @param  \App\Models\User  $user
-     * @param  \App\Models\PerformanceData  $performanceData
-     * @return \Illuminate\Auth\Access\Response|bool
-     */
     public function view(User $user, PerformanceData $performanceData)
     {
-        // Users can view their own data or if they have permission
-        if ($user->can("view-data-collection-forms")) {
+        if (! $this->sameTenant($user, $performanceData->instansi_id)) {
+            return false;
+        }
+
+        if ($user->can("view-data-collection-forms") || $user->can("view-performance-data")) {
             return true;
         }
 
-        return $performanceData->created_by === $user->id;
+        return $performanceData->created_by === $user->id
+            || $performanceData->submitted_by === $user->id;
     }
 
-    /**
-     * Determine whether the user can create models.
-     *
-     * @param  \App\Models\User  $user
-     * @return \Illuminate\Auth\Access\Response|bool
-     */
     public function create(User $user)
     {
         return $user->can("enter-and-submit-data-records");
     }
 
-    /**
-     * Determine whether the user can update the model.
-     *
-     * @param  \App\Models\User  $user
-     * @param  \App\Models\PerformanceData  $performanceData
-     * @return \Illuminate\Auth\Access\Response|bool
-     */
     public function update(User $user, PerformanceData $performanceData)
     {
-        if (
-            $user->can("edit-own-data-submissions") &&
-            $performanceData->created_by === $user->id
-        ) {
-            return true;
+        if (! $this->sameTenant($user, $performanceData->instansi_id)) {
+            return false;
         }
-        return false;
+
+        return $user->can("edit-own-data-submissions")
+            && ($performanceData->created_by === $user->id
+                || $performanceData->submitted_by === $user->id);
     }
 
-    /**
-     * Determine whether the user can delete the model.
-     *
-     * @param  \App\Models\User  $user
-     * @param  \App\Models\PerformanceData  $performanceData
-     * @return \Illuminate\Auth\Access\Response|bool
-     */
     public function delete(User $user, PerformanceData $performanceData)
     {
-        return $user->can("manage-high-level-settings");
+        return $user->can("manage-high-level-settings")
+            && $this->sameTenant($user, $performanceData->instansi_id);
+    }
+
+    private function sameTenant(User $user, ?string $instansiId): bool
+    {
+        if ($user->hasRole("Super Admin")) {
+            return true;
+        }
+
+        if ($user->instansi_id === null) {
+            return $user->hasAnyRole(["Executive", "Auditor"]);
+        }
+
+        return $user->instansi_id === $instansiId;
     }
 }

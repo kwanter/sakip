@@ -18,13 +18,16 @@ class DatabaseSeeder extends Seeder
         // Seed instansi data first
         $this->call(InstansiSeeder::class);
 
-        // Then seed roles and permissions
+        // Then seed roles and permissions (idempotent; never truncates in production)
         $this->call(RolesAndPermissionsSeeder::class);
 
-        // Seed admin user (standalone admin user)
-        $this->call(AdminUserSeeder::class);
-
-        // Finally seed users with assigned roles
-        $this->call(UserSeeder::class);
+        // Privileged/demo users are NOT seeded by default.
+        // Explicitly run only in local/dev:
+        //   php artisan db:seed --class=AdminUserSeeder
+        //   php artisan db:seed --class=UserSeeder
+        if (! app()->environment("production")) {
+            $this->call(AdminUserSeeder::class);
+            $this->call(UserSeeder::class);
+        }
     }
 }

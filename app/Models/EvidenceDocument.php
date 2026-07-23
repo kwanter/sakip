@@ -171,23 +171,28 @@ class EvidenceDocument extends Model
     }
 
     /**
-     * Get the full file URL.
+     * Authorized download URL (never public disk).
      */
     public function getFileUrlAttribute()
     {
-        return asset("storage/" . $this->file_path);
+        return route("sakip.evidence.download", $this);
     }
 
     /**
      * Delete the physical file when the model is deleted.
+     * Prefer private/local disk; fall back to legacy public paths.
      */
     public function deleteFile()
     {
-        if (
-            $this->file_path &&
-            file_exists(storage_path("app/public/" . $this->file_path))
-        ) {
-            unlink(storage_path("app/public/" . $this->file_path));
+        if (!$this->file_path) {
+            return;
+        }
+
+        foreach (["local", "public"] as $disk) {
+            if (\Illuminate\Support\Facades\Storage::disk($disk)->exists($this->file_path)) {
+                \Illuminate\Support\Facades\Storage::disk($disk)->delete($this->file_path);
+                return;
+            }
         }
     }
 

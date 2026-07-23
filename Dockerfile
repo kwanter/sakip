@@ -100,13 +100,16 @@ RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html/bootstrap/cache \
     && chmod -R 755 /var/www/html/app/Services
 
-# Generate application key
-RUN php artisan key:generate --force || true
+# Do NOT generate APP_KEY or config:cache at build time.
+# Secrets and environment must be injected at runtime (entrypoint).
+# Packaging config at build bakes build-host secrets into the image.
 
-# Clear and cache configurations
-RUN php artisan config:cache \
-    && php artisan route:cache \
-    && php artisan view:cache \
+# Ensure writable bootstrap/cache and storage dirs exist for runtime
+RUN mkdir -p /var/www/html/bootstrap/cache \
+    /var/www/html/storage/framework/cache \
+    /var/www/html/storage/framework/sessions \
+    /var/www/html/storage/framework/views \
+    /var/www/html/storage/logs \
     && chmod -R 755 /var/www/html/bootstrap/cache \
     && chmod -R 755 /var/www/html/storage/framework
 
