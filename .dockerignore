@@ -1,82 +1,89 @@
-# Git files
+# Git
 .git
 .gitignore
 .gitattributes
 
-# Docker files
+# Docker compose files (not needed in image context)
 docker-compose.yml
 docker-compose.*.yml
-Dockerfile
 .docker
 
-# Documentation
+# Docs
 README.md
 LICENSE
+*.md
+docs/
 
-# IDE files
+# IDE / agent
 .idea
 .vscode
 *.sublime-*
 .DS_Store
 .hive
+.serena
+.atlas
+.claude
+.trae
+.auto-claude
+.incident-evidence*
+.sakip-incident*
 
-# Node modules (if using frontend build)
+# Node (built outside or multi-stage)
 node_modules
 npm-debug.log
 yarn-error.log
+public/hot
+public/build
 
-# Local environment files
-.env.local
-.env.*.local
+# Local env / secrets — NEVER bake into image
+.env
+.env.*
+!.env.example
+!.env.docker.example
 .env.backup
+.env.production
+auth.json
 
-# Testing
+# Tests
 /tests
 /phpunit.xml
 .phpunit.result.cache
-/.phpunit.cache
+.phpunit.cache
 
-# Vendor (will be installed in container)
+# Vendor installed in build stage
 /vendor
-composer.lock
 
-# Storage (will be mounted as volume)
+# Storage runtime
 /storage/*.key
 /storage/logs/*
-storage/framework/cache/*
-storage/framework/sessions/*
-storage/framework/views/*
+/storage/framework/cache/*
+/storage/framework/sessions/*
+/storage/framework/views/*
 !storage/.gitignore
+!storage/app/.gitignore
+!storage/app/public/.gitignore
+!storage/app/private/.gitignore
+
+# Database dumps / backups
+**/backups/**
+*.sql
+*.sql.gz
+*.tar.gz
+*.dump
+*.bak
+docker/mysql/data/
 
 # Cache
 bootstrap/cache/*
 !bootstrap/cache/.gitignore
 
-# Build files
-.hive
-/build
-
-# Temporary files
+# Temp / logs
 *.tmp
 *.swp
 *.swo
 *~
-
-# OS files
-.DS_Store
-Thumbs.db
-
-# Telescope (debugging tool)
-telescope
-
-# Logs
 *.log
-npm-debug.log
-yarn-error.log
 
-# PHPUnit
-.phpunit.result.cache
-phpunit.xml
-
-# Deployment
+# Telescope / deploy
+telescope
 deploy.php

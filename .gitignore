@@ -52,13 +52,21 @@ debug_*.php
 *.sqlite3
 *.db
 
-# MySQL backups
-docker/mysql/backups/*.sql
-docker/mysql/backups/*.sql.gz
-docker/mysql/backups/*.tar.gz
+# Database dumps / backups (any depth)
+**/backups/**
+*.sql
+*.sql.gz
+*.tar.gz
+*.dump
+*.bak
+!**/.gitkeep
 
 # MySQL data directory
 docker/mysql/data/
+
+# Incident evidence (local only; never commit)
+.incident-evidence*/
+.sakip-incident*/
 
 # Serena agent files
 .serena/
