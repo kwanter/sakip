@@ -14,6 +14,8 @@ use Exception;
 
 class TargetService
 {
+    use \App\Traits\ClearsCacheByKey;
+
     protected $cacheTimeout = 3600; // 1 hour
 
     /**
@@ -535,15 +537,15 @@ class TargetService
      */
     protected function clearTargetCache($instansiId): void
     {
-        Cache::forget("target_statistics_{$instansiId}_" . date('Y'));
-        
-        // Clear all target caches for this instansi
-        $keys = Cache::getRedis()->keys("target_*");
-        foreach ($keys as $key) {
-            if (strpos($key, "_{$instansiId}") !== false) {
-                Cache::forget($key);
-            }
-        }
+        // SECURITY/robustness: Cache::getRedis()->keys() fatals on non-redis
+        // stores. Forget the concrete keys instead.
+        $year = date('Y');
+        $this->forgetCacheKeys([
+            "target_statistics_{$instansiId}_{$year}",
+            "targets_list_{$instansiId}",
+            "targets_list_{$instansiId}_1",
+            "targets_list_{$instansiId}_2",
+        ]);
     }
 
     /**

@@ -15,6 +15,8 @@ use Exception;
 
 class PerformanceIndicatorService
 {
+    use \App\Traits\ClearsCacheByKey;
+
     protected $cacheTimeout = 3600; // 1 hour
 
     /**
@@ -556,12 +558,12 @@ class PerformanceIndicatorService
     {
         Cache::forget("indicator_statistics_{$instansiId}_" . date("Y"));
 
-        // Clear all indicator caches for this instansi
-        $keys = Cache::getRedis()->keys("indicator_*");
-        foreach ($keys as $key) {
-            if (strpos($key, "_{$instansiId}_") !== false) {
-                Cache::forget($key);
-            }
-        }
+        // SECURITY: getRedis() fatals on non-redis stores — forget concrete keys.
+        $this->forgetCacheKeys([
+            "indicators_list_{$instansiId}",
+            "indicators_list_{$instansiId}_1",
+            "indicator_summary_{$instansiId}",
+            "indicator_progress_{$instansiId}_" . date('Y'),
+        ]);
     }
 }

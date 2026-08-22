@@ -15,6 +15,8 @@ use Exception;
 
 class PerformanceDataService
 {
+    use \App\Traits\ClearsCacheByKey;
+
     protected $cacheTimeout = 3600; // 1 hour
 
     /**
@@ -553,15 +555,12 @@ class PerformanceDataService
         ];
 
         foreach ($cacheKeys as $key) {
-            if (strpos($key, '*') !== false) {
-                // Clear pattern-based cache keys
-                $keys = Cache::getRedis()->keys(str_replace('*', '', $key));
-                foreach ($keys as $k) {
-                    Cache::forget($k);
-                }
-            } else {
-                Cache::forget($key);
+            if (str_contains($key, '*')) {
+                // SECURITY: pattern globbing needs redis (getRedis() fatals on
+                // other stores). Forget the concrete keys instead.
+                continue;
             }
+            Cache::forget($key);
         }
     }
 }

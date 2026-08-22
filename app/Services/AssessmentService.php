@@ -16,6 +16,8 @@ use Exception;
 
 class AssessmentService
 {
+    use \App\Traits\ClearsCacheByKey;
+
     protected $cacheTimeout = 3600; // 1 hour
 
     /**
@@ -495,12 +497,11 @@ class AssessmentService
     {
         Cache::forget("assessment_statistics_{$instansiId}_" . date('Y'));
         
-        // Clear all assessment caches for this instansi
-        $keys = Cache::getRedis()->keys("assessment_*");
-        foreach ($keys as $key) {
-            if (strpos($key, "_{$instansiId}_") !== false) {
-                Cache::forget($key);
-            }
-        }
+        // SECURITY: getRedis() fatals on non-redis stores — forget concrete keys.
+        $this->forgetCacheKeys([
+            "assessments_list_{$instansiId}",
+            "assessments_list_{$instansiId}_1",
+            "assessment_summary_{$instansiId}",
+        ]);
     }
 }
