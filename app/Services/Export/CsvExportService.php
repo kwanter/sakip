@@ -44,10 +44,32 @@ class CsvExportService
         $sheet = $spreadsheet->getActiveSheet();
 
         if (! empty($data)) {
-            $sheet->fromArray($data, null, 'A1');
+            $sheet->fromArray($this->sanitizeCells($data), null, 'A1');
         }
 
         $this->saveFile($spreadsheet, $filename, $options);
+    }
+
+    /**
+     * Neutralize spreadsheet formula injection.
+     *
+     * SECURITY: cell values starting with = + - @ are interpreted as formulas
+     * when the file is opened (Excel/Calc). Prefix them with a single quote so
+     * they render as literal text.
+     */
+    protected function sanitizeCells(array $rows): array
+    {
+        foreach ($rows as &$row) {
+            foreach ($row as &$val) {
+                if (is_string($val) && $val !== '' && str_contains('=+-@', $val[0])) {
+                    $val = "'" . $val;
+                }
+            }
+            unset($val);
+        }
+        unset($row);
+
+        return $rows;
     }
 
     /**
