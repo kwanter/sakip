@@ -143,9 +143,11 @@ Route::prefix("sakip")
                 DataCollectionController::class,
                 "create",
             ])->name("sakip.data-collection.create");
-            Route::post("/", [DataCollectionController::class, "store"])->name(
-                "sakip.data-collection.store",
-            );
+            Route::post("/", [DataCollectionController::class, "store"])
+                ->middleware("secure.file.upload")
+                ->name(
+                    "sakip.data-collection.store",
+                );
             Route::get("/{performanceData}", [
                 DataCollectionController::class,
                 "show",
@@ -162,10 +164,9 @@ Route::prefix("sakip")
                 DataCollectionController::class,
                 "destroy",
             ])->name("sakip.data-collection.destroy");
-            Route::post("/bulk-import", [
-                DataCollectionController::class,
-                "bulkImport",
-            ])->name("sakip.data-collection.bulk-import");
+            Route::post("/bulk-import", [DataCollectionController::class, "bulkImport"])
+                ->middleware("secure.file.upload")
+                ->name("sakip.data-collection.bulk-import");
             Route::post("/validate-data", [
                 DataCollectionController::class,
                 "validateData",
@@ -182,10 +183,9 @@ Route::prefix("sakip")
                 DataCollectionController::class,
                 "downloadSample",
             ])->name("sakip.data-collection.sample");
-            Route::post("/import", [
-                DataCollectionController::class,
-                "import",
-            ])->name("sakip.data-collection.import");
+            Route::post("/import", [DataCollectionController::class, "import"])
+                ->middleware("secure.file.upload")
+                ->name("sakip.data-collection.import");
             Route::post("/import/confirm", [
                 DataCollectionController::class,
                 "confirmImport",

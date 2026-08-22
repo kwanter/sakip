@@ -50,13 +50,11 @@
                     <tr>
                         @foreach($columns as $key => $column)
                         <td>
-                            @if(isset($column['render']))
-                                {!! $column['render']($row) !!}
-                            @elseif(is_string($key))
-                                {{ $row[$key] ?? '-' }}
-                            @else
-                                {{ $row[$column] ?? '-' }}
-                            @endif
+                            {{-- SECURITY: the previous $column['render'] closure sink
+                                 ({!! !!}) had zero callers and was the only unescaped
+                                 output in the views. Deleted; re-add deliberately
+                                 (escaped or reviewed-raw) if HTML cells are ever needed. --}}
+                            {{ $row[is_string($key) ? $key : $column] ?? '-' }}
                         </td>
                         @endforeach
                         @if($actions)

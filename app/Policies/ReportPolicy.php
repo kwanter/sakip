@@ -62,6 +62,28 @@ class ReportPolicy
     }
 
     /**
+     * Determine whether the user can approve/reject reports.
+     *
+     * SECURITY: without this method authorize('approve') threw 403 for every
+     * non-super-admin — the approval workflow was dead.
+     */
+    public function approve(User $user, Report $report): bool
+    {
+        if ($user->hasPermission('sakip.admin')) {
+            return true;
+        }
+
+        if ($user->instansi_id !== $report->instansi_id) {
+            return false;
+        }
+
+        return $user->hasAnyPermission([
+            'sakip.reports.approve',
+            'sakip.pimpinan'
+        ]);
+    }
+
+    /**
      * Determine whether the user can create reports.
      * Restricted to admins, pimpinan, and assessors from the same institution.
      */
