@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\Role;
 use App\Models\Permission;
 use App\Models\AuditLog;
+use App\Constants\SystemRoles;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 
@@ -91,7 +92,24 @@ class AdminService
 
     public function assignRoles(User $user, array $roleIds): void
     {
-        // Fetch roles by IDs for synchronization; handle empty array gracefully
+        // SECURITY: Only a Super Admin may grant the Super Admin role.
+        // A caller with can:manage-users (e.g. Admin) must never escalate
+        // themselves or others to full-system privileges.
+        $actor = auth()->user();
+        $isSuperAdmin = (bool) $actor?->hasRole(SystemRoles::SUPER_ADMIN);
+
+        if (! $isSuperAdmin) {
+            $superAdminRoleId = Role::query()
+                ->where('name', SystemRoles::SUPER_ADMIN)
+                ->value('id');
+
+            // Strip Super Admin from the requested set; keep it out of sync
+            // and out of the audit log as an attempted escalation.
+            if ($superAdminRoleId !== null) {
+                $roleIds = array_diff($roleIds, [$superAdminRoleId]);
+            }
+        }
+
         $roles = Role::whereIn("id", $roleIds)->get();
         $user->roles()->sync($roles);
 

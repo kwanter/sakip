@@ -16,6 +16,9 @@ use Exception;
 
 class AssessmentService
 {
+    use \App\Traits\SortsSafely;
+    use \App\Traits\ClearsCacheByKey;
+
     protected $cacheTimeout = 3600; // 1 hour
 
     /**
@@ -254,9 +257,13 @@ class AssessmentService
             $query->where('overall_score', '<=', $filters['max_score']);
         }
 
-        // Sorting
-        $sortBy = $filters['sort_by'] ?? 'assessment_date';
-        $sortOrder = $filters['sort_order'] ?? 'desc';
+        // Sorting (whitelisted)
+        $sortBy = $this->safeSortColumn(
+            $filters['sort_by'] ?? null,
+            ['assessment_date', 'overall_score', 'created_at', 'updated_at'],
+            'assessment_date'
+        );
+        $sortOrder = strtolower($filters['sort_order'] ?? 'desc') === 'asc' ? 'asc' : 'desc';
         $query->orderBy($sortBy, $sortOrder);
 
         return $query->paginate($perPage);
@@ -495,12 +502,11 @@ class AssessmentService
     {
         Cache::forget("assessment_statistics_{$instansiId}_" . date('Y'));
         
-        // Clear all assessment caches for this instansi
-        $keys = Cache::getRedis()->keys("assessment_*");
-        foreach ($keys as $key) {
-            if (strpos($key, "_{$instansiId}_") !== false) {
-                Cache::forget($key);
-            }
-        }
+        // SECURITY: getRedis() fatals on non-redis stores — forget concrete keys.
+        $this->forgetCacheKeys([
+            "assessments_list_{$instansiId}",
+            "assessments_list_{$instansiId}_1",
+            "assessment_summary_{$instansiId}",
+        ]);
     }
 }

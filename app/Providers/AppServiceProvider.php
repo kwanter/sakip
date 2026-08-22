@@ -18,11 +18,6 @@ use App\Policies\IndikatorKinerjaPolicy;
 use App\Policies\LaporanKinerjaPolicy;
 
 // SAKIP Models
-use App\Models\Sakip\PerformanceIndicator;
-use App\Models\Sakip\PerformanceData;
-use App\Models\Sakip\Assessment;
-use App\Models\Sakip\Report;
-use App\Models\Sakip\EvidenceDocument;
 use App\Models\Target;
 use App\Models\AuditLog;
 
@@ -82,16 +77,16 @@ class AppServiceProvider extends ServiceProvider
             \App\Policies\PerformanceIndicatorPolicy::class,
         );
 
-        // Register SAKIP policies
-        Gate::policy(
-            PerformanceIndicator::class,
-            PerformanceIndicatorPolicy::class,
-        );
+        // Register SAKIP policies (flat models; auto-discovery covers the rest)
         Gate::policy(PerformanceData::class, PerformanceDataPolicy::class);
         Gate::policy(Assessment::class, AssessmentPolicy::class);
         Gate::policy(Report::class, ReportPolicy::class);
         Gate::policy(EvidenceDocument::class, EvidenceDocumentPolicy::class);
         Gate::policy(AuditLog::class, AuditLogPolicy::class);
+        Gate::policy(
+            \App\Models\AssessmentCriterion::class,
+            \App\Policies\AssessmentCriterionPolicy::class,
+        );
 
         // Explicitly register Target policy to override auto-discovery
         Gate::policy(

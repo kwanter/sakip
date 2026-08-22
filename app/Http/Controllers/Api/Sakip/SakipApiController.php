@@ -76,7 +76,7 @@ class SakipApiController extends Controller
         return $this->handleApiRequest(
             fn() => $this->dashboardService->getAchievementTrends(
                 $request->input('period', '12_months'),
-                $request->input('instansi_id')
+                $this->resolveInstansiId($request->input('instansi_id'))
             ),
             'achievement-trends',
             'Failed to fetch achievement trends'
@@ -93,7 +93,7 @@ class SakipApiController extends Controller
     {
         return $this->handleApiRequest(
             fn() => $this->dashboardService->getComplianceStatus(
-                $request->input('instansi_id')
+                $this->resolveInstansiId($request->input('instansi_id'))
             ),
             'compliance-status',
             'Failed to fetch compliance status'
@@ -110,7 +110,7 @@ class SakipApiController extends Controller
     {
         return $this->handleApiRequest(
             fn() => $this->dashboardService->getIndicatorComparison(
-                $request->input('instansi_id'),
+                $this->resolveInstansiId($request->input('instansi_id')),
                 $request->input('category')
             ),
             'indicator-comparison',
@@ -129,7 +129,7 @@ class SakipApiController extends Controller
         return $this->handleApiRequest(
             fn() => $this->dashboardService->getRecentIndicators(
                 $request->input('limit', 10),
-                $request->input('instansi_id')
+                $this->resolveInstansiId($request->input('instansi_id'))
             ),
             'recent-indicators',
             'Failed to fetch recent indicators'
@@ -147,7 +147,7 @@ class SakipApiController extends Controller
         return $this->handleApiRequest(
             fn() => $this->dashboardService->getRecentReports(
                 $request->input('limit', 10),
-                $request->input('instansi_id')
+                $this->resolveInstansiId($request->input('instansi_id'))
             ),
             'recent-reports',
             'Failed to fetch recent reports'
@@ -226,6 +226,30 @@ class SakipApiController extends Controller
             'metadata',
             'Failed to fetch metadata'
         );
+    }
+
+    /**
+     * Resolve the instansi to scope a query to, given a client-supplied value.
+     *
+     * SECURITY: A user may only view data for their own institution. Users
+     * without an institution (Super Admin / HQ) may pass any instansi_id.
+     * Any other foreign instansi_id is ignored to prevent cross-tenant pivot.
+     */
+    protected function resolveInstansiId(mixed $requested): ?string
+    {
+        $user = auth()->user();
+
+        if ($user === null) {
+            return null;
+        }
+
+        // HQ / cross-instansi role: no home institution — honor the request.
+        if ($user->instansi_id === null) {
+            return $requested ?: null;
+        }
+
+        // Otherwise pin to the caller's own institution.
+        return $user->instansi_id;
     }
 
     /**

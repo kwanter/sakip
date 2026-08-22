@@ -15,6 +15,9 @@ use Exception;
 
 class PerformanceIndicatorService
 {
+    use \App\Traits\ClearsCacheByKey;
+    use \App\Traits\SortsSafely;
+
     protected $cacheTimeout = 3600; // 1 hour
 
     /**
@@ -247,9 +250,13 @@ class PerformanceIndicatorService
             }
         }
 
-        // Sorting
-        $sortBy = $filters["sort_by"] ?? "created_at";
-        $sortOrder = $filters["sort_order"] ?? "desc";
+        // Sorting (whitelisted)
+        $sortBy = $this->safeSortColumn(
+            $filters["sort_by"] ?? null,
+            ["created_at", "updated_at", "name", "code"],
+            "created_at"
+        );
+        $sortOrder = strtolower($filters["sort_order"] ?? "desc") === "asc" ? "asc" : "desc";
         $query->orderBy($sortBy, $sortOrder);
 
         return $query->paginate($perPage);
@@ -556,12 +563,12 @@ class PerformanceIndicatorService
     {
         Cache::forget("indicator_statistics_{$instansiId}_" . date("Y"));
 
-        // Clear all indicator caches for this instansi
-        $keys = Cache::getRedis()->keys("indicator_*");
-        foreach ($keys as $key) {
-            if (strpos($key, "_{$instansiId}_") !== false) {
-                Cache::forget($key);
-            }
-        }
+        // SECURITY: getRedis() fatals on non-redis stores — forget concrete keys.
+        $this->forgetCacheKeys([
+            "indicators_list_{$instansiId}",
+            "indicators_list_{$instansiId}_1",
+            "indicator_summary_{$instansiId}",
+            "indicator_progress_{$instansiId}_" . date('Y'),
+        ]);
     }
 }

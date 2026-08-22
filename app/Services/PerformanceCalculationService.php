@@ -191,22 +191,10 @@ class PerformanceCalculationService
      */
     private function getBenchmarkComparison($indicator, $achievement)
     {
-        $benchmarks = Benchmark::where('indicator_id', $indicator->id)
-            ->where('is_active', true)
-            ->get();
-
-        if ($benchmarks->isEmpty()) {
-            return null;
-        }
-
-        $comparisons = [];
-
-        foreach ($benchmarks as $benchmark) {
-            $comparison = $this->calculateBenchmarkComparison($achievement, $benchmark);
-            $comparisons[] = $comparison;
-        }
-
-        return $comparisons;
+        // ponytail: no benchmarks table exists in the schema — Benchmark model
+        // was phantom and fatals if executed. Return null until benchmarking
+        // is actually modeled; add when a benchmark table ships.
+        return null;
     }
 
     /**
@@ -307,21 +295,29 @@ class PerformanceCalculationService
         try {
             $trends = [];
 
-            foreach ($periods as $period) {
-                $performance = PerformanceMeasurement::where('indicator_id', $indicatorId)
-                    ->where('period', $period['period'])
-                    ->where('year', $period['year'])
+            foreach ($periods as $periodSpec) {
+                // period is stored as "YYYY-MM" on performance_data.
+                $periodKey = is_array($periodSpec)
+                    ? ($periodSpec['period'] ?? null)
+                    : $periodSpec;
+                $row = PerformanceData::where('performance_indicator_id', $indicatorId)
+                    ->where('period', $periodKey)
                     ->first();
-
-                if ($performance) {
-                    $trends[] = [
-                        'period' => $period['period'],
-                        'year' => $period['year'],
-                        'achievement' => $performance->achievement,
-                        'score' => $performance->score,
-                        'grade' => $performance->grade,
-                    ];
+                if (! $row) {
+                    continue;
                 }
+                $achievement = $this->calculatePercentageAchievement(
+                    $row->actual_value,
+                    null
+                );
+                $score = (int) round($achievement);
+                $trends[] = [
+                    'period' => $row->period,
+                    'year' => substr((string) $row->period, 0, 4),
+                    'achievement' => $achievement,
+                    'score' => $score,
+                    'grade' => $this->getGradeFromScore($score),
+                ];
             }
 
             return $trends;
@@ -331,6 +327,8 @@ class PerformanceCalculationService
             return [];
         }
     }
+
+
 
     /**
      * Calculate compliance rate

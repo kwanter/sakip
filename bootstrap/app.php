@@ -28,8 +28,6 @@ return Application::configure(basePath: dirname(__DIR__))
                 Spatie\Permission\Middleware\PermissionMiddleware::class,
             "role_or_permission" =>
                 Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
-            "sanitize.input" =>
-                \App\Http\Middleware\SanitizeInputMiddleware::class,
             "secure.file.upload" =>
                 \App\Http\Middleware\SecureFileUploadMiddleware::class,
             "throttle.login" =>
@@ -39,11 +37,6 @@ return Application::configure(basePath: dirname(__DIR__))
                 \Illuminate\Routing\Middleware\ThrottleRequests::class .
                 ":api_strict",
         ]);
-
-        // Apply input sanitization globally to web routes
-        $middleware->web(
-            append: [\App\Http\Middleware\SanitizeInputMiddleware::class],
-        );
 
         // API Rate Limiting
         $middleware->api(
