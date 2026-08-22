@@ -133,44 +133,8 @@ Route::prefix("sakip")
         ])->name("sakip.evidence.download");
 
         // Performance Data
-        Route::prefix("performance-data")->group(function () {
-            Route::get("/", [DataCollectionController::class, "index"])->name(
-                "sakip.performance-data.index",
-            );
-            Route::get("/create", [
-                DataCollectionController::class,
-                "create",
-            ])->name("sakip.performance-data.create");
-            Route::post("/", [DataCollectionController::class, "store"])->name(
-                "sakip.performance-data.store",
-            );
-            Route::get("/{performanceData}", [
-                DataCollectionController::class,
-                "show",
-            ])->name("sakip.performance-data.show");
-            Route::get("/{performanceData}/edit", [
-                DataCollectionController::class,
-                "edit",
-            ])->name("sakip.performance-data.edit");
-            Route::put("/{performanceData}", [
-                DataCollectionController::class,
-                "update",
-            ])->name("sakip.performance-data.update");
-            Route::delete("/{performanceData}", [
-                DataCollectionController::class,
-                "destroy",
-            ])->name("sakip.performance-data.destroy");
-            Route::post("/bulk-import", [
-                DataCollectionController::class,
-                "bulkImport",
-            ])->name("sakip.performance-data.bulk-import");
-            Route::post("/validate-data", [
-                DataCollectionController::class,
-                "validateData",
-            ])->name("sakip.performance-data.validate");
-        });
-
-        // Data Collection (alias for Performance Data with different route names)
+        // Data Collection (single canonical group; was duplicated as
+        // performance-data/* — collapsed to avoid twin URIs/names)
         Route::prefix("data-collection")->group(function () {
             Route::get("/", [DataCollectionController::class, "index"])->name(
                 "sakip.data-collection.index",

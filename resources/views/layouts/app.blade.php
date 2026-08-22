@@ -103,7 +103,7 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('sakip.performance-data.*') ? 'active' : '' }}" href="{{ route('sakip.performance-data.index') }}">
+                            <a class="nav-link {{ request()->routeIs('sakip.data-collection.*') ? 'active' : '' }}" href="{{ route('sakip.data-collection.index') }}">
                                 <i class="fas fa-database"></i>
                                 <span>Pengumpulan Data</span>
                             </a>

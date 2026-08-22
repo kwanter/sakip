@@ -479,7 +479,7 @@ class SakipDashboardController extends Controller
                 $alerts[] = [
                     "type" => "info",
                     "message" => "Ada {$missingData} data kinerja yang belum lengkap untuk tahun {$year}.",
-                    "link" => route("sakip.performance-data.index"),
+                    "link" => route("sakip.data-collection.index"),
                 ];
             }
 
@@ -540,7 +540,7 @@ class SakipDashboardController extends Controller
             if ($user->can("create", PerformanceData::class)) {
                 $actions[] = [
                     "label" => "Input Data Kinerja",
-                    "link" => route("sakip.performance-data.create"),
+                    "link" => route("sakip.data-collection.create"),
                     "icon" => "fas fa-keyboard",
                 ];
             }
