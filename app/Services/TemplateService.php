@@ -133,28 +133,7 @@ class TemplateService
     }
 
     /**
-     * Upload template file
-     */
-    public function uploadTemplateFile($file, $templateName)
-    {
-        try {
-            $filename =
-                str_slug($templateName) .
-                "_" .
-                time() .
-                "." .
-                $file->getClientOriginalExtension();
-            $path = $file->storeAs("templates", $filename, "public");
-
-            return $path;
-        } catch (\Exception $e) {
-            Log::error("Failed to upload template file: " . $e->getMessage());
-            return null;
-        }
-    }
-
-    /**
-     * Delete template file
+     * Delete template file (legacy public-disk artifacts)
      */
     private function deleteTemplateFile($filePath)
     {
