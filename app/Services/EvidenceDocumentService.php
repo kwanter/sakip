@@ -15,6 +15,7 @@ use Exception;
 
 class EvidenceDocumentService
 {
+    use \App\Traits\SortsSafely;
     protected $cacheTimeout = 3600; // 1 hour
     protected $allowedExtensions = [
         'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx',
@@ -201,9 +202,13 @@ class EvidenceDocumentService
             $query->whereDate('validated_at', '<=', $filters['validated_to']);
         }
 
-        // Sorting
-        $sortBy = $filters['sort_by'] ?? 'uploaded_at';
-        $sortOrder = $filters['sort_order'] ?? 'desc';
+        // Sorting (whitelisted — client values naming unknown columns 500)
+        $sortBy = $this->safeSortColumn(
+            $filters['sort_by'] ?? null,
+            ['uploaded_at', 'file_name', 'file_size', 'created_at', 'updated_at'],
+            'uploaded_at'
+        );
+        $sortOrder = strtolower($filters['sort_order'] ?? 'desc') === 'asc' ? 'asc' : 'desc';
         $query->orderBy($sortBy, $sortOrder);
 
         return $query->paginate($perPage);

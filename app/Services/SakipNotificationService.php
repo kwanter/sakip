@@ -23,6 +23,7 @@ use Exception;
 
 class SakipNotificationService
 {
+    use \App\Traits\SortsSafely;
     protected $cacheTimeout = 3600; // 1 hour
     
     protected $notificationTypes = [
@@ -213,9 +214,13 @@ class SakipNotificationService
             $query->whereDate('sent_at', '<=', $filters['date_to']);
         }
 
-        // Sorting
-        $sortBy = $filters['sort_by'] ?? 'sent_at';
-        $sortOrder = $filters['sort_order'] ?? 'desc';
+        // Sorting (whitelisted)
+        $sortBy = $this->safeSortColumn(
+            $filters['sort_by'] ?? null,
+            ['sent_at', 'created_at', 'read_at'],
+            'sent_at'
+        );
+        $sortOrder = strtolower($filters['sort_order'] ?? 'desc') === 'asc' ? 'asc' : 'desc';
         $query->orderBy($sortBy, $sortOrder);
 
         return $query->paginate($perPage);

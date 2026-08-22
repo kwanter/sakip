@@ -15,6 +15,7 @@ use Exception;
 class TargetService
 {
     use \App\Traits\ClearsCacheByKey;
+    use \App\Traits\SortsSafely;
 
     protected $cacheTimeout = 3600; // 1 hour
 
@@ -268,9 +269,13 @@ class TargetService
             $query->whereDate('approved_at', '<=', $filters['approved_to']);
         }
 
-        // Sorting
-        $sortBy = $filters['sort_by'] ?? 'set_at';
-        $sortOrder = $filters['sort_order'] ?? 'desc';
+        // Sorting (whitelisted)
+        $sortBy = $this->safeSortColumn(
+            $filters['sort_by'] ?? null,
+            ['set_at', 'year', 'target_value', 'created_at', 'updated_at'],
+            'set_at'
+        );
+        $sortOrder = strtolower($filters['sort_order'] ?? 'desc') === 'asc' ? 'asc' : 'desc';
         $query->orderBy($sortBy, $sortOrder);
 
         return $query->paginate($perPage);

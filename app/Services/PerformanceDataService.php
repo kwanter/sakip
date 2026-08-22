@@ -16,6 +16,7 @@ use Exception;
 class PerformanceDataService
 {
     use \App\Traits\ClearsCacheByKey;
+    use \App\Traits\SortsSafely;
 
     protected $cacheTimeout = 3600; // 1 hour
 
@@ -220,9 +221,13 @@ class PerformanceDataService
             $query->whereDate('created_at', '<=', $filters['date_to']);
         }
 
-        // Sorting
-        $sortBy = $filters['sort_by'] ?? 'created_at';
-        $sortOrder = $filters['sort_order'] ?? 'desc';
+        // Sorting (whitelisted)
+        $sortBy = $this->safeSortColumn(
+            $filters['sort_by'] ?? null,
+            ['created_at', 'updated_at', 'period', 'actual_value'],
+            'created_at'
+        );
+        $sortOrder = strtolower($filters['sort_order'] ?? 'desc') === 'asc' ? 'asc' : 'desc';
         $query->orderBy($sortBy, $sortOrder);
 
         return $query->paginate($perPage);

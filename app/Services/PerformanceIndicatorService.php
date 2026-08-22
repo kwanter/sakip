@@ -16,6 +16,7 @@ use Exception;
 class PerformanceIndicatorService
 {
     use \App\Traits\ClearsCacheByKey;
+    use \App\Traits\SortsSafely;
 
     protected $cacheTimeout = 3600; // 1 hour
 
@@ -249,9 +250,13 @@ class PerformanceIndicatorService
             }
         }
 
-        // Sorting
-        $sortBy = $filters["sort_by"] ?? "created_at";
-        $sortOrder = $filters["sort_order"] ?? "desc";
+        // Sorting (whitelisted)
+        $sortBy = $this->safeSortColumn(
+            $filters["sort_by"] ?? null,
+            ["created_at", "updated_at", "name", "code"],
+            "created_at"
+        );
+        $sortOrder = strtolower($filters["sort_order"] ?? "desc") === "asc" ? "asc" : "desc";
         $query->orderBy($sortBy, $sortOrder);
 
         return $query->paginate($perPage);
