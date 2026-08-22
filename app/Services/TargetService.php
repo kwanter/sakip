@@ -14,6 +14,9 @@ use Exception;
 
 class TargetService
 {
+    use \App\Traits\ClearsCacheByKey;
+    use \App\Traits\SortsSafely;
+
     protected $cacheTimeout = 3600; // 1 hour
 
     /**
@@ -266,9 +269,13 @@ class TargetService
             $query->whereDate('approved_at', '<=', $filters['approved_to']);
         }
 
-        // Sorting
-        $sortBy = $filters['sort_by'] ?? 'set_at';
-        $sortOrder = $filters['sort_order'] ?? 'desc';
+        // Sorting (whitelisted)
+        $sortBy = $this->safeSortColumn(
+            $filters['sort_by'] ?? null,
+            ['set_at', 'year', 'target_value', 'created_at', 'updated_at'],
+            'set_at'
+        );
+        $sortOrder = strtolower($filters['sort_order'] ?? 'desc') === 'asc' ? 'asc' : 'desc';
         $query->orderBy($sortBy, $sortOrder);
 
         return $query->paginate($perPage);
@@ -535,15 +542,15 @@ class TargetService
      */
     protected function clearTargetCache($instansiId): void
     {
-        Cache::forget("target_statistics_{$instansiId}_" . date('Y'));
-        
-        // Clear all target caches for this instansi
-        $keys = Cache::getRedis()->keys("target_*");
-        foreach ($keys as $key) {
-            if (strpos($key, "_{$instansiId}") !== false) {
-                Cache::forget($key);
-            }
-        }
+        // SECURITY/robustness: Cache::getRedis()->keys() fatals on non-redis
+        // stores. Forget the concrete keys instead.
+        $year = date('Y');
+        $this->forgetCacheKeys([
+            "target_statistics_{$instansiId}_{$year}",
+            "targets_list_{$instansiId}",
+            "targets_list_{$instansiId}_1",
+            "targets_list_{$instansiId}_2",
+        ]);
     }
 
     /**

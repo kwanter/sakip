@@ -99,11 +99,11 @@ Route::middleware(["auth", "verified"])->group(function () {
     })->where("any", ".*");
 
     Route::any("program/{any?}", function () {
-        return redirect()->route("sakip.performance-data.index");
+        return redirect()->route("sakip.data-collection.index");
     })->where("any", ".*");
 
     Route::any("kegiatan/{any?}", function () {
-        return redirect()->route("sakip.performance-data.index");
+        return redirect()->route("sakip.data-collection.index");
     })->where("any", ".*");
 
     Route::any("indikator-kinerja/{any?}", function () {

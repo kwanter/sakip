@@ -18,6 +18,8 @@ use Exception;
 
 class ReportService
 {
+    use \App\Traits\ClearsCacheByKey;
+
     protected $cacheTimeout = 3600; // 1 hour
     protected $reportTemplates = [
         'executive_summary' => 'Executive Summary Report',
@@ -489,12 +491,11 @@ class ReportService
     {
         Cache::forget("report_statistics_{$instansiId}_" . date('Y'));
         
-        // Clear all report caches for this instansi
-        $keys = Cache::getRedis()->keys("report_*");
-        foreach ($keys as $key) {
-            if (strpos($key, "_{$instansiId}_") !== false) {
-                Cache::forget($key);
-            }
-        }
+        // SECURITY: getRedis() fatals on non-redis stores — forget concrete keys.
+        $this->forgetCacheKeys([
+            "reports_list_{$instansiId}",
+            "reports_list_{$instansiId}_1",
+            "report_statistics_{$instansiId}_" . date('Y') . "_all",
+        ]);
     }
 }

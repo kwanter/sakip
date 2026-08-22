@@ -28,6 +28,9 @@ use Exception;
  */
 class SakipExportService
 {
+    /** SECURITY: cap rows per export to prevent memory/disk exhaustion (DoS). */
+    public const MAX_EXPORT_ROWS = 10000;
+
     protected int $cacheTimeout = 3600; // 1 hour
     protected string $exportPath = "exports/sakip/";
     protected string $tempPath = "temp/";
@@ -486,7 +489,8 @@ class SakipExportService
             $query->where("status", $filters["status"]);
         }
 
-        $performanceData = $query->get();
+        // SECURITY: cap export size to prevent memory/disk exhaustion (DoS).
+        $performanceData = $query->limit(self::MAX_EXPORT_ROWS)->get();
 
         return $performanceData
             ->map(function ($data) {
@@ -531,7 +535,7 @@ class SakipExportService
             $query->where("status", $filters["status"]);
         }
 
-        $assessments = $query->get();
+        $assessments = $query->limit(self::MAX_EXPORT_ROWS)->get();
 
         return $assessments
             ->map(function ($assessment) {
@@ -623,7 +627,7 @@ class SakipExportService
             $query->where("created_at", "<=", $filters["date_to"]);
         }
 
-        $logs = $query->orderBy("created_at", "desc")->get();
+        $logs = $query->orderBy("created_at", "desc")->limit(self::MAX_EXPORT_ROWS)->get();
 
         return $logs
             ->map(function ($log) {

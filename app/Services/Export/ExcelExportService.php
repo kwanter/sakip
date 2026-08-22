@@ -46,8 +46,8 @@ class ExcelExportService
 
         if (! empty($data)) {
             $headers = array_keys(reset($data));
-            $sheet->fromArray($headers, null, 'A1');
-            $sheet->fromArray($data, null, 'A2');
+            $sheet->fromArray($this->sanitizeCells($headers), null, 'A1');
+            $sheet->fromArray($this->sanitizeCells($data), null, 'A2');
 
             $this->applyStyling($sheet, count($headers), count($data), $options);
         }
@@ -97,7 +97,7 @@ class ExcelExportService
                     ucfirst(str_replace('_', ' ', $key)),
                 );
                 $sheet->getStyle("A{$row}")->getFont()->setBold(true);
-                $sheet->setCellValue("B{$row}", $value);
+                $sheet->setCellValue("B{$row}", $this->sanitizeSingle($value));
                 $row++;
             }
         }
@@ -109,8 +109,8 @@ class ExcelExportService
 
             if (! empty($tableData)) {
                 $headers = array_keys(reset($tableData));
-                $sheet->fromArray($headers, null, "A{$startRow}");
-                $sheet->fromArray($tableData, null, 'A'.($startRow + 1));
+                $sheet->fromArray($this->sanitizeCells($headers), null, "A{$startRow}");
+                $sheet->fromArray($this->sanitizeCells($tableData), null, 'A'.($startRow + 1));
 
                 $this->applyStyling($sheet, count($headers), count($tableData), [], $startRow);
             }
@@ -133,6 +133,33 @@ class ExcelExportService
      * @param  array  $options  Additional styling options
      * @param  int  $startRow  Starting row for data (default: 1)
      */
+    /**
+     * Neutralize spreadsheet formula injection.
+     *
+     * SECURITY: values starting with = + - @ become formulas when opened.
+     * Prefix with a single quote to render as literal text.
+     */
+    protected function sanitizeCells(array $rows): array
+    {
+        foreach ($rows as &$row) {
+            foreach ($row as &$val) {
+                $val = $this->sanitizeSingle($val);
+            }
+            unset($val);
+        }
+        unset($row);
+
+        return $rows;
+    }
+
+    protected function sanitizeSingle(mixed $value): mixed
+    {
+        if (is_string($value) && $value !== '' && str_contains('=+-@', $value[0])) {
+            return "'" . $value;
+        }
+        return $value;
+    }
+
     protected function applyStyling(
         $sheet,
         int $columnCount,
