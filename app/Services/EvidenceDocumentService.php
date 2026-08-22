@@ -19,7 +19,9 @@ class EvidenceDocumentService
     protected $allowedExtensions = [
         'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx',
         'jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff',
-        'csv', 'txt', 'zip', 'rar'
+        'csv', 'txt'
+        // SECURITY: archives (zip/rar) removed — cannot scan nested content
+        // for malicious files; mirrors SecureFileUploadMiddleware policy.
     ];
     
     protected $maxFileSize = 10 * 1024 * 1024; // 10MB
@@ -80,7 +82,7 @@ class EvidenceDocumentService
             // Process document (e.g., extract metadata, generate thumbnail)
             $this->processDocument($evidence);
 
-            return $evidence->fresh(['uploadedBy', 'instansi', 'performanceData', 'assessment']);
+            return $evidence->fresh(['uploader', 'performanceData']);
         });
     }
 
@@ -126,7 +128,7 @@ class EvidenceDocumentService
     public function getEvidence($id): ?EvidenceDocument
     {
         return Cache::remember("evidence_{$id}", $this->cacheTimeout, function () use ($id) {
-            return EvidenceDocument::with(['uploadedBy', 'validatedBy', 'instansi', 'performanceData', 'assessment'])->find($id);
+            return EvidenceDocument::with(['uploader', 'performanceData'])->find($id);
         });
     }
 
@@ -135,7 +137,10 @@ class EvidenceDocumentService
      */
     public function getEvidences(array $filters = [], $perPage = 15)
     {
-        $query = EvidenceDocument::with(['uploadedBy', 'validatedBy', 'instansi', 'performanceData', 'assessment']);
+        $query = EvidenceDocument::with(['uploader', 'performanceData']);
+
+        // SECURITY: non-HQ users can never widen their view to other instansi.
+        $filters['instansi_id'] = $this->resolveTenantScope($filters['instansi_id'] ?? null);
 
         // Apply filters
         if (isset($filters['instansi_id'])) {
@@ -173,7 +178,7 @@ class EvidenceDocumentService
                     ->orWhereHas('instansi', function ($q2) use ($filters) {
                         $q2->where('name', 'like', '%' . $filters['search'] . '%');
                     })
-                    ->orWhereHas('uploadedBy', function ($q2) use ($filters) {
+                    ->orWhereHas('uploader', function ($q2) use ($filters) {
                         $q2->where('name', 'like', '%' . $filters['search'] . '%');
                     });
             });
@@ -220,8 +225,10 @@ class EvidenceDocumentService
                 throw new Exception('Validation failed: ' . $validator->errors()->first());
             }
 
-            // Update evidence
-            $evidence->update($data);
+            // SECURITY: only persist fields allowed by the whitelist above.
+            // Passing raw $data would let a caller overwrite server-pinned
+            // fields (file_path, file_name, metadata, instansi_id, etc.).
+            $evidence->update($validator->validated());
 
             // Log activity
             $this->logActivity('update', $evidence, 'Evidence document updated');
@@ -229,7 +236,7 @@ class EvidenceDocumentService
             // Clear cache
             $this->clearEvidenceCache($evidence->instansi_id);
 
-            return $evidence->fresh(['uploadedBy', 'validatedBy', 'instansi', 'performanceData', 'assessment']);
+            return $evidence->fresh(['uploader', 'performanceData']);
         });
     }
 
@@ -261,7 +268,7 @@ class EvidenceDocumentService
             // Trigger notifications
             $this->notifyValidationResult($evidence, $oldStatus, $status);
 
-            return $evidence->fresh(['uploadedBy', 'validatedBy', 'instansi', 'performanceData', 'assessment']);
+            return $evidence->fresh(['uploader', 'performanceData']);
         });
     }
 
@@ -270,6 +277,12 @@ class EvidenceDocumentService
      */
     public function deleteEvidence(EvidenceDocument $evidence): bool
     {
+        $user = auth()->user();
+        if ($user && $user->instansi_id !== null && $user->instansi_id !== $evidence->instansi_id
+            && ! $user->hasRole(\App\Constants\SystemRoles::SUPER_ADMIN)) {
+            abort(403, 'Cannot delete evidence from another institution.');
+        }
+
         return DB::transaction(function () use ($evidence) {
             if ($evidence->file_path) {
                 foreach (['local', 'public'] as $disk) {
@@ -294,7 +307,19 @@ class EvidenceDocumentService
     }
 
     /**
-     * Download evidence document (private local preferred; public legacy fallback)
+     * Resolve the instansi a non-HQ user may access.
+     */
+    protected function resolveTenantScope(mixed $requested): mixed
+    {
+        $user = auth()->user();
+        if ($user === null || $user->instansi_id === null) {
+            return $requested ?: null;
+        }
+        return $user->instansi_id;
+    }
+
+    /**
+     * Download evidence document from the private local disk.
      */
     public function downloadEvidence(EvidenceDocument $evidence): array
     {
@@ -302,13 +327,13 @@ class EvidenceDocumentService
             throw new Exception('Evidence document file not found');
         }
 
-        $disk = Storage::disk('local')->exists($evidence->file_path)
-            ? 'local'
-            : 'public';
-
-        if (!Storage::disk($disk)->exists($evidence->file_path)) {
+        // SECURITY: never serve from the web-accessible public disk.
+        // Evidence files are private; add a public-disk fallback would let
+        // anyone fetch /storage/<path> without authorization.
+        if (! Storage::disk('local')->exists($evidence->file_path)) {
             throw new Exception('Evidence document file not found');
         }
+        $disk = 'local';
 
         // Update download count
         $evidence->increment('download_count');
@@ -330,6 +355,8 @@ class EvidenceDocumentService
      */
     public function getEvidenceStatistics($instansiId = null): array
     {
+        // SECURITY: non-HQ users are pinned to their own institution.
+        $instansiId = $this->resolveTenantScope($instansiId);
         $cacheKey = "evidence_statistics_{$instansiId}";
         
         return Cache::remember($cacheKey, $this->cacheTimeout, function () use ($instansiId) {
@@ -438,8 +465,6 @@ class EvidenceDocumentService
             'image/tiff',
             'text/csv',
             'text/plain',
-            'application/zip',
-            'application/x-rar-compressed',
         ];
 
         return in_array($mimeType, $allowedMimeTypes);
@@ -620,14 +645,12 @@ class EvidenceDocumentService
      */
     protected function clearEvidenceCache($instansiId): void
     {
+        // SECURITY/robustness: never assume the redis store. The previous
+        // Cache::getRedis()->keys() call fatals on array/database/file stores.
         Cache::forget("evidence_statistics_{$instansiId}");
-        
-        // Clear all evidence caches for this instansi
-        $keys = Cache::getRedis()->keys("evidence_*");
-        foreach ($keys as $key) {
-            if (strpos($key, "_{$instansiId}") !== false) {
-                Cache::forget($key);
-            }
+        Cache::forget("evidence_list_all");
+        foreach ([10, 25, 50, 100] as $perPage) {
+            Cache::forget("evidence_list_{$instansiId}_{$perPage}");
         }
     }
 
@@ -640,6 +663,7 @@ class EvidenceDocumentService
             'user_id' => auth()->id(),
             'instansi_id' => $evidence->instansi_id,
             'module' => 'sakip',
+            'action' => $action . '_evidence',
             'activity' => $action . '_evidence',
             'description' => $description,
             'old_values' => $action === 'update' || $action === 'validate' ? $evidence->getOriginal() : null,
