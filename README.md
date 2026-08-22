@@ -1,5 +1,8 @@
 # SAKIP - Sistem Akuntabilitas Kinerja Instansi Pemerintah
 
+> **v1.1.0** — Security & Architecture Hardening (2026-08-22)
+> [Changelog](#changelog)
+
 A comprehensive web-based application for managing government performance accountability (SAKIP) in Indonesia. Built with Laravel, this system helps government institutions manage performance indicators, collect data, generate reports, and maintain accountability standards.
 
 ## Table of Contents
@@ -14,6 +17,7 @@ A comprehensive web-based application for managing government performance accoun
 - [Technical Architecture](#technical-architecture)
 - [Security Features](#security-features)
 - [API Documentation](#api-documentation)
+- [Changelog](#changelog)
 - [Troubleshooting](#troubleshooting)
 - [Contributing](#contributing)
 - [License](#license)
@@ -58,17 +62,20 @@ SAKIP (Sistem Akuntabilitas Kinerja Instansi Pemerintah) is a performance accoun
 - **Activity Logging**: Complete audit trail of user actions
 
 ### Security Features
-- **Security Headers**: CSP, HSTS, X-Frame-Options protection
-- **CSRF Protection**: Token-based protection for all forms
-- **SQL Injection Prevention**: Parameterized queries via Eloquent ORM
-- **XSS Protection**: Input sanitization and output escaping
-- **Authentication**: Secure login with password hashing (bcrypt)
-- **Session Management**: Secure session handling
+- **Security Headers**: CSP (nonce-based), HSTS, X-Frame-Options, Referrer-Policy, Permissions-Policy
+- **CSRF Protection**: Token-based protection for all forms and session-authenticated API calls
+- **SQL Injection Prevention**: Parameterized queries via Eloquent ORM (all raw SQL uses bound params)
+- **XSS Protection**: Blade output escaping; export cell values neutralized against spreadsheet formula injection
+- **Authentication**: Secure login with password hashing (bcrypt), email verification, per-operation rate limiting
+- **Authorization**: Spatie role/permission policies with institution (tenant) scoping; Super Admin role cannot be self-assigned
+- **File Uploads**: `secure.file.upload` middleware — MIME + extension allowlist, 10 MB cap, archives blocked, evidence on private disk
+- **Session Management**: Encrypted sessions, secure cookies, strict SameSite
+- **Dependency Auditing**: `composer audit` runs in CI — 0 known advisories
 
 ## System Requirements
 
 ### Server Requirements
-- PHP >= 8.1
+- PHP >= 8.3
 - MySQL >= 8.0 or MariaDB >= 10.3
 - Composer >= 2.0
 - Node.js >= 16.x (for asset compilation)
@@ -337,7 +344,7 @@ Access the application at `http://your-domain.com` and login with your credentia
 ## Technical Architecture
 
 ### Framework & Core
-- **Laravel 10.x**: PHP web application framework
+- **Laravel 12.x**: PHP web application framework
 - **MySQL 8.0**: Primary database
 - **UUID Primary Keys**: All tables use UUIDs instead of auto-increment
 - **Soft Deletes**: Logical deletion for data integrity
@@ -345,7 +352,6 @@ Access the application at `http://your-domain.com` and login with your credentia
 ### Design Patterns
 - **MVC Architecture**: Model-View-Controller pattern
 - **Service Layer**: Business logic separated from controllers
-- **Repository Pattern**: Data access abstraction
 - **Observer Pattern**: Model events and listeners
 - **Factory Pattern**: Database seeders and factories
 
@@ -449,98 +455,73 @@ X-Content-Type-Options: nosniff
 
 ### Authentication
 
-All API endpoints require authentication via Laravel Sanctum tokens.
+The application is session-based: users authenticate through the web login
+form (`/login`) with CSRF protection. There is **no bearer-token API** —
+API-style JSON endpoints reuse the authenticated web session and require a
+verified email (`auth` + `verified` middleware).
 
-**Get Token:**
-```bash
-POST /api/login
-Content-Type: application/json
+### JSON Endpoints
 
-{
-    "email": "user@example.com",
-    "password": "password"
-}
-```
+AJAX/JSON endpoints live under `sakip/api/*` (`routes/web_sakip.php`) and
+serve the dashboard UI. They are read-mostly and scoped to the caller's
+institution (non-HQ users are pinned to their own `instansi_id`):
 
-**Response:**
-```json
-{
-    "token": "1|abc123...",
-    "user": { ... }
-}
-```
+| Endpoint | Purpose |
+|---|---|
+| `GET sakip/api/dashboard-data` | Dashboard metrics, charts, activities |
+| `GET sakip/api/performance-summary` | Performance summary for period |
+| `GET sakip/api/achievement-trends` | Achievement trend series |
+| `GET sakip/api/compliance-status` | Compliance status per institution |
+| `GET sakip/api/indicator-comparison` | Indicator comparisons |
+| `GET sakip/api/indicators/{indicator}/targets` | Targets for an indicator |
+| `GET sakip/api/indicators/{indicator}/performance-data` | Performance data rows |
+| `GET sakip/api/indicators/by-instansi/{instansi}` | Indicators (dropdown) |
+| `GET sakip/api/sasaran-strategis/by-instansi/{instansi}` | Dropdown data |
+| `GET sakip/api/program/by-sasaran-strategis/{sasaranStrategis}` | Dropdown data |
+| `GET sakip/api/kegiatan/by-program/{program}` | Dropdown data |
+| `GET sakip/api/assessment-analytics` | Assessment analytics |
+| `GET sakip/api/report-analytics` | Report analytics |
+| `GET sakip/api/audit-analytics` | Audit analytics |
 
-### Performance Indicators
+All responses are JSON: `{"success": true, "data": ..., "timestamp": ...}`.
 
-**List Indicators:**
-```bash
-GET /api/sakip/indicators
-Authorization: Bearer {token}
-```
+### Mutations
 
-**Get Indicator:**
-```bash
-GET /api/sakip/indicators/{id}
-Authorization: Bearer {token}
-```
+Data changes use standard server-rendered form routes (CSRF-protected):
+`sakip/indicators/*`, `sakip/targets/*`, `sakip/data-collection/*`,
+`sakip/assessments/*`, `sakip/reports/*`. File uploads on these routes are
+guarded by `secure.file.upload` middleware (MIME + extension allowlist,
+10 MB cap, archives blocked).
 
-**Create Indicator:**
-```bash
-POST /api/sakip/indicators
-Authorization: Bearer {token}
-Content-Type: application/json
+## Changelog
 
-{
-    "code": "IKU-001",
-    "name": "Indicator Name",
-    "measurement_unit": "percent",
-    "polarity": "maximize"
-}
-```
+### v1.1.0 — 2026-08-22 — Security & Architecture Hardening
 
-### Performance Data
+**Security**
+- Removed dead parallel API stacks (api_sakip / api_v1) — the live API is the session-authenticated `sakip/api/*` group
+- Blocked Super Admin self-escalation via role allowlist in `AdminService`
+- Pinned non-HQ users to their own institution on all API endpoints (cross-tenant pivot fix)
+- Evidence documents: server-pinned file_path, archive uploads (zip/rar) blocked, tenant-scoped reads/deletes, private-disk only
+- Registered `AssessmentCriterionPolicy` (previously unpoliced) and implemented `ReportPolicy::approve`
+- Removed data-corrupting `SanitizeInputMiddleware`; output escaping + bound queries remain the real defenses
+- Whitelisted sort_by columns across 6 services (prevents 500s on invalid column names)
+- Encrypted sessions + secure cookies in defaults; capped CSP-report log writes
+- composer audit: 0 advisories (guzzlehttp/guzzle, league/commonmark updated)
 
-**Submit Data:**
-```bash
-POST /api/sakip/performance-data
-Authorization: Bearer {token}
-Content-Type: application/json
+**Build integrity**
+- Restored export stack: phpoffice/phpspreadsheet + dompdf installed; formula-injection guard on all cell writes; export row cap (10 000 rows)
+- Fixed 3 latent fatals: audit-log insert (missing action column), Cache::getRedis() crash on non-redis stores (6 services), evidence eager-loads referencing nonexistent relations
 
-{
-    "performance_indicator_id": "uuid",
-    "period": "2025-01",
-    "actual_value": 85.5,
-    "notes": "Notes here"
-}
-```
+**Maintenance**
+- Deleted unreferenced services (AuditService, EnhancedAuditService, ValidationOrchestrator), unused Repository layer, unmapped React/Inertia pages, dead Policies/Sakip stubs
+- Collapsed duplicate performance-data/data-collection route group
+- Repo hygiene: stray SQLite DB and compiled view cache gitignored
 
-**Get Data:**
-```bash
-GET /api/sakip/performance-data?period=2025-01&indicator_id=uuid
-Authorization: Bearer {token}
-```
+**Verification**: 77 tests passing, CI green (lint, PHP 8.3/8.4 tests, security audit, frontend build).
 
-### Reports
+### v1.0.0 — Security Hardened Release
 
-**Generate Report:**
-```bash
-POST /api/sakip/reports/generate
-Authorization: Bearer {token}
-Content-Type: application/json
-
-{
-    "report_type": "performance",
-    "template_id": "uuid",
-    "period_start": "2025-01-01",
-    "period_end": "2025-12-31"
-}
-```
-
-**Download Report:**
-```bash
-GET /api/sakip/reports/{id}/download
-Authorization: Bearer {token}
-```
+Initial tagged release with tenant-scoped authorization, CSP/HSTS headers, and baseline test suite.
 
 ## Troubleshooting
 

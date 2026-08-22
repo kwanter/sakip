@@ -1,9 +1,9 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel/laravel",
+    "name": "kwanter/sakip",
     "type": "project",
-    "description": "The skeleton application for the Laravel framework.",
-    "keywords": ["laravel", "framework"],
+    "description": "SAKIP - Sistem Akuntabilitas Kinerja Instansi Pemerintah. Government performance accountability management system for Indonesian institutions.",
+    "keywords": ["sakip", "laravel", "government", "performance-accountability", "indonesia"],
     "license": "MIT",
     "require": {
         "php": "^8.3",
