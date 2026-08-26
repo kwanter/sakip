@@ -2,15 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
 class HealthController extends Controller
 {
     /**
      * Health check endpoint
-     *
-     * @return JsonResponse
      */
     public function health(): JsonResponse
     {
@@ -18,7 +15,7 @@ class HealthController extends Controller
             'status' => 'healthy',
             'timestamp' => now()->toIso8601String(),
             'service' => 'SAKIP API',
-            'version' => '1.0.0'
+            'version' => '1.0.0',
         ]);
     }
 }

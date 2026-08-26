@@ -12,7 +12,6 @@ class SakipPolicy
     /**
      * Determine whether the user can view the SAKIP dashboard.
      *
-     * @param  \App\Models\User  $user
      * @return \Illuminate\Auth\Access\Response|bool
      */
     public function viewDashboard(User $user)
@@ -23,7 +22,6 @@ class SakipPolicy
     /**
      * Determine whether the user can view performance indicators.
      *
-     * @param  \App\Models\User  $user
      * @return \Illuminate\Auth\Access\Response|bool
      */
     public function viewPerformanceIndicators(User $user)
@@ -34,7 +32,6 @@ class SakipPolicy
     /**
      * Determine whether the user can view performance data.
      *
-     * @param  \App\Models\User  $user
      * @return \Illuminate\Auth\Access\Response|bool
      */
     public function viewPerformanceData(User $user)
@@ -45,7 +42,6 @@ class SakipPolicy
     /**
      * Determine whether the user can view assessments.
      *
-     * @param  \App\Models\User  $user
      * @return \Illuminate\Auth\Access\Response|bool
      */
     public function viewAssessments(User $user)
@@ -56,7 +52,6 @@ class SakipPolicy
     /**
      * Determine whether the user can view reports.
      *
-     * @param  \App\Models\User  $user
      * @return \Illuminate\Auth\Access\Response|bool
      */
     public function viewReports(User $user)
@@ -67,7 +62,6 @@ class SakipPolicy
     /**
      * Determine whether the user can export SAKIP data.
      *
-     * @param  \App\Models\User  $user
      * @return \Illuminate\Auth\Access\Response|bool
      */
     public function exportData(User $user)

@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests\Sakip;
 
-use App\Constants\ValidationRules;
 use App\Constants\Status;
+use App\Constants\ValidationRules;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -12,15 +12,11 @@ use Illuminate\Validation\Rule;
  *
  * Handles validation for Kegiatan (Activity) create and update operations.
  * Eliminates duplicate validation logic from controllers.
- *
- * @package App\Http\Requests\Sakip
  */
 class KegiatanFormRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
-     *
-     * @return bool
      */
     public function authorize(): bool
     {
@@ -48,23 +44,23 @@ class KegiatanFormRequest extends FormRequest
             'kode_kegiatan' => [
                 'required',
                 'string',
-                'max:' . ValidationRules::CODE_MAX_LENGTH,
+                'max:'.ValidationRules::CODE_MAX_LENGTH,
                 Rule::unique('kegiatans', 'kode_kegiatan')->ignore($kegiatanId),
             ],
             'nama_kegiatan' => [
                 'required',
                 'string',
-                'max:' . ValidationRules::NAME_MAX_LENGTH,
+                'max:'.ValidationRules::NAME_MAX_LENGTH,
             ],
             'deskripsi' => [
                 'nullable',
                 'string',
-                'max:' . ValidationRules::LONG_TEXT_MAX_LENGTH,
+                'max:'.ValidationRules::LONG_TEXT_MAX_LENGTH,
             ],
             'status' => [
                 'required',
                 'string',
-                'in:' . Status::DRAFT . ',' . Status::ACTIVE . ',' . Status::COMPLETED,
+                'in:'.Status::DRAFT.','.Status::ACTIVE.','.Status::COMPLETED,
             ],
             'target_anggaran' => [
                 'nullable',
@@ -89,7 +85,7 @@ class KegiatanFormRequest extends FormRequest
             'penanggung_jawab' => [
                 'nullable',
                 'string',
-                'max:' . ValidationRules::SHORT_TEXT_MAX_LENGTH,
+                'max:'.ValidationRules::SHORT_TEXT_MAX_LENGTH,
             ],
         ];
     }

@@ -2,14 +2,13 @@
 
 namespace App\Http\Controllers\Sakip;
 
-use App\Http\Controllers\Controller;
-use App\Http\Requests\Sakip\ProgramFormRequest;
-use App\Models\Program;
-use App\Models\Instansi;
-use App\Models\SasaranStrategis;
 use App\Constants\Pagination;
 use App\Constants\Status;
-use App\Constants\ValidationRules;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Sakip\ProgramFormRequest;
+use App\Models\Instansi;
+use App\Models\Program;
+use App\Models\SasaranStrategis;
 use App\Traits\WithDatabaseTransactions;
 use Illuminate\Http\Request;
 
@@ -28,62 +27,62 @@ class ProgramController extends Controller
      */
     public function index(Request $request)
     {
-        $this->authorize("viewAny", Program::class);
+        $this->authorize('viewAny', Program::class);
 
-        $query = Program::with(["instansi", "sasaranStrategis"]);
+        $query = Program::with(['instansi', 'sasaranStrategis']);
 
         // Search functionality
-        if ($request->filled("search")) {
-            $search = $request->get("search");
+        if ($request->filled('search')) {
+            $search = $request->get('search');
             $query->where(function ($q) use ($search) {
-                $q->where("nama_program", "like", "%{$search}%")
-                    ->orWhere("kode_program", "like", "%{$search}%")
-                    ->orWhereHas("instansi", function ($q) use ($search) {
-                        $q->where("nama_instansi", "like", "%{$search}%");
+                $q->where('nama_program', 'like', "%{$search}%")
+                    ->orWhere('kode_program', 'like', "%{$search}%")
+                    ->orWhereHas('instansi', function ($q) use ($search) {
+                        $q->where('nama_instansi', 'like', "%{$search}%");
                     });
             });
         }
 
         // Filter by instansi
-        if ($request->filled("instansi_id")) {
-            $query->where("instansi_id", $request->get("instansi_id"));
+        if ($request->filled('instansi_id')) {
+            $query->where('instansi_id', $request->get('instansi_id'));
         }
 
         // Filter by sasaran strategis
-        if ($request->filled("sasaran_strategis_id")) {
+        if ($request->filled('sasaran_strategis_id')) {
             $query->where(
-                "sasaran_strategis_id",
-                $request->get("sasaran_strategis_id"),
+                'sasaran_strategis_id',
+                $request->get('sasaran_strategis_id'),
             );
         }
 
         // Filter by status
-        if ($request->filled("status")) {
-            $query->where("status", $request->get("status"));
+        if ($request->filled('status')) {
+            $query->where('status', $request->get('status'));
         }
 
         // Filter by tahun
-        if ($request->filled("tahun")) {
-            $query->where("tahun", $request->get("tahun"));
+        if ($request->filled('tahun')) {
+            $query->where('tahun', $request->get('tahun'));
         }
 
         // REFACTORED: Use constant instead of magic number
         $programs = $query
-            ->orderBy("created_at", "desc")
+            ->orderBy('created_at', 'desc')
             ->paginate(Pagination::DEFAULT);
 
         // REFACTORED: Use constant for status filter
-        $instansis = Instansi::where("status", Status::ACTIVE)
-            ->orderBy("nama_instansi")
+        $instansis = Instansi::where('status', Status::ACTIVE)
+            ->orderBy('nama_instansi')
             ->get();
 
-        $sasaranStrategis = SasaranStrategis::where("status", Status::ACTIVE)
-            ->orderBy("nama_strategis")
+        $sasaranStrategis = SasaranStrategis::where('status', Status::ACTIVE)
+            ->orderBy('nama_strategis')
             ->get();
 
         return view(
-            "sakip.program.index",
-            compact("programs", "instansis", "sasaranStrategis"),
+            'sakip.program.index',
+            compact('programs', 'instansis', 'sasaranStrategis'),
         );
     }
 
@@ -92,30 +91,30 @@ class ProgramController extends Controller
      */
     public function create()
     {
-        $this->authorize("create", Program::class);
+        $this->authorize('create', Program::class);
 
         // REFACTORED: Use constant for status filter
-        $instansis = Instansi::where("status", Status::ACTIVE)
-            ->orderBy("nama_instansi")
+        $instansis = Instansi::where('status', Status::ACTIVE)
+            ->orderBy('nama_instansi')
             ->get();
 
         // Check if there are any sasaran strategis
-        $sasaranStrategis = SasaranStrategis::where("status", Status::ACTIVE)
-            ->orderBy("nama_strategis")
+        $sasaranStrategis = SasaranStrategis::where('status', Status::ACTIVE)
+            ->orderBy('nama_strategis')
             ->get();
 
         if ($sasaranStrategis->isEmpty()) {
             return redirect()
-                ->route("sakip.sasaran-strategis.index")
+                ->route('sakip.sasaran-strategis.index')
                 ->with(
-                    "warning",
-                    "Silakan tambahkan Sasaran Strategis terlebih dahulu sebelum membuat Program.",
+                    'warning',
+                    'Silakan tambahkan Sasaran Strategis terlebih dahulu sebelum membuat Program.',
                 );
         }
 
         return view(
-            "sakip.program.create",
-            compact("instansis", "sasaranStrategis"),
+            'sakip.program.create',
+            compact('instansis', 'sasaranStrategis'),
         );
     }
 
@@ -126,17 +125,18 @@ class ProgramController extends Controller
      */
     public function store(ProgramFormRequest $request)
     {
-        $this->authorize("create", Program::class);
+        $this->authorize('create', Program::class);
 
         // REFACTORED: Use trait to handle transactions and errors automatically
         return $this->runInTransactionWithErrorHandling(
             function () use ($request) {
                 $program = Program::create($request->validated());
+
                 return $program;
             },
-            "program.store",
-            "Program berhasil ditambahkan.",
-            "Terjadi kesalahan saat menyimpan data program.",
+            'program.store',
+            'Program berhasil ditambahkan.',
+            'Terjadi kesalahan saat menyimpan data program.',
         );
     }
 
@@ -145,16 +145,16 @@ class ProgramController extends Controller
      */
     public function show(Program $program)
     {
-        $this->authorize("view", $program);
+        $this->authorize('view', $program);
 
         $program->load([
-            "instansi",
-            "sasaranStrategis",
-            "kegiatans",
-            "performanceIndicators",
+            'instansi',
+            'sasaranStrategis',
+            'kegiatans',
+            'performanceIndicators',
         ]);
 
-        return view("sakip.program.show", compact("program"));
+        return view('sakip.program.show', compact('program'));
     }
 
     /**
@@ -162,24 +162,24 @@ class ProgramController extends Controller
      */
     public function edit(Program $program)
     {
-        $this->authorize("update", $program);
+        $this->authorize('update', $program);
 
         // REFACTORED: Use constant for status filter
-        $instansis = Instansi::where("status", Status::ACTIVE)
-            ->orderBy("nama_instansi")
+        $instansis = Instansi::where('status', Status::ACTIVE)
+            ->orderBy('nama_instansi')
             ->get();
 
         $sasaranStrategis = SasaranStrategis::where(
-            "instansi_id",
+            'instansi_id',
             $program->instansi_id,
         )
-            ->where("status", Status::ACTIVE)
-            ->orderBy("nama_strategis")
+            ->where('status', Status::ACTIVE)
+            ->orderBy('nama_strategis')
             ->get();
 
         return view(
-            "sakip.program.edit",
-            compact("program", "instansis", "sasaranStrategis"),
+            'sakip.program.edit',
+            compact('program', 'instansis', 'sasaranStrategis'),
         );
     }
 
@@ -190,17 +190,18 @@ class ProgramController extends Controller
      */
     public function update(ProgramFormRequest $request, Program $program)
     {
-        $this->authorize("update", $program);
+        $this->authorize('update', $program);
 
         // REFACTORED: Use trait to handle transactions and errors automatically
         return $this->runInTransactionWithErrorHandling(
             function () use ($request, $program) {
                 $program->update($request->validated());
+
                 return $program;
             },
-            "program.update",
-            "Program berhasil diperbarui.",
-            "Terjadi kesalahan saat memperbarui data program.",
+            'program.update',
+            'Program berhasil diperbarui.',
+            'Terjadi kesalahan saat memperbarui data program.',
         );
     }
 
@@ -211,7 +212,7 @@ class ProgramController extends Controller
      */
     public function destroy(Program $program)
     {
-        $this->authorize("delete", $program);
+        $this->authorize('delete', $program);
 
         // REFACTORED: Use trait to handle transactions automatically
         return $this->runInTransaction(function () use ($program) {
@@ -220,16 +221,16 @@ class ProgramController extends Controller
 
             if ($hasKegiatans) {
                 throw new \Exception(
-                    "Program tidak dapat dihapus karena memiliki Kegiatan terkait.",
+                    'Program tidak dapat dihapus karena memiliki Kegiatan terkait.',
                 );
             }
 
             $program->delete();
 
             return redirect()
-                ->route("sakip.program.index")
-                ->with("success", "Program berhasil dihapus.");
-        }, "program.destroy");
+                ->route('sakip.program.index')
+                ->with('success', 'Program berhasil dihapus.');
+        }, 'program.destroy');
     }
 
     /**
@@ -239,10 +240,10 @@ class ProgramController extends Controller
      */
     public function bySasaranStrategis($sasaranStrategisId)
     {
-        $programs = Program::where("sasaran_strategis_id", $sasaranStrategisId)
-            ->where("status", Status::ACTIVE)
-            ->orderBy("nama_program")
-            ->get(["id", "kode_program", "nama_program", "tahun"]);
+        $programs = Program::where('sasaran_strategis_id', $sasaranStrategisId)
+            ->where('status', Status::ACTIVE)
+            ->orderBy('nama_program')
+            ->get(['id', 'kode_program', 'nama_program', 'tahun']);
 
         return response()->json($programs);
     }

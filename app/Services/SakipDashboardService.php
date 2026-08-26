@@ -2,12 +2,12 @@
 
 namespace App\Services;
 
+use App\Services\Sakip\SakipService;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
-use Carbon\Carbon;
-use App\Services\Sakip\SakipService;
 
 /**
  * Service to aggregate and provide dashboard data for SAKIP.
@@ -26,7 +26,7 @@ class SakipDashboardService
     /**
      * Construct the dashboard service.
      *
-     * @param SakipService $sakipService SAKIP core service dependency.
+     * @param  SakipService  $sakipService  SAKIP core service dependency.
      */
     public function __construct(SakipService $sakipService)
     {
@@ -36,13 +36,13 @@ class SakipDashboardService
     /**
      * Get dashboard data aggregate for a period.
      *
-     * @param string $period One of: current_year, current_month, last_month, current_quarter, last_quarter
+     * @param  string  $period  One of: current_year, current_month, last_month, current_quarter, last_quarter
      * @return array Structured dashboard payload with safe fallbacks.
      */
     public function getDashboardData(string $period = 'current_year'): array
     {
-        $cacheKey = 'sakip_dashboard_' . $period . '_' . auth()->id();
-        
+        $cacheKey = 'sakip_dashboard_'.$period.'_'.auth()->id();
+
         return Cache::remember($cacheKey, now()->addMinutes(15), function () use ($period) {
             return [
                 'metrics' => $this->getMetrics($period),
@@ -59,13 +59,13 @@ class SakipDashboardService
     /**
      * Get dashboard metrics summary for a period.
      *
-     * @param string $period Period filter string.
+     * @param  string  $period  Period filter string.
      * @return array Metrics payload with counts and averages.
      */
     public function getMetrics(string $period = 'current_year'): array
     {
         $dateRange = $this->getDateRange($period);
-        
+
         return [
             'total_indicators' => $this->getTotalIndicators($dateRange),
             'active_programs' => $this->getActivePrograms($dateRange),
@@ -79,13 +79,13 @@ class SakipDashboardService
     /**
      * Get chart datasets for a period.
      *
-     * @param string $period Period filter string.
+     * @param  string  $period  Period filter string.
      * @return array Chart datasets (achievement trend, category breakdown, instansi comparison, quarterly).
      */
     public function getChartData(string $period = 'current_year'): array
     {
         $dateRange = $this->getDateRange($period);
-        
+
         return [
             'achievement_trend' => $this->getAchievementTrend($dateRange),
             'category_breakdown' => $this->getCategoryBreakdown($dateRange),
@@ -97,7 +97,7 @@ class SakipDashboardService
     /**
      * Achievement trend over months within the date range.
      *
-     * @param array{0: Carbon, 1: Carbon} $dateRange Start and end dates.
+     * @param  array{0: Carbon, 1: Carbon}  $dateRange  Start and end dates.
      * @return array{labels: array<int,string>, data: array<int,float>} Chart data.
      */
     protected function getAchievementTrend(array $dateRange): array
@@ -123,6 +123,7 @@ class SakipDashboardService
             ];
         } catch (\Throwable $e) {
             Log::error('Failed to get achievement trend', ['exception' => $e]);
+
             return ['labels' => [], 'data' => []];
         }
     }
@@ -130,7 +131,7 @@ class SakipDashboardService
     /**
      * Breakdown of indicators by category.
      *
-     * @param array{0: Carbon, 1: Carbon} $dateRange Start and end dates.
+     * @param  array{0: Carbon, 1: Carbon}  $dateRange  Start and end dates.
      * @return array<int,array{name:string,value:int}> Category breakdown list.
      */
     protected function getCategoryBreakdown(array $dateRange): array
@@ -153,9 +154,11 @@ class SakipDashboardService
                     'value' => $count,
                 ];
             }
+
             return $data;
         } catch (\Throwable $e) {
             Log::error('Failed to get category breakdown', ['exception' => $e]);
+
             return [];
         }
     }
@@ -163,7 +166,7 @@ class SakipDashboardService
     /**
      * Compare instansi average achievement.
      *
-     * @param array{0: Carbon, 1: Carbon} $dateRange Start and end dates.
+     * @param  array{0: Carbon, 1: Carbon}  $dateRange  Start and end dates.
      * @return array{labels: array<int,string>, data: array<int,float>} Chart data.
      */
     protected function getInstansiComparison(array $dateRange): array
@@ -193,6 +196,7 @@ class SakipDashboardService
             ];
         } catch (\Throwable $e) {
             Log::error('Failed to get instansi comparison', ['exception' => $e]);
+
             return ['labels' => [], 'data' => []];
         }
     }
@@ -200,7 +204,7 @@ class SakipDashboardService
     /**
      * Quarterly performance summary (Q1-Q4).
      *
-     * @param array{0: Carbon, 1: Carbon} $dateRange Start and end dates.
+     * @param  array{0: Carbon, 1: Carbon}  $dateRange  Start and end dates.
      * @return array{labels: array<int,string>, data: array<int,float>} Chart data.
      */
     protected function getQuarterlyPerformance(array $dateRange): array
@@ -232,6 +236,7 @@ class SakipDashboardService
             ];
         } catch (\Throwable $e) {
             Log::error('Failed to get quarterly performance', ['exception' => $e]);
+
             return [
                 'labels' => array_keys($quarters),
                 'data' => [0, 0, 0, 0],
@@ -242,7 +247,7 @@ class SakipDashboardService
     /**
      * Get recent activities including reports and audit logs.
      *
-     * @param string $period Period filter string.
+     * @param  string  $period  Period filter string.
      * @return array<int,array<string,string>> Recent activity items.
      */
     protected function getRecentActivities(string $period = 'current_year'): array
@@ -291,15 +296,15 @@ class SakipDashboardService
             $auditActivities = collect();
             if ($auditTable) {
                 $auditActivities = DB::table($auditTable)
-                    ->join('users', $auditTable . '.user_id', '=', 'users.id')
+                    ->join('users', $auditTable.'.user_id', '=', 'users.id')
                     ->select(
-                        ($auditTable === 'sakip_audit_logs' ? $auditTable . '.activity' : $auditTable . '.action') . ' as action',
+                        ($auditTable === 'sakip_audit_logs' ? $auditTable.'.activity' : $auditTable.'.action').' as action',
                         'users.name as user_name',
-                        $auditTable . '.created_at as activity_date',
+                        $auditTable.'.created_at as activity_date',
                         DB::raw("'audit_log' as activity_type")
                     )
-                    ->whereBetween($auditTable . '.created_at', $dateRange)
-                    ->orderByDesc($auditTable . '.created_at')
+                    ->whereBetween($auditTable.'.created_at', $dateRange)
+                    ->orderByDesc($auditTable.'.created_at')
                     ->limit(10)
                     ->get();
             }
@@ -319,6 +324,7 @@ class SakipDashboardService
                         'date' => Carbon::parse($activity['activity_date'])->diffForHumans(),
                     ];
                 }
+
                 return [
                     'type' => 'audit_log',
                     'title' => "Action: {$activity['action']}",
@@ -328,6 +334,7 @@ class SakipDashboardService
             })->toArray();
         } catch (\Throwable $e) {
             Log::error('Failed to get recent activities', ['exception' => $e]);
+
             return [];
         }
     }
@@ -335,23 +342,23 @@ class SakipDashboardService
     /**
      * Get unread SAKIP notifications for a user.
      *
-     * @param int $limit Max notifications to return.
-     * @param int|null $userId Target user ID (defaults to current auth user).
+     * @param  int  $limit  Max notifications to return.
+     * @param  int|null  $userId  Target user ID (defaults to current auth user).
      * @return array<int,array<string,string>> Notification items.
      */
     public function getNotifications(int $limit = 5, ?int $userId = null): array
     {
         try {
             $userId = $userId ?? auth()->id();
-            if (!$userId) {
+            if (! $userId) {
                 return [];
             }
 
             $user = \App\Models\User::find($userId);
-            if (!$user || !method_exists($user, 'unreadNotifications')) {
+            if (! $user || ! method_exists($user, 'unreadNotifications')) {
                 return [];
             }
-            
+
             $notifications = $user->unreadNotifications()
                 ->where('type', 'like', '%Sakip%')
                 ->limit($limit)
@@ -368,6 +375,7 @@ class SakipDashboardService
             })->toArray();
         } catch (\Throwable $e) {
             Log::error('Failed to get notifications', ['exception' => $e]);
+
             return [];
         }
     }
@@ -375,7 +383,7 @@ class SakipDashboardService
     /**
      * Compute compliance status across instansi over the period.
      *
-     * @param string $period Period filter string.
+     * @param  string  $period  Period filter string.
      * @return array{total_instansi:int,compliant_instansi:int,compliance_rate:float,instansi_list:array<int,array{name:string,status:string,last_report:string}>}
      */
     protected function getComplianceStatus(string $period = 'current_year'): array
@@ -385,7 +393,7 @@ class SakipDashboardService
             $complianceData = DB::table('instansis')
                 ->leftJoin('reports', function ($join) use ($dateRange) {
                     $join->on('instansis.id', '=', 'reports.instansi_id')
-                         ->whereBetween('reports.created_at', $dateRange);
+                        ->whereBetween('reports.created_at', $dateRange);
                 })
                 ->select(
                     'instansis.nama_instansi as instansi_name',
@@ -414,6 +422,7 @@ class SakipDashboardService
             ];
         } catch (\Throwable $e) {
             Log::error('Failed to get compliance status', ['exception' => $e]);
+
             return [
                 'total_instansi' => 0,
                 'compliant_instansi' => 0,
@@ -426,7 +435,7 @@ class SakipDashboardService
     /**
      * Aggregate performance summary grouped by indicator category.
      *
-     * @param string $period Period filter string.
+     * @param  string  $period  Period filter string.
      * @return array<int,array<string,mixed>> Performance summary list.
      */
     protected function getPerformanceSummary(string $period = 'current_year'): array
@@ -464,6 +473,7 @@ class SakipDashboardService
             })->toArray();
         } catch (\Throwable $e) {
             Log::error('Failed to get performance summary', ['exception' => $e]);
+
             return [];
         }
     }
@@ -471,7 +481,7 @@ class SakipDashboardService
     /**
      * Count total indicators created in the date range.
      *
-     * @param array{0: Carbon, 1: Carbon} $dateRange Start and end dates.
+     * @param  array{0: Carbon, 1: Carbon}  $dateRange  Start and end dates.
      * @return int Total count or 0 on error.
      */
     protected function getTotalIndicators(array $dateRange): int
@@ -482,6 +492,7 @@ class SakipDashboardService
                 ->count();
         } catch (\Throwable $e) {
             Log::error('Failed to count total indicators', ['exception' => $e]);
+
             return 0;
         }
     }
@@ -489,7 +500,7 @@ class SakipDashboardService
     /**
      * Count active programs in the date range.
      *
-     * @param array{0: Carbon, 1: Carbon} $dateRange Start and end dates.
+     * @param  array{0: Carbon, 1: Carbon}  $dateRange  Start and end dates.
      * @return int Active programs count or 0 on error.
      */
     protected function getActivePrograms(array $dateRange): int
@@ -501,6 +512,7 @@ class SakipDashboardService
                 ->count();
         } catch (\Throwable $e) {
             Log::error('Failed to count active programs', ['exception' => $e]);
+
             return 0;
         }
     }
@@ -508,7 +520,7 @@ class SakipDashboardService
     /**
      * Count total activities in the date range.
      *
-     * @param array{0: Carbon, 1: Carbon} $dateRange Start and end dates.
+     * @param  array{0: Carbon, 1: Carbon}  $dateRange  Start and end dates.
      * @return int Activities count or 0 on error.
      */
     protected function getTotalActivities(array $dateRange): int
@@ -519,6 +531,7 @@ class SakipDashboardService
                 ->count();
         } catch (\Throwable $e) {
             Log::error('Failed to count total activities', ['exception' => $e]);
+
             return 0;
         }
     }
@@ -526,7 +539,7 @@ class SakipDashboardService
     /**
      * Count total reports in the date range.
      *
-     * @param array{0: Carbon, 1: Carbon} $dateRange Start and end dates.
+     * @param  array{0: Carbon, 1: Carbon}  $dateRange  Start and end dates.
      * @return int Reports count or 0 on error.
      */
     protected function getTotalReports(array $dateRange): int
@@ -537,6 +550,7 @@ class SakipDashboardService
                 ->count();
         } catch (\Throwable $e) {
             Log::error('Failed to count total reports', ['exception' => $e]);
+
             return 0;
         }
     }
@@ -544,7 +558,7 @@ class SakipDashboardService
     /**
      * Average achievement percentage in the date range.
      *
-     * @param array{0: Carbon, 1: Carbon} $dateRange Start and end dates.
+     * @param  array{0: Carbon, 1: Carbon}  $dateRange  Start and end dates.
      * @return float Average or 0.0 on error.
      */
     protected function getAverageAchievement(array $dateRange): float
@@ -553,9 +567,11 @@ class SakipDashboardService
             $average = DB::table('laporan_kinerjas')
                 ->whereBetween('created_at', $dateRange)
                 ->avg('persentase_capaian');
+
             return round($average ?? 0, 2);
         } catch (\Throwable $e) {
             Log::error('Failed to compute average achievement', ['exception' => $e]);
+
             return 0.0;
         }
     }
@@ -563,7 +579,7 @@ class SakipDashboardService
     /**
      * Compliance rate based on reporting instansi.
      *
-     * @param array{0: Carbon, 1: Carbon} $dateRange Start and end dates.
+     * @param  array{0: Carbon, 1: Carbon}  $dateRange  Start and end dates.
      * @return float Rate percentage or 0.0 on error.
      */
     protected function getComplianceRate(array $dateRange): float
@@ -574,9 +590,11 @@ class SakipDashboardService
                 ->whereBetween('created_at', $dateRange)
                 ->distinct()
                 ->count('instansi_id');
+
             return $totalInstansi > 0 ? round(($reportingInstansi / $totalInstansi) * 100, 2) : 0.0;
         } catch (\Throwable $e) {
             Log::error('Failed to compute compliance rate', ['exception' => $e]);
+
             return 0.0;
         }
     }
@@ -584,7 +602,7 @@ class SakipDashboardService
     /**
      * Resolve date range based on period.
      *
-     * @param string $period One of allowed period keys; defaults to current_year.
+     * @param  string  $period  One of allowed period keys; defaults to current_year.
      * @return array{0: Carbon, 1: Carbon} Start and end Carbon instances.
      */
     protected function getDateRange(string $period): array
@@ -597,43 +615,43 @@ class SakipDashboardService
             case 'current_month':
                 return [
                     $now->copy()->startOfMonth(),
-                    $now->copy()->endOfMonth()
+                    $now->copy()->endOfMonth(),
                 ];
             case 'last_month':
                 $lastMonth = $now->copy()->subMonth();
+
                 return [
                     $lastMonth->copy()->startOfMonth(),
-                    $lastMonth->copy()->endOfMonth()
+                    $lastMonth->copy()->endOfMonth(),
                 ];
             case 'current_quarter':
                 return [
                     $now->copy()->startOfQuarter(),
-                    $now->copy()->endOfQuarter()
+                    $now->copy()->endOfQuarter(),
                 ];
             case 'last_quarter':
                 $lastQuarter = $now->copy()->subQuarter();
+
                 return [
                     $lastQuarter->copy()->startOfQuarter(),
-                    $lastQuarter->copy()->endOfQuarter()
+                    $lastQuarter->copy()->endOfQuarter(),
                 ];
             case 'current_year':
             default:
                 return [
                     $now->copy()->startOfYear(),
-                    $now->copy()->endOfYear()
+                    $now->copy()->endOfYear(),
                 ];
         }
     }
 
     /**
      * Clear cached dashboard aggregates for common periods.
-     *
-     * @return void
      */
     public function clearCache(): void
     {
-        Cache::forget('sakip_dashboard_current_year_' . auth()->id());
-        Cache::forget('sakip_dashboard_current_month_' . auth()->id());
-        Cache::forget('sakip_dashboard_current_quarter_' . auth()->id());
+        Cache::forget('sakip_dashboard_current_year_'.auth()->id());
+        Cache::forget('sakip_dashboard_current_month_'.auth()->id());
+        Cache::forget('sakip_dashboard_current_quarter_'.auth()->id());
     }
 }

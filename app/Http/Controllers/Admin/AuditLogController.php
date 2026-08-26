@@ -29,7 +29,7 @@ class AuditLogController extends Controller
         if ($request->has('user')) {
             $query->whereHas('user', function ($q) use ($request) {
                 $q->where('name', 'like', "%{$request->get('user')}%")
-                  ->orWhere('email', 'like', "%{$request->get('user')}%");
+                    ->orWhere('email', 'like', "%{$request->get('user')}%");
             });
         }
 
@@ -39,7 +39,7 @@ class AuditLogController extends Controller
         }
 
         if ($request->has('date_to')) {
-            $query->where('created_at', '<=', $request->get('date_to') . ' 23:59:59');
+            $query->where('created_at', '<=', $request->get('date_to').' 23:59:59');
         }
 
         $logs = $query->latest()->paginate(50);

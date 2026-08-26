@@ -3,17 +3,15 @@
 namespace App\Http\Controllers\Sakip;
 
 use App\Http\Controllers\Controller;
+use App\Models\AuditLog;
 use App\Models\PerformanceData;
 use App\Models\PerformanceIndicator;
-use App\Models\Assessment;
-use App\Models\AuditLog;
-use App\Services\PerformanceCalculationService;
 use App\Services\BenchmarkingService;
+use App\Services\PerformanceCalculationService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
-use Carbon\Carbon;
 
 /**
  * Performance Measurement Controller
@@ -24,6 +22,7 @@ use Carbon\Carbon;
 class PerformanceMeasurementController extends Controller
 {
     protected PerformanceCalculationService $calculationService;
+
     protected BenchmarkingService $benchmarkingService;
 
     /**
@@ -42,7 +41,7 @@ class PerformanceMeasurementController extends Controller
      */
     public function index(Request $request)
     {
-        $this->authorize("viewAny", PerformanceData::class);
+        $this->authorize('viewAny', PerformanceData::class);
 
         try {
             $user = Auth::user();
@@ -50,33 +49,33 @@ class PerformanceMeasurementController extends Controller
             $currentYear = Carbon::now()->year;
 
             // Get filters
-            $year = $request->get("year", $currentYear);
-            $quarter = $request->get("quarter");
-            $category = $request->get("category");
-            $comparisonType = $request->get("comparison", "target");
+            $year = $request->get('year', $currentYear);
+            $quarter = $request->get('quarter');
+            $category = $request->get('category');
+            $comparisonType = $request->get('comparison', 'target');
 
             // Get performance data with calculations
             $query = PerformanceIndicator::where(
-                "instansi_id",
+                'instansi_id',
                 $instansiId,
             )->with([
-                "performanceData" => function ($q) use ($year, $quarter) {
-                    $q->whereYear("period", $year);
+                'performanceData' => function ($q) use ($year, $quarter) {
+                    $q->whereYear('period', $year);
                     if ($quarter) {
-                        $q->whereRaw("QUARTER(period) = ?", [$quarter]);
+                        $q->whereRaw('QUARTER(period) = ?', [$quarter]);
                     }
-                    $q->orderBy("period", "desc");
+                    $q->orderBy('period', 'desc');
                 },
-                "targets" => function ($q) use ($year) {
-                    $q->where("year", $year);
+                'targets' => function ($q) use ($year) {
+                    $q->where('year', $year);
                 },
             ]);
 
             if ($category) {
-                $query->where("category", $category);
+                $query->where('category', $category);
             }
 
-            $indicators = $query->orderBy("name")->paginate(15);
+            $indicators = $query->orderBy('name')->paginate(15);
 
             // Calculate overall performance metrics
             $metrics = $this->calculateOverallMetrics(
@@ -101,25 +100,26 @@ class PerformanceMeasurementController extends Controller
             );
 
             return view(
-                "sakip.performance-measurement.index",
+                'sakip.performance-measurement.index',
                 compact(
-                    "indicators",
-                    "metrics",
-                    "trends",
-                    "benchmarks",
-                    "year",
-                    "quarter",
-                    "category",
-                    "comparisonType",
+                    'indicators',
+                    'metrics',
+                    'trends',
+                    'benchmarks',
+                    'year',
+                    'quarter',
+                    'category',
+                    'comparisonType',
                 ),
             );
         } catch (\Exception $e) {
             \Log::error(
-                "Performance measurement index error: " . $e->getMessage(),
+                'Performance measurement index error: '.$e->getMessage(),
             );
+
             return back()->with(
-                "error",
-                "Terjadi kesalahan saat memuat halaman pengukuran kinerja.",
+                'error',
+                'Terjadi kesalahan saat memuat halaman pengukuran kinerja.',
             );
         }
     }
@@ -129,7 +129,7 @@ class PerformanceMeasurementController extends Controller
      */
     public function show(PerformanceIndicator $indicator)
     {
-        $this->authorize("view", $indicator);
+        $this->authorize('view', $indicator);
 
         try {
             $user = Auth::user();
@@ -137,18 +137,18 @@ class PerformanceMeasurementController extends Controller
 
             // Get performance data with calculations
             $performanceData = PerformanceData::where(
-                "performance_indicator_id",
+                'performance_indicator_id',
                 $indicator->id,
             )
-                ->whereYear("period", $currentYear)
-                ->orderBy("period")
+                ->whereYear('period', $currentYear)
+                ->orderBy('period')
                 ->get();
 
             // Get targets
             $targets = $indicator
                 ->targets()
-                ->where("year", $currentYear)
-                ->orderBy("period")
+                ->where('year', $currentYear)
+                ->orderBy('period')
                 ->get();
 
             // Calculate performance metrics
@@ -170,25 +170,26 @@ class PerformanceMeasurementController extends Controller
             );
 
             return view(
-                "sakip.performance-measurement.show",
+                'sakip.performance-measurement.show',
                 compact(
-                    "indicator",
-                    "performanceData",
-                    "targets",
-                    "metrics",
-                    "historicalData",
-                    "benchmarks",
-                    "scoring",
-                    "currentYear",
+                    'indicator',
+                    'performanceData',
+                    'targets',
+                    'metrics',
+                    'historicalData',
+                    'benchmarks',
+                    'scoring',
+                    'currentYear',
                 ),
             );
         } catch (\Exception $e) {
             \Log::error(
-                "Performance measurement show error: " . $e->getMessage(),
+                'Performance measurement show error: '.$e->getMessage(),
             );
+
             return back()->with(
-                "error",
-                "Terjadi kesalahan saat memuat detail pengukuran kinerja.",
+                'error',
+                'Terjadi kesalahan saat memuat detail pengukuran kinerja.',
             );
         }
     }
@@ -198,40 +199,40 @@ class PerformanceMeasurementController extends Controller
      */
     public function calculate(Request $request, PerformanceIndicator $indicator)
     {
-        $this->authorize("calculate", $indicator);
+        $this->authorize('calculate', $indicator);
 
         $validator = Validator::make($request->all(), [
-            "year" => "required|integer|min:2020|max:" . Carbon::now()->year,
-            "quarter" => "nullable|integer|between:1,4",
-            "period" => "nullable|date",
+            'year' => 'required|integer|min:2020|max:'.Carbon::now()->year,
+            'quarter' => 'nullable|integer|between:1,4',
+            'period' => 'nullable|date',
         ]);
 
         if ($validator->fails()) {
             return response()->json(
                 [
-                    "success" => false,
-                    "message" => "Validasi gagal.",
-                    "errors" => $validator->errors(),
+                    'success' => false,
+                    'message' => 'Validasi gagal.',
+                    'errors' => $validator->errors(),
                 ],
                 422,
             );
         }
 
         try {
-            $year = $request->get("year");
-            $quarter = $request->get("quarter");
-            $period = $request->get("period");
+            $year = $request->get('year');
+            $quarter = $request->get('quarter');
+            $period = $request->get('period');
 
             // Get performance data for calculation
             $query = PerformanceData::where(
-                "indicator_id",
+                'indicator_id',
                 $indicator->id,
-            )->whereYear("period", $year);
+            )->whereYear('period', $year);
 
             if ($quarter) {
-                $query->whereRaw("QUARTER(period) = ?", [$quarter]);
+                $query->whereRaw('QUARTER(period) = ?', [$quarter]);
             } elseif ($period) {
-                $query->where("period", $period);
+                $query->where('period', $period);
             }
 
             $performanceData = $query->get();
@@ -249,20 +250,20 @@ class PerformanceMeasurementController extends Controller
             // PERFORMANCE: Use bulk update instead of loop to avoid N+1 query problem
             $now = Carbon::now();
             $updateData = [];
-            
+
             foreach ($performanceData as $data) {
-                if (isset($calculationResult["individual_scores"][$data->id])) {
+                if (isset($calculationResult['individual_scores'][$data->id])) {
                     $updateData[] = [
                         'id' => $data->id,
-                        'performance_percentage' => $calculationResult["individual_scores"][$data->id],
+                        'performance_percentage' => $calculationResult['individual_scores'][$data->id],
                         'calculated_at' => $now,
                         'updated_by' => Auth::id(),
                     ];
                 }
             }
-            
+
             // Bulk update using upsert (single query instead of N queries)
-            if (!empty($updateData)) {
+            if (! empty($updateData)) {
                 \DB::table('performance_data')->upsert(
                     $updateData,
                     ['id'],
@@ -272,26 +273,27 @@ class PerformanceMeasurementController extends Controller
 
             // Log the activity
             AuditLog::create([
-                "user_id" => Auth::id(),
-                "instansi_id" => Auth::user()->instansi_id,
-                "action" => "CALCULATE",
-                "module" => "SAKIP",
-                "description" => "Menghitung kinerja untuk indikator: {$indicator->name} (Tahun: {$year})",
-                "old_values" => null,
-                "new_values" => $calculationResult,
+                'user_id' => Auth::id(),
+                'instansi_id' => Auth::user()->instansi_id,
+                'action' => 'CALCULATE',
+                'module' => 'SAKIP',
+                'description' => "Menghitung kinerja untuk indikator: {$indicator->name} (Tahun: {$year})",
+                'old_values' => null,
+                'new_values' => $calculationResult,
             ]);
 
             return response()->json([
-                "success" => true,
-                "message" => "Perhitungan kinerja berhasil dilakukan.",
-                "data" => $calculationResult,
+                'success' => true,
+                'message' => 'Perhitungan kinerja berhasil dilakukan.',
+                'data' => $calculationResult,
             ]);
         } catch (\Exception $e) {
-            \Log::error("Calculate performance error: " . $e->getMessage());
+            \Log::error('Calculate performance error: '.$e->getMessage());
+
             return response()->json(
                 [
-                    "success" => false,
-                    "message" => "Terjadi kesalahan saat menghitung kinerja.",
+                    'success' => false,
+                    'message' => 'Terjadi kesalahan saat menghitung kinerja.',
                 ],
                 500,
             );
@@ -303,23 +305,21 @@ class PerformanceMeasurementController extends Controller
      */
     public function compareBenchmarks(Request $request)
     {
-        $this->authorize("viewAny", PerformanceData::class);
+        $this->authorize('viewAny', PerformanceData::class);
 
         $validator = Validator::make($request->all(), [
-            "indicator_id" => "required|exists:performance_indicators,id",
-            "benchmark_type" =>
-                "required|in:institution,regional,national,sector",
-            "comparison_period" =>
-                "required|in:monthly,quarterly,semester,annual",
-            "year" => "required|integer|min:2020|max:" . Carbon::now()->year,
+            'indicator_id' => 'required|exists:performance_indicators,id',
+            'benchmark_type' => 'required|in:institution,regional,national,sector',
+            'comparison_period' => 'required|in:monthly,quarterly,semester,annual',
+            'year' => 'required|integer|min:2020|max:'.Carbon::now()->year,
         ]);
 
         if ($validator->fails()) {
             return response()->json(
                 [
-                    "success" => false,
-                    "message" => "Validasi gagal.",
-                    "errors" => $validator->errors(),
+                    'success' => false,
+                    'message' => 'Validasi gagal.',
+                    'errors' => $validator->errors(),
                 ],
                 422,
             );
@@ -327,11 +327,11 @@ class PerformanceMeasurementController extends Controller
 
         try {
             $indicator = PerformanceIndicator::findOrFail(
-                $request->get("indicator_id"),
+                $request->get('indicator_id'),
             );
-            $benchmarkType = $request->get("benchmark_type");
-            $comparisonPeriod = $request->get("comparison_period");
-            $year = $request->get("year");
+            $benchmarkType = $request->get('benchmark_type');
+            $comparisonPeriod = $request->get('comparison_period');
+            $year = $request->get('year');
 
             // Get benchmark data
             $benchmarkData = $this->benchmarkingService->getBenchmarkComparison(
@@ -350,17 +350,17 @@ class PerformanceMeasurementController extends Controller
             );
 
             return response()->json([
-                "success" => true,
-                "message" => "Perbandingan benchmark berhasil dilakukan.",
-                "data" => $comparisonResult,
+                'success' => true,
+                'message' => 'Perbandingan benchmark berhasil dilakukan.',
+                'data' => $comparisonResult,
             ]);
         } catch (\Exception $e) {
-            \Log::error("Benchmark comparison error: " . $e->getMessage());
+            \Log::error('Benchmark comparison error: '.$e->getMessage());
+
             return response()->json(
                 [
-                    "success" => false,
-                    "message" =>
-                        "Terjadi kesalahan saat melakukan perbandingan benchmark.",
+                    'success' => false,
+                    'message' => 'Terjadi kesalahan saat melakukan perbandingan benchmark.',
                 ],
                 500,
             );
@@ -372,24 +372,23 @@ class PerformanceMeasurementController extends Controller
      */
     public function generateReport(Request $request)
     {
-        $this->authorize("generateReport", PerformanceData::class);
+        $this->authorize('generateReport', PerformanceData::class);
 
         $validator = Validator::make($request->all(), [
-            "report_type" =>
-                "required|in:monthly,quarterly,semester,annual,custom",
-            "year" => "required|integer|min:2020|max:" . Carbon::now()->year,
-            "quarter" => "nullable|integer|between:1,4",
-            "month" => "nullable|integer|between:1,12",
-            "category" => "nullable|string",
-            "format" => "required|in:pdf,excel",
+            'report_type' => 'required|in:monthly,quarterly,semester,annual,custom',
+            'year' => 'required|integer|min:2020|max:'.Carbon::now()->year,
+            'quarter' => 'nullable|integer|between:1,4',
+            'month' => 'nullable|integer|between:1,12',
+            'category' => 'nullable|string',
+            'format' => 'required|in:pdf,excel',
         ]);
 
         if ($validator->fails()) {
             return response()->json(
                 [
-                    "success" => false,
-                    "message" => "Validasi gagal.",
-                    "errors" => $validator->errors(),
+                    'success' => false,
+                    'message' => 'Validasi gagal.',
+                    'errors' => $validator->errors(),
                 ],
                 422,
             );
@@ -397,31 +396,31 @@ class PerformanceMeasurementController extends Controller
 
         try {
             $user = Auth::user();
-            $reportType = $request->get("report_type");
-            $year = $request->get("year");
-            $format = $request->get("format");
+            $reportType = $request->get('report_type');
+            $year = $request->get('year');
+            $format = $request->get('format');
 
             // Get performance data based on report type
             $indicators = PerformanceIndicator::where(
-                "instansi_id",
+                'instansi_id',
                 $user->instansi_id,
             )->with([
-                "performanceData" => function ($q) use ($request) {
+                'performanceData' => function ($q) use ($request) {
                     $this->applyPeriodFilter($q, $request);
                 },
-                "targets" => function ($q) use ($year) {
-                    $q->where("year", $year);
+                'targets' => function ($q) use ($year) {
+                    $q->where('year', $year);
                 },
             ]);
 
-            if ($request->filled("category")) {
-                $indicators->where("category", $request->get("category"));
+            if ($request->filled('category')) {
+                $indicators->where('category', $request->get('category'));
             }
 
             $indicators = $indicators->get();
 
             // Generate report based on format
-            if ($format === "pdf") {
+            if ($format === 'pdf') {
                 $reportFile = $this->reportService->generatePerformanceReportPDF(
                     $indicators,
                     $reportType,
@@ -439,39 +438,39 @@ class PerformanceMeasurementController extends Controller
 
             // Log the activity
             AuditLog::create([
-                "user_id" => $user->id,
-                "instansi_id" => $user->instansi_id,
-                "action" => "GENERATE_REPORT",
-                "module" => "SAKIP",
-                "description" => "Menghasilkan laporan kinerja (Tipe: {$reportType}, Format: {$format}, Tahun: {$year})",
-                "old_values" => null,
-                "new_values" => [
-                    "report_type" => $reportType,
-                    "format" => $format,
-                    "year" => $year,
+                'user_id' => $user->id,
+                'instansi_id' => $user->instansi_id,
+                'action' => 'GENERATE_REPORT',
+                'module' => 'SAKIP',
+                'description' => "Menghasilkan laporan kinerja (Tipe: {$reportType}, Format: {$format}, Tahun: {$year})",
+                'old_values' => null,
+                'new_values' => [
+                    'report_type' => $reportType,
+                    'format' => $format,
+                    'year' => $year,
                 ],
             ]);
 
             return response()->json([
-                "success" => true,
-                "message" => "Laporan kinerja berhasil dibuat.",
-                "data" => [
-                    "file_path" => $reportFile,
-                    "download_url" => route(
-                        "sakip.performance-measurement.download-report",
-                        ["file" => basename($reportFile)],
+                'success' => true,
+                'message' => 'Laporan kinerja berhasil dibuat.',
+                'data' => [
+                    'file_path' => $reportFile,
+                    'download_url' => route(
+                        'sakip.performance-measurement.download-report',
+                        ['file' => basename($reportFile)],
                     ),
                 ],
             ]);
         } catch (\Exception $e) {
             \Log::error(
-                "Generate performance report error: " . $e->getMessage(),
+                'Generate performance report error: '.$e->getMessage(),
             );
+
             return response()->json(
                 [
-                    "success" => false,
-                    "message" =>
-                        "Terjadi kesalahan saat membuat laporan kinerja.",
+                    'success' => false,
+                    'message' => 'Terjadi kesalahan saat membuat laporan kinerja.',
                 ],
                 500,
             );
@@ -483,21 +482,21 @@ class PerformanceMeasurementController extends Controller
      */
     public function getTrends(Request $request)
     {
-        $this->authorize("viewAny", PerformanceData::class);
+        $this->authorize('viewAny', PerformanceData::class);
 
         $validator = Validator::make($request->all(), [
-            "indicator_id" => "nullable|exists:performance_indicators,id",
-            "category" => "nullable|string",
-            "period" => "required|in:monthly,quarterly,semester,annual",
-            "years" => "required|integer|between:1,5",
+            'indicator_id' => 'nullable|exists:performance_indicators,id',
+            'category' => 'nullable|string',
+            'period' => 'required|in:monthly,quarterly,semester,annual',
+            'years' => 'required|integer|between:1,5',
         ]);
 
         if ($validator->fails()) {
             return response()->json(
                 [
-                    "success" => false,
-                    "message" => "Validasi gagal.",
-                    "errors" => $validator->errors(),
+                    'success' => false,
+                    'message' => 'Validasi gagal.',
+                    'errors' => $validator->errors(),
                 ],
                 422,
             );
@@ -505,10 +504,10 @@ class PerformanceMeasurementController extends Controller
 
         try {
             $user = Auth::user();
-            $indicatorId = $request->get("indicator_id");
-            $category = $request->get("category");
-            $period = $request->get("period");
-            $years = $request->get("years");
+            $indicatorId = $request->get('indicator_id');
+            $category = $request->get('category');
+            $period = $request->get('period');
+            $years = $request->get('years');
 
             // Get trends data
             $trendsData = $this->calculationService->getPerformanceTrends(
@@ -520,17 +519,17 @@ class PerformanceMeasurementController extends Controller
             );
 
             return response()->json([
-                "success" => true,
-                "message" => "Tren kinerja berhasil diambil.",
-                "data" => $trendsData,
+                'success' => true,
+                'message' => 'Tren kinerja berhasil diambil.',
+                'data' => $trendsData,
             ]);
         } catch (\Exception $e) {
-            \Log::error("Get performance trends error: " . $e->getMessage());
+            \Log::error('Get performance trends error: '.$e->getMessage());
+
             return response()->json(
                 [
-                    "success" => false,
-                    "message" =>
-                        "Terjadi kesalahan saat mengambil tren kinerja.",
+                    'success' => false,
+                    'message' => 'Terjadi kesalahan saat mengambil tren kinerja.',
                 ],
                 500,
             );
@@ -546,41 +545,41 @@ class PerformanceMeasurementController extends Controller
         $quarter = null,
         $category = null,
     ) {
-        $query = PerformanceData::whereHas("indicator", function ($q) use (
+        $query = PerformanceData::whereHas('indicator', function ($q) use (
             $instansiId,
             $category,
         ) {
-            $q->where("instansi_id", $instansiId);
+            $q->where('instansi_id', $instansiId);
             if ($category) {
-                $q->where("category", $category);
+                $q->where('category', $category);
             }
-        })->whereYear("period", $year);
+        })->whereYear('period', $year);
 
         if ($quarter) {
-            $query->whereRaw("QUARTER(period) = ?", [$quarter]);
+            $query->whereRaw('QUARTER(period) = ?', [$quarter]);
         }
 
         $performanceData = $query->get();
 
         if ($performanceData->isEmpty()) {
             return [
-                "average_performance" => 0,
-                "total_indicators" => 0,
-                "achieved_indicators" => 0,
-                "achievement_rate" => 0,
-                "performance_categories" => [
-                    "excellent" => 0,
-                    "good" => 0,
-                    "fair" => 0,
-                    "poor" => 0,
+                'average_performance' => 0,
+                'total_indicators' => 0,
+                'achieved_indicators' => 0,
+                'achievement_rate' => 0,
+                'performance_categories' => [
+                    'excellent' => 0,
+                    'good' => 0,
+                    'fair' => 0,
+                    'poor' => 0,
                 ],
             ];
         }
 
-        $averagePerformance = $performanceData->avg("performance_percentage");
+        $averagePerformance = $performanceData->avg('performance_percentage');
         $totalIndicators = $performanceData->count();
         $achievedIndicators = $performanceData
-            ->where("performance_percentage", ">=", 100)
+            ->where('performance_percentage', '>=', 100)
             ->count();
         $achievementRate =
             $totalIndicators > 0
@@ -589,30 +588,30 @@ class PerformanceMeasurementController extends Controller
 
         // Categorize performance
         $categories = [
-            "excellent" => 0,
-            "good" => 0,
-            "fair" => 0,
-            "poor" => 0,
+            'excellent' => 0,
+            'good' => 0,
+            'fair' => 0,
+            'poor' => 0,
         ];
 
         foreach ($performanceData as $data) {
             if ($data->performance_percentage >= 120) {
-                $categories["excellent"]++;
+                $categories['excellent']++;
             } elseif ($data->performance_percentage >= 100) {
-                $categories["good"]++;
+                $categories['good']++;
             } elseif ($data->performance_percentage >= 80) {
-                $categories["fair"]++;
+                $categories['fair']++;
             } else {
-                $categories["poor"]++;
+                $categories['poor']++;
             }
         }
 
         return [
-            "average_performance" => round($averagePerformance, 2),
-            "total_indicators" => $totalIndicators,
-            "achieved_indicators" => $achievedIndicators,
-            "achievement_rate" => round($achievementRate, 2),
-            "performance_categories" => $categories,
+            'average_performance' => round($averagePerformance, 2),
+            'total_indicators' => $totalIndicators,
+            'achieved_indicators' => $achievedIndicators,
+            'achievement_rate' => round($achievementRate, 2),
+            'performance_categories' => $categories,
         ];
     }
 
@@ -626,29 +625,29 @@ class PerformanceMeasurementController extends Controller
 
         // Get monthly trends for the year
         for ($month = 1; $month <= 12; $month++) {
-            $query = PerformanceData::whereHas("indicator", function ($q) use (
+            $query = PerformanceData::whereHas('indicator', function ($q) use (
                 $instansiId,
                 $category,
             ) {
-                $q->where("instansi_id", $instansiId);
+                $q->where('instansi_id', $instansiId);
                 if ($category) {
-                    $q->where("category", $category);
+                    $q->where('category', $category);
                 }
             })
-                ->whereYear("period", $year)
-                ->whereMonth("period", $month);
+                ->whereYear('period', $year)
+                ->whereMonth('period', $month);
 
             $monthData = $query->get();
 
-            $months[] = Carbon::create($year, $month, 1)->format("M");
+            $months[] = Carbon::create($year, $month, 1)->format('M');
             $trends[] = $monthData->isNotEmpty()
-                ? round($monthData->avg("performance_percentage"), 2)
+                ? round($monthData->avg('performance_percentage'), 2)
                 : 0;
         }
 
         return [
-            "labels" => $months,
-            "data" => $trends,
+            'labels' => $months,
+            'data' => $trends,
         ];
     }
 
@@ -661,59 +660,59 @@ class PerformanceMeasurementController extends Controller
         $category = null,
     ) {
         // Get institution performance
-        $institutionQuery = PerformanceData::whereHas("indicator", function (
+        $institutionQuery = PerformanceData::whereHas('indicator', function (
             $q,
         ) use ($instansiId, $category) {
-            $q->where("instansi_id", $instansiId);
+            $q->where('instansi_id', $instansiId);
             if ($category) {
-                $q->where("category", $category);
+                $q->where('category', $category);
             }
-        })->whereYear("period", $year);
+        })->whereYear('period', $year);
 
         $institutionPerformance = round(
-            $institutionQuery->avg("performance_percentage"),
+            $institutionQuery->avg('performance_percentage'),
             2,
         );
 
         // Get regional average (all institutions in the same region)
         $regionalQuery = PerformanceData::whereHas(
-            "indicator.instansi",
+            'indicator.instansi',
             function ($q) use ($instansiId, $category) {
-                $q->where("region_id", function ($subQuery) use ($instansiId) {
+                $q->where('region_id', function ($subQuery) use ($instansiId) {
                     $subQuery
-                        ->select("region_id")
-                        ->from("instansis")
-                        ->where("id", $instansiId);
+                        ->select('region_id')
+                        ->from('instansis')
+                        ->where('id', $instansiId);
                 });
                 if ($category) {
-                    $q->where("category", $category);
+                    $q->where('category', $category);
                 }
             },
-        )->whereYear("period", $year);
+        )->whereYear('period', $year);
 
         $regionalPerformance = round(
-            $regionalQuery->avg("performance_percentage"),
+            $regionalQuery->avg('performance_percentage'),
             2,
         );
 
         // Get national average (all institutions)
-        $nationalQuery = PerformanceData::whereHas("indicator", function (
+        $nationalQuery = PerformanceData::whereHas('indicator', function (
             $q,
         ) use ($category) {
             if ($category) {
-                $q->where("category", $category);
+                $q->where('category', $category);
             }
-        })->whereYear("period", $year);
+        })->whereYear('period', $year);
 
         $nationalPerformance = round(
-            $nationalQuery->avg("performance_percentage"),
+            $nationalQuery->avg('performance_percentage'),
             2,
         );
 
         return [
-            "institution" => $institutionPerformance,
-            "regional" => $regionalPerformance,
-            "national" => $nationalPerformance,
+            'institution' => $institutionPerformance,
+            'regional' => $regionalPerformance,
+            'national' => $nationalPerformance,
         ];
     }
 
@@ -725,28 +724,28 @@ class PerformanceMeasurementController extends Controller
         $year,
     ) {
         $performanceData = PerformanceData::where(
-            "performance_indicator_id",
+            'performance_indicator_id',
             $indicator->id,
         )
-            ->whereYear("period", $year)
+            ->whereYear('period', $year)
             ->get();
 
         if ($performanceData->isEmpty()) {
             return [
-                "average_performance" => 0,
-                "min_performance" => 0,
-                "max_performance" => 0,
-                "achievement_rate" => 0,
-                "consistency_score" => 0,
+                'average_performance' => 0,
+                'min_performance' => 0,
+                'max_performance' => 0,
+                'achievement_rate' => 0,
+                'consistency_score' => 0,
             ];
         }
 
-        $averagePerformance = $performanceData->avg("performance_percentage");
-        $minPerformance = $performanceData->min("performance_percentage");
-        $maxPerformance = $performanceData->max("performance_percentage");
+        $averagePerformance = $performanceData->avg('performance_percentage');
+        $minPerformance = $performanceData->min('performance_percentage');
+        $maxPerformance = $performanceData->max('performance_percentage');
         $achievementRate =
             ($performanceData
-                ->where("performance_percentage", ">=", 100)
+                ->where('performance_percentage', '>=', 100)
                 ->count() /
                 $performanceData->count()) *
             100;
@@ -761,11 +760,11 @@ class PerformanceMeasurementController extends Controller
         $consistencyScore = max(0, 100 - $standardDeviation / 10); // Normalize to 0-100
 
         return [
-            "average_performance" => round($averagePerformance, 2),
-            "min_performance" => round($minPerformance, 2),
-            "max_performance" => round($maxPerformance, 2),
-            "achievement_rate" => round($achievementRate, 2),
-            "consistency_score" => round($consistencyScore, 2),
+            'average_performance' => round($averagePerformance, 2),
+            'min_performance' => round($minPerformance, 2),
+            'max_performance' => round($maxPerformance, 2),
+            'achievement_rate' => round($achievementRate, 2),
+            'consistency_score' => round($consistencyScore, 2),
         ];
     }
 
@@ -782,20 +781,20 @@ class PerformanceMeasurementController extends Controller
         for ($i = 0; $i < $years; $i++) {
             $year = $currentYear - $i;
             $yearData = PerformanceData::where(
-                "performance_indicator_id",
+                'performance_indicator_id',
                 $indicator->id,
             )
-                ->whereYear("period", $year)
+                ->whereYear('period', $year)
                 ->get();
 
             if ($yearData->isNotEmpty()) {
                 $historicalData[] = [
-                    "year" => $year,
-                    "average_performance" => round(
-                        $yearData->avg("performance_percentage"),
+                    'year' => $year,
+                    'average_performance' => round(
+                        $yearData->avg('performance_percentage'),
                         2,
                     ),
-                    "data_points" => $yearData->count(),
+                    'data_points' => $yearData->count(),
                 ];
             }
         }
@@ -824,9 +823,9 @@ class PerformanceMeasurementController extends Controller
         );
 
         return [
-            "sector" => $sectorBenchmarks,
-            "regional" => $regionalBenchmarks,
-            "national" => $nationalBenchmarks,
+            'sector' => $sectorBenchmarks,
+            'regional' => $regionalBenchmarks,
+            'national' => $nationalBenchmarks,
         ];
     }
 
@@ -838,32 +837,32 @@ class PerformanceMeasurementController extends Controller
         $year,
     ) {
         $performanceData = PerformanceData::where(
-            "indicator_id",
+            'indicator_id',
             $indicator->id,
         )
-            ->whereYear("period", $year)
+            ->whereYear('period', $year)
             ->get();
 
         if ($performanceData->isEmpty()) {
             return [
-                "overall_score" => 0,
-                "achievement_score" => 0,
-                "consistency_score" => 0,
-                "improvement_score" => 0,
-                "grade" => "E",
+                'overall_score' => 0,
+                'achievement_score' => 0,
+                'consistency_score' => 0,
+                'improvement_score' => 0,
+                'grade' => 'E',
             ];
         }
 
         // Achievement score (0-40 points)
         $achievementRate =
             $performanceData
-                ->where("performance_percentage", ">=", 100)
+                ->where('performance_percentage', '>=', 100)
                 ->count() / $performanceData->count();
         $achievementScore = $achievementRate * 40;
 
         // Consistency score (0-30 points)
         $standardDeviation = $this->calculateStandardDeviation(
-            $performanceData->pluck("performance_percentage"),
+            $performanceData->pluck('performance_percentage'),
         );
         $consistencyScore = max(0, 30 - $standardDeviation / 10);
 
@@ -875,11 +874,11 @@ class PerformanceMeasurementController extends Controller
         $grade = $this->getPerformanceGrade($overallScore);
 
         return [
-            "overall_score" => round($overallScore, 2),
-            "achievement_score" => round($achievementScore, 2),
-            "consistency_score" => round($consistencyScore, 2),
-            "improvement_score" => round($improvementScore, 2),
-            "grade" => $grade,
+            'overall_score' => round($overallScore, 2),
+            'achievement_score' => round($achievementScore, 2),
+            'consistency_score' => round($consistencyScore, 2),
+            'improvement_score' => round($improvementScore, 2),
+            'grade' => $grade,
         ];
     }
 
@@ -893,6 +892,7 @@ class PerformanceMeasurementController extends Controller
             return pow($value - $mean, 2);
         });
         $variance = $squaredDiffs->avg();
+
         return sqrt($variance);
     }
 
@@ -905,14 +905,15 @@ class PerformanceMeasurementController extends Controller
             return 0;
         }
 
-        $sortedData = $performanceData->sortBy("period");
+        $sortedData = $performanceData->sortBy('period');
         $firstHalf = $sortedData->take(ceil($sortedData->count() / 2));
         $secondHalf = $sortedData->slice(ceil($sortedData->count() / 2));
 
-        $firstHalfAvg = $firstHalf->avg("performance_percentage");
-        $secondHalfAvg = $secondHalf->avg("performance_percentage");
+        $firstHalfAvg = $firstHalf->avg('performance_percentage');
+        $secondHalfAvg = $secondHalf->avg('performance_percentage');
 
         $improvement = $secondHalfAvg - $firstHalfAvg;
+
         return max(0, min(30, ($improvement / 10) * 30)); // Normalize to 0-30
     }
 
@@ -922,18 +923,19 @@ class PerformanceMeasurementController extends Controller
     private function getPerformanceGrade($score)
     {
         if ($score >= 90) {
-            return "A";
+            return 'A';
         }
         if ($score >= 80) {
-            return "B";
+            return 'B';
         }
         if ($score >= 70) {
-            return "C";
+            return 'C';
         }
         if ($score >= 60) {
-            return "D";
+            return 'D';
         }
-        return "E";
+
+        return 'E';
     }
 
     /**
@@ -941,16 +943,16 @@ class PerformanceMeasurementController extends Controller
      */
     private function applyPeriodFilter($query, Request $request)
     {
-        $year = $request->get("year");
-        $quarter = $request->get("quarter");
-        $month = $request->get("month");
+        $year = $request->get('year');
+        $quarter = $request->get('quarter');
+        $month = $request->get('month');
 
-        $query->whereYear("period", $year);
+        $query->whereYear('period', $year);
 
         if ($quarter) {
-            $query->whereRaw("QUARTER(period) = ?", [$quarter]);
+            $query->whereRaw('QUARTER(period) = ?', [$quarter]);
         } elseif ($month) {
-            $query->whereMonth("period", $month);
+            $query->whereMonth('period', $month);
         }
     }
 }

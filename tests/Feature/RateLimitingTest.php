@@ -125,7 +125,7 @@ class RateLimitingTest extends TestCase
         }
 
         // Clear the rate limiter to simulate time passing
-        RateLimiter::clear('login:' . strtolower('test@example.com') . '|' . request()->ip());
+        RateLimiter::clear('login:'.strtolower('test@example.com').'|'.request()->ip());
 
         // Should be able to attempt again
         $response = $this->post('/login', [
@@ -241,5 +241,4 @@ class RateLimitingTest extends TestCase
 
         $this->assertNotEquals(429, $response->status());
     }
-
 }

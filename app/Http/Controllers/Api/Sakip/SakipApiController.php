@@ -18,7 +18,9 @@ use Illuminate\Support\Facades\Log;
 class SakipApiController extends Controller
 {
     protected $sakipService;
+
     protected $dashboardService;
+
     protected $dataTableService;
 
     public function __construct(
@@ -33,14 +35,11 @@ class SakipApiController extends Controller
 
     /**
      * Get dashboard data.
-     *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\JsonResponse
      */
     public function dashboard(Request $request): \Illuminate\Http\JsonResponse
     {
         return $this->handleApiRequest(
-            fn() => $this->dashboardService->getDashboardData(
+            fn () => $this->dashboardService->getDashboardData(
                 $request->input('period', 'current_year')
             ),
             'dashboard',
@@ -50,14 +49,11 @@ class SakipApiController extends Controller
 
     /**
      * Get performance summary.
-     *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\JsonResponse
      */
     public function performanceSummary(Request $request): \Illuminate\Http\JsonResponse
     {
         return $this->handleApiRequest(
-            fn() => $this->dashboardService->getPerformanceSummary(
+            fn () => $this->dashboardService->getPerformanceSummary(
                 $request->input('period', 'current_year')
             ),
             'performance-summary',
@@ -67,14 +63,11 @@ class SakipApiController extends Controller
 
     /**
      * Get achievement trends.
-     *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\JsonResponse
      */
     public function achievementTrends(Request $request): \Illuminate\Http\JsonResponse
     {
         return $this->handleApiRequest(
-            fn() => $this->dashboardService->getAchievementTrends(
+            fn () => $this->dashboardService->getAchievementTrends(
                 $request->input('period', '12_months'),
                 $this->resolveInstansiId($request->input('instansi_id'))
             ),
@@ -85,14 +78,11 @@ class SakipApiController extends Controller
 
     /**
      * Get compliance status.
-     *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\JsonResponse
      */
     public function complianceStatus(Request $request): \Illuminate\Http\JsonResponse
     {
         return $this->handleApiRequest(
-            fn() => $this->dashboardService->getComplianceStatus(
+            fn () => $this->dashboardService->getComplianceStatus(
                 $this->resolveInstansiId($request->input('instansi_id'))
             ),
             'compliance-status',
@@ -102,14 +92,11 @@ class SakipApiController extends Controller
 
     /**
      * Get indicator comparison.
-     *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\JsonResponse
      */
     public function indicatorComparison(Request $request): \Illuminate\Http\JsonResponse
     {
         return $this->handleApiRequest(
-            fn() => $this->dashboardService->getIndicatorComparison(
+            fn () => $this->dashboardService->getIndicatorComparison(
                 $this->resolveInstansiId($request->input('instansi_id')),
                 $request->input('category')
             ),
@@ -120,14 +107,11 @@ class SakipApiController extends Controller
 
     /**
      * Get recent indicators.
-     *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\JsonResponse
      */
     public function recentIndicators(Request $request): \Illuminate\Http\JsonResponse
     {
         return $this->handleApiRequest(
-            fn() => $this->dashboardService->getRecentIndicators(
+            fn () => $this->dashboardService->getRecentIndicators(
                 $request->input('limit', 10),
                 $this->resolveInstansiId($request->input('instansi_id'))
             ),
@@ -138,14 +122,11 @@ class SakipApiController extends Controller
 
     /**
      * Get recent reports.
-     *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\JsonResponse
      */
     public function recentReports(Request $request): \Illuminate\Http\JsonResponse
     {
         return $this->handleApiRequest(
-            fn() => $this->dashboardService->getRecentReports(
+            fn () => $this->dashboardService->getRecentReports(
                 $request->input('limit', 10),
                 $this->resolveInstansiId($request->input('instansi_id'))
             ),
@@ -156,14 +137,11 @@ class SakipApiController extends Controller
 
     /**
      * Get notifications.
-     *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\JsonResponse
      */
     public function notifications(Request $request): \Illuminate\Http\JsonResponse
     {
         return $this->handleApiRequest(
-            fn() => $this->dashboardService->getNotifications(
+            fn () => $this->dashboardService->getNotifications(
                 $request->input('limit', 10),
                 $request->input('user_id', auth()->id())
             ),
@@ -175,14 +153,12 @@ class SakipApiController extends Controller
     /**
      * Process data table.
      *
-     * @param \Illuminate\Http\Request $request
-     * @param string $type The data table type
-     * @return \Illuminate\Http\JsonResponse
+     * @param  string  $type  The data table type
      */
     public function dataTable(Request $request, string $type): \Illuminate\Http\JsonResponse
     {
         return $this->handleApiRequest(
-            fn() => $this->dataTableService->processRequest($request, $type),
+            fn () => $this->dataTableService->processRequest($request, $type),
             'data-table',
             'Failed to process data table',
             ['type' => $type]
@@ -191,13 +167,11 @@ class SakipApiController extends Controller
 
     /**
      * Get SAKIP configuration.
-     *
-     * @return \Illuminate\Http\JsonResponse
      */
     public function configuration(): \Illuminate\Http\JsonResponse
     {
         return $this->handleApiRequest(
-            fn() => $this->sakipService->getConfiguration(),
+            fn () => $this->sakipService->getConfiguration(),
             'configuration',
             'Failed to fetch configuration'
         );
@@ -205,13 +179,11 @@ class SakipApiController extends Controller
 
     /**
      * Get SAKIP metadata.
-     *
-     * @return \Illuminate\Http\JsonResponse
      */
     public function metadata(): \Illuminate\Http\JsonResponse
     {
         return $this->handleApiRequest(
-            fn() => [
+            fn () => [
                 'indicator_categories' => $this->sakipService->getIndicatorCategories(),
                 'indicator_units' => $this->sakipService->getIndicatorUnits(),
                 'report_types' => $this->sakipService->getReportTypes(),
@@ -258,11 +230,10 @@ class SakipApiController extends Controller
      * This method eliminates code duplication by providing a single
      * implementation for consistent API response formatting.
      *
-     * @param callable $callback The operation to execute
-     * @param string $endpoint The endpoint name for logging
-     * @param string $errorMessage Error message for failures
-     * @param array $additionalContext Additional context for error logging
-     * @return \Illuminate\Http\JsonResponse
+     * @param  callable  $callback  The operation to execute
+     * @param  string  $endpoint  The endpoint name for logging
+     * @param  string  $errorMessage  Error message for failures
+     * @param  array  $additionalContext  Additional context for error logging
      */
     protected function handleApiRequest(
         callable $callback,

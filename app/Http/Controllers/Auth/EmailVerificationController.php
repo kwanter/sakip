@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\AuditLog;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
-use App\Models\AuditLog;
 
 class EmailVerificationController extends Controller
 {
@@ -17,6 +17,7 @@ class EmailVerificationController extends Controller
         if ($request->user()->hasVerifiedEmail()) {
             return redirect()->route('sakip.dashboard');
         }
+
         return view('auth.verify-email');
     }
 

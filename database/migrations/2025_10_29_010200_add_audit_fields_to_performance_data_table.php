@@ -4,7 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      *
@@ -12,52 +13,52 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::table("performance_data", function (Blueprint $table) {
+        Schema::table('performance_data', function (Blueprint $table) {
             $table
-                ->foreignUuid("validated_by")
+                ->foreignUuid('validated_by')
                 ->nullable()
-                ->after("submitted_by")
-                ->constrained("users")
-                ->onDelete("set null");
-
-            $table
-                ->string("data_source", 255)
-                ->nullable()
-                ->after("actual_value");
+                ->after('submitted_by')
+                ->constrained('users')
+                ->onDelete('set null');
 
             $table
-                ->string("collection_method", 100)
+                ->string('data_source', 255)
                 ->nullable()
-                ->after("data_source");
+                ->after('actual_value');
 
             $table
-                ->timestamp("collected_at")
+                ->string('collection_method', 100)
                 ->nullable()
-                ->after("collection_method");
-
-            $table->text("validation_notes")->nullable()->after("validated_at");
+                ->after('data_source');
 
             $table
-                ->foreignUuid("created_by")
+                ->timestamp('collected_at')
                 ->nullable()
-                ->after("validation_notes")
-                ->constrained("users")
-                ->onDelete("set null");
+                ->after('collection_method');
+
+            $table->text('validation_notes')->nullable()->after('validated_at');
 
             $table
-                ->foreignUuid("updated_by")
+                ->foreignUuid('created_by')
                 ->nullable()
-                ->after("created_by")
-                ->constrained("users")
-                ->onDelete("set null");
+                ->after('validation_notes')
+                ->constrained('users')
+                ->onDelete('set null');
 
-            $table->json("metadata")->nullable()->after("updated_by");
+            $table
+                ->foreignUuid('updated_by')
+                ->nullable()
+                ->after('created_by')
+                ->constrained('users')
+                ->onDelete('set null');
+
+            $table->json('metadata')->nullable()->after('updated_by');
 
             // Add indexes
-            $table->index("validated_by");
-            $table->index("created_by");
-            $table->index("updated_by");
-            $table->index("collected_at");
+            $table->index('validated_by');
+            $table->index('created_by');
+            $table->index('updated_by');
+            $table->index('collected_at');
         });
     }
 
@@ -66,23 +67,23 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::table("performance_data", function (Blueprint $table) {
-            $table->dropForeign(["validated_by"]);
-            $table->dropForeign(["created_by"]);
-            $table->dropForeign(["updated_by"]);
-            $table->dropIndex(["validated_by"]);
-            $table->dropIndex(["created_by"]);
-            $table->dropIndex(["updated_by"]);
-            $table->dropIndex(["collected_at"]);
+        Schema::table('performance_data', function (Blueprint $table) {
+            $table->dropForeign(['validated_by']);
+            $table->dropForeign(['created_by']);
+            $table->dropForeign(['updated_by']);
+            $table->dropIndex(['validated_by']);
+            $table->dropIndex(['created_by']);
+            $table->dropIndex(['updated_by']);
+            $table->dropIndex(['collected_at']);
             $table->dropColumn([
-                "validated_by",
-                "data_source",
-                "collection_method",
-                "collected_at",
-                "validation_notes",
-                "created_by",
-                "updated_by",
-                "metadata",
+                'validated_by',
+                'data_source',
+                'collection_method',
+                'collected_at',
+                'validation_notes',
+                'created_by',
+                'updated_by',
+                'metadata',
             ]);
         });
     }

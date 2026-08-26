@@ -17,8 +17,6 @@ use Throwable;
  *       // ... database operations
  *       return redirect()->with('success', 'Operation completed');
  *   }, 'user.store');
- *
- * @package App\Traits
  */
 trait WithDatabaseTransactions
 {
@@ -29,9 +27,10 @@ trait WithDatabaseTransactions
      * If the callback throws an exception, the transaction is rolled back,
      * the error is logged, and the exception is re-thrown.
      *
-     * @param callable $callback The operations to execute within the transaction
-     * @param string $operationName Human-readable operation name for logging
+     * @param  callable  $callback  The operations to execute within the transaction
+     * @param  string  $operationName  Human-readable operation name for logging
      * @return mixed The return value of the callback
+     *
      * @throws Throwable If the callback throws an exception
      */
     protected function runInTransaction(callable $callback, string $operationName = 'operation')
@@ -73,10 +72,10 @@ trait WithDatabaseTransactions
      * Unlike runInTransaction, this method catches exceptions and returns
      * a formatted error response instead of throwing.
      *
-     * @param callable $callback The operations to execute within the transaction
-     * @param string $operationName Human-readable operation name for logging
-     * @param string $successMessage Message to return on success
-     * @param string $errorMessage Message to return on failure
+     * @param  callable  $callback  The operations to execute within the transaction
+     * @param  string  $operationName  Human-readable operation name for logging
+     * @param  string  $successMessage  Message to return on success
+     * @param  string  $errorMessage  Message to return on failure
      * @return \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
      */
     protected function runInTransactionWithErrorHandling(
@@ -126,7 +125,7 @@ trait WithDatabaseTransactions
 
             return redirect()
                 ->back()
-                ->with('error', $errorMessage . ': ' . $e->getMessage())
+                ->with('error', $errorMessage.': '.$e->getMessage())
                 ->withInput();
         }
     }

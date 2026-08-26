@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  * SystemSetting Model
@@ -54,13 +54,9 @@ class SystemSetting extends Model
 
     /**
      * Scope: filter by module prefix (e.g., module.setting -> module).
-     *
-     * @param Builder $query
-     * @param string $module
-     * @return Builder
      */
     public function scopeModule(Builder $query, string $module): Builder
     {
-        return $query->where('key', 'LIKE', $module . '.%');
+        return $query->where('key', 'LIKE', $module.'.%');
     }
 }

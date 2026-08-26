@@ -2,8 +2,8 @@
 
 namespace Database\Factories;
 
-use App\Models\PerformanceIndicator;
 use App\Models\Instansi;
+use App\Models\PerformanceIndicator;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -34,7 +34,7 @@ class PerformanceIndicatorFactory extends Factory
 
         return [
             'instansi_id' => Instansi::inRandomOrder()->first()->id ?? Instansi::factory(),
-            'code' => 'PI-' . strtoupper(fake()->bothify('??###')),
+            'code' => 'PI-'.strtoupper(fake()->bothify('??###')),
             'name' => fake()->catchPhrase(),
             'description' => fake()->sentence(15),
             'measurement_unit' => fake()->randomElement($measurementUnits),
@@ -45,7 +45,7 @@ class PerformanceIndicatorFactory extends Factory
                 '(Actual - Minimum) / (Target - Minimum) * 100',
                 'Actual Value',
                 'Sum of all values',
-                'Average of monthly values'
+                'Average of monthly values',
             ]),
             'frequency' => fake()->randomElement($frequencies),
             'category' => fake()->randomElement($categories),
@@ -55,7 +55,7 @@ class PerformanceIndicatorFactory extends Factory
                 'benchmark' => fake()->optional()->randomFloat(2, 70, 95),
                 'industry_standard' => fake()->optional()->randomFloat(2, 60, 90),
                 'calculation_notes' => fake()->optional()->sentence(10),
-                'validation_rules' => fake()->optional()->randomElements(['min:0', 'max:100', 'required'], 2)
+                'validation_rules' => fake()->optional()->randomElements(['min:0', 'max:100', 'required'], 2),
             ],
             'created_by' => User::inRandomOrder()->first()->id ?? User::factory(),
             'updated_by' => User::inRandomOrder()->first()->id ?? User::factory(),

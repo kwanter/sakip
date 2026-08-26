@@ -3,9 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Services\AdminService;
 use App\Models\AuditLog;
-use Illuminate\Http\Request;
+use App\Services\AdminService;
 
 class AdminDashboardController extends Controller
 {

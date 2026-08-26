@@ -4,7 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      *
@@ -13,17 +14,17 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::table("performance_indicators", function (Blueprint $table) {
+        Schema::table('performance_indicators', function (Blueprint $table) {
             // Add kegiatan_id column (nullable, optional relationship)
             $table
-                ->foreignUuid("kegiatan_id")
+                ->foreignUuid('kegiatan_id')
                 ->nullable()
-                ->after("program_id")
-                ->constrained("kegiatans")
-                ->onDelete("set null");
+                ->after('program_id')
+                ->constrained('kegiatans')
+                ->onDelete('set null');
 
             // Add indexes for performance
-            $table->index("kegiatan_id");
+            $table->index('kegiatan_id');
         });
     }
 
@@ -32,15 +33,15 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::table("performance_indicators", function (Blueprint $table) {
+        Schema::table('performance_indicators', function (Blueprint $table) {
             // Drop foreign key constraint first
-            $table->dropForeign(["kegiatan_id"]);
+            $table->dropForeign(['kegiatan_id']);
 
             // Drop indexes
-            $table->dropIndex(["kegiatan_id"]);
+            $table->dropIndex(['kegiatan_id']);
 
             // Drop columns
-            $table->dropColumn(["kegiatan_id"]);
+            $table->dropColumn(['kegiatan_id']);
         });
     }
 };

@@ -10,13 +10,13 @@ class SakipService
     /**
      * Get SAKIP configuration
      */
-    public function getConfig(string $key = null, $default = null)
+    public function getConfig(?string $key = null, $default = null)
     {
         if ($key === null) {
             return Config::get('sakip', []);
         }
-        
-        return Config::get('sakip.' . $key, $default);
+
+        return Config::get('sakip.'.$key, $default);
     }
 
     /**
@@ -24,12 +24,12 @@ class SakipService
      */
     public function renderComponent(string $component, array $data = [])
     {
-        $viewPath = 'sakip.components.' . $component;
-        
-        if (!View::exists($viewPath)) {
+        $viewPath = 'sakip.components.'.$component;
+
+        if (! View::exists($viewPath)) {
             throw new \InvalidArgumentException("SAKIP component '{$component}' not found");
         }
-        
+
         return View::make($viewPath, $data)->render();
     }
 
@@ -86,7 +86,7 @@ class SakipService
      */
     public function isFeatureEnabled(string $feature): bool
     {
-        return $this->getConfig('features.' . $feature, false);
+        return $this->getConfig('features.'.$feature, false);
     }
 
     /**
@@ -95,42 +95,42 @@ class SakipService
     public function getUserPermissions($user = null): array
     {
         $user = $user ?: auth()->user();
-        
-        if (!$user) {
+
+        if (! $user) {
             return [];
         }
-        
+
         $permissions = [];
-        
+
         // Check SAKIP-specific permissions
         if ($user->can('view sakip dashboard')) {
             $permissions[] = 'dashboard';
         }
-        
+
         if ($user->can('manage sakip indicators')) {
             $permissions[] = 'indicators';
         }
-        
+
         if ($user->can('manage sakip programs')) {
             $permissions[] = 'programs';
         }
-        
+
         if ($user->can('manage sakip activities')) {
             $permissions[] = 'activities';
         }
-        
+
         if ($user->can('manage sakip reports')) {
             $permissions[] = 'reports';
         }
-        
+
         if ($user->can('manage sakip assessments')) {
             $permissions[] = 'assessments';
         }
-        
+
         if ($user->can('manage sakip audit')) {
             $permissions[] = 'audit';
         }
-        
+
         return $permissions;
     }
 
@@ -140,19 +140,19 @@ class SakipService
     public function getUserRoles($user = null): array
     {
         $user = $user ?: auth()->user();
-        if (!$user) {
+        if (! $user) {
             return [];
         }
-    
+
         $roles = [];
         $approvedRoles = ['superadmin', 'executive', 'data_collector', 'assessor', 'auditor', 'government_agency'];
-    
+
         foreach ($approvedRoles as $roleName) {
             if ($user->hasRole($roleName)) {
                 $roles[] = $roleName;
             }
         }
-    
+
         return $roles;
     }
 
@@ -161,7 +161,7 @@ class SakipService
      */
     public function generateSakipId(string $prefix = 'SAKIP'): string
     {
-        return $prefix . '_' . date('YmdHis') . '_' . uniqid();
+        return $prefix.'_'.date('YmdHis').'_'.uniqid();
     }
 
     /**
@@ -170,6 +170,7 @@ class SakipService
     public function formatCurrency(float $amount, string $currency = 'IDR'): string
     {
         $formatter = new \NumberFormatter('id_ID', \NumberFormatter::CURRENCY);
+
         return $formatter->formatCurrency($amount, $currency);
     }
 
@@ -178,7 +179,7 @@ class SakipService
      */
     public function formatPercentage(float $value, int $decimals = 1): string
     {
-        return number_format($value, $decimals) . '%';
+        return number_format($value, $decimals).'%';
     }
 
     /**
@@ -189,56 +190,56 @@ class SakipService
         $config = $this->getConfig();
         $errors = [];
         $warnings = [];
-        
+
         // Check required sections
         $requiredSections = ['api', 'dashboard', 'assessment', 'indicators', 'reports'];
         foreach ($requiredSections as $section) {
-            if (!isset($config[$section])) {
+            if (! isset($config[$section])) {
                 $errors[] = "Missing required configuration section: {$section}";
             }
         }
-        
+
         // Validate API configuration
         if (isset($config['api'])) {
-            if (!isset($config['api']['base_url']) || empty($config['api']['base_url'])) {
-                $warnings[] = "API base URL not configured";
+            if (! isset($config['api']['base_url']) || empty($config['api']['base_url'])) {
+                $warnings[] = 'API base URL not configured';
             }
-            if (!isset($config['api']['timeout']) || $config['api']['timeout'] < 1) {
-                $warnings[] = "API timeout should be at least 1 second";
+            if (! isset($config['api']['timeout']) || $config['api']['timeout'] < 1) {
+                $warnings[] = 'API timeout should be at least 1 second';
             }
         }
-        
+
         // Validate dashboard configuration
         if (isset($config['dashboard'])) {
-            if (!isset($config['dashboard']['default_view']) || empty($config['dashboard']['default_view'])) {
-                $warnings[] = "Dashboard default view not configured";
+            if (! isset($config['dashboard']['default_view']) || empty($config['dashboard']['default_view'])) {
+                $warnings[] = 'Dashboard default view not configured';
             }
-            if (!isset($config['dashboard']['refresh_interval']) || $config['dashboard']['refresh_interval'] < 5) {
-                $warnings[] = "Dashboard refresh interval should be at least 5 seconds";
+            if (! isset($config['dashboard']['refresh_interval']) || $config['dashboard']['refresh_interval'] < 5) {
+                $warnings[] = 'Dashboard refresh interval should be at least 5 seconds';
             }
         }
-        
+
         // Validate assessment configuration
         if (isset($config['assessment'])) {
-            if (!isset($config['assessment']['scoring']) || empty($config['assessment']['scoring'])) {
-                $errors[] = "Assessment scoring configuration missing";
+            if (! isset($config['assessment']['scoring']) || empty($config['assessment']['scoring'])) {
+                $errors[] = 'Assessment scoring configuration missing';
             }
         }
-        
+
         // Validate indicators configuration
         if (isset($config['indicators'])) {
-            if (!isset($config['indicators']['categories']) || empty($config['indicators']['categories'])) {
-                $warnings[] = "No indicator categories configured";
+            if (! isset($config['indicators']['categories']) || empty($config['indicators']['categories'])) {
+                $warnings[] = 'No indicator categories configured';
             }
         }
-        
+
         // Validate reports configuration
         if (isset($config['reports'])) {
-            if (!isset($config['reports']['types']) || empty($config['reports']['types'])) {
-                $warnings[] = "No report types configured";
+            if (! isset($config['reports']['types']) || empty($config['reports']['types'])) {
+                $warnings[] = 'No report types configured';
             }
         }
-        
+
         return [
             'valid' => empty($errors),
             'errors' => $errors,
@@ -246,7 +247,7 @@ class SakipService
             'config_summary' => [
                 'sections' => array_keys($config),
                 'features_enabled' => $this->getEnabledFeatures(),
-            ]
+            ],
         ];
     }
 
@@ -257,13 +258,13 @@ class SakipService
     {
         $features = [];
         $featureKeys = ['dashboard', 'indicators', 'reports', 'assessments', 'audit', 'notifications'];
-        
+
         foreach ($featureKeys as $feature) {
             if ($this->isFeatureEnabled($feature)) {
                 $features[] = $feature;
             }
         }
-        
+
         return $features;
     }
 
@@ -275,7 +276,7 @@ class SakipService
         if ($target == 0) {
             return 0;
         }
-        
+
         return min(($realization / $target) * 100, 100);
     }
 
@@ -304,9 +305,9 @@ class SakipService
             'excellent' => 'sakip-status-success',
             'good' => 'sakip-status-info',
             'fair' => 'sakip-status-warning',
-            'poor' => 'sakip-status-error'
+            'poor' => 'sakip-status-error',
         ];
-        
+
         return $classes[$status] ?? 'sakip-status-neutral';
     }
 
@@ -316,13 +317,13 @@ class SakipService
     public function getAssessmentGrade(float $score): string
     {
         $scoring = $this->getAssessmentScoring();
-        
+
         foreach ($scoring as $grade => $range) {
             if ($score >= $range['min'] && $score <= $range['max']) {
                 return $grade;
             }
         }
-        
+
         return 'E';
     }
 
@@ -333,22 +334,22 @@ class SakipService
     {
         $config = $this->getFileUploadConfig();
         $typeConfig = $config[$type] ?? $config['default'];
-        
+
         $errors = [];
-        
+
         // Check file size
         if ($file->getSize() > $typeConfig['max_size']) {
-            $errors[] = 'File size exceeds maximum allowed size of ' . 
+            $errors[] = 'File size exceeds maximum allowed size of '.
                        $this->formatFileSize($typeConfig['max_size']);
         }
-        
+
         // Check file type
         $extension = strtolower($file->getClientOriginalExtension());
-        if (!in_array($extension, $typeConfig['allowed_types'])) {
-            $errors[] = 'File type not allowed. Allowed types: ' . 
+        if (! in_array($extension, $typeConfig['allowed_types'])) {
+            $errors[] = 'File type not allowed. Allowed types: '.
                        implode(', ', $typeConfig['allowed_types']);
         }
-        
+
         return $errors;
     }
 
@@ -359,13 +360,13 @@ class SakipService
     {
         $units = ['B', 'KB', 'MB', 'GB'];
         $i = 0;
-        
+
         while ($bytes >= 1024 && $i < count($units) - 1) {
             $bytes /= 1024;
             $i++;
         }
-        
-        return round($bytes, 2) . ' ' . $units[$i];
+
+        return round($bytes, 2).' '.$units[$i];
     }
 
     /**
@@ -398,6 +399,7 @@ class SakipService
     public function isNotificationChannelEnabled(string $channel): bool
     {
         $channels = $this->getNotificationChannels();
+
         return in_array($channel, $channels);
     }
 
@@ -406,14 +408,14 @@ class SakipService
      */
     public function formatDate($date, string $format = 'Y-m-d H:i:s'): string
     {
-        if (!$date) {
+        if (! $date) {
             return '';
         }
-        
+
         if (is_string($date)) {
             $date = \Carbon\Carbon::parse($date);
         }
-        
+
         return $date->format($format);
     }
 
@@ -430,7 +432,7 @@ class SakipService
             case 'number':
                 return number_format($value, 2);
             case 'rupiah':
-                return 'Rp ' . number_format($value, 0, ',', '.');
+                return 'Rp '.number_format($value, 0, ',', '.');
             default:
                 return (string) $value;
         }
@@ -449,7 +451,7 @@ class SakipService
             'rejected' => ['text' => 'Ditolak', 'class' => 'sakip-status-error'],
             'draft' => ['text' => 'Draf', 'class' => 'sakip-status-info'],
         ];
-        
+
         return $badges[$status] ?? ['text' => $status, 'class' => 'sakip-status-neutral'];
     }
 
@@ -484,7 +486,7 @@ class SakipService
             'outcome' => 'target',
             'process' => 'cog',
         ];
-        
+
         return $icons[$type] ?? 'question-mark-circle';
     }
 
@@ -541,7 +543,7 @@ class SakipService
                 'order' => [[0, 'asc']],
             ],
         ];
-        
+
         return $configs[$type] ?? [];
     }
 
@@ -553,7 +555,7 @@ class SakipService
         // This is a simplified version - in a real implementation,
         // you would query the database based on the type and parameters
         $data = [];
-        
+
         switch ($type) {
             case 'indicator':
                 $data = $this->getSampleIndicatorData();
@@ -562,7 +564,7 @@ class SakipService
                 $data = $this->getSampleProgramData();
                 break;
         }
-        
+
         return [
             'data' => $data,
             'total' => count($data),

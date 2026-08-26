@@ -2,13 +2,13 @@
 
 namespace Tests\Feature;
 
-use Tests\TestCase;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use App\Models\User;
 use App\Models\Instansi;
-use App\Models\PerformanceIndicator;
 use App\Models\PerformanceData;
+use App\Models\PerformanceIndicator;
+use App\Models\User;
 use App\Services\PerformanceCalculationService;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 /**
  * Regression: PerformanceCalculationService must not reference phantom

@@ -4,7 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      *
@@ -13,21 +14,21 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create("assessment_criteria", function (Blueprint $table) {
-            $table->uuid("id")->primary();
+        Schema::create('assessment_criteria', function (Blueprint $table) {
+            $table->uuid('id')->primary();
             $table
-                ->foreignUuid("assessment_id")
-                ->constrained("assessments")
-                ->onDelete("cascade");
-            $table->string("criteria_name", 255);
-            $table->decimal("score", 5, 2);
-            $table->decimal("weight", 5, 2)->default(1.0);
-            $table->text("justification")->nullable();
+                ->foreignUuid('assessment_id')
+                ->constrained('assessments')
+                ->onDelete('cascade');
+            $table->string('criteria_name', 255);
+            $table->decimal('score', 5, 2);
+            $table->decimal('weight', 5, 2)->default(1.0);
+            $table->text('justification')->nullable();
             $table->timestamps();
 
             // Indexes for performance optimization
-            $table->index("assessment_id");
-            $table->index("criteria_name");
+            $table->index('assessment_id');
+            $table->index('criteria_name');
         });
     }
 
@@ -36,6 +37,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists("assessment_criteria");
+        Schema::dropIfExists('assessment_criteria');
     }
 };

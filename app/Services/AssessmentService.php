@@ -4,20 +4,18 @@ namespace App\Services;
 
 use App\Models\Assessment;
 use App\Models\AssessmentCriterion;
-use App\Models\PerformanceIndicator;
-use App\Models\PerformanceData;
-use App\Models\Instansi;
 use App\Models\AuditLog;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Validator;
+use App\Models\PerformanceIndicator;
 use Carbon\Carbon;
 use Exception;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 class AssessmentService
 {
-    use \App\Traits\SortsSafely;
     use \App\Traits\ClearsCacheByKey;
+    use \App\Traits\SortsSafely;
 
     protected $cacheTimeout = 3600; // 1 hour
 
@@ -30,7 +28,7 @@ class AssessmentService
             // Validate data
             $validator = $this->validateAssessmentData($data);
             if ($validator->fails()) {
-                throw new Exception('Validation failed: ' . $validator->errors()->first());
+                throw new Exception('Validation failed: '.$validator->errors()->first());
             }
 
             // Check if assessment already exists for this period
@@ -77,7 +75,7 @@ class AssessmentService
     public function updateAssessmentScoring(Assessment $assessment, array $criteriaData): Assessment
     {
         return DB::transaction(function () use ($assessment, $criteriaData) {
-            if (!in_array($assessment->status, ['draft', 'in_review'])) {
+            if (! in_array($assessment->status, ['draft', 'in_review'])) {
                 throw new Exception('Cannot update scoring for assessment in current status');
             }
 
@@ -86,7 +84,7 @@ class AssessmentService
 
             foreach ($criteriaData as $criterionData) {
                 $criterion = AssessmentCriterion::find($criterionData['id']);
-                if (!$criterion || $criterion->assessment_id !== $assessment->id) {
+                if (! $criterion || $criterion->assessment_id !== $assessment->id) {
                     throw new Exception('Invalid criterion ID');
                 }
 
@@ -162,7 +160,7 @@ class AssessmentService
     public function reviewAssessment(Assessment $assessment, array $reviewData): Assessment
     {
         return DB::transaction(function () use ($assessment, $reviewData) {
-            if (!in_array($assessment->status, ['submitted', 'in_approval'])) {
+            if (! in_array($assessment->status, ['submitted', 'in_approval'])) {
                 throw new Exception('Assessment cannot be reviewed in current status');
             }
 
@@ -172,10 +170,10 @@ class AssessmentService
             ]);
 
             if ($validator->fails()) {
-                throw new Exception('Validation failed: ' . $validator->errors()->first());
+                throw new Exception('Validation failed: '.$validator->errors()->first());
             }
 
-            $newStatus = $reviewData['review_decision'] === 'approved' ? 'approved' : 
+            $newStatus = $reviewData['review_decision'] === 'approved' ? 'approved' :
                         ($reviewData['review_decision'] === 'rejected' ? 'rejected' : 'draft');
 
             $assessment->update([
@@ -186,7 +184,7 @@ class AssessmentService
             ]);
 
             // Log activity
-            $this->logActivity('review', $assessment, 'Assessment reviewed: ' . $reviewData['review_decision']);
+            $this->logActivity('review', $assessment, 'Assessment reviewed: '.$reviewData['review_decision']);
 
             // Clear cache
             $this->clearAssessmentCache($assessment->instansi_id);
@@ -234,7 +232,7 @@ class AssessmentService
         if (isset($filters['search'])) {
             $query->where(function ($q) use ($filters) {
                 $q->whereHas('instansi', function ($q2) use ($filters) {
-                    $q2->where('name', 'like', '%' . $filters['search'] . '%');
+                    $q2->where('name', 'like', '%'.$filters['search'].'%');
                 });
             });
         }
@@ -392,10 +390,19 @@ class AssessmentService
      */
     protected function calculateRating($score): string
     {
-        if ($score >= 90) return 'excellent';
-        if ($score >= 80) return 'good';
-        if ($score >= 70) return 'fair';
-        if ($score >= 60) return 'poor';
+        if ($score >= 90) {
+            return 'excellent';
+        }
+        if ($score >= 80) {
+            return 'good';
+        }
+        if ($score >= 70) {
+            return 'fair';
+        }
+        if ($score >= 60) {
+            return 'poor';
+        }
+
         return 'very_poor';
     }
 
@@ -451,6 +458,7 @@ class AssessmentService
     protected function calculateDaysOverdue(Assessment $assessment): int
     {
         $dueDate = $this->getAssessmentDueDate($assessment);
+
         return max(0, Carbon::now()->diffInDays($dueDate, false));
     }
 
@@ -488,7 +496,7 @@ class AssessmentService
             'user_id' => auth()->id(),
             'instansi_id' => $assessment->instansi_id,
             'module' => 'sakip',
-            'activity' => $action . '_assessment',
+            'activity' => $action.'_assessment',
             'description' => $description,
             'old_values' => $action === 'update' ? $assessment->getOriginal() : null,
             'new_values' => $action !== 'delete' ? $assessment->toArray() : null,
@@ -500,8 +508,8 @@ class AssessmentService
      */
     protected function clearAssessmentCache($instansiId): void
     {
-        Cache::forget("assessment_statistics_{$instansiId}_" . date('Y'));
-        
+        Cache::forget("assessment_statistics_{$instansiId}_".date('Y'));
+
         // SECURITY: getRedis() fatals on non-redis stores — forget concrete keys.
         $this->forgetCacheKeys([
             "assessments_list_{$instansiId}",

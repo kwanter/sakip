@@ -26,9 +26,7 @@ trait WithStatusScope
     /**
      * Scope a query to only include records with a specific status.
      *
-     * @param  \Illuminate\Database\Eloquent\Builder  $query
-     * @param  string  $status The status value
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param  string  $status  The status value
      */
     public function scopeWithStatus(Builder $query, string $status): Builder
     {
@@ -38,9 +36,7 @@ trait WithStatusScope
     /**
      * Scope a query to only include records with any of the given statuses.
      *
-     * @param  \Illuminate\Database\Eloquent\Builder  $query
-     * @param  array  $statuses Array of status values
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param  array  $statuses  Array of status values
      */
     public function scopeWithAnyStatus(Builder $query, array $statuses): Builder
     {
@@ -49,9 +45,6 @@ trait WithStatusScope
 
     /**
      * Scope a query to only include draft records.
-     *
-     * @param  \Illuminate\Database\Eloquent\Builder  $query
-     * @return \Illuminate\Database\Eloquent\Builder
      */
     public function scopeDraft(Builder $query): Builder
     {
@@ -60,9 +53,6 @@ trait WithStatusScope
 
     /**
      * Scope a query to only include active records.
-     *
-     * @param  \Illuminate\Database\Eloquent\Builder  $query
-     * @return \Illuminate\Database\Eloquent\Builder
      */
     public function scopeActive(Builder $query): Builder
     {
@@ -71,9 +61,6 @@ trait WithStatusScope
 
     /**
      * Scope a query to only include completed records.
-     *
-     * @param  \Illuminate\Database\Eloquent\Builder  $query
-     * @return \Illuminate\Database\Eloquent\Builder
      */
     public function scopeCompleted(Builder $query): Builder
     {
@@ -82,9 +69,6 @@ trait WithStatusScope
 
     /**
      * Scope a query to only include pending records.
-     *
-     * @param  \Illuminate\Database\Eloquent\Builder  $query
-     * @return \Illuminate\Database\Eloquent\Builder
      */
     public function scopePending(Builder $query): Builder
     {
@@ -93,9 +77,6 @@ trait WithStatusScope
 
     /**
      * Scope a query to only include submitted records.
-     *
-     * @param  \Illuminate\Database\Eloquent\Builder  $query
-     * @return \Illuminate\Database\Eloquent\Builder
      */
     public function scopeSubmitted(Builder $query): Builder
     {
@@ -104,9 +85,6 @@ trait WithStatusScope
 
     /**
      * Scope a query to only include validated records.
-     *
-     * @param  \Illuminate\Database\Eloquent\Builder  $query
-     * @return \Illuminate\Database\Eloquent\Builder
      */
     public function scopeValidated(Builder $query): Builder
     {
@@ -115,9 +93,6 @@ trait WithStatusScope
 
     /**
      * Scope a query to only include approved records.
-     *
-     * @param  \Illuminate\Database\Eloquent\Builder  $query
-     * @return \Illuminate\Database\Eloquent\Builder
      */
     public function scopeApproved(Builder $query): Builder
     {
@@ -126,9 +101,6 @@ trait WithStatusScope
 
     /**
      * Scope a query to only include rejected records.
-     *
-     * @param  \Illuminate\Database\Eloquent\Builder  $query
-     * @return \Illuminate\Database\Eloquent\Builder
      */
     public function scopeRejected(Builder $query): Builder
     {
@@ -138,9 +110,7 @@ trait WithStatusScope
     /**
      * Scope a query to exclude records with specific statuses.
      *
-     * @param  \Illuminate\Database\Eloquent\Builder  $query
-     * @param  array  $statuses Array of status values to exclude
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param  array  $statuses  Array of status values to exclude
      */
     public function scopeWithoutStatus(Builder $query, array $statuses): Builder
     {

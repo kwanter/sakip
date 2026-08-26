@@ -3,15 +3,13 @@
 namespace App\Http\Controllers\Sakip;
 
 use App\Http\Controllers\Controller;
-use App\Models\PerformanceIndicator;
-use App\Models\PerformanceData;
-use App\Models\Target;
 use App\Models\Assessment;
+use App\Models\PerformanceData;
+use App\Models\PerformanceIndicator;
 use App\Models\Report;
 use App\Services\Sakip\SakipService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class SakipController extends Controller
@@ -73,11 +71,11 @@ class SakipController extends Controller
             'submitter',
             'validator',
             'evidenceDocuments',
-            'assessment'
+            'assessment',
         ])
-        ->when(Auth::user()->instansi_id, function ($q, $instansiId) {
-            return $q->where('instansi_id', $instansiId);
-        });
+            ->when(Auth::user()->instansi_id, function ($q, $instansiId) {
+                return $q->where('instansi_id', $instansiId);
+            });
 
         $performanceData = $query->paginate(20);
 
@@ -97,13 +95,13 @@ class SakipController extends Controller
             'performanceData.performanceIndicator',
             'performanceData.instansi',
             'assessor',
-            'criteria'
+            'criteria',
         ])
-        ->when(Auth::user()->instansi_id, function ($q, $instansiId) {
-            return $q->whereHas('performanceData', function ($subQuery) use ($instansiId) {
-                $subQuery->where('instansi_id', $instansiId);
+            ->when(Auth::user()->instansi_id, function ($q, $instansiId) {
+                return $q->whereHas('performanceData', function ($subQuery) use ($instansiId) {
+                    $subQuery->where('instansi_id', $instansiId);
+                });
             });
-        });
 
         $assessments = $query->paginate(20);
 

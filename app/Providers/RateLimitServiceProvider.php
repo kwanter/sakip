@@ -57,7 +57,7 @@ class RateLimitServiceProvider extends ServiceProvider
         // Login rate limit: 5 attempts per minute
         RateLimiter::for('login', function (Request $request) {
             $email = (string) $request->input('email');
-            $throttleKey = strtolower($email) . '|' . $request->ip();
+            $throttleKey = strtolower($email).'|'.$request->ip();
 
             return [
                 // 5 attempts per minute per email+IP combination
@@ -67,8 +67,8 @@ class RateLimitServiceProvider extends ServiceProvider
                         return response()->json(
                             [
                                 'success' => false,
-                                'message' => 'Too many login attempts. Please try again in ' .
-                                    ($headers['Retry-After'] ?? 60) . ' seconds.',
+                                'message' => 'Too many login attempts. Please try again in '.
+                                    ($headers['Retry-After'] ?? 60).' seconds.',
                                 'retry_after' => $headers['Retry-After'] ?? 60,
                             ],
                             429,

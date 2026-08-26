@@ -5,8 +5,8 @@ namespace App\Services\Calculation;
 use App\Models\PerformanceData;
 use App\Models\PerformanceIndicator;
 use App\Models\Target;
-use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Performance Calculation Service
@@ -21,8 +21,6 @@ use Carbon\Carbon;
  * - Negative targets (cost reduction goals)
  * - Reduction vs achievement goals
  * - Rounding and capping logic
- *
- * @package App\Services\Calculation
  */
 class PerformanceCalculationService
 {
@@ -30,8 +28,11 @@ class PerformanceCalculationService
      * Calculation formula types
      */
     public const FORMULA_STANDARD = 'standard';           // (actual / target) * 100
+
     public const FORMULA_REDUCTION = 'reduction';         // Reduction goal (cost, time, etc.)
+
     public const FORMULA_ACHIEVEMENT = 'achievement';     // Achievement goal (quality, satisfaction)
+
     public const FORMULA_CUSTOM = 'custom';               // Custom formula defined in indicator
 
     /**
@@ -50,9 +51,9 @@ class PerformanceCalculationService
      * This method centralizes the calculation logic that was previously duplicated
      * across DataCollectionController and PerformanceIndicator model.
      *
-     * @param float $actualValue The actual achieved value
-     * @param float|null $targetValue The target/goal value
-     * @param string|null $formulaType Calculation formula type (standard, reduction, achievement, custom)
+     * @param  float  $actualValue  The actual achieved value
+     * @param  float|null  $targetValue  The target/goal value
+     * @param  string|null  $formulaType  Calculation formula type (standard, reduction, achievement, custom)
      * @return float Performance percentage (0-200 depending on formula)
      */
     public function calculatePercentage(
@@ -84,7 +85,7 @@ class PerformanceCalculationService
      *
      * Convenience method that fetches target and formula from the indicator
      *
-     * @param PerformanceData $performanceData The performance data record
+     * @param  PerformanceData  $performanceData  The performance data record
      * @return float Performance percentage
      */
     public function calculateForPerformanceData(PerformanceData $performanceData): float
@@ -104,9 +105,9 @@ class PerformanceCalculationService
      *
      * Used when target value needs to be fetched from Target model
      *
-     * @param PerformanceIndicator $indicator The indicator
-     * @param float $actualValue The actual achieved value
-     * @param Carbon $period The period for the data
+     * @param  PerformanceIndicator  $indicator  The indicator
+     * @param  float  $actualValue  The actual achieved value
+     * @param  Carbon  $period  The period for the data
      * @return float Performance percentage
      */
     public function calculateWithTargetLookup(
@@ -132,8 +133,8 @@ class PerformanceCalculationService
      *
      * Useful when target values or calculation formulas change
      *
-     * @param string $indicatorId The indicator ID
-     * @param int $year The year to recalculate
+     * @param  string  $indicatorId  The indicator ID
+     * @param  int  $year  The year to recalculate
      * @return array Recalculation results
      */
     public function recalculatePeriod(string $indicatorId, int $year): array
@@ -167,7 +168,7 @@ class PerformanceCalculationService
                     'period' => $data->period,
                     'error' => $e->getMessage(),
                 ];
-                Log::error("Recalculation error for data {$data->id}: " . $e->getMessage());
+                Log::error("Recalculation error for data {$data->id}: ".$e->getMessage());
             }
         }
 
@@ -177,14 +178,13 @@ class PerformanceCalculationService
     /**
      * Handle null or empty target values
      *
-     * @param float $actualValue
      * @return float Performance percentage
      */
     protected function handleNullOrEmptyTarget(float $actualValue): float
     {
         // If target is 0 or null, we cannot calculate percentage
         // Return 100 if actual exists (achievement by default), else 0
-        return !empty($actualValue) && $actualValue != 0
+        return ! empty($actualValue) && $actualValue != 0
             ? self::DEFAULT_PERCENTAGE
             : 0.0;
     }
@@ -192,8 +192,6 @@ class PerformanceCalculationService
     /**
      * Handle negative target values (reduction goals)
      *
-     * @param float $actualValue
-     * @param float $targetValue
      * @return float Performance percentage
      */
     protected function handleNegativeTarget(float $actualValue, float $targetValue): float
@@ -201,6 +199,7 @@ class PerformanceCalculationService
         if ($actualValue < 0) {
             // Both negative: calculate ratio of reduction achieved
             $performance = abs($actualValue / $targetValue) * 100;
+
             return min($performance, self::MAX_PERCENTAGE); // Cap at MAX_PERCENTAGE
         } else {
             // Target negative, actual positive: goal not met
@@ -211,9 +210,6 @@ class PerformanceCalculationService
     /**
      * Apply calculation formula based on type
      *
-     * @param float $actualValue
-     * @param float $targetValue
-     * @param string $formulaType
      * @return float Performance percentage
      */
     protected function applyFormula(float $actualValue, float $targetValue, string $formulaType): float
@@ -239,21 +235,18 @@ class PerformanceCalculationService
     /**
      * Standard calculation: (actual / target) * 100
      *
-     * @param float $actualValue
-     * @param float $targetValue
      * @return float Performance percentage
      */
     protected function calculateStandard(float $actualValue, float $targetValue): float
     {
         $performance = ($actualValue / $targetValue) * 100;
+
         return round(max(0, $performance), 2);
     }
 
     /**
      * Reduction formula: for cost/time reduction goals
      *
-     * @param float $actualValue
-     * @param float $targetValue
      * @return float Performance percentage
      */
     protected function calculateReduction(float $actualValue, float $targetValue): float
@@ -261,14 +254,13 @@ class PerformanceCalculationService
         // Reduction is the inverse of standard
         // If we aimed to reduce by 100 and reduced by 120, that's 120%
         $performance = ($targetValue / $actualValue) * 100;
+
         return round(min(max(0, $performance), self::MAX_PERCENTAGE), 2);
     }
 
     /**
      * Achievement formula: for quality/satisfaction goals
      *
-     * @param float $actualValue
-     * @param float $targetValue
      * @return float Performance percentage
      */
     protected function calculateAchievement(float $actualValue, float $targetValue): float
@@ -283,8 +275,7 @@ class PerformanceCalculationService
     /**
      * Check if value is null or empty
      *
-     * @param mixed $value
-     * @return bool
+     * @param  mixed  $value
      */
     protected function isNullOrEmpty($value): bool
     {
@@ -294,7 +285,7 @@ class PerformanceCalculationService
     /**
      * Calculate average performance for a collection of performance data
      *
-     * @param \Illuminate\Support\Collection $performanceData
+     * @param  \Illuminate\Support\Collection  $performanceData
      * @return float Average performance percentage
      */
     public function calculateAverage($performanceData): float
@@ -314,7 +305,7 @@ class PerformanceCalculationService
      *
      * Useful when different indicators have different weights
      *
-     * @param array $performanceData Array of ['value' => float, 'weight' => float]
+     * @param  array  $performanceData  Array of ['value' => float, 'weight' => float]
      * @return float Weighted average
      */
     public function calculateWeightedAverage(array $performanceData): float
@@ -341,10 +332,8 @@ class PerformanceCalculationService
     /**
      * Validate if performance percentage is within acceptable range
      *
-     * @param float $percentage
-     * @param float $min Minimum acceptable (default 0)
-     * @param float $max Maximum acceptable (default 200)
-     * @return bool
+     * @param  float  $min  Minimum acceptable (default 0)
+     * @param  float  $max  Maximum acceptable (default 200)
      */
     public function isValidPercentage(float $percentage, float $min = 0, float $max = self::MAX_PERCENTAGE): bool
     {
@@ -356,7 +345,6 @@ class PerformanceCalculationService
      *
      * Returns a human-readable rating like "Excellent", "Good", etc.
      *
-     * @param float $percentage
      * @return string Performance rating
      */
     public function getPerformanceRating(float $percentage): string
@@ -381,8 +369,8 @@ class PerformanceCalculationService
     /**
      * Calculate achievement rate (count of achieved vs total)
      *
-     * @param \Illuminate\Support\Collection $performanceData
-     * @param float $threshold Threshold percentage to consider "achieved" (default 100)
+     * @param  \Illuminate\Support\Collection  $performanceData
+     * @param  float  $threshold  Threshold percentage to consider "achieved" (default 100)
      * @return float Achievement rate as percentage
      */
     public function calculateAchievementRate($performanceData, float $threshold = 100): float
@@ -403,9 +391,7 @@ class PerformanceCalculationService
      *
      * Compares current period with previous period
      *
-     * @param float $currentPercentage
-     * @param float $previousPercentage
-     * @param float $threshold Threshold for significant change (default 5%)
+     * @param  float  $threshold  Threshold for significant change (default 5%)
      * @return string 'improving', 'stable', or 'declining'
      */
     public function calculateTrend(float $currentPercentage, float $previousPercentage, float $threshold = 5.0): string
@@ -426,8 +412,6 @@ class PerformanceCalculationService
      *
      * Aggregates performance data from start of year to given period
      *
-     * @param string $indicatorId
-     * @param Carbon $endDate
      * @return array YTD statistics
      */
     public function calculateYearToDate(string $indicatorId, Carbon $endDate): array

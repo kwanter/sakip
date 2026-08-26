@@ -2,30 +2,33 @@
 
 namespace App\Services;
 
-use App\Models\EvidenceDocument;
-use App\Models\PerformanceData;
 use App\Models\Assessment;
 use App\Models\AuditLog;
+use App\Models\EvidenceDocument;
+use App\Models\PerformanceData;
+use Exception;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Http\UploadedFile;
-use Exception;
 
 class EvidenceDocumentService
 {
     use \App\Traits\SortsSafely;
+
     protected $cacheTimeout = 3600; // 1 hour
+
     protected $allowedExtensions = [
         'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx',
         'jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff',
-        'csv', 'txt'
+        'csv', 'txt',
         // SECURITY: archives (zip/rar) removed — cannot scan nested content
         // for malicious files; mirrors SecureFileUploadMiddleware policy.
     ];
-    
+
     protected $maxFileSize = 10 * 1024 * 1024; // 10MB
+
     protected $uploadPath = 'evidence-documents';
 
     /**
@@ -37,7 +40,7 @@ class EvidenceDocumentService
             // Validate data and file
             $validator = $this->validateEvidenceData($data, $file);
             if ($validator->fails()) {
-                throw new Exception('Validation failed: ' . $validator->errors()->first());
+                throw new Exception('Validation failed: '.$validator->errors()->first());
             }
 
             // Validate file
@@ -45,12 +48,12 @@ class EvidenceDocumentService
 
             // Generate unique file name
             $fileName = $this->generateFileName($file);
-            $filePath = $this->getUploadPath($data['instansi_id'] ?? null) . '/' . $fileName;
+            $filePath = $this->getUploadPath($data['instansi_id'] ?? null).'/'.$fileName;
 
             // Store on private local disk (not web-accessible)
             $storedPath = $file->storeAs($this->uploadPath, $filePath, 'local');
 
-            if (!$storedPath) {
+            if (! $storedPath) {
                 throw new Exception('Failed to upload file');
             }
 
@@ -174,13 +177,13 @@ class EvidenceDocumentService
 
         if (isset($filters['search'])) {
             $query->where(function ($q) use ($filters) {
-                $q->where('file_name', 'like', '%' . $filters['search'] . '%')
-                    ->orWhere('description', 'like', '%' . $filters['search'] . '%')
+                $q->where('file_name', 'like', '%'.$filters['search'].'%')
+                    ->orWhere('description', 'like', '%'.$filters['search'].'%')
                     ->orWhereHas('instansi', function ($q2) use ($filters) {
-                        $q2->where('name', 'like', '%' . $filters['search'] . '%');
+                        $q2->where('name', 'like', '%'.$filters['search'].'%');
                     })
                     ->orWhereHas('uploader', function ($q2) use ($filters) {
-                        $q2->where('name', 'like', '%' . $filters['search'] . '%');
+                        $q2->where('name', 'like', '%'.$filters['search'].'%');
                     });
             });
         }
@@ -227,7 +230,7 @@ class EvidenceDocumentService
             ]);
 
             if ($validator->fails()) {
-                throw new Exception('Validation failed: ' . $validator->errors()->first());
+                throw new Exception('Validation failed: '.$validator->errors()->first());
             }
 
             // SECURITY: only persist fields allowed by the whitelist above.
@@ -248,10 +251,10 @@ class EvidenceDocumentService
     /**
      * Validate evidence document
      */
-    public function validateEvidence(EvidenceDocument $evidence, string $status, string $notes = null): EvidenceDocument
+    public function validateEvidence(EvidenceDocument $evidence, string $status, ?string $notes = null): EvidenceDocument
     {
         return DB::transaction(function () use ($evidence, $status, $notes) {
-            if (!in_array($status, ['validated', 'rejected', 'pending'])) {
+            if (! in_array($status, ['validated', 'rejected', 'pending'])) {
                 throw new Exception('Invalid validation status');
             }
 
@@ -320,6 +323,7 @@ class EvidenceDocumentService
         if ($user === null || $user->instansi_id === null) {
             return $requested ?: null;
         }
+
         return $user->instansi_id;
     }
 
@@ -328,7 +332,7 @@ class EvidenceDocumentService
      */
     public function downloadEvidence(EvidenceDocument $evidence): array
     {
-        if (!$evidence->file_path) {
+        if (! $evidence->file_path) {
             throw new Exception('Evidence document file not found');
         }
 
@@ -363,10 +367,10 @@ class EvidenceDocumentService
         // SECURITY: non-HQ users are pinned to their own institution.
         $instansiId = $this->resolveTenantScope($instansiId);
         $cacheKey = "evidence_statistics_{$instansiId}";
-        
+
         return Cache::remember($cacheKey, $this->cacheTimeout, function () use ($instansiId) {
             $query = EvidenceDocument::query();
-            
+
             if ($instansiId) {
                 $query->where('instansi_id', $instansiId);
             }
@@ -392,7 +396,7 @@ class EvidenceDocumentService
     /**
      * Bulk validate evidence documents
      */
-    public function bulkValidateEvidences(array $evidenceIds, string $status, string $notes = null): array
+    public function bulkValidateEvidences(array $evidenceIds, string $status, ?string $notes = null): array
     {
         $results = [];
         $errors = [];
@@ -400,7 +404,7 @@ class EvidenceDocumentService
         foreach ($evidenceIds as $evidenceId) {
             try {
                 $evidence = EvidenceDocument::find($evidenceId);
-                if (!$evidence) {
+                if (! $evidence) {
                     throw new Exception('Evidence document not found');
                 }
 
@@ -434,18 +438,18 @@ class EvidenceDocumentService
 
         // Check file extension
         $extension = strtolower($file->getClientOriginalExtension());
-        if (!in_array($extension, $this->allowedExtensions)) {
-            throw new Exception('File type not allowed. Allowed types: ' . implode(', ', $this->allowedExtensions));
+        if (! in_array($extension, $this->allowedExtensions)) {
+            throw new Exception('File type not allowed. Allowed types: '.implode(', ', $this->allowedExtensions));
         }
 
         // Validate MIME type
         $mimeType = $file->getMimeType();
-        if (!$this->isValidMimeType($mimeType)) {
+        if (! $this->isValidMimeType($mimeType)) {
             throw new Exception('Invalid file type');
         }
 
         // Check if file is actually an uploaded file
-        if (!$file->isValid()) {
+        if (! $file->isValid()) {
             throw new Exception('File upload failed');
         }
     }
@@ -484,10 +488,10 @@ class EvidenceDocumentService
         $extension = $file->getClientOriginalExtension();
         $timestamp = now()->format('YmdHis');
         $random = str_pad(random_int(0, 9999), 4, '0', STR_PAD_LEFT);
-        
+
         // Sanitize original name
         $sanitizedName = preg_replace('/[^a-zA-Z0-9-_]/', '_', $originalName);
-        
+
         return sprintf('%s_%s_%s.%s', $sanitizedName, $timestamp, $random, $extension);
     }
 
@@ -497,11 +501,11 @@ class EvidenceDocumentService
     protected function getUploadPath($instansiId = null): string
     {
         $basePath = date('Y/m');
-        
+
         if ($instansiId) {
             return sprintf('%s/instansi_%s', $basePath, $instansiId);
         }
-        
+
         return $basePath;
     }
 
@@ -513,7 +517,7 @@ class EvidenceDocumentService
         try {
             // Extract file metadata
             $metadata = $this->extractFileMetadata($evidence);
-            
+
             // Update evidence with metadata
             $evidence->update([
                 'metadata' => json_encode($metadata),
@@ -541,8 +545,8 @@ class EvidenceDocumentService
             ? 'local'
             : 'public';
         $filePath = Storage::disk($disk)->path($evidence->file_path);
-        
-        if (!file_exists($filePath)) {
+
+        if (! file_exists($filePath)) {
             return [];
         }
 
@@ -571,6 +575,7 @@ class EvidenceDocumentService
     protected function isImageFile(string $extension): bool
     {
         $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff'];
+
         return in_array(strtolower($extension), $imageExtensions);
     }
 
@@ -590,7 +595,7 @@ class EvidenceDocumentService
     /**
      * Validate evidence data
      */
-    protected function validateEvidenceData(array $data, UploadedFile $file = null): \Illuminate\Contracts\Validation\Validator
+    protected function validateEvidenceData(array $data, ?UploadedFile $file = null): \Illuminate\Contracts\Validation\Validator
     {
         $rules = [
             'instansi_id' => 'nullable|exists:instansi,id',
@@ -611,7 +616,7 @@ class EvidenceDocumentService
                         $fail('Performance data does not belong to the specified institution.');
                     }
                 }
-            }
+            },
         ];
 
         $rules['assessment_id'] = [
@@ -624,7 +629,7 @@ class EvidenceDocumentService
                         $fail('Assessment does not belong to the specified institution.');
                     }
                 }
-            }
+            },
         ];
 
         return Validator::make($data, $rules);
@@ -653,7 +658,7 @@ class EvidenceDocumentService
         // SECURITY/robustness: never assume the redis store. The previous
         // Cache::getRedis()->keys() call fatals on array/database/file stores.
         Cache::forget("evidence_statistics_{$instansiId}");
-        Cache::forget("evidence_list_all");
+        Cache::forget('evidence_list_all');
         foreach ([10, 25, 50, 100] as $perPage) {
             Cache::forget("evidence_list_{$instansiId}_{$perPage}");
         }
@@ -668,8 +673,8 @@ class EvidenceDocumentService
             'user_id' => auth()->id(),
             'instansi_id' => $evidence->instansi_id,
             'module' => 'sakip',
-            'action' => $action . '_evidence',
-            'activity' => $action . '_evidence',
+            'action' => $action.'_evidence',
+            'activity' => $action.'_evidence',
             'description' => $description,
             'old_values' => $action === 'update' || $action === 'validate' ? $evidence->getOriginal() : null,
             'new_values' => $action !== 'delete' ? $evidence->toArray() : null,

@@ -62,7 +62,7 @@ class CsvExportService
         foreach ($rows as &$row) {
             foreach ($row as &$val) {
                 if (is_string($val) && $val !== '' && str_contains('=+-@', $val[0])) {
-                    $val = "'" . $val;
+                    $val = "'".$val;
                 }
             }
             unset($val);

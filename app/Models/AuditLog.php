@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
@@ -17,50 +17,51 @@ class AuditLog extends Model
     use HasUuids;
 
     protected $fillable = [
-        "user_id",
-        "instansi_id",
-        "action",
-        "module",
-        "activity",
-        "description",
-        "details",
-        "old_values",
-        "new_values",
-        "model_type",
-        "ip_address",
-        "user_agent",
-        "compliance_status",
-        "compliance_notes",
-        "impact_level",
+        'user_id',
+        'instansi_id',
+        'action',
+        'module',
+        'activity',
+        'description',
+        'details',
+        'old_values',
+        'new_values',
+        'model_type',
+        'ip_address',
+        'user_agent',
+        'compliance_status',
+        'compliance_notes',
+        'impact_level',
     ];
 
     protected $casts = [
-        "details" => "array",
-        "old_values" => "array",
-        "new_values" => "array",
+        'details' => 'array',
+        'old_values' => 'array',
+        'new_values' => 'array',
     ];
 
-    protected $keyType = "string";
+    protected $keyType = 'string';
+
     public $incrementing = false;
 
     /**
      * Fields that should be masked in audit logs
      */
     protected static $sensitiveFields = [
-        "password",
-        "password_confirmation",
-        "api_token",
-        "remember_token",
-        "secret",
-        "secret_key",
-        "access_token",
-        "refresh_token",
-        "private_key",
-        "credit_card",
-        "ssn",
-        "social_security",
-        "bank_account",
-        "personal_identification",
+        'password',
+        'password_confirmation',
+        'api_token',
+        'remember_token',
+        'secret',
+        'secret_key',
+        'access_token',
+        'refresh_token',
+        'private_key',
+        'credit_card',
+        'ssn',
+        'social_security',
+        'bank_account',
+        'personal_identification',
     ];
 
     public function user(): BelongsTo
@@ -70,7 +71,7 @@ class AuditLog extends Model
 
     public function instansi(): BelongsTo
     {
-        return $this->belongsTo(Instansi::class, "instansi_id");
+        return $this->belongsTo(Instansi::class, 'instansi_id');
     }
 
     protected static function boot()
@@ -78,7 +79,7 @@ class AuditLog extends Model
         parent::boot();
 
         static::creating(function ($auditLog) {
-            foreach (["details", "old_values", "new_values"] as $field) {
+            foreach (['details', 'old_values', 'new_values'] as $field) {
                 if (isset($auditLog->{$field}) && is_array($auditLog->{$field})) {
                     $auditLog->{$field} = self::maskSensitiveData(
                         $auditLog->{$field},
@@ -102,6 +103,7 @@ class AuditLog extends Model
         foreach ($data as $key => $value) {
             if (in_array($key, self::$sensitiveFields, true)) {
                 $data[$key] = self::maskValue($value);
+
                 continue;
             }
 
@@ -116,26 +118,26 @@ class AuditLog extends Model
     protected static function maskValue($value): string
     {
         if (empty($value)) {
-            return "[MASKED]";
+            return '[MASKED]';
         }
 
         $stringValue = (string) $value;
         $length = strlen($stringValue);
 
         if ($length <= 8) {
-            return str_repeat("*", $length);
+            return str_repeat('*', $length);
         }
 
         $start = substr($stringValue, 0, 4);
         $end = substr($stringValue, -4);
-        $middle = str_repeat("*", $length - 8);
+        $middle = str_repeat('*', $length - 8);
 
-        return $start . $middle . $end;
+        return $start.$middle.$end;
     }
 
     public static function createWithMasking(array $data): AuditLog
     {
-        foreach (["details", "old_values", "new_values"] as $field) {
+        foreach (['details', 'old_values', 'new_values'] as $field) {
             if (isset($data[$field]) && is_array($data[$field])) {
                 $data[$field] = self::maskSensitiveData($data[$field]);
             }

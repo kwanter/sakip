@@ -11,10 +11,11 @@ use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
-    use HasFactory, Notifiable, HasUuids, HasRoles;
+    use HasFactory, HasRoles, HasUuids, Notifiable;
 
     public $incrementing = false;
-    protected $keyType = "string";
+
+    protected $keyType = 'string';
 
     /**
      * The attributes that are mass assignable.
@@ -23,14 +24,14 @@ class User extends Authenticatable implements MustVerifyEmail
      * mass assignment attacks that could bypass email verification.
      * Use dedicated verification methods instead.
      */
-    protected $fillable = ["name", "email", "password", "instansi_id"];
+    protected $fillable = ['name', 'email', 'password', 'instansi_id'];
 
     /**
      * The attributes that should be hidden for arrays.
      *
      * @var array<int, string>
      */
-    protected $hidden = ["password", "remember_token"];
+    protected $hidden = ['password', 'remember_token'];
 
     /**
      * Get the attributes that should be cast.
@@ -40,8 +41,8 @@ class User extends Authenticatable implements MustVerifyEmail
     protected function casts(): array
     {
         return [
-            "email_verified_at" => "datetime",
-            "password" => "hashed",
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
         ];
     }
 
@@ -55,25 +56,20 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function instansi()
     {
-        return $this->belongsTo(Instansi::class , "instansi_id");
+        return $this->belongsTo(Instansi::class, 'instansi_id');
     }
 
     /**
      * Check if the user is a Super Admin.
-     *
-     * @return bool
      */
     public function isAdmin(): bool
     {
-        return $this->hasRole("Super Admin");
+        return $this->hasRole('Super Admin');
     }
 
     /**
      * Check if the user has a specific permission.
      * This is a helper method that wraps Spatie's hasPermissionTo method.
-     *
-     * @param string $permission
-     * @return bool
      */
     public function hasPermission(string $permission): bool
     {

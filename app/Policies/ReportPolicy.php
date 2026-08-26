@@ -5,11 +5,10 @@ namespace App\Policies;
 use App\Models\Report;
 use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
-use Carbon\Carbon;
 
 /**
  * ReportPolicy
- * 
+ *
  * Handles authorization for report generation and access operations.
  * Implements role-based access control with report type permissions and access restrictions.
  */
@@ -28,7 +27,7 @@ class ReportPolicy
             'sakip.admin',
             'sakip.pimpinan',
             'sakip.assessor',
-            'sakip.auditor'
+            'sakip.auditor',
         ]);
     }
 
@@ -49,7 +48,7 @@ class ReportPolicy
         }
 
         // Check report type permissions
-        if (!$this->hasReportTypePermission($user, $report->type)) {
+        if (! $this->hasReportTypePermission($user, $report->type)) {
             return false;
         }
 
@@ -57,7 +56,7 @@ class ReportPolicy
             'sakip.reports.view',
             'sakip.pimpinan',
             'sakip.assessor',
-            'sakip.auditor'
+            'sakip.auditor',
         ]);
     }
 
@@ -79,7 +78,7 @@ class ReportPolicy
 
         return $user->hasAnyPermission([
             'sakip.reports.approve',
-            'sakip.pimpinan'
+            'sakip.pimpinan',
         ]);
     }
 
@@ -93,7 +92,7 @@ class ReportPolicy
             'sakip.reports.create',
             'sakip.admin',
             'sakip.pimpinan',
-            'sakip.assessor'
+            'sakip.assessor',
         ]);
     }
 
@@ -128,7 +127,7 @@ class ReportPolicy
     public function delete(User $user, Report $report): bool
     {
         // Only admin can delete reports
-        if (!$user->hasPermission('sakip.admin')) {
+        if (! $user->hasPermission('sakip.admin')) {
             return false;
         }
 
@@ -146,7 +145,7 @@ class ReportPolicy
             'sakip.reports.generate',
             'sakip.admin',
             'sakip.pimpinan',
-            'sakip.assessor'
+            'sakip.assessor',
         ]);
     }
 
@@ -167,45 +166,45 @@ class ReportPolicy
                 return $user->hasAnyPermission([
                     'sakip.reports.performance',
                     'sakip.pimpinan',
-                    'sakip.assessor'
+                    'sakip.assessor',
                 ]);
-            
+
             case 'compliance':
                 return $user->hasAnyPermission([
                     'sakip.reports.compliance',
                     'sakip.pimpinan',
-                    'sakip.auditor'
+                    'sakip.auditor',
                 ]);
-            
+
             case 'audit':
                 return $user->hasAnyPermission([
                     'sakip.reports.audit',
                     'sakip.pimpinan',
-                    'sakip.auditor'
+                    'sakip.auditor',
                 ]);
-            
+
             case 'executive':
                 return $user->hasAnyPermission([
                     'sakip.reports.executive',
-                    'sakip.pimpinan'
+                    'sakip.pimpinan',
                 ]);
-            
+
             case 'operational':
                 return $user->hasAnyPermission([
                     'sakip.reports.operational',
                     'sakip.pimpinan',
                     'sakip.assessor',
-                    'sakip.data_collector'
+                    'sakip.data_collector',
                 ]);
-            
+
             case 'trend':
                 return $user->hasAnyPermission([
                     'sakip.reports.trend',
                     'sakip.pimpinan',
                     'sakip.assessor',
-                    'sakip.auditor'
+                    'sakip.auditor',
                 ]);
-            
+
             default:
                 return false;
         }
@@ -228,7 +227,7 @@ class ReportPolicy
         }
 
         // Check report type permissions
-        if (!$this->hasReportTypePermission($user, $report->type)) {
+        if (! $this->hasReportTypePermission($user, $report->type)) {
             return false;
         }
 
@@ -236,7 +235,7 @@ class ReportPolicy
             'sakip.reports.export',
             'sakip.pimpinan',
             'sakip.assessor',
-            'sakip.auditor'
+            'sakip.auditor',
         ]);
     }
 
@@ -249,7 +248,7 @@ class ReportPolicy
         return $user->hasAnyPermission([
             'sakip.reports.schedule',
             'sakip.admin',
-            'sakip.pimpinan'
+            'sakip.pimpinan',
         ]);
     }
 
@@ -333,7 +332,7 @@ class ReportPolicy
             'sakip.reports.history',
             'sakip.pimpinan',
             'sakip.assessor',
-            'sakip.auditor'
+            'sakip.auditor',
         ]);
     }
 
@@ -357,7 +356,7 @@ class ReportPolicy
             'sakip.reports.analytics',
             'sakip.pimpinan',
             'sakip.assessor',
-            'sakip.auditor'
+            'sakip.auditor',
         ]);
     }
 
@@ -370,7 +369,7 @@ class ReportPolicy
         return $user->hasAnyPermission([
             'sakip.reports.customize_template',
             'sakip.admin',
-            'sakip.pimpinan'
+            'sakip.pimpinan',
         ]);
     }
 
@@ -394,7 +393,7 @@ class ReportPolicy
             'sakip.reports.compliance',
             'sakip.pimpinan',
             'sakip.assessor',
-            'sakip.auditor'
+            'sakip.auditor',
         ]);
     }
 
@@ -407,7 +406,7 @@ class ReportPolicy
         return $user->hasAnyPermission([
             'sakip.reports.bulk_generate',
             'sakip.admin',
-            'sakip.pimpinan'
+            'sakip.pimpinan',
         ]);
     }
 
@@ -420,7 +419,7 @@ class ReportPolicy
         return $user->hasAnyPermission([
             'sakip.reports.bulk_export',
             'sakip.admin',
-            'sakip.pimpinan'
+            'sakip.pimpinan',
         ]);
     }
 
@@ -439,22 +438,22 @@ class ReportPolicy
         switch ($reportType) {
             case 'performance':
                 return $user->hasAnyPermission(['sakip.reports.performance', 'sakip.pimpinan', 'sakip.assessor']);
-            
+
             case 'compliance':
                 return $user->hasAnyPermission(['sakip.reports.compliance', 'sakip.pimpinan', 'sakip.auditor']);
-            
+
             case 'audit':
                 return $user->hasAnyPermission(['sakip.reports.audit', 'sakip.pimpinan', 'sakip.auditor']);
-            
+
             case 'executive':
                 return $user->hasPermission('sakip.pimpinan');
-            
+
             case 'operational':
                 return $user->hasAnyPermission(['sakip.reports.operational', 'sakip.pimpinan', 'sakip.assessor', 'sakip.data_collector']);
-            
+
             case 'trend':
                 return $user->hasAnyPermission(['sakip.reports.trend', 'sakip.pimpinan', 'sakip.assessor', 'sakip.auditor']);
-            
+
             default:
                 return false;
         }

@@ -36,6 +36,7 @@ class AssessmentCriterionPolicy
             && ! $user->hasRole('Super Admin')) {
             return false;
         }
+
         return $this->sameTenant($user, $this->tenantId($criterion));
     }
 
@@ -44,6 +45,7 @@ class AssessmentCriterionPolicy
         if (! $user->hasAnyPermission(['sakip.admin']) && ! $user->hasRole('Super Admin')) {
             return false;
         }
+
         return $this->sameTenant($user, $this->tenantId($criterion));
     }
 
@@ -53,6 +55,7 @@ class AssessmentCriterionPolicy
             return $criterion->assessment?->instansi_id
                 ?? $criterion->assessment?->performanceData?->instansi_id;
         }
+
         return null;
     }
 
@@ -64,6 +67,7 @@ class AssessmentCriterionPolicy
         if ($user->instansi_id === null) {
             return $user->hasAnyRole(['Executive', 'Auditor']);
         }
+
         return $instansiId !== null && $user->instansi_id === $instansiId;
     }
 }

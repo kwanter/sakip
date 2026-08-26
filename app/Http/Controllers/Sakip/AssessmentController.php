@@ -5,17 +5,17 @@ namespace App\Http\Controllers\Sakip;
 use App\Http\Controllers\Controller;
 use App\Models\Assessment;
 use App\Models\AssessmentCriterion;
+use App\Models\AuditLog;
 use App\Models\PerformanceData;
 use App\Models\PerformanceIndicator;
-use App\Models\AuditLog;
 use App\Services\AssessmentService;
 use App\Services\NotificationService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
-use Carbon\Carbon;
 
 /**
  * Assessment Controller
@@ -26,6 +26,7 @@ use Carbon\Carbon;
 class AssessmentController extends Controller
 {
     protected AssessmentService $assessmentService;
+
     protected NotificationService $notificationService;
 
     /**
@@ -44,7 +45,7 @@ class AssessmentController extends Controller
      */
     public function index(Request $request)
     {
-        $this->authorize("viewAny", Assessment::class);
+        $this->authorize('viewAny', Assessment::class);
 
         try {
             $user = Auth::user();
@@ -53,45 +54,45 @@ class AssessmentController extends Controller
 
             // Get assessments based on user role
             $query = Assessment::with([
-                "indicator",
-                "assessor",
-                "reviewer",
-            ])->whereYear("created_at", $currentYear);
+                'indicator',
+                'assessor',
+                'reviewer',
+            ])->whereYear('created_at', $currentYear);
 
             // Role-based filtering
-            if ($user->hasRole("assessor")) {
-                $query->where("assessor_id", $user->id);
-            } elseif ($user->hasRole("reviewer")) {
-                $query->where("reviewer_id", $user->id);
-            } elseif (!$user->hasRole("superadmin")) {
-                $query->whereHas("indicator", function ($q) use ($instansiId) {
+            if ($user->hasRole('assessor')) {
+                $query->where('assessor_id', $user->id);
+            } elseif ($user->hasRole('reviewer')) {
+                $query->where('reviewer_id', $user->id);
+            } elseif (! $user->hasRole('superadmin')) {
+                $query->whereHas('indicator', function ($q) use ($instansiId) {
                     $q->where(
-                        "performance_indicators.instansi_id",
+                        'performance_indicators.instansi_id',
                         $instansiId,
                     );
                 });
             }
 
             // Apply filters
-            if ($request->filled("status")) {
-                $query->where("status", $request->get("status"));
+            if ($request->filled('status')) {
+                $query->where('status', $request->get('status'));
             }
 
-            if ($request->filled("category")) {
-                $query->whereHas("indicator", function ($q) use ($request) {
-                    $q->where("category", $request->get("category"));
+            if ($request->filled('category')) {
+                $query->whereHas('indicator', function ($q) use ($request) {
+                    $q->where('category', $request->get('category'));
                 });
             }
 
-            if ($request->filled("priority")) {
-                $query->where("priority", $request->get("priority"));
+            if ($request->filled('priority')) {
+                $query->where('priority', $request->get('priority'));
             }
 
-            if ($request->filled("period")) {
-                $query->whereYear("created_at", $request->get("period"));
+            if ($request->filled('period')) {
+                $query->whereYear('created_at', $request->get('period'));
             }
 
-            $assessments = $query->orderBy("created_at", "desc")->paginate(15);
+            $assessments = $query->orderBy('created_at', 'desc')->paginate(15);
 
             // Get assessment statistics
             $statistics = $this->getAssessmentStatistics($user, $currentYear);
@@ -104,50 +105,51 @@ class AssessmentController extends Controller
 
             // Get recent activities
             $recentActivities = Assessment::with([
-                "indicator",
-                "assessor",
-                "reviewer",
+                'indicator',
+                'assessor',
+                'reviewer',
             ])
-                ->whereYear("created_at", $currentYear)
+                ->whereYear('created_at', $currentYear)
                 ->where(function ($q) use ($user, $instansiId) {
-                    if (!$user->hasRole("superadmin")) {
-                        $q->whereHas("indicator", function ($subQ) use (
+                    if (! $user->hasRole('superadmin')) {
+                        $q->whereHas('indicator', function ($subQ) use (
                             $instansiId,
                         ) {
                             $subQ->where(
-                                "performance_indicators.instansi_id",
+                                'performance_indicators.instansi_id',
                                 $instansiId,
                             );
                         });
                     }
                 })
-                ->orderBy("updated_at", "desc")
+                ->orderBy('updated_at', 'desc')
                 ->limit(10)
                 ->get();
 
             // Get indicators for filter dropdown
             $indicators = PerformanceIndicator::query();
-            if (!$user->hasRole("superadmin")) {
-                $indicators->where("instansi_id", $instansiId);
+            if (! $user->hasRole('superadmin')) {
+                $indicators->where('instansi_id', $instansiId);
             }
-            $indicators = $indicators->orderBy("name")->get();
+            $indicators = $indicators->orderBy('name')->get();
 
             return view(
-                "sakip.assessments.index",
+                'sakip.assessments.index',
                 compact(
-                    "assessments",
-                    "statistics",
-                    "pendingAssessments",
-                    "recentActivities",
-                    "indicators",
-                    "currentYear",
+                    'assessments',
+                    'statistics',
+                    'pendingAssessments',
+                    'recentActivities',
+                    'indicators',
+                    'currentYear',
                 ),
             );
         } catch (\Exception $e) {
-            Log::error("Assessment index error: " . $e->getMessage());
+            Log::error('Assessment index error: '.$e->getMessage());
+
             return back()->with(
-                "error",
-                "Terjadi kesalahan saat memuat halaman penilaian.",
+                'error',
+                'Terjadi kesalahan saat memuat halaman penilaian.',
             );
         }
     }
@@ -157,7 +159,7 @@ class AssessmentController extends Controller
      */
     public function create(Request $request, PerformanceIndicator $indicator)
     {
-        $this->authorize("create", Assessment::class);
+        $this->authorize('create', Assessment::class);
 
         try {
             $user = Auth::user();
@@ -165,28 +167,28 @@ class AssessmentController extends Controller
 
             // Get performance data for the indicator
             $performanceData = PerformanceData::where(
-                "performance_indicator_id",
+                'performance_indicator_id',
                 $indicator->id,
             )
-                ->whereYear("period", $currentYear)
-                ->where("status", "approved")
-                ->orderBy("period", "desc")
+                ->whereYear('period', $currentYear)
+                ->where('status', 'approved')
+                ->orderBy('period', 'desc')
                 ->get();
 
             if ($performanceData->isEmpty()) {
                 return back()->with(
-                    "warning",
-                    "Tidak ada data kinerja yang tersedia untuk penilaian.",
+                    'warning',
+                    'Tidak ada data kinerja yang tersedia untuk penilaian.',
                 );
             }
 
             // Get assessment criteria
             $criteria = AssessmentCriterion::where(
-                "category",
+                'category',
                 $indicator->category,
             )
-                ->orWhere("category", "general")
-                ->orderBy("order")
+                ->orWhere('category', 'general')
+                ->orderBy('order')
                 ->get();
 
             // Get available assessment periods
@@ -195,20 +197,21 @@ class AssessmentController extends Controller
             );
 
             return view(
-                "sakip.assessments.create",
+                'sakip.assessments.create',
                 compact(
-                    "indicator",
-                    "performanceData",
-                    "criteria",
-                    "availablePeriods",
-                    "currentYear",
+                    'indicator',
+                    'performanceData',
+                    'criteria',
+                    'availablePeriods',
+                    'currentYear',
                 ),
             );
         } catch (\Exception $e) {
-            Log::error("Assessment create form error: " . $e->getMessage());
+            Log::error('Assessment create form error: '.$e->getMessage());
+
             return back()->with(
-                "error",
-                "Terjadi kesalahan saat memuat formulir penilaian.",
+                'error',
+                'Terjadi kesalahan saat memuat formulir penilaian.',
             );
         }
     }
@@ -218,28 +221,27 @@ class AssessmentController extends Controller
      */
     public function store(Request $request)
     {
-        $this->authorize("create", Assessment::class);
+        $this->authorize('create', Assessment::class);
 
         $validator = Validator::make($request->all(), [
-            "performance_data_id" => "required|exists:performance_data,id",
-            "assessment_type" =>
-                "required|in:monthly,quarterly,semester,annual",
-            "priority" => "required|in:low,medium,high",
-            "criteria_scores" => "required|array",
-            "criteria_scores.*" => "required|numeric|between:0,100",
-            "overall_score" => "required|numeric|between:0,100",
-            "strengths" => "nullable|string|max:2000",
-            "weaknesses" => "nullable|string|max:2000",
-            "recommendations" => "nullable|string|max:2000",
-            "notes" => "nullable|string|max:1000",
+            'performance_data_id' => 'required|exists:performance_data,id',
+            'assessment_type' => 'required|in:monthly,quarterly,semester,annual',
+            'priority' => 'required|in:low,medium,high',
+            'criteria_scores' => 'required|array',
+            'criteria_scores.*' => 'required|numeric|between:0,100',
+            'overall_score' => 'required|numeric|between:0,100',
+            'strengths' => 'nullable|string|max:2000',
+            'weaknesses' => 'nullable|string|max:2000',
+            'recommendations' => 'nullable|string|max:2000',
+            'notes' => 'nullable|string|max:1000',
         ]);
 
         if ($validator->fails()) {
             return response()->json(
                 [
-                    "success" => false,
-                    "message" => "Validasi gagal.",
-                    "errors" => $validator->errors(),
+                    'success' => false,
+                    'message' => 'Validasi gagal.',
+                    'errors' => $validator->errors(),
                 ],
                 422,
             );
@@ -249,26 +251,25 @@ class AssessmentController extends Controller
         try {
             $user = Auth::user();
             $performanceData = PerformanceData::findOrFail(
-                $request->get("performance_data_id"),
+                $request->get('performance_data_id'),
             );
 
             // Check authorization for this specific performance data
-            $this->authorize("assess", $performanceData);
+            $this->authorize('assess', $performanceData);
 
             // Check for existing assessment for this performance data
             $existingAssessment = Assessment::where(
-                "performance_data_id",
+                'performance_data_id',
                 $performanceData->id,
             )
-                ->where("assessment_type", $request->get("assessment_type"))
+                ->where('assessment_type', $request->get('assessment_type'))
                 ->first();
 
             if ($existingAssessment) {
                 return response()->json(
                     [
-                        "success" => false,
-                        "message" =>
-                            "Penilaian untuk data kinerja ini sudah ada.",
+                        'success' => false,
+                        'message' => 'Penilaian untuk data kinerja ini sudah ada.',
                     ],
                     422,
                 );
@@ -276,69 +277,70 @@ class AssessmentController extends Controller
 
             // Create assessment
             $assessment = Assessment::create([
-                "performance_data_id" => $performanceData->id,
-                "assessed_by" => $user->id,
-                "assessment_type" => $request->get("assessment_type"),
-                "priority" => $request->get("priority"),
-                "overall_score" => $request->get("overall_score"),
-                "strengths" => $request->get("strengths"),
-                "weaknesses" => $request->get("weaknesses"),
-                "recommendations" => $request->get("recommendations"),
-                "notes" => $request->get("notes"),
-                "status" => "draft",
-                "created_by" => $user->id,
-                "updated_by" => $user->id,
+                'performance_data_id' => $performanceData->id,
+                'assessed_by' => $user->id,
+                'assessment_type' => $request->get('assessment_type'),
+                'priority' => $request->get('priority'),
+                'overall_score' => $request->get('overall_score'),
+                'strengths' => $request->get('strengths'),
+                'weaknesses' => $request->get('weaknesses'),
+                'recommendations' => $request->get('recommendations'),
+                'notes' => $request->get('notes'),
+                'status' => 'draft',
+                'created_by' => $user->id,
+                'updated_by' => $user->id,
             ]);
 
             // Store criteria scores
             // PERFORMANCE: Use bulk insert instead of loop to avoid N+1 query problem
             $criteriaScoresData = [];
             $now = now();
-            
-            foreach ($request->get("criteria_scores") as $criterionId => $score) {
+
+            foreach ($request->get('criteria_scores') as $criterionId => $score) {
                 $criteriaScoresData[] = [
-                    "assessment_id" => $assessment->id,
-                    "assessment_criterion_id" => $criterionId,
-                    "score" => $score,
-                    "created_by" => $user->id,
-                    "created_at" => $now,
-                    "updated_at" => $now,
+                    'assessment_id' => $assessment->id,
+                    'assessment_criterion_id' => $criterionId,
+                    'score' => $score,
+                    'created_by' => $user->id,
+                    'created_at' => $now,
+                    'updated_at' => $now,
                 ];
             }
-            
+
             // Bulk insert in single query using relationship
-            if (!empty($criteriaScoresData)) {
+            if (! empty($criteriaScoresData)) {
                 $assessment->criteriaScores()->insert($criteriaScoresData);
             }
 
             // Log the activity
             AuditLog::create([
-                "user_id" => $user->id,
-                "instansi_id" => $user->instansi_id,
-                "action" => "CREATE",
-                "module" => "SAKIP",
-                "description" => "Membuat penilaian untuk data kinerja ID: {$performanceData->id}",
-                "old_values" => null,
-                "new_values" => $assessment->toArray(),
+                'user_id' => $user->id,
+                'instansi_id' => $user->instansi_id,
+                'action' => 'CREATE',
+                'module' => 'SAKIP',
+                'description' => "Membuat penilaian untuk data kinerja ID: {$performanceData->id}",
+                'old_values' => null,
+                'new_values' => $assessment->toArray(),
             ]);
 
             DB::commit();
 
             return response()->json([
-                "success" => true,
-                "message" => "Penilaian berhasil dibuat.",
-                "data" => [
-                    "id" => $assessment->id,
-                    "status" => $assessment->status,
+                'success' => true,
+                'message' => 'Penilaian berhasil dibuat.',
+                'data' => [
+                    'id' => $assessment->id,
+                    'status' => $assessment->status,
                 ],
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error("Store assessment error: " . $e->getMessage());
+            Log::error('Store assessment error: '.$e->getMessage());
+
             return response()->json(
                 [
-                    "success" => false,
-                    "message" => "Terjadi kesalahan saat membuat penilaian.",
+                    'success' => false,
+                    'message' => 'Terjadi kesalahan saat membuat penilaian.',
                 ],
                 500,
             );
@@ -350,26 +352,26 @@ class AssessmentController extends Controller
      */
     public function show(Assessment $assessment)
     {
-        $this->authorize("view", $assessment);
+        $this->authorize('view', $assessment);
 
         try {
             $assessment->load([
-                "indicator",
-                "assessor",
-                "reviewer",
-                "criteriaScores.criterion",
-                "performanceData",
-                "evidenceDocuments",
-                "approvalHistory",
+                'indicator',
+                'assessor',
+                'reviewer',
+                'criteriaScores.criterion',
+                'performanceData',
+                'evidenceDocuments',
+                'approvalHistory',
             ]);
 
             // Get assessment criteria
             $criteria = AssessmentCriterion::where(
-                "category",
+                'category',
                 $assessment->indicator->category,
             )
-                ->orWhere("category", "general")
-                ->orderBy("order")
+                ->orWhere('category', 'general')
+                ->orderBy('order')
                 ->get();
 
             // Calculate detailed scoring
@@ -379,28 +381,29 @@ class AssessmentController extends Controller
 
             // Get related assessments
             $relatedAssessments = Assessment::where(
-                "performance_data_id",
+                'performance_data_id',
                 $assessment->performance_data_id,
             )
-                ->where("id", "!=", $assessment->id)
-                ->orderBy("created_at", "desc")
+                ->where('id', '!=', $assessment->id)
+                ->orderBy('created_at', 'desc')
                 ->limit(5)
                 ->get();
 
             return view(
-                "sakip.assessments.show",
+                'sakip.assessments.show',
                 compact(
-                    "assessment",
-                    "criteria",
-                    "scoring",
-                    "relatedAssessments",
+                    'assessment',
+                    'criteria',
+                    'scoring',
+                    'relatedAssessments',
                 ),
             );
         } catch (\Exception $e) {
-            Log::error("Show assessment error: " . $e->getMessage());
+            Log::error('Show assessment error: '.$e->getMessage());
+
             return back()->with(
-                "error",
-                "Terjadi kesalahan saat memuat detail penilaian.",
+                'error',
+                'Terjadi kesalahan saat memuat detail penilaian.',
             );
         }
     }
@@ -410,37 +413,38 @@ class AssessmentController extends Controller
      */
     public function edit(Assessment $assessment)
     {
-        $this->authorize("update", $assessment);
+        $this->authorize('update', $assessment);
 
         try {
-            $assessment->load(["indicator", "criteriaScores.criterion"]);
+            $assessment->load(['indicator', 'criteriaScores.criterion']);
 
             // Check if assessment can be edited
-            if (!$this->assessmentService->canEditAssessment($assessment)) {
+            if (! $this->assessmentService->canEditAssessment($assessment)) {
                 return back()->with(
-                    "warning",
-                    "Penilaian ini tidak dapat diubah karena sudah dalam proses persetujuan atau telah disetujui.",
+                    'warning',
+                    'Penilaian ini tidak dapat diubah karena sudah dalam proses persetujuan atau telah disetujui.',
                 );
             }
 
             // Get assessment criteria
             $criteria = AssessmentCriterion::where(
-                "category",
+                'category',
                 $assessment->indicator->category,
             )
-                ->orWhere("category", "general")
-                ->orderBy("order")
+                ->orWhere('category', 'general')
+                ->orderBy('order')
                 ->get();
 
             return view(
-                "sakip.assessments.edit",
-                compact("assessment", "criteria"),
+                'sakip.assessments.edit',
+                compact('assessment', 'criteria'),
             );
         } catch (\Exception $e) {
-            Log::error("Edit assessment error: " . $e->getMessage());
+            Log::error('Edit assessment error: '.$e->getMessage());
+
             return back()->with(
-                "error",
-                "Terjadi kesalahan saat memuat formulir edit penilaian.",
+                'error',
+                'Terjadi kesalahan saat memuat formulir edit penilaian.',
             );
         }
     }
@@ -450,24 +454,24 @@ class AssessmentController extends Controller
      */
     public function update(Request $request, Assessment $assessment)
     {
-        $this->authorize("update", $assessment);
+        $this->authorize('update', $assessment);
 
         $validator = Validator::make($request->all(), [
-            "criteria_scores" => "required|array",
-            "criteria_scores.*" => "required|numeric|between:0,100",
-            "overall_score" => "required|numeric|between:0,100",
-            "strengths" => "nullable|string|max:2000",
-            "weaknesses" => "nullable|string|max:2000",
-            "recommendations" => "nullable|string|max:2000",
-            "notes" => "nullable|string|max:1000",
+            'criteria_scores' => 'required|array',
+            'criteria_scores.*' => 'required|numeric|between:0,100',
+            'overall_score' => 'required|numeric|between:0,100',
+            'strengths' => 'nullable|string|max:2000',
+            'weaknesses' => 'nullable|string|max:2000',
+            'recommendations' => 'nullable|string|max:2000',
+            'notes' => 'nullable|string|max:1000',
         ]);
 
         if ($validator->fails()) {
             return response()->json(
                 [
-                    "success" => false,
-                    "message" => "Validasi gagal.",
-                    "errors" => $validator->errors(),
+                    'success' => false,
+                    'message' => 'Validasi gagal.',
+                    'errors' => $validator->errors(),
                 ],
                 422,
             );
@@ -479,11 +483,11 @@ class AssessmentController extends Controller
             $oldValues = $assessment->toArray();
 
             // Check if assessment can be updated
-            if (!$this->assessmentService->canEditAssessment($assessment)) {
+            if (! $this->assessmentService->canEditAssessment($assessment)) {
                 return response()->json(
                     [
-                        "success" => false,
-                        "message" => "Penilaian ini tidak dapat diubah.",
+                        'success' => false,
+                        'message' => 'Penilaian ini tidak dapat diubah.',
                     ],
                     422,
                 );
@@ -491,12 +495,12 @@ class AssessmentController extends Controller
 
             // Update assessment
             $assessment->update([
-                "overall_score" => $request->get("overall_score"),
-                "strengths" => $request->get("strengths"),
-                "weaknesses" => $request->get("weaknesses"),
-                "recommendations" => $request->get("recommendations"),
-                "notes" => $request->get("notes"),
-                "updated_by" => $user->id,
+                'overall_score' => $request->get('overall_score'),
+                'strengths' => $request->get('strengths'),
+                'weaknesses' => $request->get('weaknesses'),
+                'recommendations' => $request->get('recommendations'),
+                'notes' => $request->get('notes'),
+                'updated_by' => $user->id,
             ]);
 
             // Update criteria scores
@@ -504,14 +508,14 @@ class AssessmentController extends Controller
             $now = now();
             $criteriaScores = $assessment
                 ->criteriaScores()
-                ->whereIn('assessment_criterion_id', array_keys($request->get("criteria_scores")))
+                ->whereIn('assessment_criterion_id', array_keys($request->get('criteria_scores')))
                 ->get()
                 ->keyBy('assessment_criterion_id');
-            
+
             $updateData = [];
             $insertData = [];
-            
-            foreach ($request->get("criteria_scores") as $criterionId => $score) {
+
+            foreach ($request->get('criteria_scores') as $criterionId => $score) {
                 if (isset($criteriaScores[$criterionId])) {
                     $updateData[] = [
                         'id' => $criteriaScores[$criterionId]->id,
@@ -521,58 +525,58 @@ class AssessmentController extends Controller
                     ];
                 } else {
                     $insertData[] = [
-                        "assessment_id" => $assessment->id,
-                        "assessment_criterion_id" => $criterionId,
-                        "score" => $score,
-                        "created_by" => $user->id,
-                        "created_at" => $now,
-                        "updated_at" => $now,
+                        'assessment_id' => $assessment->id,
+                        'assessment_criterion_id' => $criterionId,
+                        'score' => $score,
+                        'created_by' => $user->id,
+                        'created_at' => $now,
+                        'updated_at' => $now,
                     ];
                 }
             }
-            
+
             // Bulk update and insert
-            if (!empty($updateData)) {
+            if (! empty($updateData)) {
                 \DB::table('assessment_criteria_scores')->upsert(
                     $updateData,
                     ['id'],
                     ['score', 'updated_by', 'updated_at']
                 );
             }
-            
-            if (!empty($insertData)) {
+
+            if (! empty($insertData)) {
                 $assessment->criteriaScores()->insert($insertData);
             }
 
             // Log the activity
             AuditLog::create([
-                "user_id" => $user->id,
-                "instansi_id" => $user->instansi_id,
-                "action" => "UPDATE",
-                "module" => "SAKIP",
-                "description" => "Memperbarui penilaian untuk indikator: {$assessment->indicator->name}",
-                "old_values" => $oldValues,
-                "new_values" => $assessment->fresh()->toArray(),
+                'user_id' => $user->id,
+                'instansi_id' => $user->instansi_id,
+                'action' => 'UPDATE',
+                'module' => 'SAKIP',
+                'description' => "Memperbarui penilaian untuk indikator: {$assessment->indicator->name}",
+                'old_values' => $oldValues,
+                'new_values' => $assessment->fresh()->toArray(),
             ]);
 
             DB::commit();
 
             return response()->json([
-                "success" => true,
-                "message" => "Penilaian berhasil diperbarui.",
-                "data" => [
-                    "id" => $assessment->id,
-                    "status" => $assessment->status,
+                'success' => true,
+                'message' => 'Penilaian berhasil diperbarui.',
+                'data' => [
+                    'id' => $assessment->id,
+                    'status' => $assessment->status,
                 ],
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error("Update assessment error: " . $e->getMessage());
+            Log::error('Update assessment error: '.$e->getMessage());
+
             return response()->json(
                 [
-                    "success" => false,
-                    "message" =>
-                        "Terjadi kesalahan saat memperbarui penilaian.",
+                    'success' => false,
+                    'message' => 'Terjadi kesalahan saat memperbarui penilaian.',
                 ],
                 500,
             );
@@ -584,7 +588,7 @@ class AssessmentController extends Controller
      */
     public function submitForReview(Assessment $assessment)
     {
-        $this->authorize("submitForReview", $assessment);
+        $this->authorize('submitForReview', $assessment);
 
         DB::beginTransaction();
         try {
@@ -593,10 +597,10 @@ class AssessmentController extends Controller
 
             // Update assessment status
             $assessment->update([
-                "status" => "pending_review",
-                "submitted_at" => Carbon::now(),
-                "submitted_by" => $user->id,
-                "updated_by" => $user->id,
+                'status' => 'pending_review',
+                'submitted_at' => Carbon::now(),
+                'submitted_by' => $user->id,
+                'updated_by' => $user->id,
             ]);
 
             // Notify reviewer
@@ -609,35 +613,35 @@ class AssessmentController extends Controller
 
             // Log the activity
             AuditLog::create([
-                "user_id" => $user->id,
-                "instansi_id" => $user->instansi_id,
-                "action" => "SUBMIT_FOR_REVIEW",
-                "module" => "SAKIP",
-                "description" => "Mengirim penilaian untuk direview: {$assessment->indicator->name}",
-                "old_values" => ["status" => $oldStatus],
-                "new_values" => ["status" => "pending_review"],
+                'user_id' => $user->id,
+                'instansi_id' => $user->instansi_id,
+                'action' => 'SUBMIT_FOR_REVIEW',
+                'module' => 'SAKIP',
+                'description' => "Mengirim penilaian untuk direview: {$assessment->indicator->name}",
+                'old_values' => ['status' => $oldStatus],
+                'new_values' => ['status' => 'pending_review'],
             ]);
 
             DB::commit();
 
             return response()->json([
-                "success" => true,
-                "message" => "Penilaian berhasil dikirim untuk direview.",
-                "data" => [
-                    "id" => $assessment->id,
-                    "status" => $assessment->status,
+                'success' => true,
+                'message' => 'Penilaian berhasil dikirim untuk direview.',
+                'data' => [
+                    'id' => $assessment->id,
+                    'status' => $assessment->status,
                 ],
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error(
-                "Submit assessment for review error: " . $e->getMessage(),
+                'Submit assessment for review error: '.$e->getMessage(),
             );
+
             return response()->json(
                 [
-                    "success" => false,
-                    "message" =>
-                        "Terjadi kesalahan saat mengirim penilaian untuk direview.",
+                    'success' => false,
+                    'message' => 'Terjadi kesalahan saat mengirim penilaian untuk direview.',
                 ],
                 500,
             );
@@ -649,20 +653,20 @@ class AssessmentController extends Controller
      */
     public function review(Request $request, Assessment $assessment)
     {
-        $this->authorize("review", $assessment);
+        $this->authorize('review', $assessment);
 
         $validator = Validator::make($request->all(), [
-            "review_decision" => "required|in:approved,rejected,needs_revision",
-            "review_comments" => "required|string|max:2000",
-            "review_score" => "nullable|numeric|between:0,100",
+            'review_decision' => 'required|in:approved,rejected,needs_revision',
+            'review_comments' => 'required|string|max:2000',
+            'review_score' => 'nullable|numeric|between:0,100',
         ]);
 
         if ($validator->fails()) {
             return response()->json(
                 [
-                    "success" => false,
-                    "message" => "Validasi gagal.",
-                    "errors" => $validator->errors(),
+                    'success' => false,
+                    'message' => 'Validasi gagal.',
+                    'errors' => $validator->errors(),
                 ],
                 422,
             );
@@ -672,28 +676,28 @@ class AssessmentController extends Controller
         try {
             $user = Auth::user();
             $oldStatus = $assessment->status;
-            $reviewDecision = $request->get("review_decision");
+            $reviewDecision = $request->get('review_decision');
 
             // Update assessment based on review decision
             $updateData = [
-                "reviewer_id" => $user->id,
-                "review_comments" => $request->get("review_comments"),
-                "review_score" => $request->get("review_score"),
-                "reviewed_at" => Carbon::now(),
-                "updated_by" => $user->id,
+                'reviewer_id' => $user->id,
+                'review_comments' => $request->get('review_comments'),
+                'review_score' => $request->get('review_score'),
+                'reviewed_at' => Carbon::now(),
+                'updated_by' => $user->id,
             ];
 
             switch ($reviewDecision) {
-                case "approved":
-                    $updateData["status"] = "approved";
-                    $updateData["approved_at"] = Carbon::now();
-                    $updateData["approved_by"] = $user->id;
+                case 'approved':
+                    $updateData['status'] = 'approved';
+                    $updateData['approved_at'] = Carbon::now();
+                    $updateData['approved_by'] = $user->id;
                     break;
-                case "rejected":
-                    $updateData["status"] = "rejected";
+                case 'rejected':
+                    $updateData['status'] = 'rejected';
                     break;
-                case "needs_revision":
-                    $updateData["status"] = "needs_revision";
+                case 'needs_revision':
+                    $updateData['status'] = 'needs_revision';
                     break;
             }
 
@@ -708,33 +712,34 @@ class AssessmentController extends Controller
 
             // Log the activity
             AuditLog::create([
-                "user_id" => $user->id,
-                "instansi_id" => $user->instansi_id,
-                "action" => "REVIEW",
-                "module" => "SAKIP",
-                "description" => "Mereview penilaian: {$assessment->indicator->name} (Keputusan: {$reviewDecision})",
-                "old_values" => ["status" => $oldStatus],
-                "new_values" => ["status" => $updateData["status"]],
+                'user_id' => $user->id,
+                'instansi_id' => $user->instansi_id,
+                'action' => 'REVIEW',
+                'module' => 'SAKIP',
+                'description' => "Mereview penilaian: {$assessment->indicator->name} (Keputusan: {$reviewDecision})",
+                'old_values' => ['status' => $oldStatus],
+                'new_values' => ['status' => $updateData['status']],
             ]);
 
             DB::commit();
 
             return response()->json([
-                "success" => true,
-                "message" => "Penilaian berhasil direview.",
-                "data" => [
-                    "id" => $assessment->id,
-                    "status" => $assessment->status,
-                    "decision" => $reviewDecision,
+                'success' => true,
+                'message' => 'Penilaian berhasil direview.',
+                'data' => [
+                    'id' => $assessment->id,
+                    'status' => $assessment->status,
+                    'decision' => $reviewDecision,
                 ],
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error("Review assessment error: " . $e->getMessage());
+            Log::error('Review assessment error: '.$e->getMessage());
+
             return response()->json(
                 [
-                    "success" => false,
-                    "message" => "Terjadi kesalahan saat mereview penilaian.",
+                    'success' => false,
+                    'message' => 'Terjadi kesalahan saat mereview penilaian.',
                 ],
                 500,
             );
@@ -746,7 +751,7 @@ class AssessmentController extends Controller
      */
     public function destroy(Assessment $assessment)
     {
-        $this->authorize("delete", $assessment);
+        $this->authorize('delete', $assessment);
 
         DB::beginTransaction();
         try {
@@ -755,12 +760,11 @@ class AssessmentController extends Controller
             $oldValues = $assessment->toArray();
 
             // Check if assessment can be deleted
-            if (!$this->assessmentService->canDeleteAssessment($assessment)) {
+            if (! $this->assessmentService->canDeleteAssessment($assessment)) {
                 return response()->json(
                     [
-                        "success" => false,
-                        "message" =>
-                            "Penilaian ini tidak dapat dihapus karena sudah disetujui.",
+                        'success' => false,
+                        'message' => 'Penilaian ini tidak dapat dihapus karena sudah disetujui.',
                     ],
                     422,
                 );
@@ -779,28 +783,29 @@ class AssessmentController extends Controller
 
             // Log the activity
             AuditLog::create([
-                "user_id" => $user->id,
-                "instansi_id" => $user->instansi_id,
-                "action" => "DELETE",
-                "module" => "SAKIP",
-                "description" => "Menghapus penilaian untuk indikator: {$indicatorName}",
-                "old_values" => $oldValues,
-                "new_values" => null,
+                'user_id' => $user->id,
+                'instansi_id' => $user->instansi_id,
+                'action' => 'DELETE',
+                'module' => 'SAKIP',
+                'description' => "Menghapus penilaian untuk indikator: {$indicatorName}",
+                'old_values' => $oldValues,
+                'new_values' => null,
             ]);
 
             DB::commit();
 
             return response()->json([
-                "success" => true,
-                "message" => "Penilaian berhasil dihapus.",
+                'success' => true,
+                'message' => 'Penilaian berhasil dihapus.',
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error("Delete assessment error: " . $e->getMessage());
+            Log::error('Delete assessment error: '.$e->getMessage());
+
             return response()->json(
                 [
-                    "success" => false,
-                    "message" => "Terjadi kesalahan saat menghapus penilaian.",
+                    'success' => false,
+                    'message' => 'Terjadi kesalahan saat menghapus penilaian.',
                 ],
                 500,
             );
@@ -812,25 +817,25 @@ class AssessmentController extends Controller
      */
     public function getStatistics(Request $request)
     {
-        $this->authorize("viewAny", Assessment::class);
+        $this->authorize('viewAny', Assessment::class);
 
         try {
             $user = Auth::user();
-            $year = $request->get("year", Carbon::now()->year);
+            $year = $request->get('year', Carbon::now()->year);
 
             $statistics = $this->getAssessmentStatistics($user, $year);
 
             return response()->json([
-                "success" => true,
-                "data" => $statistics,
+                'success' => true,
+                'data' => $statistics,
             ]);
         } catch (\Exception $e) {
-            Log::error("Get assessment statistics error: " . $e->getMessage());
+            Log::error('Get assessment statistics error: '.$e->getMessage());
+
             return response()->json(
                 [
-                    "success" => false,
-                    "message" =>
-                        "Terjadi kesalahan saat mengambil statistik penilaian.",
+                    'success' => false,
+                    'message' => 'Terjadi kesalahan saat mengambil statistik penilaian.',
                 ],
                 500,
             );
@@ -842,17 +847,17 @@ class AssessmentController extends Controller
      */
     private function getAssessmentStatistics($user, $year)
     {
-        $query = Assessment::whereYear("created_at", $year);
+        $query = Assessment::whereYear('created_at', $year);
 
         // Role-based filtering
-        if ($user->hasRole("assessor")) {
-            $query->where("assessor_id", $user->id);
-        } elseif ($user->hasRole("reviewer")) {
-            $query->where("reviewer_id", $user->id);
-        } elseif (!$user->hasRole("superadmin")) {
-            $query->whereHas("indicator", function ($q) use ($user) {
+        if ($user->hasRole('assessor')) {
+            $query->where('assessor_id', $user->id);
+        } elseif ($user->hasRole('reviewer')) {
+            $query->where('reviewer_id', $user->id);
+        } elseif (! $user->hasRole('superadmin')) {
+            $query->whereHas('indicator', function ($q) use ($user) {
                 $q->where(
-                    "performance_indicators.instansi_id",
+                    'performance_indicators.instansi_id',
                     $user->instansi_id,
                 );
             });
@@ -860,21 +865,21 @@ class AssessmentController extends Controller
 
         $totalAssessments = $query->count();
         $byStatus = $query
-            ->select("status", DB::raw("count(*) as count"))
-            ->groupBy("status")
-            ->pluck("count", "status")
+            ->select('status', DB::raw('count(*) as count'))
+            ->groupBy('status')
+            ->pluck('count', 'status')
             ->toArray();
 
-        $averageScore = $query->avg("overall_score");
+        $averageScore = $query->avg('overall_score');
 
         return [
-            "total_assessments" => $totalAssessments,
-            "by_status" => $byStatus,
-            "average_score" => round($averageScore, 2),
-            "pending_review" => $byStatus["pending_review"] ?? 0,
-            "approved" => $byStatus["approved"] ?? 0,
-            "rejected" => $byStatus["rejected"] ?? 0,
-            "needs_revision" => $byStatus["needs_revision"] ?? 0,
+            'total_assessments' => $totalAssessments,
+            'by_status' => $byStatus,
+            'average_score' => round($averageScore, 2),
+            'pending_review' => $byStatus['pending_review'] ?? 0,
+            'approved' => $byStatus['approved'] ?? 0,
+            'rejected' => $byStatus['rejected'] ?? 0,
+            'needs_revision' => $byStatus['needs_revision'] ?? 0,
         ];
     }
 
@@ -883,31 +888,31 @@ class AssessmentController extends Controller
      */
     private function getPendingAssessments($user, $year)
     {
-        $query = Assessment::with(["performanceData", "assessor"])->whereYear(
-            "created_at",
+        $query = Assessment::with(['performanceData', 'assessor'])->whereYear(
+            'created_at',
             $year,
         );
 
-        if ($user->hasRole("assessor")) {
-            $query->where("assessor_id", $user->id)->where("status", "draft");
-        } elseif ($user->hasRole("reviewer")) {
+        if ($user->hasRole('assessor')) {
+            $query->where('assessor_id', $user->id)->where('status', 'draft');
+        } elseif ($user->hasRole('reviewer')) {
             $query
-                ->where("reviewer_id", $user->id)
-                ->where("status", "pending_review");
-        } elseif (!$user->hasRole("superadmin")) {
+                ->where('reviewer_id', $user->id)
+                ->where('status', 'pending_review');
+        } elseif (! $user->hasRole('superadmin')) {
             $query
-                ->whereHas("indicator", function ($q) use ($user) {
+                ->whereHas('indicator', function ($q) use ($user) {
                     $q->where(
-                        "performance_indicators.instansi_id",
+                        'performance_indicators.instansi_id',
                         $user->instansi_id,
                     );
                 })
-                ->whereIn("status", ["draft", "pending_review"]);
+                ->whereIn('status', ['draft', 'pending_review']);
         } else {
-            $query->whereIn("status", ["draft", "pending_review"]);
+            $query->whereIn('status', ['draft', 'pending_review']);
         }
 
-        return $query->orderBy("created_at", "desc")->limit(10)->get();
+        return $query->orderBy('created_at', 'desc')->limit(10)->get();
     }
 
     /**
@@ -920,22 +925,22 @@ class AssessmentController extends Controller
         $periods = [];
 
         switch ($indicator->frequency) {
-            case "monthly":
+            case 'monthly':
                 for ($month = 1; $month <= 12; $month++) {
                     $periods[] = Carbon::create($currentYear, $month, 1);
                 }
                 break;
-            case "quarterly":
+            case 'quarterly':
                 foreach ([1, 4, 7, 10] as $month) {
                     $periods[] = Carbon::create($currentYear, $month, 1);
                 }
                 break;
-            case "semester":
+            case 'semester':
                 foreach ([1, 7] as $month) {
                     $periods[] = Carbon::create($currentYear, $month, 1);
                 }
                 break;
-            case "annual":
+            case 'annual':
                 $periods[] = Carbon::create($currentYear, 1, 1);
                 break;
         }
@@ -953,16 +958,16 @@ class AssessmentController extends Controller
             $filePath = $document->file_path;
 
             // Remove any path traversal attempts
-            $filePath = str_replace(["../", "..\\", "./"], "", $filePath);
+            $filePath = str_replace(['../', '..\\', './'], '', $filePath);
 
             // Ensure the file path doesn't start with a slash (absolute path)
-            $filePath = ltrim($filePath, "/\\");
+            $filePath = ltrim($filePath, '/\\');
 
             // Construct the full path
-            $fullPath = storage_path("app/public/" . $filePath);
+            $fullPath = storage_path('app/public/'.$filePath);
 
             // Verify the resolved path is still within the storage directory
-            $storagePath = realpath(storage_path("app/public"));
+            $storagePath = realpath(storage_path('app/public'));
             $resolvedPath = realpath(dirname($fullPath));
 
             if (
@@ -970,16 +975,16 @@ class AssessmentController extends Controller
                 strpos($resolvedPath, $storagePath) !== 0
             ) {
                 Log::warning(
-                    "Attempted path traversal detected: " .
+                    'Attempted path traversal detected: '.
                         $document->file_path,
                 );
-                throw new \Exception("Invalid file path detected.");
+                throw new \Exception('Invalid file path detected.');
             }
 
             // Delete physical file if it exists
             if (file_exists($fullPath) && is_file($fullPath)) {
-                if (!unlink($fullPath)) {
-                    throw new \Exception("Failed to delete file: " . $filePath);
+                if (! unlink($fullPath)) {
+                    throw new \Exception('Failed to delete file: '.$filePath);
                 }
             }
 
@@ -988,9 +993,9 @@ class AssessmentController extends Controller
 
             return true;
         } catch (\Exception $e) {
-            Log::error("Delete evidence document error: " . $e->getMessage(), [
-                "document_id" => $document->id ?? null,
-                "file_path" => $document->file_path ?? null,
+            Log::error('Delete evidence document error: '.$e->getMessage(), [
+                'document_id' => $document->id ?? null,
+                'file_path' => $document->file_path ?? null,
             ]);
             throw $e;
         }

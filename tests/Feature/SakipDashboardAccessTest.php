@@ -2,11 +2,11 @@
 
 namespace Tests\Feature;
 
-use Tests\TestCase;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use App\Models\User;
 use App\Models\Permission;
 use App\Models\Role;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 class SakipDashboardAccessTest extends TestCase
 {
@@ -25,6 +25,7 @@ class SakipDashboardAccessTest extends TestCase
         }
 
         $user->refresh();
+
         return $user;
     }
 
@@ -58,7 +59,7 @@ class SakipDashboardAccessTest extends TestCase
         $response->assertStatus(200);
     }
 
-    public function test_hasAnyPermission_logic_allows_access_with_any_sakip_role_or_permission()
+    public function test_has_any_permission_logic_allows_access_with_any_sakip_role_or_permission()
     {
         // user with assessor role should access dashboard via policy's hasAnyPermission list
         $user = User::factory()->create(['email_verified_at' => now()]);

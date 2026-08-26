@@ -26,7 +26,7 @@ class UpdatePerformanceIndicatorRequest extends FormRequest
 
         return [
             'instansi_id' => 'required|exists:instansis,id',
-            'code' => 'required|string|max:50|unique:performance_indicators,code,' . $indicatorId,
+            'code' => 'required|string|max:50|unique:performance_indicators,code,'.$indicatorId,
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'measurement_unit' => 'required|string|max:100',
@@ -35,8 +35,8 @@ class UpdatePerformanceIndicatorRequest extends FormRequest
             'calculation_formula' => 'nullable|string',
             'frequency' => ['required', Rule::in(['monthly', 'quarterly', 'semester', 'annual'])],
             'category' => ['required', Rule::in([
-                'financial', 'service', 'internal', 'learning', 
-                'stakeholder', 'compliance', 'strategic'
+                'financial', 'service', 'internal', 'learning',
+                'stakeholder', 'compliance', 'strategic',
             ])],
             'weight' => 'required|numeric|min:0|max:100',
             'is_mandatory' => 'boolean',

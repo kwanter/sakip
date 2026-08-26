@@ -18,49 +18,49 @@ class SecurityHeadersMiddleware
         $response = $next($request);
 
         // X-Content-Type-Options: Prevents MIME type sniffing
-        $response->headers->set("X-Content-Type-Options", "nosniff");
+        $response->headers->set('X-Content-Type-Options', 'nosniff');
 
         // X-Frame-Options: Prevents clickjacking attacks
-        $response->headers->set("X-Frame-Options", "SAMEORIGIN");
+        $response->headers->set('X-Frame-Options', 'SAMEORIGIN');
 
         // X-XSS-Protection: Enables XSS filter in older browsers
-        $response->headers->set("X-XSS-Protection", "1; mode=block");
+        $response->headers->set('X-XSS-Protection', '1; mode=block');
 
         // Referrer-Policy: Controls referrer information
         $response->headers->set(
-            "Referrer-Policy",
-            "strict-origin-when-cross-origin",
+            'Referrer-Policy',
+            'strict-origin-when-cross-origin',
         );
 
         // Permissions-Policy: Controls browser features
         $response->headers->set(
-            "Permissions-Policy",
-            "geolocation=(), microphone=(), camera=(), payment=()",
+            'Permissions-Policy',
+            'geolocation=(), microphone=(), camera=(), payment=()',
         );
 
         // Strict-Transport-Security: Forces HTTPS (only in production)
-        if (app()->environment("production")) {
+        if (app()->environment('production')) {
             $response->headers->set(
-                "Strict-Transport-Security",
-                "max-age=31536000; includeSubDomains; preload",
+                'Strict-Transport-Security',
+                'max-age=31536000; includeSubDomains; preload',
             );
         }
 
         // Content-Security-Policy: Prevents XSS and data injection attacks
         $csp = $this->getContentSecurityPolicy();
-        $response->headers->set("Content-Security-Policy", $csp);
+        $response->headers->set('Content-Security-Policy', $csp);
 
         // Add Reporting-API header for modern browsers (production only)
-        if (app()->environment("production")) {
+        if (app()->environment('production')) {
             $response->headers->set(
-                "Reporting-Endpoints",
+                'Reporting-Endpoints',
                 'csp-endpoint="/api/csp-reports"',
             );
         }
 
         // Remove sensitive headers that might leak information
-        $response->headers->remove("X-Powered-By");
-        $response->headers->remove("Server");
+        $response->headers->remove('X-Powered-By');
+        $response->headers->remove('Server');
 
         return $response;
     }
@@ -73,8 +73,6 @@ class SecurityHeadersMiddleware
      * - Removed 'unsafe-inline' from production environment
      * - Added report-uri for CSP violation monitoring
      * - Strict policies for frame-ancestors and object-src
-     *
-     * @return string
      */
     protected function getContentSecurityPolicy(): string
     {
@@ -83,16 +81,16 @@ class SecurityHeadersMiddleware
         $nonce = base64_encode(random_bytes(16));
 
         // Store nonce in request for use in Blade templates
-        app()->singleton("csp-nonce", fn() => $nonce);
+        app()->singleton('csp-nonce', fn () => $nonce);
 
         // Check if we're in production (must be BOTH production env AND debug off)
         // For development: allow unsafe-inline for easier debugging
         // For production: use nonce-based CSP, but still allow unsafe-inline for page-specific scripts
         $isProduction =
-            app()->environment("production") && !config("app.debug");
+            app()->environment('production') && ! config('app.debug');
         $isLocal =
-            app()->environment(["local", "development"]) ||
-            config("app.debug");
+            app()->environment(['local', 'development']) ||
+            config('app.debug');
 
         // Allow inline scripts with nonce for page-specific functionality
         // This is necessary because blade templates contain page-specific JavaScript
@@ -118,7 +116,7 @@ class SecurityHeadersMiddleware
             "media-src 'self'",
             "manifest-src 'self'",
             "worker-src 'self' blob:",
-            "report-uri /api/csp-reports",
+            'report-uri /api/csp-reports',
         ];
 
         // In development, allow more permissive policies for hot reload
@@ -127,6 +125,6 @@ class SecurityHeadersMiddleware
                 "connect-src 'self' ws: wss: http://localhost:* http://127.0.0.1:*";
         }
 
-        return implode("; ", $directives);
+        return implode('; ', $directives);
     }
 }

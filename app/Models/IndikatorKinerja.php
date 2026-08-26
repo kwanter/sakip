@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 class IndikatorKinerja extends Model
 {
@@ -21,10 +21,11 @@ class IndikatorKinerja extends Model
         'realisasi',
         'jenis',
         'formula_perhitungan',
-        'status'
+        'status',
     ];
 
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $casts = [
@@ -57,6 +58,7 @@ class IndikatorKinerja extends Model
         if ($this->target > 0) {
             return round(($this->realisasi / $this->target) * 100, 2);
         }
+
         return 0;
     }
 }

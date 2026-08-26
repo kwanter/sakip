@@ -2,25 +2,20 @@
 
 namespace App\Http\Requests\Sakip;
 
-use App\Constants\ValidationRules;
 use App\Constants\Status;
+use App\Constants\ValidationRules;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 /**
  * Data Collection Form Request
  *
  * Handles validation for Performance Data create and update operations.
  * Eliminates duplicate validation logic from DataCollectionController.
- *
- * @package App\Http\Requests\Sakip
  */
 class DataCollectionFormRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
-     *
-     * @return bool
      */
     public function authorize(): bool
     {
@@ -47,8 +42,8 @@ class DataCollectionFormRequest extends FormRequest
             'period' => [
                 'required',
                 'date',
-                'after_or_equal:' . date('Y-01-01'),
-                'before_or_equal:' . date('Y-12-31'),
+                'after_or_equal:'.date('Y-01-01'),
+                'before_or_equal:'.date('Y-12-31'),
             ],
             'actual_value' => [
                 'required',
@@ -61,18 +56,18 @@ class DataCollectionFormRequest extends FormRequest
             'performance_percentage' => [
                 'nullable',
                 'numeric',
-                'min:' . ValidationRules::MIN_PERCENTAGE,
-                'max:' . config('sakip.performance.max_percentage', 200),
+                'min:'.ValidationRules::MIN_PERCENTAGE,
+                'max:'.config('sakip.performance.max_percentage', 200),
             ],
             'notes' => [
                 'nullable',
                 'string',
-                'max:' . ValidationRules::LONG_TEXT_MAX_LENGTH,
+                'max:'.ValidationRules::LONG_TEXT_MAX_LENGTH,
             ],
             'status' => [
                 'nullable',
                 'string',
-                'in:' . Status::DRAFT . ',' . Status::SUBMITTED . ',' . Status::VALIDATED . ',' . Status::APPROVED . ',' . Status::REJECTED,
+                'in:'.Status::DRAFT.','.Status::SUBMITTED.','.Status::VALIDATED.','.Status::APPROVED.','.Status::REJECTED,
             ],
             'evidence_files' => [
                 'nullable',
@@ -82,8 +77,8 @@ class DataCollectionFormRequest extends FormRequest
             'evidence_files.*' => [
                 'nullable',
                 'file',
-                'max:' . ValidationRules::MAX_FILE_SIZE,
-                'mimes:' . implode(',', ValidationRules::allowedDocumentExtensions()),
+                'max:'.ValidationRules::MAX_FILE_SIZE,
+                'mimes:'.implode(',', ValidationRules::allowedDocumentExtensions()),
             ],
             'existing_files' => [
                 'nullable',
@@ -169,8 +164,6 @@ class DataCollectionFormRequest extends FormRequest
      *
      * This helper method calculates performance percentage based on
      * actual and target values using the configured calculation method.
-     *
-     * @return float|null
      */
     public function getComputedPerformancePercentage(): ?float
     {
@@ -186,8 +179,10 @@ class DataCollectionFormRequest extends FormRequest
         if ($target < 0) {
             if ($actual < 0) {
                 $percentage = abs($actual / $target) * 100;
+
                 return min($percentage, config('sakip.performance.max_percentage', 200));
             }
+
             return 0;
         }
 
@@ -198,6 +193,7 @@ class DataCollectionFormRequest extends FormRequest
 
         // Standard calculation
         $percentage = ($actual / $target) * 100;
+
         return round(max(0, $percentage), 2);
     }
 }

@@ -2,14 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Scopes\ForYearTrait;
+use App\Models\Scopes\RecentScope;
+use App\Models\Scopes\SearchScope;
+use App\Models\Scopes\WithStatusScope;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
-use App\Models\Scopes\WithStatusScope;
-use App\Models\Scopes\RecentScope;
-use App\Models\Scopes\SearchScope;
-use App\Models\Scopes\ForYearTrait;
 
 /**
  * PerformanceData Model
@@ -19,15 +19,15 @@ use App\Models\Scopes\ForYearTrait;
  */
 class PerformanceData extends Model
 {
+    use ForYearTrait, RecentScope, SearchScope, WithStatusScope;
     use HasFactory, HasUuids, SoftDeletes;
-    use WithStatusScope, RecentScope, SearchScope, ForYearTrait;
 
     /**
      * The table associated with the model.
      *
      * @var string
      */
-    protected $table = "performance_data";
+    protected $table = 'performance_data';
 
     /**
      * The attributes that are mass assignable.
@@ -35,32 +35,32 @@ class PerformanceData extends Model
      * @var array<string>
      */
     protected $fillable = [
-        "performance_indicator_id",
-        "instansi_id",
-        "period",
-        "actual_value",
-        "notes",
-        "status",
-        "data_quality",
-        "data_source",
-        "collection_method",
-        "collected_at",
-        "validation_notes",
-        "submitted_at",
-        "validated_at",
-        "metadata",
+        'performance_indicator_id',
+        'instansi_id',
+        'period',
+        'actual_value',
+        'notes',
+        'status',
+        'data_quality',
+        'data_source',
+        'collection_method',
+        'collected_at',
+        'validation_notes',
+        'submitted_at',
+        'validated_at',
+        'metadata',
     ];
 
     // Protected fields - set automatically
     protected $guarded = [
-        "id",
-        "submitted_by",
-        "validated_by",
-        "created_by",
-        "updated_by",
-        "created_at",
-        "updated_at",
-        "deleted_at",
+        'id',
+        'submitted_by',
+        'validated_by',
+        'created_by',
+        'updated_by',
+        'created_at',
+        'updated_at',
+        'deleted_at',
     ];
 
     /**
@@ -69,19 +69,19 @@ class PerformanceData extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        "instansi_id" => "string",
-        "submitted_by" => "string",
-        "validated_by" => "string",
-        "created_by" => "string",
-        "updated_by" => "string",
-        "actual_value" => "decimal:2",
-        "collected_at" => "datetime",
-        "validated_at" => "datetime",
-        "submitted_at" => "datetime",
-        "metadata" => "array",
-        "created_at" => "datetime",
-        "updated_at" => "datetime",
-        "deleted_at" => "datetime",
+        'instansi_id' => 'string',
+        'submitted_by' => 'string',
+        'validated_by' => 'string',
+        'created_by' => 'string',
+        'updated_by' => 'string',
+        'actual_value' => 'decimal:2',
+        'collected_at' => 'datetime',
+        'validated_at' => 'datetime',
+        'submitted_at' => 'datetime',
+        'metadata' => 'array',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+        'deleted_at' => 'datetime',
     ];
 
     /**
@@ -113,7 +113,7 @@ class PerformanceData extends Model
      */
     public function submitter()
     {
-        return $this->belongsTo(User::class, "submitted_by");
+        return $this->belongsTo(User::class, 'submitted_by');
     }
 
     /**
@@ -121,7 +121,7 @@ class PerformanceData extends Model
      */
     public function validator()
     {
-        return $this->belongsTo(User::class, "validated_by");
+        return $this->belongsTo(User::class, 'validated_by');
     }
 
     /**
@@ -129,7 +129,7 @@ class PerformanceData extends Model
      */
     public function creator()
     {
-        return $this->belongsTo(User::class, "created_by");
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     /**
@@ -137,7 +137,7 @@ class PerformanceData extends Model
      */
     public function updater()
     {
-        return $this->belongsTo(User::class, "updated_by");
+        return $this->belongsTo(User::class, 'updated_by');
     }
 
     /**
@@ -161,7 +161,7 @@ class PerformanceData extends Model
      */
     public function scopeForPeriod($query, string $period)
     {
-        return $query->where("period", $period);
+        return $query->where('period', $period);
     }
 
     /**
@@ -169,7 +169,7 @@ class PerformanceData extends Model
      */
     public function scopeByStatus($query, string $status)
     {
-        return $query->where("status", $status);
+        return $query->where('status', $status);
     }
 
     /**
@@ -177,7 +177,7 @@ class PerformanceData extends Model
      */
     public function scopeForInstansi($query, int $instansiId)
     {
-        return $query->where("instansi_id", $instansiId);
+        return $query->where('instansi_id', $instansiId);
     }
 
     /**
@@ -185,7 +185,7 @@ class PerformanceData extends Model
      */
     public function scopeForIndicator($query, int $indicatorId)
     {
-        return $query->where("performance_indicator_id", $indicatorId);
+        return $query->where('performance_indicator_id', $indicatorId);
     }
 
     /**
@@ -193,7 +193,7 @@ class PerformanceData extends Model
      */
     public function scopeSubmitted($query)
     {
-        return $query->where("status", "submitted");
+        return $query->where('status', 'submitted');
     }
 
     /**
@@ -201,7 +201,7 @@ class PerformanceData extends Model
      */
     public function scopeValidated($query)
     {
-        return $query->where("status", "validated");
+        return $query->where('status', 'validated');
     }
 
     /**
@@ -209,7 +209,7 @@ class PerformanceData extends Model
      */
     public function isSubmitted()
     {
-        return $this->status === "submitted";
+        return $this->status === 'submitted';
     }
 
     /**
@@ -217,7 +217,7 @@ class PerformanceData extends Model
      */
     public function isValidated()
     {
-        return $this->status === "validated";
+        return $this->status === 'validated';
     }
 
     /**
@@ -233,11 +233,12 @@ class PerformanceData extends Model
      */
     public function getTarget()
     {
-        if (!$this->performanceIndicator) {
+        if (! $this->performanceIndicator) {
             return null;
         }
 
         $year = substr($this->period, 0, 4);
+
         return $this->performanceIndicator->getTargetForYear((int) $year);
     }
 
@@ -247,7 +248,7 @@ class PerformanceData extends Model
     public function calculateAchievement()
     {
         $target = $this->getTarget();
-        if (!$target || empty($target->target_value)) {
+        if (! $target || empty($target->target_value)) {
             return null;
         }
 
@@ -260,8 +261,8 @@ class PerformanceData extends Model
     public function getPerformanceStatus()
     {
         $target = $this->getTarget();
-        if (!$target) {
-            return "no_target";
+        if (! $target) {
+            return 'no_target';
         }
 
         return $target->getTargetStatus($this->actual_value);
@@ -272,9 +273,10 @@ class PerformanceData extends Model
      */
     public function getFormattedActualValueAttribute()
     {
-        $unit = $this->performanceIndicator?->measurement_unit ?? "";
-        return number_format($this->actual_value, 2) .
-            ($unit ? " " . $unit : "");
+        $unit = $this->performanceIndicator?->measurement_unit ?? '';
+
+        return number_format($this->actual_value, 2).
+            ($unit ? ' '.$unit : '');
     }
 
     /**
@@ -283,9 +285,9 @@ class PerformanceData extends Model
     public function submit()
     {
         $this->update([
-            "status" => "submitted",
-            "submitted_at" => now(),
-            "submitted_by" => auth()->id(),
+            'status' => 'submitted',
+            'submitted_at' => now(),
+            'submitted_by' => auth()->id(),
         ]);
     }
 
@@ -295,10 +297,10 @@ class PerformanceData extends Model
     public function validate($notes = null)
     {
         $this->update([
-            "status" => "validated",
-            "validation_notes" => $notes,
-            "validated_at" => now(),
-            "validated_by" => auth()->id(),
+            'status' => 'validated',
+            'validation_notes' => $notes,
+            'validated_at' => now(),
+            'validated_by' => auth()->id(),
         ]);
     }
 
@@ -308,10 +310,10 @@ class PerformanceData extends Model
     public function reject($notes = null)
     {
         $this->update([
-            "status" => "rejected",
-            "validation_notes" => $notes,
-            "validated_at" => now(),
-            "validated_by" => auth()->id(),
+            'status' => 'rejected',
+            'validation_notes' => $notes,
+            'validated_at' => now(),
+            'validated_by' => auth()->id(),
         ]);
     }
 }

@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Services\SystemSettingsService;
 use App\Models\SystemSetting;
+use App\Services\SystemSettingsService;
 use Illuminate\Http\Request;
 
 class SystemSettingsController extends Controller

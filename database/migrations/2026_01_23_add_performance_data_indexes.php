@@ -16,16 +16,16 @@ return new class extends Migration
         Schema::table('performance_data', function (Blueprint $table) {
             // Composite index for institution + period queries (dashboard filters)
             $table->index(['instansi_id', 'period'], 'idx_perf_data_instansi_period');
-            
+
             // Composite index for indicator + period queries (trends analysis)
             $table->index(['performance_indicator_id', 'period'], 'idx_perf_data_indicator_period');
-            
+
             // Index for status filtering
             $table->index('status', 'idx_perf_data_status');
-            
+
             // Index for submission date ordering
             $table->index('submitted_at', 'idx_perf_data_submitted_at');
-            
+
             // Index for validation date ordering
             $table->index('validated_at', 'idx_perf_data_validated_at');
         });

@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 /**
  * Target Model
@@ -29,7 +29,7 @@ class Target extends Model
      *
      * @var string
      */
-    protected $table = "targets";
+    protected $table = 'targets';
 
     /**
      * The attributes that are mass assignable.
@@ -37,22 +37,22 @@ class Target extends Model
      * @var array<string>
      */
     protected $fillable = [
-        "performance_indicator_id",
-        "year",
-        "target_value",
-        "minimum_value",
-        "justification",
-        "status",
-        "approved_by",
-        "approved_at",
-        "notes",
-        "metadata",
-        "created_by",
-        "updated_by",
+        'performance_indicator_id',
+        'year',
+        'target_value',
+        'minimum_value',
+        'justification',
+        'status',
+        'approved_by',
+        'approved_at',
+        'notes',
+        'metadata',
+        'created_by',
+        'updated_by',
     ];
 
     // Protected fields - set automatically
-    protected $guarded = ["id", "created_at", "updated_at", "deleted_at"];
+    protected $guarded = ['id', 'created_at', 'updated_at', 'deleted_at'];
 
     /**
      * The attributes that should be cast.
@@ -60,13 +60,13 @@ class Target extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        "target_value" => "decimal:2",
-        "minimum_value" => "decimal:2",
-        "approved_at" => "datetime",
-        "metadata" => "array",
-        "created_at" => "datetime",
-        "updated_at" => "datetime",
-        "deleted_at" => "datetime",
+        'target_value' => 'decimal:2',
+        'minimum_value' => 'decimal:2',
+        'approved_at' => 'datetime',
+        'metadata' => 'array',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+        'deleted_at' => 'datetime',
     ];
 
     /**
@@ -82,7 +82,7 @@ class Target extends Model
      */
     public function approver()
     {
-        return $this->belongsTo(User::class, "approved_by");
+        return $this->belongsTo(User::class, 'approved_by');
     }
 
     /**
@@ -90,7 +90,7 @@ class Target extends Model
      */
     public function creator()
     {
-        return $this->belongsTo(User::class, "created_by");
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     /**
@@ -98,7 +98,7 @@ class Target extends Model
      */
     public function updater()
     {
-        return $this->belongsTo(User::class, "updated_by");
+        return $this->belongsTo(User::class, 'updated_by');
     }
 
     /**
@@ -106,7 +106,7 @@ class Target extends Model
      */
     public function scopeForYear($query, int $year)
     {
-        return $query->where("year", $year);
+        return $query->where('year', $year);
     }
 
     /**
@@ -114,7 +114,7 @@ class Target extends Model
      */
     public function scopeByStatus($query, string $status)
     {
-        return $query->where("status", $status);
+        return $query->where('status', $status);
     }
 
     /**
@@ -122,7 +122,7 @@ class Target extends Model
      */
     public function scopeApproved($query)
     {
-        return $query->where("status", "approved");
+        return $query->where('status', 'approved');
     }
 
     /**
@@ -130,7 +130,7 @@ class Target extends Model
      */
     public function isApproved()
     {
-        return $this->status === "approved";
+        return $this->status === 'approved';
     }
 
     /**
@@ -163,19 +163,19 @@ class Target extends Model
     public function getTargetStatus($actualValue)
     {
         if ($this->target_value == 0) {
-            return "no_target";
+            return 'no_target';
         }
 
         $achievement = $this->getAchievementPercentage($actualValue);
 
         if ($achievement >= 100) {
-            return "achieved";
+            return 'achieved';
         } elseif ($achievement >= 80) {
-            return "partially_achieved";
+            return 'partially_achieved';
         } elseif ($this->meetsMinimumThreshold($actualValue)) {
-            return "minimum_met";
+            return 'minimum_met';
         } else {
-            return "not_achieved";
+            return 'not_achieved';
         }
     }
 
@@ -184,9 +184,10 @@ class Target extends Model
      */
     public function getFormattedTargetAttribute()
     {
-        $unit = $this->performanceIndicator->measurement_unit ?? "";
-        return number_format($this->target_value, 2) .
-            ($unit ? " " . $unit : "");
+        $unit = $this->performanceIndicator->measurement_unit ?? '';
+
+        return number_format($this->target_value, 2).
+            ($unit ? ' '.$unit : '');
     }
 
     /**
@@ -198,9 +199,10 @@ class Target extends Model
             return null;
         }
 
-        $unit = $this->performanceIndicator->measurement_unit ?? "";
-        return number_format($this->minimum_value, 2) .
-            ($unit ? " " . $unit : "");
+        $unit = $this->performanceIndicator->measurement_unit ?? '';
+
+        return number_format($this->minimum_value, 2).
+            ($unit ? ' '.$unit : '');
     }
 
     /**

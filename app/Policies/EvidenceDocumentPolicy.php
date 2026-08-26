@@ -5,11 +5,10 @@ namespace App\Policies;
 use App\Models\EvidenceDocument;
 use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
-use Carbon\Carbon;
 
 /**
  * EvidenceDocumentPolicy
- * 
+ *
  * Handles authorization for file upload and evidence management operations.
  * Implements role-based access control with file type restrictions and storage limits.
  */
@@ -29,7 +28,7 @@ class EvidenceDocumentPolicy
             'sakip.pimpinan',
             'sakip.data_collector',
             'sakip.assessor',
-            'sakip.auditor'
+            'sakip.auditor',
         ]);
     }
 
@@ -54,7 +53,7 @@ class EvidenceDocumentPolicy
             'sakip.pimpinan',
             'sakip.data_collector',
             'sakip.assessor',
-            'sakip.auditor'
+            'sakip.auditor',
         ]);
     }
 
@@ -68,7 +67,7 @@ class EvidenceDocumentPolicy
             'sakip.evidence.create',
             'sakip.admin',
             'sakip.pimpinan',
-            'sakip.data_collector'
+            'sakip.data_collector',
         ]);
     }
 
@@ -113,7 +112,7 @@ class EvidenceDocumentPolicy
     public function delete(User $user, EvidenceDocument $document): bool
     {
         // Only admin can delete documents
-        if (!$user->hasPermission('sakip.admin')) {
+        if (! $user->hasPermission('sakip.admin')) {
             return false;
         }
 
@@ -131,7 +130,7 @@ class EvidenceDocumentPolicy
             'sakip.evidence.upload',
             'sakip.admin',
             'sakip.pimpinan',
-            'sakip.data_collector'
+            'sakip.data_collector',
         ]);
     }
 
@@ -156,7 +155,7 @@ class EvidenceDocumentPolicy
             'sakip.pimpinan',
             'sakip.data_collector',
             'sakip.assessor',
-            'sakip.auditor'
+            'sakip.auditor',
         ]);
     }
 
@@ -184,7 +183,7 @@ class EvidenceDocumentPolicy
         return $user->hasAnyPermission([
             'sakip.evidence.validate',
             'sakip.pimpinan',
-            'sakip.assessor'
+            'sakip.assessor',
         ]);
     }
 
@@ -212,7 +211,7 @@ class EvidenceDocumentPolicy
         return $user->hasAnyPermission([
             'sakip.evidence.reject',
             'sakip.pimpinan',
-            'sakip.assessor'
+            'sakip.assessor',
         ]);
     }
 
@@ -240,7 +239,7 @@ class EvidenceDocumentPolicy
         return $user->hasAnyPermission([
             'sakip.evidence.audit',
             'sakip.pimpinan',
-            'sakip.auditor'
+            'sakip.auditor',
         ]);
     }
 
@@ -268,7 +267,7 @@ class EvidenceDocumentPolicy
         return $user->hasAnyPermission([
             'sakip.evidence.attach',
             'sakip.pimpinan',
-            'sakip.data_collector'
+            'sakip.data_collector',
         ]);
     }
 
@@ -296,7 +295,7 @@ class EvidenceDocumentPolicy
         return $user->hasAnyPermission([
             'sakip.evidence.attach',
             'sakip.pimpinan',
-            'sakip.assessor'
+            'sakip.assessor',
         ]);
     }
 
@@ -321,7 +320,7 @@ class EvidenceDocumentPolicy
             'sakip.pimpinan',
             'sakip.data_collector',
             'sakip.assessor',
-            'sakip.auditor'
+            'sakip.auditor',
         ]);
     }
 
@@ -345,7 +344,7 @@ class EvidenceDocumentPolicy
             'sakip.evidence.validation_history',
             'sakip.pimpinan',
             'sakip.assessor',
-            'sakip.auditor'
+            'sakip.auditor',
         ]);
     }
 
@@ -368,7 +367,7 @@ class EvidenceDocumentPolicy
         return $user->hasAnyPermission([
             'sakip.evidence.audit_trail',
             'sakip.pimpinan',
-            'sakip.auditor'
+            'sakip.auditor',
         ]);
     }
 
@@ -381,7 +380,7 @@ class EvidenceDocumentPolicy
         return $user->hasAnyPermission([
             'sakip.evidence.bulk_upload',
             'sakip.admin',
-            'sakip.data_collector'
+            'sakip.data_collector',
         ]);
     }
 
@@ -394,7 +393,7 @@ class EvidenceDocumentPolicy
         return $user->hasAnyPermission([
             'sakip.evidence.bulk_validate',
             'sakip.admin',
-            'sakip.assessor'
+            'sakip.assessor',
         ]);
     }
 
@@ -424,7 +423,7 @@ class EvidenceDocumentPolicy
             'application/vnd.ms-excel',
             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'application/msword',
-            'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
         ];
 
         return in_array($fileInfo['type'], $allowedTypes);
@@ -472,7 +471,7 @@ class EvidenceDocumentPolicy
             'sakip.evidence.compliance',
             'sakip.pimpinan',
             'sakip.assessor',
-            'sakip.auditor'
+            'sakip.auditor',
         ]);
     }
 }

@@ -2,39 +2,40 @@
 
 namespace App\Models;
 
+use App\Models\Scopes\RecentScope;
+use App\Models\Scopes\SearchScope;
+use App\Models\Scopes\WithStatusScope;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Models\Scopes\WithStatusScope;
-use App\Models\Scopes\RecentScope;
-use App\Models\Scopes\SearchScope;
 
 class SasaranStrategis extends Model
 {
-    use HasUuids, HasFactory, SoftDeletes;
-    use WithStatusScope, RecentScope, SearchScope;
+    use HasFactory, HasUuids, SoftDeletes;
+    use RecentScope, SearchScope, WithStatusScope;
 
-    protected $table = "sasaran_strategis";
+    protected $table = 'sasaran_strategis';
 
     protected $fillable = [
-        "instansi_id",
-        "kode_sasaran_strategis",
-        "nama_strategis",
-        "deskripsi",
-        "status",
+        'instansi_id',
+        'kode_sasaran_strategis',
+        'nama_strategis',
+        'deskripsi',
+        'status',
     ];
 
     protected $casts = [
-        "created_at" => "datetime",
-        "updated_at" => "datetime",
-        "deleted_at" => "datetime",
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+        'deleted_at' => 'datetime',
     ];
 
     public $incrementing = false;
-    protected $keyType = "string";
+
+    protected $keyType = 'string';
 
     /**
      * Relasi ke Instansi
@@ -57,7 +58,7 @@ class SasaranStrategis extends Model
      */
     public function scopeActive($query)
     {
-        return $query->where("status", "aktif");
+        return $query->where('status', 'aktif');
     }
 
     /**
@@ -65,6 +66,6 @@ class SasaranStrategis extends Model
      */
     public function scopeByInstansi($query, $instansiId)
     {
-        return $query->where("instansi_id", $instansiId);
+        return $query->where('instansi_id', $instansiId);
     }
 }

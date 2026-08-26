@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 class LaporanKinerja extends Model
 {
@@ -21,10 +21,11 @@ class LaporanKinerja extends Model
         'tindak_lanjut',
         'file_pendukung',
         'status_verifikasi',
-        'catatan_verifikasi'
+        'catatan_verifikasi',
     ];
 
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     /**
@@ -57,7 +58,7 @@ class LaporanKinerja extends Model
             'triwulan2' => 'Triwulan II',
             'triwulan3' => 'Triwulan III',
             'triwulan4' => 'Triwulan IV',
-            'tahunan' => 'Tahunan'
+            'tahunan' => 'Tahunan',
         ];
 
         return $periodeNames[$this->periode] ?? $this->periode;
@@ -72,7 +73,7 @@ class LaporanKinerja extends Model
             'januari' => 'triwulan1', 'februari' => 'triwulan1', 'maret' => 'triwulan1',
             'april' => 'triwulan2', 'mei' => 'triwulan2', 'juni' => 'triwulan2',
             'juli' => 'triwulan3', 'agustus' => 'triwulan3', 'september' => 'triwulan3',
-            'oktober' => 'triwulan4', 'november' => 'triwulan4', 'desember' => 'triwulan4'
+            'oktober' => 'triwulan4', 'november' => 'triwulan4', 'desember' => 'triwulan4',
         ];
 
         return $quarters[$month] ?? null;
@@ -87,7 +88,7 @@ class LaporanKinerja extends Model
             'triwulan1' => ['januari', 'februari', 'maret'],
             'triwulan2' => ['april', 'mei', 'juni'],
             'triwulan3' => ['juli', 'agustus', 'september'],
-            'triwulan4' => ['oktober', 'november', 'desember']
+            'triwulan4' => ['oktober', 'november', 'desember'],
         ];
 
         return $months[$quarter] ?? [];
@@ -100,7 +101,7 @@ class LaporanKinerja extends Model
     {
         return in_array($this->periode, [
             'januari', 'februari', 'maret', 'april', 'mei', 'juni',
-            'juli', 'agustus', 'september', 'oktober', 'november', 'desember'
+            'juli', 'agustus', 'september', 'oktober', 'november', 'desember',
         ]);
     }
 
@@ -119,7 +120,7 @@ class LaporanKinerja extends Model
     {
         return $query->whereIn('periode', [
             'januari', 'februari', 'maret', 'april', 'mei', 'juni',
-            'juli', 'agustus', 'september', 'oktober', 'november', 'desember'
+            'juli', 'agustus', 'september', 'oktober', 'november', 'desember',
         ]);
     }
 

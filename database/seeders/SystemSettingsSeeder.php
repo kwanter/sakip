@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Services\SystemSettingsService;
+use Illuminate\Database\Seeder;
 
 class SystemSettingsSeeder extends Seeder
 {
@@ -16,13 +16,13 @@ class SystemSettingsSeeder extends Seeder
 
         // Seed default application name
         $existingName = \App\Models\SystemSetting::where('key', 'app.name')->first();
-        if (!$existingName) {
+        if (! $existingName) {
             $service->set('app.name', 'SAKIP System', 'string', 'Application name');
         }
 
         // Seed default application description
         $existingDesc = \App\Models\SystemSetting::where('key', 'app.description')->first();
-        if (!$existingDesc) {
+        if (! $existingDesc) {
             $service->set('app.description', 'Sistem Akuntabilitas Kinerja Instansi Pemerintah', 'string', 'Application description');
         }
     }

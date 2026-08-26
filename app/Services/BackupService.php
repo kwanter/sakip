@@ -2,9 +2,8 @@
 
 namespace App\Services;
 
-use Illuminate\Support\Facades\Log;
-use Symfony\Component\Process\Process;
 use Symfony\Component\Process\Exception\ProcessFailedException;
+use Symfony\Component\Process\Process;
 
 class BackupService
 {
@@ -12,6 +11,7 @@ class BackupService
      * Create database backup based on detected database engine
      *
      * @return array Array with filename, path, and size
+     *
      * @throws \Exception
      */
     public function createBackup(): array
@@ -21,7 +21,7 @@ class BackupService
         $driver = $config['driver'];
 
         $backupPath = storage_path('app/backups');
-        if (!file_exists($backupPath)) {
+        if (! file_exists($backupPath)) {
             mkdir($backupPath, 0755, true);
         }
 
@@ -53,19 +53,19 @@ class BackupService
         $process = new Process($cmd, null, $env);
         $process->run();
 
-        if (!$process->isSuccessful()) {
+        if (! $process->isSuccessful()) {
             throw new ProcessFailedException($process);
         }
 
         file_put_contents($outFile, $process->getOutput());
     }
 
-/**
+    /**
      * Backup MySQL/MariaDB database
      */
     protected function backupMySQL(array $config, string $backupPath, string $filename): array
     {
-        $outFile = $backupPath . '/' . $filename . '.sql';
+        $outFile = $backupPath.'/'.$filename.'.sql';
 
         $pwd = $config['password'] ?? '';
         $env = $pwd !== '' ? ['MYSQL_PWD' => $pwd] : [];
@@ -73,9 +73,9 @@ class BackupService
         self::runBackupCmd(
             [
                 'mysqldump',
-                '--host=' . $config['host'],
-                '--port=' . (string) $config['port'],
-                '--user=' . $config['username'],
+                '--host='.$config['host'],
+                '--port='.(string) $config['port'],
+                '--user='.$config['username'],
                 '--single-transaction',
                 '--routines',
                 '--triggers',
@@ -86,7 +86,7 @@ class BackupService
         );
 
         return [
-            'filename' => $filename . '.sql',
+            'filename' => $filename.'.sql',
             'path' => $outFile,
             'size' => $this->formatBytes(filesize($outFile)),
         ];
@@ -97,7 +97,7 @@ class BackupService
      */
     protected function backupPostgreSQL(array $config, string $backupPath, string $filename): array
     {
-        $outFile = $backupPath . '/' . $filename . '.sql';
+        $outFile = $backupPath.'/'.$filename.'.sql';
 
         $pwd = $config['password'] ?? '';
         $env = $pwd !== '' ? ['PGPASSWORD' => $pwd] : [];
@@ -105,9 +105,9 @@ class BackupService
         self::runBackupCmd(
             [
                 'pg_dump',
-                '--host=' . $config['host'],
-                '--port=' . (string) $config['port'],
-                '--username=' . $config['username'],
+                '--host='.$config['host'],
+                '--port='.(string) $config['port'],
+                '--username='.$config['username'],
                 '--format=plain',
                 '--no-owner',
                 '--no-acl',
@@ -118,7 +118,7 @@ class BackupService
         );
 
         return [
-            'filename' => $filename . '.sql',
+            'filename' => $filename.'.sql',
             'path' => $outFile,
             'size' => $this->formatBytes(filesize($outFile)),
         ];
@@ -130,17 +130,17 @@ class BackupService
     protected function backupSQLite(array $config, string $backupPath, string $filename): array
     {
         $databasePath = $config['database'];
-        if (!file_exists($databasePath)) {
+        if (! file_exists($databasePath)) {
             throw new \Exception('SQLite database file not found.');
         }
 
-        $backupFile = $backupPath . '/' . $filename . '.sqlite';
-        if (!copy($databasePath, $backupFile)) {
+        $backupFile = $backupPath.'/'.$filename.'.sqlite';
+        if (! copy($databasePath, $backupFile)) {
             throw new \Exception('Failed to copy SQLite database file.');
         }
 
         return [
-            'filename' => $filename . '.sqlite',
+            'filename' => $filename.'.sqlite',
             'path' => $backupFile,
             'size' => $this->formatBytes(filesize($backupFile)),
         ];
@@ -151,7 +151,7 @@ class BackupService
      */
     protected function backupSQLServer(array $config, string $backupPath, string $filename): array
     {
-        $outFile = $backupPath . '/' . $filename . '.bak';
+        $outFile = $backupPath.'/'.$filename.'.bak';
 
         $pwd = $config['password'] ?? '';
         $env = $pwd !== '' ? ['SQLCMDPASSWORD' => $pwd] : [];
@@ -161,14 +161,14 @@ class BackupService
                 'sqlcmd',
                 '-S', $config['host'],
                 '-U', $config['username'],
-                '-Q', "BACKUP DATABASE [{$config['database']}] TO DISK = N'" . $outFile . "'",
+                '-Q', "BACKUP DATABASE [{$config['database']}] TO DISK = N'".$outFile."'",
             ],
             $env,
             $outFile,
         );
 
         return [
-            'filename' => $filename . '.bak',
+            'filename' => $filename.'.bak',
             'path' => $outFile,
             'size' => $this->formatBytes(filesize($outFile)),
         ];
@@ -185,6 +185,6 @@ class BackupService
             $bytes /= 1024;
         }
 
-        return round($bytes, $precision) . ' ' . $units[$i];
+        return round($bytes, $precision).' '.$units[$i];
     }
 }

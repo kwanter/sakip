@@ -2,14 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Scopes\ForYearTrait;
+use App\Models\Scopes\RecentScope;
+use App\Models\Scopes\SearchScope;
+use App\Models\Scopes\WithStatusScope;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
-use App\Models\Scopes\WithStatusScope;
-use App\Models\Scopes\RecentScope;
-use App\Models\Scopes\SearchScope;
-use App\Models\Scopes\ForYearTrait;
 
 /**
  * PerformanceIndicator Model
@@ -19,15 +19,15 @@ use App\Models\Scopes\ForYearTrait;
  */
 class PerformanceIndicator extends Model
 {
+    use ForYearTrait, RecentScope, SearchScope, WithStatusScope;
     use HasFactory, HasUuids, SoftDeletes;
-    use WithStatusScope, RecentScope, SearchScope, ForYearTrait;
 
     /**
      * The table associated with the model.
      *
      * @var string
      */
-    protected $table = "performance_indicators";
+    protected $table = 'performance_indicators';
 
     /**
      * The attributes that are mass assignable.
@@ -35,35 +35,35 @@ class PerformanceIndicator extends Model
      * @var array<string>
      */
     protected $fillable = [
-        "instansi_id",
-        "sasaran_strategis_id",
-        "program_id",
-        "kegiatan_id",
-        "code",
-        "name",
-        "description",
-        "measurement_unit",
-        "measurement_type",
-        "data_source",
-        "collection_method",
-        "calculation_formula",
-        "frequency",
-        "category",
-        "weight",
-        "is_mandatory",
-        "metadata",
-        "created_by",
-        "updated_by",
+        'instansi_id',
+        'sasaran_strategis_id',
+        'program_id',
+        'kegiatan_id',
+        'code',
+        'name',
+        'description',
+        'measurement_unit',
+        'measurement_type',
+        'data_source',
+        'collection_method',
+        'calculation_formula',
+        'frequency',
+        'category',
+        'weight',
+        'is_mandatory',
+        'metadata',
+        'created_by',
+        'updated_by',
     ];
 
     // Protected fields - set automatically
     protected $guarded = [
-        "id",
-        "created_by",
-        "updated_by",
-        "created_at",
-        "updated_at",
-        "deleted_at",
+        'id',
+        'created_by',
+        'updated_by',
+        'created_at',
+        'updated_at',
+        'deleted_at',
     ];
 
     /**
@@ -72,16 +72,16 @@ class PerformanceIndicator extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        "instansi_id" => "string",
-        "created_by" => "string",
-        "updated_by" => "string",
-        "weight" => "decimal:2",
-        "is_mandatory" => "boolean",
-        "metadata" => "array",
-        "calculation_formula" => "array",
-        "created_at" => "datetime",
-        "updated_at" => "datetime",
-        "deleted_at" => "datetime",
+        'instansi_id' => 'string',
+        'created_by' => 'string',
+        'updated_by' => 'string',
+        'weight' => 'decimal:2',
+        'is_mandatory' => 'boolean',
+        'metadata' => 'array',
+        'calculation_formula' => 'array',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+        'deleted_at' => 'datetime',
     ];
 
     /**
@@ -121,7 +121,7 @@ class PerformanceIndicator extends Model
      */
     public function creator()
     {
-        return $this->belongsTo(User::class, "created_by");
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     /**
@@ -129,7 +129,7 @@ class PerformanceIndicator extends Model
      */
     public function updater()
     {
-        return $this->belongsTo(User::class, "updated_by");
+        return $this->belongsTo(User::class, 'updated_by');
     }
 
     /**
@@ -153,7 +153,7 @@ class PerformanceIndicator extends Model
      */
     public function getTargetForYear(int $year)
     {
-        return $this->targets()->where("year", $year)->first();
+        return $this->targets()->where('year', $year)->first();
     }
 
     /**
@@ -161,7 +161,7 @@ class PerformanceIndicator extends Model
      */
     public function getLatestPerformanceData()
     {
-        return $this->performanceData()->latest("period")->first();
+        return $this->performanceData()->latest('period')->first();
     }
 
     /**
@@ -175,8 +175,8 @@ class PerformanceIndicator extends Model
      * 4. Actual value exceeding target by significant margins
      * 5. Calculation formula variations
      *
-     * @param float $actualValue The actual achieved value
-     * @param float $targetValue The target/goal value
+     * @param  float  $actualValue  The actual achieved value
+     * @param  float  $targetValue  The target/goal value
      * @return float Performance percentage (0-100+, can exceed 100 for overachievement)
      */
     public function calculatePerformance($actualValue, $targetValue)
@@ -185,7 +185,7 @@ class PerformanceIndicator extends Model
         if (empty($targetValue) || $targetValue == 0) {
             // If target is 0 or null, we cannot calculate percentage
             // Return 0 if no actual value, or 100 if actual exists (achievement by default)
-            return !empty($actualValue) && $actualValue != 0 ? 100 : 0;
+            return ! empty($actualValue) && $actualValue != 0 ? 100 : 0;
         }
 
         // Handle negative target values (e.g., cost reduction goals)
@@ -195,6 +195,7 @@ class PerformanceIndicator extends Model
                 // Both negative: calculate ratio of reduction achieved
                 // Example: Target -10, Actual -15 = 150% (exceeded reduction goal)
                 $performance = abs($actualValue / $targetValue) * 100;
+
                 return min($performance, 200); // Cap at 200% for negative targets
             } else {
                 // Target negative, actual positive: goal not met
@@ -224,7 +225,7 @@ class PerformanceIndicator extends Model
      */
     public function scopeMandatory($query)
     {
-        return $query->where("is_mandatory", true);
+        return $query->where('is_mandatory', true);
     }
 
     /**
@@ -232,7 +233,7 @@ class PerformanceIndicator extends Model
      */
     public function scopeByCategory($query, string $category)
     {
-        return $query->where("category", $category);
+        return $query->where('category', $category);
     }
 
     /**
@@ -240,7 +241,7 @@ class PerformanceIndicator extends Model
      */
     public function scopeByFrequency($query, string $frequency)
     {
-        return $query->where("frequency", $frequency);
+        return $query->where('frequency', $frequency);
     }
 
     /**
@@ -248,7 +249,7 @@ class PerformanceIndicator extends Model
      */
     public function scopeForInstansi($query, int $instansiId)
     {
-        return $query->where("instansi_id", $instansiId);
+        return $query->where('instansi_id', $instansiId);
     }
 
     /**
@@ -261,14 +262,14 @@ class PerformanceIndicator extends Model
     {
         // Add global scope for instansi_id filtering to prevent IDOR
         // Super admins can see all indicators, regular users are scoped to their instansi
-        static::addGlobalScope("instansi_scope", function ($query) {
+        static::addGlobalScope('instansi_scope', function ($query) {
             if (
                 auth()->check() &&
-                !auth()
+                ! auth()
                     ->user()
                     ->hasRole(\App\Constants\SystemRoles::SUPER_ADMIN)
             ) {
-                $query->where("instansi_id", auth()->user()->instansi_id);
+                $query->where('instansi_id', auth()->user()->instansi_id);
             }
         });
     }
@@ -286,6 +287,6 @@ class PerformanceIndicator extends Model
      */
     public function getWeightPercentageAttribute()
     {
-        return number_format($this->weight, 2) . "%";
+        return number_format($this->weight, 2).'%';
     }
 }

@@ -11,7 +11,7 @@ return [
     |
     */
 
-    "performance" => [
+    'performance' => [
         /*
          |--------------------------------------------------------------------------
          | Performance Thresholds
@@ -22,11 +22,11 @@ return [
          | or needs improvement.
          |
          */
-        "thresholds" => [
-            "excellent" => 100,
-            "good" => 80,
-            "satisfactory" => 60,
-            "minimum" => 0,
+        'thresholds' => [
+            'excellent' => 100,
+            'good' => 80,
+            'satisfactory' => 60,
+            'minimum' => 0,
         ],
 
         /*
@@ -38,7 +38,7 @@ return [
          | Options: 'simple', 'weighted', 'formula_based'
          |
          */
-        "calculation_method" => env("SAKIP_CALCULATION_METHOD", "simple"),
+        'calculation_method' => env('SAKIP_CALCULATION_METHOD', 'simple'),
 
         /*
          |--------------------------------------------------------------------------
@@ -49,10 +49,10 @@ return [
          | This caps the performance at 200% for exceptional overachievement.
          |
          */
-        "max_percentage" => 200,
+        'max_percentage' => 200,
     ],
 
-    "validation" => [
+    'validation' => [
         /*
          |--------------------------------------------------------------------------
          | File Upload Settings
@@ -62,28 +62,28 @@ return [
          | and supporting materials.
          |
          */
-        "max_file_size" => env("SAKIP_MAX_FILE_SIZE", 10240), // 10MB in KB
+        'max_file_size' => env('SAKIP_MAX_FILE_SIZE', 10240), // 10MB in KB
 
-        "allowed_mime_types" => [
-            "application/pdf",
-            "application/msword",
-            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-            "application/vnd.ms-excel",
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            "image/jpeg",
-            "image/png",
-            "image/jpg",
+        'allowed_mime_types' => [
+            'application/pdf',
+            'application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'application/vnd.ms-excel',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'image/jpeg',
+            'image/png',
+            'image/jpg',
         ],
 
-        "allowed_extensions" => [
-            "pdf",
-            "doc",
-            "docx",
-            "xls",
-            "xlsx",
-            "jpg",
-            "jpeg",
-            "png",
+        'allowed_extensions' => [
+            'pdf',
+            'doc',
+            'docx',
+            'xls',
+            'xlsx',
+            'jpg',
+            'jpeg',
+            'png',
         ],
 
         /*
@@ -94,13 +94,13 @@ return [
          | Configure automatic data quality validation rules.
          |
          */
-        "require_target" => true,
-        "require_actual_value" => true,
-        "allow_negative_targets" => true,
-        "allow_negative_actual" => false,
+        'require_target' => true,
+        'require_actual_value' => true,
+        'allow_negative_targets' => true,
+        'allow_negative_actual' => false,
     ],
 
-    "reporting" => [
+    'reporting' => [
         /*
          |--------------------------------------------------------------------------
          | Report Generation Settings
@@ -109,13 +109,13 @@ return [
          | Configure report generation parameters.
          |
          */
-        "default_template" => "standard",
-        "include_charts" => true,
-        "include_evidence_summary" => true,
-        "max_report_size_mb" => 50,
+        'default_template' => 'standard',
+        'include_charts' => true,
+        'include_evidence_summary' => true,
+        'max_report_size_mb' => 50,
     ],
 
-    "assessment" => [
+    'assessment' => [
         /*
          |--------------------------------------------------------------------------
          | Assessment Configuration
@@ -124,13 +124,13 @@ return [
          | Configure assessment and evaluation parameters.
          |
          */
-        "auto_calculate_score" => true,
-        "require_evidence" => true,
-        "min_assessors" => 1,
-        "max_assessors" => 5,
+        'auto_calculate_score' => true,
+        'require_evidence' => true,
+        'min_assessors' => 1,
+        'max_assessors' => 5,
     ],
 
-    "export" => [
+    'export' => [
         /*
          |--------------------------------------------------------------------------
          | Export Settings
@@ -139,13 +139,13 @@ return [
          | Configure data export parameters.
          |
          */
-        "default_format" => "xlsx",
-        "include_metadata" => false,
-        "max_rows_per_export" => 10000,
-        "enable_csv_sanitize" => true,
+        'default_format' => 'xlsx',
+        'include_metadata' => false,
+        'max_rows_per_export' => 10000,
+        'enable_csv_sanitize' => true,
     ],
 
-    "audit" => [
+    'audit' => [
         /*
          |--------------------------------------------------------------------------
          | Audit Trail Configuration
@@ -154,13 +154,13 @@ return [
          | Configure audit trail and logging parameters.
          |
          */
-        "enabled" => env("SAKIP_AUDIT_ENABLED", true),
-        "log_all_changes" => true,
-        "log_read_access" => false,
-        "retention_days" => 365,
+        'enabled' => env('SAKIP_AUDIT_ENABLED', true),
+        'log_all_changes' => true,
+        'log_read_access' => false,
+        'retention_days' => 365,
     ],
 
-    "dashboard" => [
+    'dashboard' => [
         /*
          |--------------------------------------------------------------------------
          | Dashboard Settings
@@ -169,9 +169,9 @@ return [
          | Configure dashboard behavior and data display.
          |
          */
-        "cache_enabled" => env("SAKIP_DASHBOARD_CACHE", true),
-        "cache_ttl_minutes" => 5,
-        "show_trends" => true,
-        "trend_period_days" => 30,
+        'cache_enabled' => env('SAKIP_DASHBOARD_CACHE', true),
+        'cache_ttl_minutes' => 5,
+        'show_trends' => true,
+        'trend_period_days' => 30,
     ],
 ];

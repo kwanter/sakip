@@ -2,17 +2,16 @@
 
 namespace App\Services;
 
-use App\Models\User;
-use App\Models\Notification;
 use App\Models\Assessment;
+use App\Models\Notification;
 use App\Models\Report;
-use App\Models\PerformanceData;
-use Illuminate\Support\Facades\Mail;
+use App\Models\User;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 /**
  * Notification Service
- * 
+ *
  * Handles notification management for SAKIP module including email notifications,
  * system notifications, and user alerts.
  */
@@ -43,7 +42,8 @@ class NotificationService
             return $notification;
 
         } catch (\Exception $e) {
-            Log::error('Failed to send notification: ' . $e->getMessage());
+            Log::error('Failed to send notification: '.$e->getMessage());
+
             return null;
         }
     }
@@ -56,10 +56,10 @@ class NotificationService
         try {
             Mail::raw($notification->message, function ($message) use ($user, $notification) {
                 $message->to($user->email)
-                        ->subject($notification->title);
+                    ->subject($notification->title);
             });
         } catch (\Exception $e) {
-            Log::error('Failed to send email notification: ' . $e->getMessage());
+            Log::error('Failed to send email notification: '.$e->getMessage());
         }
     }
 
@@ -79,7 +79,7 @@ class NotificationService
             );
 
             // Notify approvers
-            $approvers = User::whereHas('roles', function($query) {
+            $approvers = User::whereHas('roles', function ($query) {
                 $query->whereIn('name', ['admin', 'superadmin']);
             })->where('instansi_id', $assessment->instansi_id)->get();
 
@@ -94,7 +94,7 @@ class NotificationService
             }
 
         } catch (\Exception $e) {
-            Log::error('Failed to notify assessment submission: ' . $e->getMessage());
+            Log::error('Failed to notify assessment submission: '.$e->getMessage());
         }
     }
 
@@ -106,7 +106,7 @@ class NotificationService
         try {
             $status = $decision === 'approved' ? 'Disetujui' : 'Ditolak';
             $message = "Penilaian untuk indikator {$assessment->indicator->name} telah {$status}.";
-            
+
             if ($notes) {
                 $message .= " Catatan: {$notes}";
             }
@@ -132,7 +132,7 @@ class NotificationService
             }
 
         } catch (\Exception $e) {
-            Log::error('Failed to notify assessment review: ' . $e->getMessage());
+            Log::error('Failed to notify assessment review: '.$e->getMessage());
         }
     }
 
@@ -152,7 +152,7 @@ class NotificationService
             );
 
             // Notify approvers
-            $approvers = User::whereHas('roles', function($query) {
+            $approvers = User::whereHas('roles', function ($query) {
                 $query->whereIn('name', ['admin', 'superadmin']);
             })->where('instansi_id', $report->instansi_id)->get();
 
@@ -167,7 +167,7 @@ class NotificationService
             }
 
         } catch (\Exception $e) {
-            Log::error('Failed to notify report submission: ' . $e->getMessage());
+            Log::error('Failed to notify report submission: '.$e->getMessage());
         }
     }
 
@@ -179,7 +179,7 @@ class NotificationService
         try {
             $status = $decision === 'approved' ? 'Disetujui' : 'Ditolak';
             $message = "Laporan {$report->title} telah {$status}.";
-            
+
             if ($notes) {
                 $message .= " Catatan: {$notes}";
             }
@@ -194,7 +194,7 @@ class NotificationService
             );
 
         } catch (\Exception $e) {
-            Log::error('Failed to notify report approval: ' . $e->getMessage());
+            Log::error('Failed to notify report approval: '.$e->getMessage());
         }
     }
 
@@ -212,7 +212,7 @@ class NotificationService
                 ['indicator_id' => $indicator->id]
             );
         } catch (\Exception $e) {
-            Log::error('Failed to notify data collection reminder: ' . $e->getMessage());
+            Log::error('Failed to notify data collection reminder: '.$e->getMessage());
         }
     }
 
@@ -223,7 +223,7 @@ class NotificationService
     {
         try {
             $users = User::where('instansi_id', $instansiId)
-                ->whereHas('roles', function($query) {
+                ->whereHas('roles', function ($query) {
                     $query->whereIn('name', ['admin', 'superadmin']);
                 })->get();
 
@@ -237,7 +237,7 @@ class NotificationService
                 );
             }
         } catch (\Exception $e) {
-            Log::error('Failed to notify compliance issue: ' . $e->getMessage());
+            Log::error('Failed to notify compliance issue: '.$e->getMessage());
         }
     }
 
@@ -251,7 +251,7 @@ class NotificationService
 
             foreach ($users as $user) {
                 $message = "Batas waktu untuk {$type} akan berakhir dalam {$daysRemaining} hari.";
-                
+
                 $this->sendNotification(
                     $user->id,
                     'deadline_approaching',
@@ -261,7 +261,7 @@ class NotificationService
                 );
             }
         } catch (\Exception $e) {
-            Log::error('Failed to notify deadline approaching: ' . $e->getMessage());
+            Log::error('Failed to notify deadline approaching: '.$e->getMessage());
         }
     }
 
@@ -273,11 +273,11 @@ class NotificationService
         switch ($type) {
             case 'target':
                 return User::where('instansi_id', $item->instansi_id)
-                    ->where(function($q) use ($item) {
+                    ->where(function ($q) use ($item) {
                         $q->where('id', $item->created_by)
-                          ->orWhereHas('roles', function($q) {
-                              $q->whereIn('name', ['admin', 'superadmin']);
-                          });
+                            ->orWhereHas('roles', function ($q) {
+                                $q->whereIn('name', ['admin', 'superadmin']);
+                            });
                     })->get();
 
             case 'assessment':
@@ -298,15 +298,17 @@ class NotificationService
     {
         try {
             $notification = Notification::find($notificationId);
-            
+
             if ($notification && $notification->user_id === auth()->id()) {
                 $notification->update(['is_read' => true]);
+
                 return true;
             }
 
             return false;
         } catch (\Exception $e) {
-            Log::error('Failed to mark notification as read: ' . $e->getMessage());
+            Log::error('Failed to mark notification as read: '.$e->getMessage());
+
             return false;
         }
     }

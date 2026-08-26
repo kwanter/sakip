@@ -2,8 +2,8 @@
 
 namespace Database\Factories;
 
-use App\Models\Target;
 use App\Models\PerformanceIndicator;
+use App\Models\Target;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
