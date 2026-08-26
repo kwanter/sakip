@@ -394,104 +394,40 @@ Route::middleware(['auth', 'verified'])->group(function () {
 // Include SAKIP routes
 require __DIR__.'/web_sakip.php';
 
-// SAKIP Test Routes (Development only)
-if (app()->environment('local', 'development')) {
-    Route::prefix('sakip-test')
-        ->middleware(['auth', 'can:debug'])
-        ->group(function () {
-            Route::get('/dashboard', [
-                \App\Http\Controllers\SakipTestController::class,
-                'testDashboard',
-            ])->name('sakip.test.dashboard');
-            Route::get('/datatable', [
-                \App\Http\Controllers\SakipTestController::class,
-                'testDataTable',
-            ])->name('sakip.test.datatable');
-            Route::get('/notification', [
-                \App\Http\Controllers\SakipTestController::class,
-                'testNotification',
-            ])->name('sakip.test.notification');
-            Route::get('/configuration', [
-                \App\Http\Controllers\SakipTestController::class,
-                'testConfiguration',
-            ])->name('sakip.test.configuration');
-            Route::get('/helpers', [
-                \App\Http\Controllers\SakipTestController::class,
-                'testHelpers',
-            ])->name('sakip.test.helpers');
-        });
+/**
+ * Health check endpoint for local debugging.
+ * Returns HTTP 200 with a simple body to confirm server is responsive.
+ * SECURED: Requires authentication and debug permission
+ */
+Route::get('/healthz', function () {
+    return response('ok', 200);
+})
+    ->middleware(['auth', 'can:debug'])
+    ->name('healthz');
 
-    /**
-     * Health check endpoint for local debugging.
-     * Returns HTTP 200 with a simple body to confirm server is responsive.
-     * SECURED: Requires authentication and debug permission
-     */
-    Route::get('/healthz', function () {
-        return response('ok', 200);
-    })
-        ->middleware(['auth', 'can:debug'])
-        ->name('healthz');
+/**
+ * Session and authentication debug endpoint (local only).
+ * Helps diagnose cookie, session domain, and redirect issues by exposing
+ * minimal, non-sensitive runtime state for the current request.
+ * SECURED: Requires authentication and debug permission
+ */
+Route::get('/debug/session', function (\Illuminate\Http\Request $request) {
+    $user = \Illuminate\Support\Facades\Auth::user();
 
-    /**
-     * Session and authentication debug endpoint (local only).
-     * Helps diagnose cookie, session domain, and redirect issues by exposing
-     * minimal, non-sensitive runtime state for the current request.
-     * SECURED: Requires authentication and debug permission
-     */
-    Route::get('/debug/session', function (\Illuminate\Http\Request $request) {
-        $user = \Illuminate\Support\Facades\Auth::user();
-
-        return response()->json([
-            'host' => $request->getHost(),
-            'url' => url()->current(),
-            'app_url' => config('app.url'),
-            'authenticated' => \Illuminate\Support\Facades\Auth::check(),
-            'user_id' => $user?->id,
-            'verified' => $user?->hasVerifiedEmail(),
-            'session_id' => $request->session()->getId(),
-            'session_cookie_name' => config('session.cookie'),
-            'session_domain' => config('session.domain'),
-            'session_path' => config('session.path'),
-            'session_secure' => config('session.secure'),
-            'session_same_site' => config('session.same_site'),
-        ]);
-    })
-        ->middleware(['auth', 'can:debug'])
-        ->name('debug.session');
-}
-
-// API Routes untuk AJAX (Legacy redirects)
-Route::prefix('api')
-    ->middleware(['auth', 'throttle:api'])
-    ->group(function () {
-        // Map: /api/program/by-instansi/{instansi} -> /api/sakip/datatables/program?instansi_id=...
-        Route::get('program/by-instansi/{instansi}', function ($instansi) {
-            $target = route('sakip.api.datatables.program');
-            $url = $target.'?instansi_id='.urlencode($instansi);
-
-            return redirect()->to($url);
-        });
-
-        // Map: /api/kegiatan/by-program/{program} -> /api/sakip/datatables/kegiatan?program_id=...
-        Route::get('kegiatan/by-program/{program}', function ($program) {
-            $target = route('sakip.api.datatables.kegiatan');
-            $url = $target.'?program_id='.urlencode($program);
-
-            return redirect()->to($url);
-        });
-
-        // Map: /api/indikator/by-kegiatan/{kegiatan} -> /api/sakip/datatables/indicator?instansi_id=...
-        // We infer instansi_id from kegiatan, since indikator-by-kegiatan no longer exists in SAKIP.
-        Route::get('indikator/by-kegiatan/{kegiatan}', function ($kegiatanId) {
-            $kegiatan = \App\Models\Kegiatan::with('program')->find(
-                $kegiatanId,
-            );
-            $instansiId = $kegiatan?->program?->instansi_id;
-            $target = route('sakip.api.datatables.indicator');
-            $url = $instansiId
-                ? $target.'?instansi_id='.urlencode($instansiId)
-                : $target;
-
-            return redirect()->to($url);
-        });
-    });
+    return response()->json([
+        'host' => $request->getHost(),
+        'url' => url()->current(),
+        'app_url' => config('app.url'),
+        'authenticated' => \Illuminate\Support\Facades\Auth::check(),
+        'user_id' => $user?->id,
+        'verified' => $user?->hasVerifiedEmail(),
+        'session_id' => $request->session()->getId(),
+        'session_cookie_name' => config('session.cookie'),
+        'session_domain' => config('session.domain'),
+        'session_path' => config('session.path'),
+        'session_secure' => config('session.secure'),
+        'session_same_site' => config('session.same_site'),
+    ]);
+})
+    ->middleware(['auth', 'can:debug'])
+    ->name('debug.session');

@@ -3,19 +3,15 @@
 namespace App\Providers;
 
 use App\Models\AuditLog;
-use App\Models\IndikatorKinerja;
 use App\Models\Instansi;
 use App\Models\Kegiatan;
-use App\Models\LaporanKinerja;
 use App\Models\Program;
 use App\Models\Target;
 use App\Policies\AssessmentPolicy;
 use App\Policies\AuditLogPolicy;
 use App\Policies\EvidenceDocumentPolicy;
-use App\Policies\IndikatorKinerjaPolicy;
 use App\Policies\InstansiPolicy;
 use App\Policies\KegiatanPolicy;
-use App\Policies\LaporanKinerjaPolicy;
 // SAKIP Models
 use App\Policies\PerformanceDataPolicy;
 use App\Policies\ProgramPolicy;
@@ -65,8 +61,6 @@ class AppServiceProvider extends ServiceProvider
             \App\Models\SasaranStrategis::class,
             \App\Policies\SasaranStrategisPolicy::class,
         );
-        Gate::policy(IndikatorKinerja::class, IndikatorKinerjaPolicy::class);
-        Gate::policy(LaporanKinerja::class, LaporanKinerjaPolicy::class);
 
         Gate::policy(
             \App\Models\PerformanceIndicator::class,
