@@ -156,6 +156,12 @@ class AuthenticationTest extends TestCase
             'email_verified_at' => now(),
         ]);
         $user->givePermissionTo('view-sakip-dashboard');
+
+        $this->actingAs($user);
+
+        $response = $this->get('/sakip');
+
+        $response->assertOk();
     }
 
     /** @test */

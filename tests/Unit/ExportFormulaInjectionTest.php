@@ -15,7 +15,6 @@ class ExportFormulaInjectionTest extends TestCase
     {
         // Both services implement the same protected sanitizeCells(array): array.
         $m = new \ReflectionMethod(ExcelExportService::class, 'sanitizeCells');
-        $m->setAccessible(true);
 
         return $m->invoke(app(ExcelExportService::class), $rows);
     }
