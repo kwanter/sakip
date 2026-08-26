@@ -22,7 +22,7 @@ trait SortsSafely
         $bare = strtolower(str_contains($requested, '.') ? substr($requested, (int) strrpos($requested, '.') + 1) : $requested);
 
         foreach ($allowed as $candidate) {
-            if (strtolower($candidate) === $bare || str_ends_with(strtolower($candidate), '.' . $bare)) {
+            if (strtolower($candidate) === $bare || str_ends_with(strtolower($candidate), '.'.$bare)) {
                 return $candidate;
             }
         }

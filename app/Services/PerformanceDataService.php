@@ -2,16 +2,14 @@
 
 namespace App\Services;
 
+use App\Models\AuditLog;
+use App\Models\EvidenceDocument;
 use App\Models\PerformanceData;
 use App\Models\PerformanceIndicator;
-use App\Models\EvidenceDocument;
-use App\Models\AuditLog;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
 use Exception;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 class PerformanceDataService
 {
@@ -29,7 +27,7 @@ class PerformanceDataService
             // Validate data
             $validator = $this->validatePerformanceData($data);
             if ($validator->fails()) {
-                throw new Exception('Validation failed: ' . $validator->errors()->first());
+                throw new Exception('Validation failed: '.$validator->errors()->first());
             }
 
             // Check if data already exists for this period
@@ -91,7 +89,7 @@ class PerformanceDataService
         $target = $indicator->targets->where('year', $performanceData->period_year)->first();
         if ($target && $target->target_value > 0) {
             $achievement = $this->calculateAchievementFromValues($performanceData->actual_value, $target->target_value);
-            
+
             if ($achievement > 150) {
                 $issues[] = 'Capaian melebihi 150% dari target - memerlukan verifikasi';
             }
@@ -104,14 +102,14 @@ class PerformanceDataService
         }
 
         // Check evidence requirements
-        if ($indicator->is_mandatory && !$performanceData->evidenceDocuments()->exists()) {
+        if ($indicator->is_mandatory && ! $performanceData->evidenceDocuments()->exists()) {
             $issues[] = 'Dokumen bukti wajib untuk indikator mandatory';
         }
 
         // Validate calculation formula if present
         if ($indicator->calculation_formula) {
             $formulaValidation = $this->validateFormulaCalculation($performanceData, $indicator);
-            if (!$formulaValidation['valid']) {
+            if (! $formulaValidation['valid']) {
                 $issues[] = $formulaValidation['message'];
             }
         }
@@ -161,7 +159,7 @@ class PerformanceDataService
             'performanceIndicator.instansi',
             'evidenceDocuments',
             'validatedBy',
-            'submittedBy'
+            'submittedBy',
         ]);
 
         // Apply filters
@@ -198,8 +196,8 @@ class PerformanceDataService
         if (isset($filters['search'])) {
             $query->where(function ($q) use ($filters) {
                 $q->whereHas('performanceIndicator', function ($q2) use ($filters) {
-                    $q2->where('name', 'like', '%' . $filters['search'] . '%')
-                        ->orWhere('code', 'like', '%' . $filters['search'] . '%');
+                    $q2->where('name', 'like', '%'.$filters['search'].'%')
+                        ->orWhere('code', 'like', '%'.$filters['search'].'%');
                 });
             });
         }
@@ -239,7 +237,7 @@ class PerformanceDataService
     public function validateSubmission(array $data): array
     {
         $validator = $this->validatePerformanceData($data);
-        
+
         if ($validator->fails()) {
             return [
                 'valid' => false,
@@ -249,7 +247,7 @@ class PerformanceDataService
 
         // Additional business logic validation
         $businessValidation = $this->validateBusinessRules($data);
-        
+
         return [
             'valid' => $businessValidation['valid'],
             'errors' => array_merge($validator->errors()->toArray(), $businessValidation['errors']),
@@ -266,7 +264,7 @@ class PerformanceDataService
 
         return Cache::remember($cacheKey, $this->cacheTimeout, function () use ($instansiId, $year, $month) {
             $totalIndicators = PerformanceIndicator::where('instansi_id', $instansiId)->count();
-            
+
             $submittedQuery = PerformanceData::whereHas('performanceIndicator', function ($q) use ($instansiId) {
                 $q->where('instansi_id', $instansiId);
             })->where('period_year', $year);
@@ -367,7 +365,7 @@ class PerformanceDataService
      */
     protected function calculateAchievement(array $data)
     {
-        if (!isset($data['target_value']) || $data['target_value'] == 0) {
+        if (! isset($data['target_value']) || $data['target_value'] == 0) {
             return null;
         }
 
@@ -438,8 +436,9 @@ class PerformanceDataService
 
         // Check indicator exists and is active
         $indicator = PerformanceIndicator::find($data['performance_indicator_id']);
-        if (!$indicator) {
+        if (! $indicator) {
             $errors[] = 'Indikator tidak ditemukan';
+
             return ['valid' => false, 'errors' => $errors];
         }
 
@@ -495,7 +494,7 @@ class PerformanceDataService
         }
 
         $criticalIssues = ['Nilai aktual tidak boleh kosong', 'Dokumen bukti wajib untuk indikator mandatory'];
-        
+
         foreach ($issues as $issue) {
             if (in_array($issue, $criticalIssues)) {
                 return 'critical';
@@ -514,7 +513,7 @@ class PerformanceDataService
             // Monthly deadline: 7th of next month
             return Carbon::create($year, $month, 7)->addMonth();
         }
-        
+
         // Default deadline: end of year
         return Carbon::create($year, 12, 31);
     }
@@ -529,7 +528,7 @@ class PerformanceDataService
         } elseif ($quarter) {
             return sprintf('Q%s %s', $quarter, $year);
         }
-        
+
         return (string) $year;
     }
 
@@ -542,7 +541,7 @@ class PerformanceDataService
             'user_id' => auth()->id(),
             'instansi_id' => $performanceData->performanceIndicator->instansi_id,
             'module' => 'sakip',
-            'activity' => $action . '_performance_data',
+            'activity' => $action.'_performance_data',
             'description' => $description,
             'old_values' => $action === 'update' ? $performanceData->getOriginal() : null,
             'new_values' => $action !== 'delete' ? $performanceData->toArray() : null,
@@ -555,8 +554,8 @@ class PerformanceDataService
     protected function clearPerformanceDataCache($instansiId): void
     {
         $cacheKeys = [
-            "data_collection_progress_{$instansiId}_" . date('Y') . '_' . date('n'),
-            "performance_trends_*",
+            "data_collection_progress_{$instansiId}_".date('Y').'_'.date('n'),
+            'performance_trends_*',
         ];
 
         foreach ($cacheKeys as $key) {

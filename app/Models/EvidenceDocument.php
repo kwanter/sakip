@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 /**
  * EvidenceDocument Model
@@ -22,7 +22,7 @@ class EvidenceDocument extends Model
      *
      * @var string
      */
-    protected $table = "evidence_documents";
+    protected $table = 'evidence_documents';
 
     /**
      * The attributes that are mass assignable.
@@ -30,24 +30,24 @@ class EvidenceDocument extends Model
      * @var array<string>
      */
     protected $fillable = [
-        "performance_data_id",
-        "file_name",
-        "file_path",
-        "file_type",
-        "document_type",
-        "file_size",
-        "description",
-        "uploaded_at",
-        "metadata",
+        'performance_data_id',
+        'file_name',
+        'file_path',
+        'file_type',
+        'document_type',
+        'file_size',
+        'description',
+        'uploaded_at',
+        'metadata',
     ];
 
     // Protected fields - set automatically
     protected $guarded = [
-        "id",
-        "uploaded_by",
-        "created_at",
-        "updated_at",
-        "deleted_at",
+        'id',
+        'uploaded_by',
+        'created_at',
+        'updated_at',
+        'deleted_at',
     ];
 
     /**
@@ -56,13 +56,13 @@ class EvidenceDocument extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        "uploaded_by" => "string",
-        "file_size" => "integer",
-        "uploaded_at" => "datetime",
-        "metadata" => "array",
-        "created_at" => "datetime",
-        "updated_at" => "datetime",
-        "deleted_at" => "datetime",
+        'uploaded_by' => 'string',
+        'file_size' => 'integer',
+        'uploaded_at' => 'datetime',
+        'metadata' => 'array',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+        'deleted_at' => 'datetime',
     ];
 
     /**
@@ -78,7 +78,7 @@ class EvidenceDocument extends Model
      */
     public function uploader()
     {
-        return $this->belongsTo(User::class, "uploaded_by");
+        return $this->belongsTo(User::class, 'uploaded_by');
     }
 
     /**
@@ -91,7 +91,7 @@ class EvidenceDocument extends Model
         }
 
         $bytes = $this->file_size;
-        $units = ["B", "KB", "MB", "GB", "TB"];
+        $units = ['B', 'KB', 'MB', 'GB', 'TB'];
         $i = 0;
 
         while ($bytes >= 1024 && $i < count($units) - 1) {
@@ -99,7 +99,7 @@ class EvidenceDocument extends Model
             $i++;
         }
 
-        return round($bytes, 2) . " " . $units[$i];
+        return round($bytes, 2).' '.$units[$i];
     }
 
     /**
@@ -116,12 +116,12 @@ class EvidenceDocument extends Model
     public function getIsImageAttribute()
     {
         return in_array(strtolower($this->file_extension), [
-            "jpg",
-            "jpeg",
-            "png",
-            "gif",
-            "bmp",
-            "svg",
+            'jpg',
+            'jpeg',
+            'png',
+            'gif',
+            'bmp',
+            'svg',
         ]);
     }
 
@@ -130,7 +130,7 @@ class EvidenceDocument extends Model
      */
     public function getIsPdfAttribute()
     {
-        return strtolower($this->file_extension) === "pdf";
+        return strtolower($this->file_extension) === 'pdf';
     }
 
     /**
@@ -139,10 +139,10 @@ class EvidenceDocument extends Model
     public function getIsSpreadsheetAttribute()
     {
         return in_array(strtolower($this->file_extension), [
-            "xls",
-            "xlsx",
-            "csv",
-            "ods",
+            'xls',
+            'xlsx',
+            'csv',
+            'ods',
         ]);
     }
 
@@ -152,21 +152,21 @@ class EvidenceDocument extends Model
     public function getIconClassAttribute()
     {
         if ($this->is_image) {
-            return "fas fa-image";
+            return 'fas fa-image';
         } elseif ($this->is_pdf) {
-            return "fas fa-file-pdf";
+            return 'fas fa-file-pdf';
         } elseif ($this->is_spreadsheet) {
-            return "fas fa-file-excel";
+            return 'fas fa-file-excel';
         } elseif (
-            in_array(strtolower($this->file_extension), ["doc", "docx"])
+            in_array(strtolower($this->file_extension), ['doc', 'docx'])
         ) {
-            return "fas fa-file-word";
+            return 'fas fa-file-word';
         } elseif (
-            in_array(strtolower($this->file_extension), ["ppt", "pptx"])
+            in_array(strtolower($this->file_extension), ['ppt', 'pptx'])
         ) {
-            return "fas fa-file-powerpoint";
+            return 'fas fa-file-powerpoint';
         } else {
-            return "fas fa-file";
+            return 'fas fa-file';
         }
     }
 
@@ -175,7 +175,7 @@ class EvidenceDocument extends Model
      */
     public function getFileUrlAttribute()
     {
-        return route("sakip.evidence.download", $this);
+        return route('sakip.evidence.download', $this);
     }
 
     /**
@@ -184,13 +184,14 @@ class EvidenceDocument extends Model
      */
     public function deleteFile()
     {
-        if (!$this->file_path) {
+        if (! $this->file_path) {
             return;
         }
 
-        foreach (["local", "public"] as $disk) {
+        foreach (['local', 'public'] as $disk) {
             if (\Illuminate\Support\Facades\Storage::disk($disk)->exists($this->file_path)) {
                 \Illuminate\Support\Facades\Storage::disk($disk)->delete($this->file_path);
+
                 return;
             }
         }
@@ -215,7 +216,7 @@ class EvidenceDocument extends Model
      */
     public function scopeByFileType($query, string $fileType)
     {
-        return $query->where("file_type", $fileType);
+        return $query->where('file_type', $fileType);
     }
 
     /**
@@ -223,7 +224,7 @@ class EvidenceDocument extends Model
      */
     public function scopeForPerformanceData($query, int $performanceDataId)
     {
-        return $query->where("performance_data_id", $performanceDataId);
+        return $query->where('performance_data_id', $performanceDataId);
     }
 
     /**
@@ -231,6 +232,6 @@ class EvidenceDocument extends Model
      */
     public function scopeUploadedBy($query, int $userId)
     {
-        return $query->where("uploaded_by", $userId);
+        return $query->where('uploaded_by', $userId);
     }
 }

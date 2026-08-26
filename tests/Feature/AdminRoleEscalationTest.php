@@ -2,12 +2,12 @@
 
 namespace Tests\Feature;
 
-use Tests\TestCase;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use App\Models\User;
-use App\Models\Role;
-use App\Services\AdminService;
 use App\Constants\SystemRoles;
+use App\Models\Role;
+use App\Models\User;
+use App\Services\AdminService;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 /**
  * SECURITY: Admin must not be able to escalate themselves (or others)
@@ -22,6 +22,7 @@ class AdminRoleEscalationTest extends TestCase
         $role = Role::firstOrCreate(['name' => $roleName], ['guard_name' => 'web']);
         $user = User::factory()->create(['email_verified_at' => now()]);
         $user->assignRole($role);
+
         return $user;
     }
 

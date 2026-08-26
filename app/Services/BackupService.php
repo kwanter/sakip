@@ -2,7 +2,8 @@
 
 namespace App\Services;
 
-use Illuminate\Support\Facades\Log;
+use Symfony\Component\Process\Exception\ProcessFailedException;
+use Symfony\Component\Process\Process;
 
 class BackupService
 {
@@ -10,6 +11,7 @@ class BackupService
      * Create database backup based on detected database engine
      *
      * @return array Array with filename, path, and size
+     *
      * @throws \Exception
      */
     public function createBackup(): array
@@ -19,7 +21,7 @@ class BackupService
         $driver = $config['driver'];
 
         $backupPath = storage_path('app/backups');
-        if (!file_exists($backupPath)) {
+        if (! file_exists($backupPath)) {
             mkdir($backupPath, 0755, true);
         }
 
@@ -42,47 +44,51 @@ class BackupService
     }
 
     /**
+     * Run a process with optional env vars and write stdout to a file.
+     *
+     * @throws \Exception
+     */
+    private static function runBackupCmd(array $cmd, array $env, string $outFile): void
+    {
+        $process = new Process($cmd, null, $env);
+        $process->run();
+
+        if (! $process->isSuccessful()) {
+            throw new ProcessFailedException($process);
+        }
+
+        file_put_contents($outFile, $process->getOutput());
+    }
+
+    /**
      * Backup MySQL/MariaDB database
      */
     protected function backupMySQL(array $config, string $backupPath, string $filename): array
     {
-        $host = escapeshellarg($config['host']);
-        $port = escapeshellarg($config['port']);
-        $database = escapeshellarg($config['database']);
-        $username = escapeshellarg($config['username']);
-        $password = $config['password'];
+        $outFile = $backupPath.'/'.$filename.'.sql';
 
-        $backupFile = escapeshellarg($backupPath . '/' . $filename . '.sql');
+        $pwd = $config['password'] ?? '';
+        $env = $pwd !== '' ? ['MYSQL_PWD' => $pwd] : [];
 
-        // SECURITY: Use MYSQL_PWD environment variable instead of --password flag
-        // The --password flag exposes the password in the process list (ps aux)
-        // Using MYSQL_PWD environment variable keeps it out of the process list
-        if (!empty($password)) {
-            $sanitizedPassword = addslashes($password);
-            putenv("MYSQL_PWD={$sanitizedPassword}");
-        }
+        self::runBackupCmd(
+            [
+                'mysqldump',
+                '--host='.$config['host'],
+                '--port='.(string) $config['port'],
+                '--user='.$config['username'],
+                '--single-transaction',
+                '--routines',
+                '--triggers',
+                $config['database'],
+            ],
+            $env,
+            $outFile,
+        );
 
-        $command = "mysqldump --host={$host} --port={$port} --user={$username} --single-transaction --routines --triggers {$database} > {$backupFile}";
-
-        exec($command, $output, $returnCode);
-
-        // Clear the password from environment after command execution
-        if (!empty($password)) {
-            putenv('MYSQL_PWD');
-        }
-
-        if ($returnCode !== 0) {
-            Log::error('MySQL backup failed', ['return_code' => $returnCode]);
-            throw new \Exception(
-                'Failed to run mysqldump. Ensure mysqldump is installed and credentials are correct.'
-            );
-        }
-
-        $actualBackupFile = $backupPath . '/' . $filename . '.sql';
         return [
-            'filename' => $filename . '.sql',
-            'path' => $actualBackupFile,
-            'size' => $this->formatBytes(filesize($actualBackupFile)),
+            'filename' => $filename.'.sql',
+            'path' => $outFile,
+            'size' => $this->formatBytes(filesize($outFile)),
         ];
     }
 
@@ -91,41 +97,30 @@ class BackupService
      */
     protected function backupPostgreSQL(array $config, string $backupPath, string $filename): array
     {
-        $host = escapeshellarg($config['host']);
-        $port = escapeshellarg($config['port']);
-        $database = escapeshellarg($config['database']);
-        $username = escapeshellarg($config['username']);
-        $password = $config['password'];
+        $outFile = $backupPath.'/'.$filename.'.sql';
 
-        $backupFile = escapeshellarg($backupPath . '/' . $filename . '.sql');
+        $pwd = $config['password'] ?? '';
+        $env = $pwd !== '' ? ['PGPASSWORD' => $pwd] : [];
 
-        // SECURITY: Use PGPASSWORD environment variable
-        if (!empty($password)) {
-            $sanitizedPassword = addslashes($password);
-            putenv("PGPASSWORD={$sanitizedPassword}");
-        }
+        self::runBackupCmd(
+            [
+                'pg_dump',
+                '--host='.$config['host'],
+                '--port='.(string) $config['port'],
+                '--username='.$config['username'],
+                '--format=plain',
+                '--no-owner',
+                '--no-acl',
+                $config['database'],
+            ],
+            $env,
+            $outFile,
+        );
 
-        $command = "pg_dump --host={$host} --port={$port} --username={$username} --format=plain --no-owner --no-acl {$database} > {$backupFile}";
-
-        exec($command, $output, $returnCode);
-
-        // Clear the password from environment
-        if (!empty($password)) {
-            putenv('PGPASSWORD');
-        }
-
-        if ($returnCode !== 0) {
-            Log::error('PostgreSQL backup failed', ['return_code' => $returnCode]);
-            throw new \Exception(
-                'Failed to run pg_dump. Ensure PostgreSQL client is installed and credentials are correct.'
-            );
-        }
-
-        $actualBackupFile = $backupPath . '/' . $filename . '.sql';
         return [
-            'filename' => $filename . '.sql',
-            'path' => $actualBackupFile,
-            'size' => $this->formatBytes(filesize($actualBackupFile)),
+            'filename' => $filename.'.sql',
+            'path' => $outFile,
+            'size' => $this->formatBytes(filesize($outFile)),
         ];
     }
 
@@ -135,17 +130,17 @@ class BackupService
     protected function backupSQLite(array $config, string $backupPath, string $filename): array
     {
         $databasePath = $config['database'];
-        if (!file_exists($databasePath)) {
+        if (! file_exists($databasePath)) {
             throw new \Exception('SQLite database file not found.');
         }
 
-        $backupFile = $backupPath . '/' . $filename . '.sqlite';
-        if (!copy($databasePath, $backupFile)) {
+        $backupFile = $backupPath.'/'.$filename.'.sqlite';
+        if (! copy($databasePath, $backupFile)) {
             throw new \Exception('Failed to copy SQLite database file.');
         }
 
         return [
-            'filename' => $filename . '.sqlite',
+            'filename' => $filename.'.sqlite',
             'path' => $backupFile,
             'size' => $this->formatBytes(filesize($backupFile)),
         ];
@@ -156,40 +151,26 @@ class BackupService
      */
     protected function backupSQLServer(array $config, string $backupPath, string $filename): array
     {
-        $host = escapeshellarg($config['host']);
-        $database = escapeshellarg($config['database']);
-        $username = escapeshellarg($config['username']);
-        $password = $config['password'];
+        $outFile = $backupPath.'/'.$filename.'.bak';
 
-        $backupFile = $backupPath . '/' . $filename . '.bak';
-        $escapedBackupFile = escapeshellarg($backupFile);
+        $pwd = $config['password'] ?? '';
+        $env = $pwd !== '' ? ['SQLCMDPASSWORD' => $pwd] : [];
 
-        // SECURITY: Use SQLCMDPASSWORD environment variable to prevent exposure in process list
-        if (!empty($password)) {
-            $sanitizedPassword = addslashes($password);
-            putenv("SQLCMDPASSWORD={$sanitizedPassword}");
-        }
-
-        $command = "sqlcmd -S {$host} -U {$username} -Q \"BACKUP DATABASE [{$database}] TO DISK = '{$escapedBackupFile}'\"";
-
-        exec($command, $output, $returnCode);
-
-        // Clear the password from environment after command execution
-        if (!empty($password)) {
-            putenv('SQLCMDPASSWORD');
-        }
-
-        if ($returnCode !== 0) {
-            Log::error('SQL Server backup failed', ['return_code' => $returnCode]);
-            throw new \Exception(
-                'Failed to run SQL Server backup. Ensure sqlcmd is installed and credentials are correct.'
-            );
-        }
+        self::runBackupCmd(
+            [
+                'sqlcmd',
+                '-S', $config['host'],
+                '-U', $config['username'],
+                '-Q', "BACKUP DATABASE [{$config['database']}] TO DISK = N'".$outFile."'",
+            ],
+            $env,
+            $outFile,
+        );
 
         return [
-            'filename' => $filename . '.bak',
-            'path' => $backupFile,
-            'size' => $this->formatBytes(filesize($backupFile)),
+            'filename' => $filename.'.bak',
+            'path' => $outFile,
+            'size' => $this->formatBytes(filesize($outFile)),
         ];
     }
 
@@ -204,6 +185,6 @@ class BackupService
             $bytes /= 1024;
         }
 
-        return round($bytes, $precision) . ' ' . $units[$i];
+        return round($bytes, $precision).' '.$units[$i];
     }
 }

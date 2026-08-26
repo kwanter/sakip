@@ -2,40 +2,41 @@
 
 namespace App\Models;
 
+use App\Models\Scopes\RecentScope;
+use App\Models\Scopes\SearchScope;
+use App\Models\Scopes\WithStatusScope;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Models\Scopes\WithStatusScope;
-use App\Models\Scopes\RecentScope;
-use App\Models\Scopes\SearchScope;
 
 class Kegiatan extends Model
 {
-    use HasUuids, HasFactory, SoftDeletes;
-    use WithStatusScope, RecentScope, SearchScope;
+    use HasFactory, HasUuids, SoftDeletes;
+    use RecentScope, SearchScope, WithStatusScope;
 
     protected $fillable = [
-        "program_id",
-        "kode_kegiatan",
-        "nama_kegiatan",
-        "deskripsi",
-        "anggaran",
-        "tanggal_mulai",
-        "tanggal_selesai",
-        "penanggung_jawab",
-        "status",
+        'program_id',
+        'kode_kegiatan',
+        'nama_kegiatan',
+        'deskripsi',
+        'anggaran',
+        'tanggal_mulai',
+        'tanggal_selesai',
+        'penanggung_jawab',
+        'status',
     ];
 
     protected $casts = [
-        "tanggal_mulai" => "date",
-        "tanggal_selesai" => "date",
+        'tanggal_mulai' => 'date',
+        'tanggal_selesai' => 'date',
     ];
 
     public $incrementing = false;
-    protected $keyType = "string";
+
+    protected $keyType = 'string';
 
     /**
      * Relasi ke Program

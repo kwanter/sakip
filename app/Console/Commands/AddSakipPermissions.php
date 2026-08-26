@@ -2,11 +2,10 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Console\Command;
 
 class AddSakipPermissions extends Command
 {
@@ -33,7 +32,7 @@ class AddSakipPermissions extends Command
         'sakip.pimpinan',
         'sakip.data_collector',
         'sakip.assessor',
-        'sakip.auditor'
+        'sakip.auditor',
     ];
 
     /**
@@ -49,21 +48,25 @@ class AddSakipPermissions extends Command
 
         if ($this->option('fix-all')) {
             $this->fixAllPermissions();
+
             return;
         }
 
         if ($this->option('all-users')) {
             $this->addPermissionsToAllUsers();
+
             return;
         }
 
         if ($userId = $this->option('user')) {
             $this->addPermissionsToUser($userId);
+
             return;
         }
 
         if ($roleName = $this->option('role')) {
             $this->addPermissionsToRole($roleName);
+
             return;
         }
 
@@ -76,7 +79,7 @@ class AddSakipPermissions extends Command
     protected function createMissingPermissions()
     {
         $this->info('Checking for missing permissions...');
-        
+
         $permissionsToCreate = [
             ['name' => 'sakip.dashboard.view', 'display_name' => 'View SAKIP Dashboard', 'module' => 'sakip'],
             ['name' => 'sakip.admin', 'display_name' => 'SAKIP Admin Access', 'module' => 'sakip'],
@@ -90,24 +93,24 @@ class AddSakipPermissions extends Command
             ['name' => 'sakip.dashboard.audit', 'display_name' => 'View Audit Dashboard', 'module' => 'sakip'],
             ['name' => 'sakip.dashboard.cross_institution', 'display_name' => 'View Cross-Institution Data', 'module' => 'sakip'],
         ];
-        
+
         $created = 0;
         foreach ($permissionsToCreate as $permData) {
             $permission = Permission::firstOrCreate(
                 ['name' => $permData['name']],
                 $permData
             );
-            
+
             if ($permission->wasRecentlyCreated) {
                 $this->info("Created permission: {$permData['name']}");
                 $created++;
             }
         }
-        
+
         if ($created > 0) {
             $this->info("Created {$created} new permissions");
         } else {
-            $this->info("All required permissions already exist");
+            $this->info('All required permissions already exist');
         }
     }
 
@@ -117,23 +120,24 @@ class AddSakipPermissions extends Command
     protected function addPermissionsToUser($userId)
     {
         $user = User::find($userId);
-        
-        if (!$user) {
+
+        if (! $user) {
             $this->error("User with ID {$userId} not found");
+
             return;
         }
-        
+
         $this->info("Adding SAKIP dashboard permissions to user: {$user->name}");
-        
+
         // Get permission IDs
         $permissionIds = Permission::whereIn('name', $this->requiredPermissions)
             ->pluck('id')
             ->toArray();
-        
+
         // Attach permissions that don't already exist for this user
         $user->permissions()->syncWithoutDetaching($permissionIds);
-        
-        $this->info("Permissions added successfully");
+
+        $this->info('Permissions added successfully');
     }
 
     /**
@@ -142,23 +146,24 @@ class AddSakipPermissions extends Command
     protected function addPermissionsToRole($roleName)
     {
         $role = Role::where('name', $roleName)->first();
-        
-        if (!$role) {
+
+        if (! $role) {
             $this->error("Role '{$roleName}' not found");
+
             return;
         }
-        
+
         $this->info("Adding SAKIP dashboard permissions to role: {$role->name}");
-        
+
         // Get permission IDs
         $permissionIds = Permission::whereIn('name', $this->requiredPermissions)
             ->pluck('id')
             ->toArray();
-        
+
         // Attach permissions that don't already exist for this role
         $role->permissions()->syncWithoutDetaching($permissionIds);
-        
-        $this->info("Permissions added successfully to role");
+
+        $this->info('Permissions added successfully to role');
     }
 
     /**
@@ -166,19 +171,19 @@ class AddSakipPermissions extends Command
      */
     protected function addPermissionsToAllUsers()
     {
-        $this->info("Adding SAKIP dashboard permissions to all users");
-        
+        $this->info('Adding SAKIP dashboard permissions to all users');
+
         $users = User::all();
         $permissionIds = Permission::whereIn('name', $this->requiredPermissions)
             ->pluck('id')
             ->toArray();
-        
+
         foreach ($users as $user) {
             $this->info("Processing user: {$user->name}");
             $user->permissions()->syncWithoutDetaching($permissionIds);
         }
-        
-        $this->info("Permissions added to all users successfully");
+
+        $this->info('Permissions added to all users successfully');
     }
 
     /**
@@ -187,29 +192,29 @@ class AddSakipPermissions extends Command
      */
     protected function fixAllPermissions()
     {
-        $this->info("Fixing all SAKIP permission issues");
-        
+        $this->info('Fixing all SAKIP permission issues');
+
         // Ensure superadmin role has all permissions
         $superadminRole = Role::where('name', 'superadmin')->first();
         if ($superadminRole) {
-            $this->info("Ensuring superadmin role has all permissions");
+            $this->info('Ensuring superadmin role has all permissions');
             $allPermissionIds = Permission::pluck('id')->toArray();
             $superadminRole->permissions()->syncWithoutDetaching($allPermissionIds);
         } else {
-            $this->warn("Superadmin role not found");
+            $this->warn('Superadmin role not found');
         }
-        
+
         // Ensure all users have basic dashboard access
         $basicPermission = Permission::where('name', 'sakip.dashboard.view')->first();
         if ($basicPermission) {
-            $this->info("Ensuring all users have basic dashboard access");
+            $this->info('Ensuring all users have basic dashboard access');
             $users = User::all();
             foreach ($users as $user) {
                 $user->permissions()->syncWithoutDetaching([$basicPermission->id]);
             }
         }
-        
-        $this->info("Permission fixes applied successfully");
+
+        $this->info('Permission fixes applied successfully');
     }
 
     /**
@@ -217,18 +222,18 @@ class AddSakipPermissions extends Command
      */
     protected function showPermissionStatus()
     {
-        $this->info("Current SAKIP Permission Status");
-        
+        $this->info('Current SAKIP Permission Status');
+
         // Check if all required permissions exist
         $existingPermissions = Permission::whereIn('name', $this->requiredPermissions)->pluck('name')->toArray();
         $missingPermissions = array_diff($this->requiredPermissions, $existingPermissions);
-        
+
         if (count($missingPermissions) > 0) {
-            $this->warn("Missing permissions: " . implode(', ', $missingPermissions));
+            $this->warn('Missing permissions: '.implode(', ', $missingPermissions));
         } else {
-            $this->info("All required permissions exist in the database");
+            $this->info('All required permissions exist in the database');
         }
-        
+
         // Show roles with SAKIP permissions
         $this->info("\nRoles with SAKIP permissions:");
         $roles = Role::with('permissions')->get();
@@ -236,53 +241,53 @@ class AddSakipPermissions extends Command
             $sakipPermissions = $role->permissions->filter(function ($permission) {
                 return strpos($permission->name, 'sakip.') === 0;
             })->pluck('name')->toArray();
-            
+
             if (count($sakipPermissions) > 0) {
-                $this->line("- {$role->name}: " . implode(', ', $sakipPermissions));
+                $this->line("- {$role->name}: ".implode(', ', $sakipPermissions));
             }
         }
-        
+
         // Show users without any SAKIP permissions
         $this->info("\nUsers without any SAKIP permissions:");
         $users = User::all();
         $usersWithoutPermissions = [];
-        
+
         foreach ($users as $user) {
             $hasAnyPermission = false;
-            
+
             // Check direct permissions
             $directPermissions = $user->permissions->filter(function ($permission) {
                 return strpos($permission->name, 'sakip.') === 0;
             });
-            
+
             if ($directPermissions->count() > 0) {
                 $hasAnyPermission = true;
             }
-            
+
             // Check permissions via roles
-            if (!$hasAnyPermission) {
+            if (! $hasAnyPermission) {
                 $rolePermissions = $user->allPermissions()->filter(function ($permission) {
                     return strpos($permission->name, 'sakip.') === 0;
                 });
-                
+
                 if ($rolePermissions->count() > 0) {
                     $hasAnyPermission = true;
                 }
             }
-            
-            if (!$hasAnyPermission) {
-                $usersWithoutPermissions[] = $user->name . ' (ID: ' . $user->id . ')';
+
+            if (! $hasAnyPermission) {
+                $usersWithoutPermissions[] = $user->name.' (ID: '.$user->id.')';
             }
         }
-        
+
         if (count($usersWithoutPermissions) > 0) {
             foreach ($usersWithoutPermissions as $userName) {
                 $this->line("- {$userName}");
             }
         } else {
-            $this->info("All users have at least one SAKIP permission");
+            $this->info('All users have at least one SAKIP permission');
         }
-        
+
         $this->info("\nUse --fix-all option to automatically fix permission issues");
     }
 }

@@ -16,16 +16,16 @@ return new class extends Migration
         Schema::table('audit_logs', function (Blueprint $table) {
             // Composite index for user + created_at (user activity history)
             $table->index(['user_id', 'created_at'], 'idx_audit_logs_user_created');
-            
+
             // Composite index for institution + created_at (org audit trail)
             $table->index(['instansi_id', 'created_at'], 'idx_audit_logs_instansi_created');
-            
+
             // Index for action filtering (common filter)
             $table->index('action', 'idx_audit_logs_action');
-            
+
             // Index for module filtering
             $table->index('module', 'idx_audit_logs_module');
-            
+
             // Index for created_at ordering (audit log timeline)
             $table->index('created_at', 'idx_audit_logs_created_at');
         });

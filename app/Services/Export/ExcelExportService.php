@@ -155,8 +155,9 @@ class ExcelExportService
     protected function sanitizeSingle(mixed $value): mixed
     {
         if (is_string($value) && $value !== '' && str_contains('=+-@', $value[0])) {
-            return "'" . $value;
+            return "'".$value;
         }
+
         return $value;
     }
 

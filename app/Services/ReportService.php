@@ -2,25 +2,25 @@
 
 namespace App\Services;
 
-use App\Models\Report;
-use App\Models\PerformanceIndicator;
-use App\Models\PerformanceData;
 use App\Models\Assessment;
-use App\Models\Instansi;
 use App\Models\AuditLog;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Storage;
+use App\Models\Instansi;
+use App\Models\PerformanceData;
+use App\Models\PerformanceIndicator;
+use App\Models\Report;
 use Barryvdh\Snappy\Facades\SnappyPdf;
-use Carbon\Carbon;
 use Exception;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 
 class ReportService
 {
     use \App\Traits\ClearsCacheByKey;
 
     protected $cacheTimeout = 3600; // 1 hour
+
     protected $reportTemplates = [
         'executive_summary' => 'Executive Summary Report',
         'performance_analysis' => 'Performance Analysis Report',
@@ -41,11 +41,11 @@ class ReportService
             // Validate data
             $validator = $this->validateReportData($data);
             if ($validator->fails()) {
-                throw new Exception('Validation failed: ' . $validator->errors()->first());
+                throw new Exception('Validation failed: '.$validator->errors()->first());
             }
 
             // Check if report template exists
-            if (!$this->reportTemplateExists($data['report_type'])) {
+            if (! $this->reportTemplateExists($data['report_type'])) {
                 throw new Exception('Report template not found');
             }
 
@@ -131,9 +131,9 @@ class ReportService
 
         if (isset($filters['search'])) {
             $query->where(function ($q) use ($filters) {
-                $q->where('report_title', 'like', '%' . $filters['search'] . '%')
+                $q->where('report_title', 'like', '%'.$filters['search'].'%')
                     ->orWhereHas('instansi', function ($q2) use ($filters) {
-                        $q2->where('name', 'like', '%' . $filters['search'] . '%');
+                        $q2->where('name', 'like', '%'.$filters['search'].'%');
                     });
             });
         }
@@ -184,7 +184,7 @@ class ReportService
      */
     public function downloadReport(Report $report): array
     {
-        if (!$report->file_path || !Storage::exists($report->file_path)) {
+        if (! $report->file_path || ! Storage::exists($report->file_path)) {
             throw new Exception('Report file not found');
         }
 
@@ -208,7 +208,7 @@ class ReportService
     protected function generateExecutiveSummaryData($instansiId = null, $year = null): array
     {
         $year = $year ?? date('Y');
-        
+
         return [
             'summary' => $this->getExecutiveSummary($instansiId, $year),
             'instansi_performance' => $this->getInstansiPerformanceSummary($instansiId, $year),
@@ -225,7 +225,7 @@ class ReportService
     protected function generatePerformanceAnalysisData($instansiId = null, $year = null): array
     {
         $year = $year ?? date('Y');
-        
+
         return [
             'indicator_analysis' => $this->getIndicatorAnalysis($instansiId, $year),
             'achievement_distribution' => $this->getAchievementDistribution($instansiId, $year),
@@ -242,7 +242,7 @@ class ReportService
     protected function generateAssessmentResultsData($instansiId = null, $year = null): array
     {
         $year = $year ?? date('Y');
-        
+
         return [
             'assessment_summary' => $this->getAssessmentSummary($instansiId, $year),
             'rating_distribution' => $this->getRatingDistribution($instansiId, $year),
@@ -289,8 +289,8 @@ class ReportService
     protected function generateReportFile(Report $report, array $reportData, string $format): string
     {
         $fileName = $this->generateFileName($report);
-        $directory = 'reports/' . date('Y/m');
-        $filePath = $directory . '/' . $fileName;
+        $directory = 'reports/'.date('Y/m');
+        $filePath = $directory.'/'.$fileName;
 
         // Ensure directory exists
         Storage::makeDirectory($directory);
@@ -312,7 +312,7 @@ class ReportService
      */
     protected function generatePdfReport(string $filePath, Report $report, array $reportData): string
     {
-        $html = view('sakip.reports.templates.' . $report->report_type, [
+        $html = view('sakip.reports.templates.'.$report->report_type, [
             'report' => $report,
             'data' => $reportData,
             'generated_at' => now(),
@@ -347,6 +347,7 @@ class ReportService
     {
         $csvContent = $this->convertDataToCsv($reportData);
         Storage::put($filePath, $csvContent);
+
         return $filePath;
     }
 
@@ -356,17 +357,17 @@ class ReportService
     protected function convertDataToCsv(array $data): string
     {
         $output = fopen('php://temp', 'r+');
-        
+
         // Add headers
         fputcsv($output, ['Field', 'Value']);
-        
+
         // Add data rows
         $this->flattenArrayToCsv($data, $output);
-        
+
         rewind($output);
         $csvContent = stream_get_contents($output);
         fclose($output);
-        
+
         return $csvContent;
     }
 
@@ -376,8 +377,8 @@ class ReportService
     protected function flattenArrayToCsv(array $data, $output, string $prefix = ''): void
     {
         foreach ($data as $key => $value) {
-            $fieldName = $prefix ? $prefix . '.' . $key : $key;
-            
+            $fieldName = $prefix ? $prefix.'.'.$key : $key;
+
             if (is_array($value)) {
                 $this->flattenArrayToCsv($value, $output, $fieldName);
             } else {
@@ -394,7 +395,7 @@ class ReportService
         // This would be implemented based on your specific requirements
         return [
             'total_instansi' => Instansi::count(),
-            'total_indicators' => PerformanceIndicator::when($instansiId, fn($q) => $q->where('instansi_id', $instansiId))->count(),
+            'total_indicators' => PerformanceIndicator::when($instansiId, fn ($q) => $q->where('instansi_id', $instansiId))->count(),
             'average_achievement' => $this->calculateAverageAchievement($instansiId, $year),
         ];
     }
@@ -405,8 +406,8 @@ class ReportService
     protected function calculateAverageAchievement($instansiId = null, $year = null): float
     {
         $query = PerformanceData::where('validation_status', 'validated')
-            ->when($year, fn($q) => $q->where('period_year', $year))
-            ->when($instansiId, fn($q) => $q->whereHas('performanceIndicator', fn($q2) => $q2->where('instansi_id', $instansiId)));
+            ->when($year, fn ($q) => $q->where('period_year', $year))
+            ->when($instansiId, fn ($q) => $q->whereHas('performanceIndicator', fn ($q2) => $q2->where('instansi_id', $instansiId)));
 
         return round($query->avg('achievement_percentage') ?? 0, 2);
     }
@@ -417,7 +418,7 @@ class ReportService
     protected function validateReportData(array $data): \Illuminate\Contracts\Validation\Validator
     {
         return Validator::make($data, [
-            'report_type' => 'required|string|in:' . implode(',', array_keys($this->reportTemplates)),
+            'report_type' => 'required|string|in:'.implode(',', array_keys($this->reportTemplates)),
             'instansi_id' => 'nullable|exists:instansi,id',
             'report_period' => 'nullable|in:first_semester,second_semester,quarterly',
             'report_year' => 'required|integer|min:2020|max:2030',
@@ -443,7 +444,7 @@ class ReportService
         $templateName = $this->reportTemplates[$data['report_type']] ?? 'Report';
         $year = $data['report_year'];
         $period = $data['report_period'] ?? '';
-        
+
         return sprintf('%s - %s %s', $templateName, $year, ucfirst($period));
     }
 
@@ -455,7 +456,7 @@ class ReportService
         $timestamp = now()->format('Y-m-d_H-i-s');
         $type = str_replace('_', '-', $report->report_type);
         $instansi = $report->instansi ? str_replace(' ', '-', $report->instansi->name) : 'all';
-        
+
         return sprintf('sakip-%s-%s-%s.pdf', $type, $instansi, $timestamp);
     }
 
@@ -465,6 +466,7 @@ class ReportService
     protected function getCurrentPeriod(): string
     {
         $month = date('n');
+
         return $month <= 6 ? 'first_semester' : 'second_semester';
     }
 
@@ -477,7 +479,7 @@ class ReportService
             'user_id' => auth()->id(),
             'instansi_id' => $report->instansi_id,
             'module' => 'sakip',
-            'activity' => $action . '_report',
+            'activity' => $action.'_report',
             'description' => $description,
             'old_values' => $action === 'update' ? $report->getOriginal() : null,
             'new_values' => $action !== 'delete' ? $report->toArray() : null,
@@ -489,13 +491,13 @@ class ReportService
      */
     protected function clearReportCache($instansiId): void
     {
-        Cache::forget("report_statistics_{$instansiId}_" . date('Y'));
-        
+        Cache::forget("report_statistics_{$instansiId}_".date('Y'));
+
         // SECURITY: getRedis() fatals on non-redis stores — forget concrete keys.
         $this->forgetCacheKeys([
             "reports_list_{$instansiId}",
             "reports_list_{$instansiId}_1",
-            "report_statistics_{$instansiId}_" . date('Y') . "_all",
+            "report_statistics_{$instansiId}_".date('Y').'_all',
         ]);
     }
 }

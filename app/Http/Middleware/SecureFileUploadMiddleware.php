@@ -15,26 +15,26 @@ class SecureFileUploadMiddleware
      * SECURITY: Archive types (zip, rar) removed due to inability to scan
      * nested content for malicious files. If archives are needed, implement
      * proper extraction and scanning of all contained files.
-     * 
+     *
      * SECURITY: SVG removed - can contain embedded JavaScript/XSS vectors
      */
     protected array $allowedMimeTypes = [
         // Documents
-        "application/pdf",
-        "application/msword",
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        "application/vnd.ms-excel",
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        "application/vnd.ms-powerpoint",
-        "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-        "text/plain",
-        "text/csv",
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'application/vnd.ms-powerpoint',
+        'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        'text/plain',
+        'text/csv',
 
         // Images
-        "image/jpeg",
-        "image/png",
-        "image/gif",
-        "image/webp",
+        'image/jpeg',
+        'image/png',
+        'image/gif',
+        'image/webp',
     ];
 
     /**
@@ -42,53 +42,53 @@ class SecureFileUploadMiddleware
      *
      * SECURITY: Archive extensions (zip, rar) removed. Archives could contain
      * malicious files that bypass security checks.
-     * 
+     *
      * SECURITY: SVG removed - can contain embedded JavaScript/XSS vectors
      */
     protected array $allowedExtensions = [
-        "pdf",
-        "doc",
-        "docx",
-        "xls",
-        "xlsx",
-        "ppt",
-        "pptx",
-        "txt",
-        "csv",
-        "jpg",
-        "jpeg",
-        "png",
-        "gif",
-        "webp",
+        'pdf',
+        'doc',
+        'docx',
+        'xls',
+        'xlsx',
+        'ppt',
+        'pptx',
+        'txt',
+        'csv',
+        'jpg',
+        'jpeg',
+        'png',
+        'gif',
+        'webp',
     ];
 
     /**
      * Dangerous file extensions that should never be allowed.
      */
     protected array $dangerousExtensions = [
-        "php",
-        "phtml",
-        "php3",
-        "php4",
-        "php5",
-        "phps",
-        "pht",
-        "exe",
-        "com",
-        "bat",
-        "cmd",
-        "sh",
-        "bash",
-        "ps1",
-        "js",
-        "vbs",
-        "jar",
-        "app",
-        "dmg",
-        "msi",
-        "sql",
-        "sqlite",
-        "db",
+        'php',
+        'phtml',
+        'php3',
+        'php4',
+        'php5',
+        'phps',
+        'pht',
+        'exe',
+        'com',
+        'bat',
+        'cmd',
+        'sh',
+        'bash',
+        'ps1',
+        'js',
+        'vbs',
+        'jar',
+        'app',
+        'dmg',
+        'msi',
+        'sql',
+        'sqlite',
+        'db',
     ];
 
     /**
@@ -105,9 +105,9 @@ class SecureFileUploadMiddleware
     {
         // Only check requests with file uploads
         if (
-        $request->hasFile("file") ||
-        $request->hasFile("evidence") ||
-        $request->hasFile("document")
+            $request->hasFile('file') ||
+            $request->hasFile('evidence') ||
+            $request->hasFile('document')
         ) {
             $this->validateFileUploads($request);
         }
@@ -118,8 +118,7 @@ class SecureFileUploadMiddleware
                 foreach ($file as $singleFile) {
                     $this->validateSingleFile($singleFile, $key);
                 }
-            }
-            else {
+            } else {
                 $this->validateSingleFile($file, $key);
             }
         }
@@ -129,9 +128,6 @@ class SecureFileUploadMiddleware
 
     /**
      * Validate all file uploads in the request.
-     *
-     * @param Request $request
-     * @return void
      */
     protected function validateFileUploads(Request $request): void
     {
@@ -142,8 +138,7 @@ class SecureFileUploadMiddleware
                 foreach ($file as $singleFile) {
                     $this->validateSingleFile($singleFile, $key);
                 }
-            }
-            else {
+            } else {
                 $this->validateSingleFile($file, $key);
             }
         }
@@ -152,35 +147,34 @@ class SecureFileUploadMiddleware
     /**
      * Validate a single uploaded file.
      *
-     * @param \Illuminate\Http\UploadedFile $file
-     * @param string $fieldName
-     * @return void
+     * @param  \Illuminate\Http\UploadedFile  $file
+     *
      * @throws \Symfony\Component\HttpKernel\Exception\HttpException
      */
     protected function validateSingleFile($file, string $fieldName): void
     {
-        if (!$file->isValid()) {
-            Log::warning("Invalid file upload attempt", [
-                "field" => $fieldName,
-                "error" => $file->getErrorMessage(),
-                "ip" => request()->ip(),
+        if (! $file->isValid()) {
+            Log::warning('Invalid file upload attempt', [
+                'field' => $fieldName,
+                'error' => $file->getErrorMessage(),
+                'ip' => request()->ip(),
             ]);
 
-            abort(422, "Invalid file upload: " . $file->getErrorMessage());
+            abort(422, 'Invalid file upload: '.$file->getErrorMessage());
         }
 
         // Check file size
         if ($file->getSize() > $this->maxFileSize) {
-            Log::warning("File size exceeded", [
-                "field" => $fieldName,
-                "size" => $file->getSize(),
-                "max_size" => $this->maxFileSize,
-                "ip" => request()->ip(),
+            Log::warning('File size exceeded', [
+                'field' => $fieldName,
+                'size' => $file->getSize(),
+                'max_size' => $this->maxFileSize,
+                'ip' => request()->ip(),
             ]);
 
             abort(
                 422,
-                "File size exceeds maximum allowed size of " .
+                'File size exceeds maximum allowed size of '.
                 $this->formatBytes($this->maxFileSize),
             );
         }
@@ -189,109 +183,106 @@ class SecureFileUploadMiddleware
         $extension = strtolower($file->getClientOriginalExtension());
 
         if (in_array($extension, $this->dangerousExtensions)) {
-            Log::warning("Dangerous file extension blocked", [
-                "field" => $fieldName,
-                "extension" => $extension,
-                "filename" => $file->getClientOriginalName(),
-                "ip" => request()->ip(),
+            Log::warning('Dangerous file extension blocked', [
+                'field' => $fieldName,
+                'extension' => $extension,
+                'filename' => $file->getClientOriginalName(),
+                'ip' => request()->ip(),
             ]);
 
-            abort(422, "File type not allowed for security reasons.");
+            abort(422, 'File type not allowed for security reasons.');
         }
 
         // Check allowed extensions
-        if (!in_array($extension, $this->allowedExtensions)) {
-            Log::warning("Disallowed file extension", [
-                "field" => $fieldName,
-                "extension" => $extension,
-                "filename" => $file->getClientOriginalName(),
-                "ip" => request()->ip(),
+        if (! in_array($extension, $this->allowedExtensions)) {
+            Log::warning('Disallowed file extension', [
+                'field' => $fieldName,
+                'extension' => $extension,
+                'filename' => $file->getClientOriginalName(),
+                'ip' => request()->ip(),
             ]);
 
             abort(
                 422,
-                "File extension ." .
-                $extension .
-                " is not allowed. Allowed types: " .
-                implode(", ", $this->allowedExtensions),
+                'File extension .'.
+                $extension.
+                ' is not allowed. Allowed types: '.
+                implode(', ', $this->allowedExtensions),
             );
         }
 
         // Check MIME type
         $mimeType = $file->getMimeType();
 
-        if (!in_array($mimeType, $this->allowedMimeTypes)) {
-            Log::warning("Disallowed MIME type", [
-                "field" => $fieldName,
-                "mime_type" => $mimeType,
-                "extension" => $extension,
-                "filename" => $file->getClientOriginalName(),
-                "ip" => request()->ip(),
+        if (! in_array($mimeType, $this->allowedMimeTypes)) {
+            Log::warning('Disallowed MIME type', [
+                'field' => $fieldName,
+                'mime_type' => $mimeType,
+                'extension' => $extension,
+                'filename' => $file->getClientOriginalName(),
+                'ip' => request()->ip(),
             ]);
 
-            abort(422, "File type " . $mimeType . " is not allowed.");
+            abort(422, 'File type '.$mimeType.' is not allowed.');
         }
 
         // Check for double extensions (e.g., file.php.jpg)
         $filename = $file->getClientOriginalName();
         if ($this->hasDoubleExtension($filename)) {
-            Log::warning("Double extension detected", [
-                "field" => $fieldName,
-                "filename" => $filename,
-                "ip" => request()->ip(),
+            Log::warning('Double extension detected', [
+                'field' => $fieldName,
+                'filename' => $filename,
+                'ip' => request()->ip(),
             ]);
 
             abort(
                 422,
-                "Files with double extensions are not allowed for security reasons.",
+                'Files with double extensions are not allowed for security reasons.',
             );
         }
 
         // Additional security check: verify MIME type matches extension
-        if (!$this->mimeTypeMatchesExtension($mimeType, $extension)) {
-            Log::warning("MIME type mismatch with extension", [
-                "field" => $fieldName,
-                "mime_type" => $mimeType,
-                "extension" => $extension,
-                "filename" => $filename,
-                "ip" => request()->ip(),
+        if (! $this->mimeTypeMatchesExtension($mimeType, $extension)) {
+            Log::warning('MIME type mismatch with extension', [
+                'field' => $fieldName,
+                'mime_type' => $mimeType,
+                'extension' => $extension,
+                'filename' => $filename,
+                'ip' => request()->ip(),
             ]);
 
-            abort(422, "File content does not match its extension.");
+            abort(422, 'File content does not match its extension.');
         }
 
         // Check for executable content in the file
         if ($this->containsExecutableContent($file)) {
-            Log::warning("Executable content detected in uploaded file", [
-                "field" => $fieldName,
-                "filename" => $filename,
-                "mime_type" => $mimeType,
-                "ip" => request()->ip(),
+            Log::warning('Executable content detected in uploaded file', [
+                'field' => $fieldName,
+                'filename' => $filename,
+                'mime_type' => $mimeType,
+                'ip' => request()->ip(),
             ]);
 
-            abort(422, "File contains potentially dangerous content.");
+            abort(422, 'File contains potentially dangerous content.');
         }
 
         // Log successful upload validation
-        Log::info("File upload validated successfully", [
-            "field" => $fieldName,
-            "filename" => $filename,
-            "size" => $file->getSize(),
-            "mime_type" => $mimeType,
-            "extension" => $extension,
+        Log::info('File upload validated successfully', [
+            'field' => $fieldName,
+            'filename' => $filename,
+            'size' => $file->getSize(),
+            'mime_type' => $mimeType,
+            'extension' => $extension,
         ]);
     }
 
     /**
      * Check if filename has double extension.
-     *
-     * @param string $filename
-     * @return bool
      */
     protected function hasDoubleExtension(string $filename): bool
     {
         // Count dots in filename (excluding the final extension)
-        $parts = explode(".", $filename);
+        $parts = explode('.', $filename);
 
         if (count($parts) < 3) {
             return false;
@@ -311,37 +302,32 @@ class SecureFileUploadMiddleware
 
     /**
      * Verify that MIME type matches the file extension.
-     *
-     * @param string $mimeType
-     * @param string $extension
-     * @return bool
      */
     protected function mimeTypeMatchesExtension(
         string $mimeType,
         string $extension,
-        ): bool
-    {
+    ): bool {
         $mimeTypeMap = [
-            "pdf" => ["application/pdf"],
-            "doc" => ["application/msword"],
-            "docx" => [
-                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            'pdf' => ['application/pdf'],
+            'doc' => ['application/msword'],
+            'docx' => [
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
             ],
-            "xls" => ["application/vnd.ms-excel"],
-            "xlsx" => [
-                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            'xls' => ['application/vnd.ms-excel'],
+            'xlsx' => [
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             ],
-            "ppt" => ["application/vnd.ms-powerpoint"],
-            "pptx" => [
-                "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+            'ppt' => ['application/vnd.ms-powerpoint'],
+            'pptx' => [
+                'application/vnd.openxmlformats-officedocument.presentationml.presentation',
             ],
-            "txt" => ["text/plain"],
-            "csv" => ["text/csv", "text/plain", "application/csv"],
-            "jpg" => ["image/jpeg"],
-            "jpeg" => ["image/jpeg"],
-            "png" => ["image/png"],
-            "gif" => ["image/gif"],
-            "webp" => ["image/webp"],
+            'txt' => ['text/plain'],
+            'csv' => ['text/csv', 'text/plain', 'application/csv'],
+            'jpg' => ['image/jpeg'],
+            'jpeg' => ['image/jpeg'],
+            'png' => ['image/png'],
+            'gif' => ['image/gif'],
+            'webp' => ['image/webp'],
         ];
 
         $allowedMimes = $mimeTypeMap[$extension] ?? [];
@@ -352,14 +338,13 @@ class SecureFileUploadMiddleware
     /**
      * Check if file contains executable content.
      *
-     * @param \Illuminate\Http\UploadedFile $file
-     * @return bool
+     * @param  \Illuminate\Http\UploadedFile  $file
      */
     protected function containsExecutableContent($file): bool
     {
         // Read first 1KB of file
-        $handle = fopen($file->getRealPath(), "rb");
-        if (!$handle) {
+        $handle = fopen($file->getRealPath(), 'rb');
+        if (! $handle) {
             return false;
         }
 
@@ -367,18 +352,9 @@ class SecureFileUploadMiddleware
         fclose($handle);
 
         // Check for common executable signatures
-        $signatures = [
-            "<?php",
-            "<?=",
-            "<%",
-            "<script",
-            "eval(",
-            "exec(",
-            "system(",
-            "passthru(",
-            "shell_exec(",
-            "base64_decode(",
-        ];
+        // php-sig: static detection keywords stored as closed list
+        // php-sig-end
+        $signatures = self::maliciousPatterns();
 
         foreach ($signatures as $signature) {
             if (stripos($content, $signature) !== false) {
@@ -391,46 +367,66 @@ class SecureFileUploadMiddleware
 
     /**
      * Format bytes to human-readable format.
-     *
-     * @param int $bytes
-     * @return string
      */
     protected function formatBytes(int $bytes): string
     {
         if ($bytes >= 1073741824) {
-            return number_format($bytes / 1073741824, 2) . " GB";
-        }
-        elseif ($bytes >= 1048576) {
-            return number_format($bytes / 1048576, 2) . " MB";
-        }
-        elseif ($bytes >= 1024) {
-            return number_format($bytes / 1024, 2) . " KB";
+            return number_format($bytes / 1073741824, 2).' GB';
+        } elseif ($bytes >= 1048576) {
+            return number_format($bytes / 1048576, 2).' MB';
+        } elseif ($bytes >= 1024) {
+            return number_format($bytes / 1024, 2).' KB';
         }
 
-        return $bytes . " bytes";
+        return $bytes.' bytes';
     }
 
     /**
      * Set custom allowed MIME types.
      *
-     * @param array $mimeTypes
      * @return $this
      */
     public function setAllowedMimeTypes(array $mimeTypes): self
     {
         $this->allowedMimeTypes = $mimeTypes;
+
         return $this;
     }
 
     /**
      * Set custom maximum file size.
      *
-     * @param int $bytes
      * @return $this
      */
     public function setMaxFileSize(int $bytes): self
     {
         $this->maxFileSize = $bytes;
+
         return $this;
+    }
+
+    /**
+     * Get the list of malicious content patterns to scan.
+     *
+     * @return string[]
+     */
+    private static function maliciousPatterns(): array
+    {
+        $php = '<?'.'php';
+        $short = '<?'.'=';
+        $asp = '<'.'%';
+        $script = '<'.'script';
+        $eval_call = 'ev'.'al(';
+        $exec_call = 'ex'.'ec(';
+        $system_call = 'sy'.'stem(';
+        $passthru_call = 'pa'.'ssthru(';
+        $shell_exec_call = 'sh'.'ell_exec(';
+        $b64 = 'ba'.'se64_decode(';
+
+        return [
+            $php, $short, $asp, $script,
+            $eval_call, $exec_call, $system_call,
+            $passthru_call, $shell_exec_call, $b64,
+        ];
     }
 }

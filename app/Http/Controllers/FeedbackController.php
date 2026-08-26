@@ -13,13 +13,12 @@ class FeedbackController extends Controller
      */
     public function index()
     {
-        return view("sakip.feedback.index");
+        return view('sakip.feedback.index');
     }
 
     /**
      * Store a new feedback submission.
      *
-     * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\RedirectResponse
      */
     public function store(Request $request)
@@ -29,18 +28,18 @@ class FeedbackController extends Controller
         abort_unless($request->user() !== null, 403);
 
         $request->validate([
-            "subject" => "required|string|max:255",
-            "message" => "required|string|max:5000",
-            "category" => "required|string|max:100",
+            'subject' => 'required|string|max:255',
+            'message' => 'required|string|max:5000',
+            'category' => 'required|string|max:100',
         ]);
 
         // Persistence intentionally deferred; validation + auth boundary is the security fix.
 
         return redirect()
-            ->route("feedback")
+            ->route('feedback')
             ->with(
-                "success",
-                "Terima kasih! Masukan Anda telah berhasil dikirim.",
+                'success',
+                'Terima kasih! Masukan Anda telah berhasil dikirim.',
             );
     }
 }

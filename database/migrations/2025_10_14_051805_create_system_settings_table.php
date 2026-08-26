@@ -18,7 +18,7 @@ return new class extends Migration
             $table->enum('type', ['string', 'integer', 'boolean', 'json'])->default('string');
             $table->text('description')->nullable();
             $table->timestamps();
-            
+
             $table->index('key');
         });
     }

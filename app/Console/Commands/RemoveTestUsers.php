@@ -69,6 +69,7 @@ class RemoveTestUsers extends Command
 
         if ($testUsers->isEmpty()) {
             $this->info('✅ No test users found in the database.');
+
             return 0;
         }
 
@@ -96,24 +97,27 @@ class RemoveTestUsers extends Command
             $this->newLine();
             $this->info('🔍 DRY RUN MODE: No users were deleted.');
             $this->info('   Run without --dry-run to actually delete these users.');
+
             return 0;
         }
 
         // Confirmation (unless --force is used)
-        if (!$this->option('force')) {
+        if (! $this->option('force')) {
             $this->newLine();
             $this->warn('⚠️  WARNING: This action cannot be undone!');
 
-            if (!$this->confirm('Do you want to delete these test users?', false)) {
+            if (! $this->confirm('Do you want to delete these test users?', false)) {
                 $this->info('❌ Operation cancelled.');
+
                 return 0;
             }
 
             // Double confirmation for production
             if (app()->environment('production')) {
                 $this->error('🚨 PRODUCTION ENVIRONMENT DETECTED');
-                if (!$this->confirm('Are you ABSOLUTELY SURE you want to delete these users in PRODUCTION?', false)) {
+                if (! $this->confirm('Are you ABSOLUTELY SURE you want to delete these users in PRODUCTION?', false)) {
                     $this->info('❌ Operation cancelled.');
+
                     return 0;
                 }
             }
@@ -160,7 +164,7 @@ class RemoveTestUsers extends Command
         } catch (\Exception $e) {
             DB::rollBack();
 
-            $this->error('❌ Error deleting test users: ' . $e->getMessage());
+            $this->error('❌ Error deleting test users: '.$e->getMessage());
             $this->error('   Transaction rolled back. No users were deleted.');
 
             \Log::error('Failed to remove test users', [

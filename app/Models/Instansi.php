@@ -2,34 +2,35 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Models\Scopes\WithStatusScope;
 use App\Models\Scopes\RecentScope;
 use App\Models\Scopes\SearchScope;
+use App\Models\Scopes\WithStatusScope;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Instansi extends Model
 {
-    use HasUuids, HasFactory, SoftDeletes;
-    use WithStatusScope, RecentScope, SearchScope;
+    use HasFactory, HasUuids, SoftDeletes;
+    use RecentScope, SearchScope, WithStatusScope;
 
     protected $fillable = [
-        "kode_instansi",
-        "nama_instansi",
-        "alamat",
-        "telepon",
-        "email",
-        "website",
-        "kepala_instansi",
-        "nip_kepala",
-        "status",
+        'kode_instansi',
+        'nama_instansi',
+        'alamat',
+        'telepon',
+        'email',
+        'website',
+        'kepala_instansi',
+        'nip_kepala',
+        'status',
     ];
 
     public $incrementing = false;
-    protected $keyType = "string";
+
+    protected $keyType = 'string';
 
     /**
      * Relasi ke Sasaran Strategis

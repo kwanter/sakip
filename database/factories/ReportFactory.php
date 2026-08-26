@@ -41,14 +41,14 @@ class ReportFactory extends Factory
 
         $statuses = ['pending', 'processing', 'completed', 'failed', 'submitted'];
         $status = fake()->randomElement($statuses);
-        
+
         $generatedAt = null;
         $submittedAt = null;
-        
+
         if (in_array($status, ['completed', 'submitted'])) {
             $generatedAt = fake()->dateTimeBetween('-2 months', 'now');
         }
-        
+
         if ($status === 'submitted') {
             $submittedAt = fake()->dateTimeBetween($generatedAt ?? '-1 month', 'now');
         }
@@ -63,15 +63,15 @@ class ReportFactory extends Factory
             'report_type' => fake()->randomElement($reportTypes),
             'period' => fake()->randomElement([
                 $year,
-                $year . '-' . $quarter,
-                $year . '-' . $month,
+                $year.'-'.$quarter,
+                $year.'-'.$month,
                 '2024-Q1',
                 '2024-Q2',
                 '2024-Q3',
                 '2024-Q4',
             ]),
-            'file_path' => $status === 'completed' || $status === 'submitted' 
-                ? 'reports/' . fake()->uuid() . '.pdf' 
+            'file_path' => $status === 'completed' || $status === 'submitted'
+                ? 'reports/'.fake()->uuid().'.pdf'
                 : null,
             'parameters' => [
                 'include_charts' => fake()->boolean(80),
@@ -137,7 +137,7 @@ class ReportFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'status' => 'completed',
-            'file_path' => 'reports/' . fake()->uuid() . '.pdf',
+            'file_path' => 'reports/'.fake()->uuid().'.pdf',
             'generated_at' => fake()->dateTimeBetween('-2 months', 'now'),
             'submitted_at' => null,
         ]);
@@ -162,9 +162,10 @@ class ReportFactory extends Factory
     public function submitted(): static
     {
         $generatedAt = fake()->dateTimeBetween('-2 months', '-1 month');
+
         return $this->state(fn (array $attributes) => [
             'status' => 'submitted',
-            'file_path' => 'reports/' . fake()->uuid() . '.pdf',
+            'file_path' => 'reports/'.fake()->uuid().'.pdf',
             'generated_at' => $generatedAt,
             'submitted_at' => fake()->dateTimeBetween($generatedAt, 'now'),
         ]);
@@ -219,7 +220,7 @@ class ReportFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'report_type' => 'quarterly_report',
-            'period' => '2024-Q' . fake()->numberBetween(1, 4),
+            'period' => '2024-Q'.fake()->numberBetween(1, 4),
         ]);
     }
 

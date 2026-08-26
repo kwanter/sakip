@@ -5,8 +5,6 @@ namespace App\Http\Controllers\Sakip;
 use App\Http\Controllers\Controller;
 use App\Models\Instansi;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth;
 
 class InstansiController extends Controller
 {
@@ -45,6 +43,7 @@ class InstansiController extends Controller
     public function create()
     {
         $this->authorize('create', Instansi::class);
+
         return view('sakip.instansi.create');
     }
 
@@ -74,7 +73,8 @@ class InstansiController extends Controller
                 ->route('sakip.instansi.index')
                 ->with('success', 'Instansi berhasil ditambahkan.');
         } catch (\Exception $e) {
-            \Log::error('Error creating instansi: ' . $e->getMessage());
+            \Log::error('Error creating instansi: '.$e->getMessage());
+
             return back()
                 ->withInput()
                 ->with('error', 'Terjadi kesalahan saat menyimpan data instansi.');
@@ -99,6 +99,7 @@ class InstansiController extends Controller
     public function edit(Instansi $instansi)
     {
         $this->authorize('update', $instansi);
+
         return view('sakip.instansi.edit', compact('instansi'));
     }
 
@@ -110,7 +111,7 @@ class InstansiController extends Controller
         $this->authorize('update', $instansi);
 
         $validated = $request->validate([
-            'kode_instansi' => 'required|string|max:255|unique:instansis,kode_instansi,' . $instansi->id,
+            'kode_instansi' => 'required|string|max:255|unique:instansis,kode_instansi,'.$instansi->id,
             'nama_instansi' => 'required|string|max:255',
             'alamat' => 'nullable|string',
             'telepon' => 'nullable|string|max:20',
@@ -128,7 +129,8 @@ class InstansiController extends Controller
                 ->route('sakip.instansi.index')
                 ->with('success', 'Instansi berhasil diperbarui.');
         } catch (\Exception $e) {
-            \Log::error('Error updating instansi: ' . $e->getMessage());
+            \Log::error('Error updating instansi: '.$e->getMessage());
+
             return back()
                 ->withInput()
                 ->with('error', 'Terjadi kesalahan saat memperbarui data instansi.');
@@ -158,7 +160,8 @@ class InstansiController extends Controller
                 ->route('sakip.instansi.index')
                 ->with('success', 'Instansi berhasil dihapus.');
         } catch (\Exception $e) {
-            \Log::error('Error deleting instansi: ' . $e->getMessage());
+            \Log::error('Error deleting instansi: '.$e->getMessage());
+
             return back()->with('error', 'Terjadi kesalahan saat menghapus instansi.');
         }
     }

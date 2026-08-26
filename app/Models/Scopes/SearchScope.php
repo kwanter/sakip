@@ -20,9 +20,7 @@ trait SearchScope
      * Scope a query to search in default searchable columns.
      * Models can override $searchable property to customize.
      *
-     * @param  \Illuminate\Database\Eloquent\Builder  $query
-     * @param  string  $keyword The search keyword
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param  string  $keyword  The search keyword
      */
     public function scopeSearch(Builder $query, string $keyword): Builder
     {
@@ -34,8 +32,9 @@ trait SearchScope
         }
 
         // Default search behavior - search in name column if exists
-        if (null !== $model->getTable() && \Schema::hasColumn($model->getTable(), 'nama_' . strtolower(class_basename($model)))) {
-            $column = 'nama_' . strtolower(class_basename($model));
+        if ($model->getTable() !== null && \Schema::hasColumn($model->getTable(), 'nama_'.strtolower(class_basename($model)))) {
+            $column = 'nama_'.strtolower(class_basename($model));
+
             return $query->where($column, 'like', "%{$keyword}%");
         }
 
@@ -45,11 +44,9 @@ trait SearchScope
     /**
      * Scope a query to search in specific columns.
      *
-     * @param  \Illuminate\Database\Eloquent\Builder  $query
-     * @param  array  $columns Array of column names to search in
-     * @param  string  $keyword The search keyword
-     * @param  string  $boolean 'and' or 'or' (default: 'or')
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param  array  $columns  Array of column names to search in
+     * @param  string  $keyword  The search keyword
+     * @param  string  $boolean  'and' or 'or' (default: 'or')
      */
     public function scopeSearchIn(Builder $query, array $columns, string $keyword, string $boolean = 'or'): Builder
     {
@@ -69,10 +66,8 @@ trait SearchScope
     /**
      * Scope a query to search with exact match.
      *
-     * @param  \Illuminate\Database\Eloquent\Builder  $query
-     * @param  string  $column Column to search in
-     * @param  string  $keyword The search keyword
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param  string  $column  Column to search in
+     * @param  string  $keyword  The search keyword
      */
     public function scopeSearchExact(Builder $query, string $column, string $keyword): Builder
     {
@@ -82,10 +77,8 @@ trait SearchScope
     /**
      * Scope a query to search starting with a prefix.
      *
-     * @param  \Illuminate\Database\Eloquent\Builder  $query
-     * @param  string  $column Column to search in
-     * @param  string  $prefix The prefix to search for
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param  string  $column  Column to search in
+     * @param  string  $prefix  The prefix to search for
      */
     public function scopeStartsWith(Builder $query, string $column, string $prefix): Builder
     {
@@ -95,10 +88,8 @@ trait SearchScope
     /**
      * Scope a query to search ending with a suffix.
      *
-     * @param  \Illuminate\Database\Eloquent\Builder  $query
-     * @param  string  $column Column to search in
-     * @param  string  $suffix The suffix to search for
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param  string  $column  Column to search in
+     * @param  string  $suffix  The suffix to search for
      */
     public function scopeEndsWith(Builder $query, string $column, string $suffix): Builder
     {

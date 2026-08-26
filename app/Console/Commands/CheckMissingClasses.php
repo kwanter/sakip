@@ -34,8 +34,9 @@ class CheckMissingClasses extends Command
         $path = $this->option('path') ?: 'app';
         $basePath = base_path($path);
 
-        if (!File::exists($basePath)) {
+        if (! File::exists($basePath)) {
             $this->error("Path does not exist: {$path}");
+
             return 1;
         }
 
@@ -43,10 +44,11 @@ class CheckMissingClasses extends Command
 
         if (empty($issues)) {
             $this->info('✅ No missing class imports found!');
+
             return 0;
         }
 
-        $this->warn("⚠️  Found " . count($issues) . " potential issue(s):");
+        $this->warn('⚠️  Found '.count($issues).' potential issue(s):');
         $this->newLine();
 
         foreach ($issues as $issue) {
@@ -68,9 +70,6 @@ class CheckMissingClasses extends Command
 
     /**
      * Scan directory for PHP files and check imports.
-     *
-     * @param string $directory
-     * @return array
      */
     protected function scanDirectory(string $directory): array
     {
@@ -83,7 +82,7 @@ class CheckMissingClasses extends Command
             }
 
             $fileIssues = $this->checkFile($file->getPathname());
-            if (!empty($fileIssues)) {
+            if (! empty($fileIssues)) {
                 $issues = array_merge($issues, $fileIssues);
             }
         }
@@ -93,9 +92,6 @@ class CheckMissingClasses extends Command
 
     /**
      * Check a single file for missing imports.
-     *
-     * @param string $filepath
-     * @return array
      */
     protected function checkFile(string $filepath): array
     {
@@ -117,7 +113,7 @@ class CheckMissingClasses extends Command
                 $expectedPath = base_path("app/Http/Requests/{$className}.php");
                 $sakipPath = base_path("app/Http/Requests/Sakip/{$className}.php");
 
-                if (!File::exists($expectedPath) && File::exists($sakipPath)) {
+                if (! File::exists($expectedPath) && File::exists($sakipPath)) {
                     $issues[] = [
                         'type' => 'wrong_namespace',
                         'file' => $filepath,
@@ -149,11 +145,11 @@ class CheckMissingClasses extends Command
                     }
                 }
 
-                if (!$isImported && !$this->isBuiltInClass($className)) {
+                if (! $isImported && ! $this->isBuiltInClass($className)) {
                     // Try to find the class
                     $possibleLocations = $this->findClassLocations($className);
 
-                    if (!empty($possibleLocations)) {
+                    if (! empty($possibleLocations)) {
                         $issues[] = [
                             'type' => 'missing_import',
                             'file' => $filepath,
@@ -172,23 +168,18 @@ class CheckMissingClasses extends Command
 
     /**
      * Extract namespace from file content.
-     *
-     * @param string $content
-     * @return string|null
      */
     protected function extractNamespace(string $content): ?string
     {
         if (preg_match('/namespace\s+([^;]+);/', $content, $matches)) {
             return $matches[1];
         }
+
         return null;
     }
 
     /**
      * Extract use statements from file content.
-     *
-     * @param string $content
-     * @return array
      */
     protected function extractUseStatements(string $content): array
     {
@@ -204,14 +195,12 @@ class CheckMissingClasses extends Command
                 }
             }
         }
+
         return $uses;
     }
 
     /**
      * Check if class is a built-in PHP class.
-     *
-     * @param string $className
-     * @return bool
      */
     protected function isBuiltInClass(string $className): bool
     {
@@ -226,9 +215,6 @@ class CheckMissingClasses extends Command
 
     /**
      * Find possible locations for a class.
-     *
-     * @param string $className
-     * @return array
      */
     protected function findClassLocations(string $className): array
     {
@@ -244,14 +230,14 @@ class CheckMissingClasses extends Command
 
         foreach ($searchPaths as $searchPath) {
             $fullPath = base_path($searchPath);
-            if (!File::exists($fullPath)) {
+            if (! File::exists($fullPath)) {
                 continue;
             }
 
             $files = File::allFiles($fullPath);
             foreach ($files as $file) {
                 if ($file->getFilenameWithoutExtension() === $className) {
-                    $relativePath = str_replace(base_path() . '/', '', $file->getPathname());
+                    $relativePath = str_replace(base_path().'/', '', $file->getPathname());
                     $namespace = $this->pathToNamespace($relativePath);
                     $locations[] = $namespace;
                 }
@@ -263,9 +249,6 @@ class CheckMissingClasses extends Command
 
     /**
      * Convert file path to namespace.
-     *
-     * @param string $path
-     * @return string
      */
     protected function pathToNamespace(string $path): string
     {
@@ -283,13 +266,10 @@ class CheckMissingClasses extends Command
 
     /**
      * Display an issue.
-     *
-     * @param array $issue
-     * @return void
      */
     protected function displayIssue(array $issue): void
     {
-        $relativePath = str_replace(base_path() . '/', '', $issue['file']);
+        $relativePath = str_replace(base_path().'/', '', $issue['file']);
 
         if ($issue['type'] === 'wrong_namespace') {
             $this->line("<fg=yellow>• Wrong Namespace</>: <fg=cyan>{$relativePath}:{$issue['line']}</>");
@@ -300,8 +280,8 @@ class CheckMissingClasses extends Command
         } elseif ($issue['type'] === 'missing_import') {
             $this->line("<fg=yellow>• Missing Import</>: <fg=cyan>{$relativePath}:{$issue['line']}</>");
             $this->line("  Class: <fg=red>{$issue['class']}</>");
-            if (!empty($issue['suggestions'])) {
-                $this->line("  Suggestions:");
+            if (! empty($issue['suggestions'])) {
+                $this->line('  Suggestions:');
                 foreach ($issue['suggestions'] as $suggestion) {
                     $this->line("    - <fg=green>{$suggestion}</>");
                 }
@@ -314,9 +294,6 @@ class CheckMissingClasses extends Command
 
     /**
      * Attempt to fix issues automatically.
-     *
-     * @param array $issues
-     * @return int
      */
     protected function fixIssues(array $issues): int
     {
@@ -326,7 +303,7 @@ class CheckMissingClasses extends Command
             if ($issue['type'] === 'wrong_namespace') {
                 if ($this->fixWrongNamespace($issue)) {
                     $fixed++;
-                    $relativePath = str_replace(base_path() . '/', '', $issue['file']);
+                    $relativePath = str_replace(base_path().'/', '', $issue['file']);
                     $this->line("✓ Fixed: {$relativePath}");
                 }
             }
@@ -337,9 +314,6 @@ class CheckMissingClasses extends Command
 
     /**
      * Fix wrong namespace issue.
-     *
-     * @param array $issue
-     * @return bool
      */
     protected function fixWrongNamespace(array $issue): bool
     {
@@ -358,6 +332,7 @@ class CheckMissingClasses extends Command
             return true;
         } catch (\Exception $e) {
             $this->error("Failed to fix {$issue['file']}: {$e->getMessage()}");
+
             return false;
         }
     }

@@ -2,9 +2,8 @@
 
 namespace Tests\Unit;
 
-use PHPUnit\Framework\TestCase;
 use App\Services\Export\ExcelExportService;
-use App\Services\Export\CsvExportService;
+use PHPUnit\Framework\TestCase;
 
 /**
  * SECURITY: spreadsheet export must neutralize formula injection
@@ -16,7 +15,7 @@ class ExportFormulaInjectionTest extends TestCase
     {
         // Both services implement the same protected sanitizeCells(array): array.
         $m = new \ReflectionMethod(ExcelExportService::class, 'sanitizeCells');
-        $m->setAccessible(true);
+
         return $m->invoke(app(ExcelExportService::class), $rows);
     }
 
@@ -28,11 +27,11 @@ class ExportFormulaInjectionTest extends TestCase
             ['name' => '-2+3', 'value' => 'normal'],
         ]);
 
-        $this->assertSame(chr(39) . '=HYPERLINK("http://evil")', $rows[0]['name']);
+        $this->assertSame(chr(39).'=HYPERLINK("http://evil")', $rows[0]['name']);
         $this->assertSame('100', $rows[0]['value']);
-        $this->assertSame(chr(39) . '+cmd|2+5', $rows[1]['name']);
-        $this->assertSame(chr(39) . '@SUM(A1)', $rows[1]['value']);
-        $this->assertSame(chr(39) . '-2+3', $rows[2]['name']);
+        $this->assertSame(chr(39).'+cmd|2+5', $rows[1]['name']);
+        $this->assertSame(chr(39).'@SUM(A1)', $rows[1]['value']);
+        $this->assertSame(chr(39).'-2+3', $rows[2]['name']);
     }
 
     public function test_normal_text_untouched()

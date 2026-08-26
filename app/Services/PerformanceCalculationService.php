@@ -2,15 +2,14 @@
 
 namespace App\Services;
 
-use App\Models\PerformanceIndicator;
-use App\Models\PerformanceData;
-use App\Models\PerformanceMeasurement;
 use App\Models\Benchmark;
+use App\Models\PerformanceData;
+use App\Models\PerformanceIndicator;
 use Illuminate\Support\Facades\Log;
 
 /**
  * Performance Calculation Service
- * 
+ *
  * Handles complex performance calculations, scoring, and benchmarking
  * for SAKIP performance indicators.
  */
@@ -23,8 +22,8 @@ class PerformanceCalculationService
     {
         try {
             $indicator = PerformanceIndicator::find($indicatorId);
-            
-            if (!$indicator) {
+
+            if (! $indicator) {
                 throw new \Exception('Performance indicator not found');
             }
 
@@ -34,7 +33,7 @@ class PerformanceCalculationService
                 ->where('year', $year)
                 ->first();
 
-            if (!$performanceData) {
+            if (! $performanceData) {
                 return null;
             }
 
@@ -62,7 +61,8 @@ class PerformanceCalculationService
             ];
 
         } catch (\Exception $e) {
-            Log::error('Failed to calculate performance: ' . $e->getMessage());
+            Log::error('Failed to calculate performance: '.$e->getMessage());
+
             return null;
         }
     }
@@ -78,16 +78,16 @@ class PerformanceCalculationService
         switch ($indicator->calculation_method) {
             case 'percentage':
                 return $this->calculatePercentageAchievement($actual, $target);
-            
+
             case 'ratio':
                 return $this->calculateRatioAchievement($actual, $target);
-            
+
             case 'absolute':
                 return $this->calculateAbsoluteAchievement($actual, $target);
-            
+
             case 'index':
                 return $this->calculateIndexAchievement($actual, $target);
-            
+
             default:
                 return $this->calculatePercentageAchievement($actual, $target);
         }
@@ -115,7 +115,7 @@ class PerformanceCalculationService
         }
 
         $ratio = $actual / $target;
-        
+
         // For ratio indicators, achievement is based on how close the ratio is to 1
         return round((1 - abs(1 - $ratio)) * 100, 2);
     }
@@ -144,7 +144,7 @@ class PerformanceCalculationService
         ];
 
         $ratio = $actual / $target;
-        
+
         foreach ($indexRanges as $range) {
             if ($ratio >= $range['min'] && $ratio < $range['max']) {
                 return $range['score'];
@@ -244,7 +244,7 @@ class PerformanceCalculationService
 
             foreach ($indicatorIds as $indicatorId) {
                 $performance = $this->calculatePerformance($indicatorId, $period, $year);
-                
+
                 if ($performance) {
                     $performances[] = $performance;
                     $totalScore += $performance['score'];
@@ -270,7 +270,8 @@ class PerformanceCalculationService
             ];
 
         } catch (\Exception $e) {
-            Log::error('Failed to calculate overall performance: ' . $e->getMessage());
+            Log::error('Failed to calculate overall performance: '.$e->getMessage());
+
             return null;
         }
     }
@@ -280,10 +281,19 @@ class PerformanceCalculationService
      */
     private function getGradeFromScore($score)
     {
-        if ($score >= 4.5) return 'A';
-        if ($score >= 3.5) return 'B';
-        if ($score >= 2.5) return 'C';
-        if ($score >= 1.5) return 'D';
+        if ($score >= 4.5) {
+            return 'A';
+        }
+        if ($score >= 3.5) {
+            return 'B';
+        }
+        if ($score >= 2.5) {
+            return 'C';
+        }
+        if ($score >= 1.5) {
+            return 'D';
+        }
+
         return 'E';
     }
 
@@ -323,12 +333,11 @@ class PerformanceCalculationService
             return $trends;
 
         } catch (\Exception $e) {
-            Log::error('Failed to calculate performance trends: ' . $e->getMessage());
+            Log::error('Failed to calculate performance trends: '.$e->getMessage());
+
             return [];
         }
     }
-
-
 
     /**
      * Calculate compliance rate
@@ -341,7 +350,7 @@ class PerformanceCalculationService
 
             foreach ($indicatorIds as $indicatorId) {
                 $performance = $this->calculatePerformance($indicatorId, $period, $year);
-                
+
                 if ($performance && $performance['achievement'] >= 80) { // 80% threshold for compliance
                     $compliantIndicators++;
                 }
@@ -354,7 +363,8 @@ class PerformanceCalculationService
             return round(($compliantIndicators / $totalIndicators) * 100, 2);
 
         } catch (\Exception $e) {
-            Log::error('Failed to calculate compliance rate: ' . $e->getMessage());
+            Log::error('Failed to calculate compliance rate: '.$e->getMessage());
+
             return 0;
         }
     }
@@ -366,8 +376,8 @@ class PerformanceCalculationService
     {
         try {
             $indicator = PerformanceIndicator::find($indicatorId);
-            
-            if (!$indicator) {
+
+            if (! $indicator) {
                 return ['valid' => false, 'message' => 'Indicator not found'];
             }
 
@@ -388,14 +398,15 @@ class PerformanceCalculationService
 
             // Check for unusual patterns compared to historical data
             $historicalValidation = $this->validateAgainstHistoricalData($indicatorId, $actualValue, $period, $year);
-            if (!$historicalValidation['valid']) {
+            if (! $historicalValidation['valid']) {
                 $validation['warnings'][] = $historicalValidation['message'];
             }
 
             return $validation;
 
         } catch (\Exception $e) {
-            Log::error('Failed to validate performance data: ' . $e->getMessage());
+            Log::error('Failed to validate performance data: '.$e->getMessage());
+
             return ['valid' => false, 'message' => 'Validation failed'];
         }
     }
@@ -423,9 +434,16 @@ class PerformanceCalculationService
      */
     public function getAchievementRating($score)
     {
-        if ($score >= 90) return 'excellent';
-        if ($score >= 75) return 'good';
-        if ($score >= 50) return 'satisfactory';
+        if ($score >= 90) {
+            return 'excellent';
+        }
+        if ($score >= 75) {
+            return 'good';
+        }
+        if ($score >= 50) {
+            return 'satisfactory';
+        }
+
         return 'poor';
     }
 
@@ -453,7 +471,7 @@ class PerformanceCalculationService
         if ($percentageChange > 50) {
             return [
                 'valid' => false,
-                'message' => 'Value shows significant deviation (' . round($percentageChange, 2) . '%) from historical average'
+                'message' => 'Value shows significant deviation ('.round($percentageChange, 2).'%) from historical average',
             ];
         }
 

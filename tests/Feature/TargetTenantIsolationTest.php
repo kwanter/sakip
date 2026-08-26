@@ -2,13 +2,13 @@
 
 namespace Tests\Feature;
 
-use Tests\TestCase;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use App\Models\User;
 use App\Models\Instansi;
 use App\Models\PerformanceIndicator;
-use App\Models\Target;
 use App\Models\Permission;
+use App\Models\Target;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 /**
  * SECURITY: a non-super-admin must not be able to approve/reject/revise a

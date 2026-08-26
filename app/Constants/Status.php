@@ -14,25 +14,36 @@ class Status
 {
     // General statuses
     public const DRAFT = 'draft';
+
     public const ACTIVE = 'aktif';
+
     public const COMPLETED = 'selesai';
+
     public const INACTIVE = 'tidak_aktif';
+
     public const PENDING = 'pending';
+
     public const CANCELLED = 'dibatalkan';
 
     // Performance data statuses
     public const SUBMITTED = 'submitted';
+
     public const VALIDATED = 'validated';
+
     public const APPROVED = 'approved';
+
     public const REJECTED = 'rejected';
 
     // Assessment statuses
     public const ASSESSED = 'assessed';
+
     public const REVIEWED = 'reviewed';
 
     // Report statuses
     public const GENERATED = 'generated';
+
     public const PUBLISHED = 'published';
+
     public const ARCHIVED = 'archived';
 
     /**

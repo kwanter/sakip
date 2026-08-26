@@ -2,9 +2,9 @@
 
 namespace Database\Factories;
 
-use Illuminate\Database\Eloquent\Factories\Factory;
-use App\Models\Program;
 use App\Models\Instansi;
+use App\Models\Program;
+use Illuminate\Database\Eloquent\Factories\Factory;
 
 /** @extends Factory<Program> */
 class ProgramFactory extends Factory
@@ -15,7 +15,7 @@ class ProgramFactory extends Factory
     {
         return [
             'instansi_id' => Instansi::factory(),
-            'kode_program' => 'PROG' . $this->faker->unique()->numerify('######'),
+            'kode_program' => 'PROG'.$this->faker->unique()->numerify('######'),
             'nama_program' => $this->faker->sentence(3),
             'deskripsi' => $this->faker->paragraph(),
             'anggaran' => 1000000,

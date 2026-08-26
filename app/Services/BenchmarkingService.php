@@ -3,14 +3,14 @@
 namespace App\Services;
 
 use App\Models\Benchmark;
-use App\Models\PerformanceIndicator;
 use App\Models\Institution;
+use App\Models\PerformanceIndicator;
 use App\Models\PerformanceMeasurement;
 use Illuminate\Support\Facades\Log;
 
 /**
  * Benchmarking Service
- * 
+ *
  * Handles benchmark management, comparison calculations, and performance
  * benchmarking against sector, regional, and national standards.
  */
@@ -23,8 +23,8 @@ class BenchmarkingService
     {
         try {
             $indicator = PerformanceIndicator::find($indicatorId);
-            
-            if (!$indicator) {
+
+            if (! $indicator) {
                 throw new \Exception('Performance indicator not found');
             }
 
@@ -46,7 +46,8 @@ class BenchmarkingService
             return $comparisons;
 
         } catch (\Exception $e) {
-            Log::error('Failed to get benchmark comparison: ' . $e->getMessage());
+            Log::error('Failed to get benchmark comparison: '.$e->getMessage());
+
             return null;
         }
     }
@@ -58,8 +59,8 @@ class BenchmarkingService
     {
         try {
             $indicator = PerformanceIndicator::find($indicatorId);
-            
-            if (!$indicator) {
+
+            if (! $indicator) {
                 throw new \Exception('Performance indicator not found');
             }
 
@@ -89,7 +90,8 @@ class BenchmarkingService
             return $metrics;
 
         } catch (\Exception $e) {
-            Log::error('Failed to calculate comparison metrics: ' . $e->getMessage());
+            Log::error('Failed to calculate comparison metrics: '.$e->getMessage());
+
             return [];
         }
     }
@@ -105,7 +107,8 @@ class BenchmarkingService
                 ->where('is_active', true)
                 ->get();
         } catch (\Exception $e) {
-            Log::error('Failed to get sector benchmarks: ' . $e->getMessage());
+            Log::error('Failed to get sector benchmarks: '.$e->getMessage());
+
             return collect();
         }
     }
@@ -121,7 +124,8 @@ class BenchmarkingService
                 ->where('is_active', true)
                 ->get();
         } catch (\Exception $e) {
-            Log::error('Failed to get regional benchmarks: ' . $e->getMessage());
+            Log::error('Failed to get regional benchmarks: '.$e->getMessage());
+
             return collect();
         }
     }
@@ -137,7 +141,8 @@ class BenchmarkingService
                 ->where('is_active', true)
                 ->get();
         } catch (\Exception $e) {
-            Log::error('Failed to get national benchmarks: ' . $e->getMessage());
+            Log::error('Failed to get national benchmarks: '.$e->getMessage());
+
             return collect();
         }
     }
@@ -188,23 +193,23 @@ class BenchmarkingService
         try {
             // Get sector benchmarks for this indicator type
             $sectorBenchmarks = $this->getSectorBenchmarks($indicator);
-            
+
             if ($sectorBenchmarks->isEmpty()) {
                 return null;
             }
 
             $institution = Institution::find($indicator->instansi_id);
-            
-            if (!$institution) {
+
+            if (! $institution) {
                 return null;
             }
 
             // Calculate sector average
             $sectorAverage = $this->calculateSectorAverage($indicator, $institution->sector);
-            
+
             return [
                 'benchmark_type' => 'sector',
-                'benchmark_name' => 'Rata-rata Sektor ' . $institution->sector,
+                'benchmark_name' => 'Rata-rata Sektor '.$institution->sector,
                 'benchmark_value' => $sectorAverage,
                 'actual_value' => $achievement,
                 'difference' => $achievement - $sectorAverage,
@@ -213,7 +218,8 @@ class BenchmarkingService
             ];
 
         } catch (\Exception $e) {
-            Log::error('Failed to get sector comparison metrics: ' . $e->getMessage());
+            Log::error('Failed to get sector comparison metrics: '.$e->getMessage());
+
             return null;
         }
     }
@@ -226,23 +232,23 @@ class BenchmarkingService
         try {
             // Get regional benchmarks for this indicator
             $regionalBenchmarks = $this->getRegionalBenchmarks($indicator);
-            
+
             if ($regionalBenchmarks->isEmpty()) {
                 return null;
             }
 
             $institution = Institution::find($indicator->instansi_id);
-            
-            if (!$institution) {
+
+            if (! $institution) {
                 return null;
             }
 
             // Calculate regional average
             $regionalAverage = $this->calculateRegionalAverage($indicator, $institution->region);
-            
+
             return [
                 'benchmark_type' => 'regional',
-                'benchmark_name' => 'Rata-rata Regional ' . $institution->region,
+                'benchmark_name' => 'Rata-rata Regional '.$institution->region,
                 'benchmark_value' => $regionalAverage,
                 'actual_value' => $achievement,
                 'difference' => $achievement - $regionalAverage,
@@ -251,7 +257,8 @@ class BenchmarkingService
             ];
 
         } catch (\Exception $e) {
-            Log::error('Failed to get regional comparison metrics: ' . $e->getMessage());
+            Log::error('Failed to get regional comparison metrics: '.$e->getMessage());
+
             return null;
         }
     }
@@ -264,14 +271,14 @@ class BenchmarkingService
         try {
             // Get national benchmarks for this indicator
             $nationalBenchmarks = $this->getNationalBenchmarks($indicator);
-            
+
             if ($nationalBenchmarks->isEmpty()) {
                 return null;
             }
 
             // Calculate national average
             $nationalAverage = $this->calculateNationalAverage($indicator);
-            
+
             return [
                 'benchmark_type' => 'national',
                 'benchmark_name' => 'Rata-rata Nasional',
@@ -283,7 +290,8 @@ class BenchmarkingService
             ];
 
         } catch (\Exception $e) {
-            Log::error('Failed to get national comparison metrics: ' . $e->getMessage());
+            Log::error('Failed to get national comparison metrics: '.$e->getMessage());
+
             return null;
         }
     }
@@ -296,7 +304,7 @@ class BenchmarkingService
         try {
             // Get all institutions in the same sector
             $sectorInstitutions = Institution::where('sector', $sector)->pluck('id');
-            
+
             // Get performance measurements for these institutions
             $measurements = PerformanceMeasurement::where('indicator_id', $indicator->id)
                 ->whereIn('instansi_id', $sectorInstitutions)
@@ -311,7 +319,8 @@ class BenchmarkingService
             return round($measurements->avg('achievement'), 2);
 
         } catch (\Exception $e) {
-            Log::error('Failed to calculate sector average: ' . $e->getMessage());
+            Log::error('Failed to calculate sector average: '.$e->getMessage());
+
             return 0;
         }
     }
@@ -324,7 +333,7 @@ class BenchmarkingService
         try {
             // Get all institutions in the same region
             $regionalInstitutions = Institution::where('region', $region)->pluck('id');
-            
+
             // Get performance measurements for these institutions
             $measurements = PerformanceMeasurement::where('indicator_id', $indicator->id)
                 ->whereIn('instansi_id', $regionalInstitutions)
@@ -339,7 +348,8 @@ class BenchmarkingService
             return round($measurements->avg('achievement'), 2);
 
         } catch (\Exception $e) {
-            Log::error('Failed to calculate regional average: ' . $e->getMessage());
+            Log::error('Failed to calculate regional average: '.$e->getMessage());
+
             return 0;
         }
     }
@@ -363,7 +373,8 @@ class BenchmarkingService
             return round($measurements->avg('achievement'), 2);
 
         } catch (\Exception $e) {
-            Log::error('Failed to calculate national average: ' . $e->getMessage());
+            Log::error('Failed to calculate national average: '.$e->getMessage());
+
             return 0;
         }
     }
@@ -386,7 +397,8 @@ class BenchmarkingService
                 'created_by' => auth()->id(),
             ]);
         } catch (\Exception $e) {
-            Log::error('Failed to create benchmark: ' . $e->getMessage());
+            Log::error('Failed to create benchmark: '.$e->getMessage());
+
             return null;
         }
     }
@@ -398,8 +410,8 @@ class BenchmarkingService
     {
         try {
             $benchmark = Benchmark::find($benchmarkId);
-            
-            if (!$benchmark) {
+
+            if (! $benchmark) {
                 return null;
             }
 
@@ -415,7 +427,8 @@ class BenchmarkingService
 
             return $benchmark;
         } catch (\Exception $e) {
-            Log::error('Failed to update benchmark: ' . $e->getMessage());
+            Log::error('Failed to update benchmark: '.$e->getMessage());
+
             return null;
         }
     }
@@ -427,14 +440,15 @@ class BenchmarkingService
     {
         try {
             $benchmark = Benchmark::find($benchmarkId);
-            
-            if (!$benchmark) {
+
+            if (! $benchmark) {
                 return false;
             }
 
             return $benchmark->delete();
         } catch (\Exception $e) {
-            Log::error('Failed to delete benchmark: ' . $e->getMessage());
+            Log::error('Failed to delete benchmark: '.$e->getMessage());
+
             return false;
         }
     }
@@ -452,7 +466,7 @@ class BenchmarkingService
             }
 
             $totalBenchmarks = $query->count();
-            
+
             $byType = $query->select('benchmark_type', \DB::raw('count(*) as count'))
                 ->groupBy('benchmark_type')
                 ->pluck('count', 'benchmark_type')
@@ -464,7 +478,8 @@ class BenchmarkingService
             ];
 
         } catch (\Exception $e) {
-            Log::error('Failed to get benchmark statistics: ' . $e->getMessage());
+            Log::error('Failed to get benchmark statistics: '.$e->getMessage());
+
             return [];
         }
     }

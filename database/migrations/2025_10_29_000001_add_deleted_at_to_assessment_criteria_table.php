@@ -4,14 +4,15 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
     public function up(): void
     {
-        Schema::table("assessment_criteria", function (Blueprint $table) {
-            $table->softDeletes()->after("updated_at");
+        Schema::table('assessment_criteria', function (Blueprint $table) {
+            $table->softDeletes()->after('updated_at');
         });
     }
 
@@ -20,7 +21,7 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::table("assessment_criteria", function (Blueprint $table) {
+        Schema::table('assessment_criteria', function (Blueprint $table) {
             $table->dropSoftDeletes();
         });
     }

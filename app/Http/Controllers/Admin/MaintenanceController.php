@@ -4,10 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Services\BackupService;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 
 /**
  * System Maintenance Controller
@@ -39,7 +37,7 @@ class MaintenanceController extends Controller
                 if ($file === '.' || $file === '..') {
                     continue;
                 }
-                $filePath = $backupPath . '/' . $file;
+                $filePath = $backupPath.'/'.$file;
                 if (is_file($filePath)) {
                     $backups[] = [
                         'filename' => $file,
@@ -49,7 +47,7 @@ class MaintenanceController extends Controller
                 }
             }
             // Sort by creation date (newest first)
-            usort($backups, fn($a, $b) => strtotime($b['created_at']) - strtotime($a['created_at']));
+            usort($backups, fn ($a, $b) => strtotime($b['created_at']) - strtotime($a['created_at']));
         }
 
         return view('admin.maintenance.index', compact('backups'));
@@ -140,7 +138,7 @@ class MaintenanceController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Database backup created! File: ' . $result['filename'],
+                'message' => 'Database backup created! File: '.$result['filename'],
                 'file_path' => $result['path'],
                 'file_size' => $result['size'],
             ]);
@@ -161,33 +159,35 @@ class MaintenanceController extends Controller
     {
         $filename = $this->sanitizeFilename($filename);
         $backupPath = storage_path('app/backups');
-        
+
         // SECURITY: Whitelist allowed backup files to prevent path traversal
-        $allowedFiles = array_map('basename', glob($backupPath . '/*.sql'));
-        
-        if (!in_array($filename, $allowedFiles)) {
+        $allowedFiles = array_map('basename', glob($backupPath.'/*.sql'));
+
+        if (! in_array($filename, $allowedFiles)) {
             Log::warning("Unauthorized backup file access attempted: {$filename}", [
                 'user_id' => auth()->id(),
                 'ip' => request()->ip(),
             ]);
+
             return response()->json(['success' => false, 'message' => 'File not allowed.'], 403);
         }
-        
-        $filePath = $backupPath . '/' . $filename;
-        
+
+        $filePath = $backupPath.'/'.$filename;
+
         // SECURITY: Additional realpath check to prevent directory traversal
         $realPath = realpath($filePath);
         $realBackupPath = realpath($backupPath);
-        
+
         if ($realPath === false || strpos($realPath, $realBackupPath) !== 0) {
             Log::warning("Path traversal attempt blocked: {$filename}", [
                 'user_id' => auth()->id(),
                 'ip' => request()->ip(),
             ]);
+
             return response()->json(['success' => false, 'message' => 'Invalid file path.'], 403);
         }
 
-        if (!file_exists($realPath)) {
+        if (! file_exists($realPath)) {
             return response()->json(['success' => false, 'message' => 'File not found.'], 404);
         }
 
@@ -201,9 +201,9 @@ class MaintenanceController extends Controller
     {
         $filename = $this->sanitizeFilename($filename);
         $backupPath = storage_path('app/backups');
-        $filePath = $backupPath . '/' . $filename;
+        $filePath = $backupPath.'/'.$filename;
 
-        if (!file_exists($filePath)) {
+        if (! file_exists($filePath)) {
             return response()->json(['success' => false, 'message' => 'File not found.'], 404);
         }
 
@@ -250,8 +250,9 @@ class MaintenanceController extends Controller
         $filename = preg_replace('/_+/', '_', $filename);
         $filename = trim($filename, '_');
         if (empty($filename)) {
-            $filename = 'backup_' . date('Y-m-d_His');
+            $filename = 'backup_'.date('Y-m-d_His');
         }
+
         return substr($filename, 0, 200);
     }
 
@@ -264,7 +265,8 @@ class MaintenanceController extends Controller
         for ($i = 0; $size >= 1024 && $i < count($units) - 1; $i++) {
             $size /= 1024;
         }
-        return round($size, $precision) . ' ' . $units[$i];
+
+        return round($size, $precision).' '.$units[$i];
     }
 
     /**
@@ -292,6 +294,7 @@ class MaintenanceController extends Controller
     {
         try {
             DB::connection()->getPdo();
+
             return ['status' => 'connected', 'message' => 'OK'];
         } catch (\Exception $e) {
             return ['status' => 'error', 'message' => 'Connection failed'];
@@ -305,6 +308,7 @@ class MaintenanceController extends Controller
     {
         try {
             $driver = config('cache.default');
+
             return ['status' => 'enabled', 'driver' => $driver];
         } catch (\Exception $e) {
             return ['status' => 'error', 'message' => 'Cache unavailable'];
@@ -317,6 +321,7 @@ class MaintenanceController extends Controller
     private function getQueueStatus(): array
     {
         $driver = config('queue.default');
+
         return ['status' => 'configured', 'driver' => $driver];
     }
 }

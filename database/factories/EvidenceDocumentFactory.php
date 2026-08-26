@@ -39,13 +39,13 @@ class EvidenceDocumentFactory extends Factory
 
         $extension = fake()->randomElement(array_keys($fileTypes));
         $fileInfo = $fileTypes[$extension];
-        $fileName = 'evidence_' . fake()->bothify('####') . '_' . fake()->word() . '.' . $extension;
+        $fileName = 'evidence_'.fake()->bothify('####').'_'.fake()->word().'.'.$extension;
         $fileSize = fake()->numberBetween(10240, 5242880); // 10KB to 5MB
 
         return [
             'performance_data_id' => PerformanceData::inRandomOrder()->first()->id ?? PerformanceData::factory(),
             'file_name' => $fileName,
-            'file_path' => 'sakip/evidence/' . date('Y/m') . '/' . $fileName,
+            'file_path' => 'sakip/evidence/'.date('Y/m').'/'.$fileName,
             'file_type' => $fileInfo[0],
             'file_size' => $fileSize,
             'description' => fake()->optional(0.8)->sentence(15),
@@ -70,9 +70,9 @@ class EvidenceDocumentFactory extends Factory
     public function pdf(): static
     {
         return $this->state(fn (array $attributes) => [
-            'file_name' => 'evidence_' . fake()->bothify('####') . '_' . fake()->word() . '.pdf',
+            'file_name' => 'evidence_'.fake()->bothify('####').'_'.fake()->word().'.pdf',
             'file_type' => 'application/pdf',
-            'file_path' => 'sakip/evidence/' . date('Y/m') . '/' . 'evidence_' . fake()->bothify('####') . '_' . fake()->word() . '.pdf',
+            'file_path' => 'sakip/evidence/'.date('Y/m').'/'.'evidence_'.fake()->bothify('####').'_'.fake()->word().'.pdf',
         ]);
     }
 
@@ -82,9 +82,9 @@ class EvidenceDocumentFactory extends Factory
     public function excel(): static
     {
         return $this->state(fn (array $attributes) => [
-            'file_name' => 'evidence_' . fake()->bothify('####') . '_' . fake()->word() . '.xlsx',
+            'file_name' => 'evidence_'.fake()->bothify('####').'_'.fake()->word().'.xlsx',
             'file_type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            'file_path' => 'sakip/evidence/' . date('Y/m') . '/' . 'evidence_' . fake()->bothify('####') . '_' . fake()->word() . '.xlsx',
+            'file_path' => 'sakip/evidence/'.date('Y/m').'/'.'evidence_'.fake()->bothify('####').'_'.fake()->word().'.xlsx',
         ]);
     }
 
@@ -94,10 +94,11 @@ class EvidenceDocumentFactory extends Factory
     public function image(): static
     {
         $extension = fake()->randomElement(['jpg', 'png']);
+
         return $this->state(fn (array $attributes) => [
-            'file_name' => 'evidence_' . fake()->bothify('####') . '_' . fake()->word() . '.' . $extension,
+            'file_name' => 'evidence_'.fake()->bothify('####').'_'.fake()->word().'.'.$extension,
             'file_type' => $extension === 'jpg' ? 'image/jpeg' : 'image/png',
-            'file_path' => 'sakip/evidence/' . date('Y/m') . '/' . 'evidence_' . fake()->bothify('####') . '_' . fake()->word() . '.' . $extension,
+            'file_path' => 'sakip/evidence/'.date('Y/m').'/'.'evidence_'.fake()->bothify('####').'_'.fake()->word().'.'.$extension,
         ]);
     }
 
@@ -107,9 +108,9 @@ class EvidenceDocumentFactory extends Factory
     public function word(): static
     {
         return $this->state(fn (array $attributes) => [
-            'file_name' => 'evidence_' . fake()->bothify('####') . '_' . fake()->word() . '.docx',
+            'file_name' => 'evidence_'.fake()->bothify('####').'_'.fake()->word().'.docx',
             'file_type' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-            'file_path' => 'sakip/evidence/' . date('Y/m') . '/' . 'evidence_' . fake()->bothify('####') . '_' . fake()->word() . '.docx',
+            'file_path' => 'sakip/evidence/'.date('Y/m').'/'.'evidence_'.fake()->bothify('####').'_'.fake()->word().'.docx',
         ]);
     }
 

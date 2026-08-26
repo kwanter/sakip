@@ -4,7 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      *
@@ -13,28 +14,28 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create("targets", function (Blueprint $table) {
-            $table->uuid("id")->primary();
+        Schema::create('targets', function (Blueprint $table) {
+            $table->uuid('id')->primary();
             $table
-                ->foreignUuid("performance_indicator_id")
-                ->constrained("performance_indicators")
-                ->onDelete("cascade");
-            $table->integer("year");
-            $table->decimal("target_value", 15, 2);
-            $table->decimal("minimum_value", 15, 2)->nullable();
-            $table->text("justification")->nullable();
+                ->foreignUuid('performance_indicator_id')
+                ->constrained('performance_indicators')
+                ->onDelete('cascade');
+            $table->integer('year');
+            $table->decimal('target_value', 15, 2);
+            $table->decimal('minimum_value', 15, 2)->nullable();
+            $table->text('justification')->nullable();
             $table
-                ->enum("status", ["draft", "approved", "rejected", "revised"])
-                ->default("draft");
+                ->enum('status', ['draft', 'approved', 'rejected', 'revised'])
+                ->default('draft');
             $table->timestamps();
 
             // Unique constraint to prevent duplicate targets per indicator per year
-            $table->unique(["performance_indicator_id", "year"]);
+            $table->unique(['performance_indicator_id', 'year']);
 
             // Indexes for performance optimization
-            $table->index("performance_indicator_id");
-            $table->index("year");
-            $table->index("status");
+            $table->index('performance_indicator_id');
+            $table->index('year');
+            $table->index('status');
         });
     }
 
@@ -43,6 +44,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists("targets");
+        Schema::dropIfExists('targets');
     }
 };

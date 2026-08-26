@@ -3,14 +3,14 @@
 namespace App\Http\Controllers\Sakip;
 
 use App\Http\Controllers\Controller;
-use App\Models\Target;
-use App\Models\PerformanceIndicator;
 use App\Models\AuditLog;
+use App\Models\PerformanceIndicator;
+use App\Models\Target;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
-use Carbon\Carbon;
 
 /**
  * Target Controller
@@ -25,20 +25,21 @@ class TargetController extends Controller
      */
     public function index(PerformanceIndicator $indicator)
     {
-        $this->authorize("view", $indicator);
+        $this->authorize('view', $indicator);
 
         try {
             $targets = $indicator
                 ->targets()
-                ->orderBy("year", "desc")
+                ->orderBy('year', 'desc')
                 ->paginate(10);
 
-            return view("sakip.targets.index", compact("indicator", "targets"));
+            return view('sakip.targets.index', compact('indicator', 'targets'));
         } catch (\Exception $e) {
-            \Log::error("Target index error: " . $e->getMessage());
+            \Log::error('Target index error: '.$e->getMessage());
+
             return back()->with(
-                "error",
-                "Terjadi kesalahan saat memuat daftar target.",
+                'error',
+                'Terjadi kesalahan saat memuat daftar target.',
             );
         }
     }
@@ -48,29 +49,30 @@ class TargetController extends Controller
      */
     public function create(PerformanceIndicator $indicator)
     {
-        $this->authorize("update", $indicator);
+        $this->authorize('update', $indicator);
 
         try {
             // Get years that don't have targets yet
-            $existingYears = $indicator->targets()->pluck("year")->toArray();
+            $existingYears = $indicator->targets()->pluck('year')->toArray();
             $currentYear = Carbon::now()->year;
             $availableYears = [];
 
             for ($year = $currentYear; $year <= $currentYear + 5; $year++) {
-                if (!in_array($year, $existingYears)) {
+                if (! in_array($year, $existingYears)) {
                     $availableYears[] = $year;
                 }
             }
 
             return view(
-                "sakip.targets.create",
-                compact("indicator", "availableYears"),
+                'sakip.targets.create',
+                compact('indicator', 'availableYears'),
             );
         } catch (\Exception $e) {
-            \Log::error("Target create form error: " . $e->getMessage());
+            \Log::error('Target create form error: '.$e->getMessage());
+
             return back()->with(
-                "error",
-                "Terjadi kesalahan saat memuat formulir.",
+                'error',
+                'Terjadi kesalahan saat memuat formulir.',
             );
         }
     }
@@ -80,25 +82,24 @@ class TargetController extends Controller
      */
     public function store(Request $request, PerformanceIndicator $indicator)
     {
-        $this->authorize("update", $indicator);
+        $this->authorize('update', $indicator);
 
         $validator = Validator::make(
             $request->all(),
             [
-                "year" =>
-                    "required|integer|min:" .
-                    Carbon::now()->year .
-                    "|unique:targets,year,NULL,id,performance_indicator_id," .
+                'year' => 'required|integer|min:'.
+                    Carbon::now()->year.
+                    '|unique:targets,year,NULL,id,performance_indicator_id,'.
                     $indicator->id,
-                "target_value" => "required|numeric|min:0",
-                "minimum_value" => "nullable|numeric|min:0",
-                "justification" => "nullable|string|max:1000",
+                'target_value' => 'required|numeric|min:0',
+                'minimum_value' => 'nullable|numeric|min:0',
+                'justification' => 'nullable|string|max:1000',
             ],
             [
-                "year.required" => "Tahun wajib diisi",
-                "year.unique" => "Target untuk tahun ini sudah ada",
-                "target_value.required" => "Nilai target wajib diisi",
-                "target_value.numeric" => "Nilai target harus berupa angka",
+                'year.required' => 'Tahun wajib diisi',
+                'year.unique' => 'Target untuk tahun ini sudah ada',
+                'target_value.required' => 'Nilai target wajib diisi',
+                'target_value.numeric' => 'Nilai target harus berupa angka',
             ],
         );
 
@@ -111,38 +112,39 @@ class TargetController extends Controller
             $user = Auth::user();
 
             $target = Target::create([
-                "performance_indicator_id" => $indicator->id,
-                "year" => $request->year,
-                "target_value" => $request->target_value,
-                "minimum_value" => $request->minimum_value,
-                "justification" => $request->justification,
-                "status" => "draft",
-                "created_by" => $user->id,
-                "updated_by" => $user->id,
+                'performance_indicator_id' => $indicator->id,
+                'year' => $request->year,
+                'target_value' => $request->target_value,
+                'minimum_value' => $request->minimum_value,
+                'justification' => $request->justification,
+                'status' => 'draft',
+                'created_by' => $user->id,
+                'updated_by' => $user->id,
             ]);
 
             // Log activity
             AuditLog::create([
-                "user_id" => $user->id,
-                "instansi_id" => $user->instansi_id,
-                "action" => "CREATE",
-                "module" => "SAKIP",
-                "description" => "Membuat target tahun {$target->year} untuk indikator {$indicator->name}",
-                "old_values" => null,
-                "new_values" => $target->toArray(),
+                'user_id' => $user->id,
+                'instansi_id' => $user->instansi_id,
+                'action' => 'CREATE',
+                'module' => 'SAKIP',
+                'description' => "Membuat target tahun {$target->year} untuk indikator {$indicator->name}",
+                'old_values' => null,
+                'new_values' => $target->toArray(),
             ]);
 
             DB::commit();
 
             return redirect()
-                ->route("sakip.indicators.show", $indicator)
-                ->with("success", "Target berhasil ditambahkan.");
+                ->route('sakip.indicators.show', $indicator)
+                ->with('success', 'Target berhasil ditambahkan.');
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error("Target store error: " . $e->getMessage());
+            \Log::error('Target store error: '.$e->getMessage());
+
             return back()
                 ->withInput()
-                ->with("error", "Terjadi kesalahan saat menyimpan target.");
+                ->with('error', 'Terjadi kesalahan saat menyimpan target.');
         }
     }
 
@@ -151,7 +153,7 @@ class TargetController extends Controller
      */
     public function edit(PerformanceIndicator $indicator, Target $target)
     {
-        $this->authorize("update", $indicator);
+        $this->authorize('update', $indicator);
         abort_unless(
             $target->performance_indicator_id === $indicator->id,
             404,
@@ -159,12 +161,13 @@ class TargetController extends Controller
 
         // Allow editing for all statuses including approved
         try {
-            return view("sakip.targets.edit", compact("indicator", "target"));
+            return view('sakip.targets.edit', compact('indicator', 'target'));
         } catch (\Exception $e) {
-            \Log::error("Target edit form error: " . $e->getMessage());
+            \Log::error('Target edit form error: '.$e->getMessage());
+
             return back()->with(
-                "error",
-                "Terjadi kesalahan saat memuat formulir edit.",
+                'error',
+                'Terjadi kesalahan saat memuat formulir edit.',
             );
         }
     }
@@ -177,7 +180,7 @@ class TargetController extends Controller
         PerformanceIndicator $indicator,
         Target $target,
     ) {
-        $this->authorize("update", $indicator);
+        $this->authorize('update', $indicator);
         abort_unless(
             $target->performance_indicator_id === $indicator->id,
             404,
@@ -185,9 +188,9 @@ class TargetController extends Controller
 
         // Allow editing for all statuses including approved
         $validator = Validator::make($request->all(), [
-            "target_value" => "required|numeric|min:0",
-            "minimum_value" => "nullable|numeric|min:0",
-            "justification" => "nullable|string|max:1000",
+            'target_value' => 'required|numeric|min:0',
+            'minimum_value' => 'nullable|numeric|min:0',
+            'justification' => 'nullable|string|max:1000',
         ]);
 
         if ($validator->fails()) {
@@ -202,49 +205,50 @@ class TargetController extends Controller
 
             // If target was approved, reset to draft when edited
             $newStatus =
-                $previousStatus === "approved" ? "draft" : $previousStatus;
+                $previousStatus === 'approved' ? 'draft' : $previousStatus;
 
             $target->update([
-                "target_value" => $request->target_value,
-                "minimum_value" => $request->minimum_value,
-                "justification" => $request->justification,
-                "status" => $newStatus,
-                "updated_by" => $user->id,
+                'target_value' => $request->target_value,
+                'minimum_value' => $request->minimum_value,
+                'justification' => $request->justification,
+                'status' => $newStatus,
+                'updated_by' => $user->id,
             ]);
 
             // Log activity
             $description = "Memperbarui target tahun {$target->year} untuk indikator {$indicator->name}";
-            if ($previousStatus === "approved") {
-                $description .= " (status direset dari approved ke draft)";
+            if ($previousStatus === 'approved') {
+                $description .= ' (status direset dari approved ke draft)';
             }
 
             AuditLog::create([
-                "user_id" => $user->id,
-                "instansi_id" => $user->instansi_id,
-                "action" => "UPDATE",
-                "module" => "SAKIP",
-                "description" => $description,
-                "old_values" => $oldValues,
-                "new_values" => $target->fresh()->toArray(),
+                'user_id' => $user->id,
+                'instansi_id' => $user->instansi_id,
+                'action' => 'UPDATE',
+                'module' => 'SAKIP',
+                'description' => $description,
+                'old_values' => $oldValues,
+                'new_values' => $target->fresh()->toArray(),
             ]);
 
             DB::commit();
 
-            $message = "Target berhasil diperbarui.";
-            if ($previousStatus === "approved") {
+            $message = 'Target berhasil diperbarui.';
+            if ($previousStatus === 'approved') {
                 $message .=
-                    " Status target direset ke Draft dan perlu disetujui kembali.";
+                    ' Status target direset ke Draft dan perlu disetujui kembali.';
             }
 
             return redirect()
-                ->route("sakip.indicators.show", $indicator)
-                ->with("success", $message);
+                ->route('sakip.indicators.show', $indicator)
+                ->with('success', $message);
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error("Target update error: " . $e->getMessage());
+            \Log::error('Target update error: '.$e->getMessage());
+
             return back()
                 ->withInput()
-                ->with("error", "Terjadi kesalahan saat memperbarui target.");
+                ->with('error', 'Terjadi kesalahan saat memperbarui target.');
         }
     }
 
@@ -253,17 +257,17 @@ class TargetController extends Controller
      */
     public function destroy(PerformanceIndicator $indicator, Target $target)
     {
-        $this->authorize("update", $indicator);
+        $this->authorize('update', $indicator);
         abort_unless(
             $target->performance_indicator_id === $indicator->id,
             404,
         );
 
         // Only allow deletion if status is draft or rejected
-        if (!in_array($target->status, ["draft", "rejected"])) {
+        if (! in_array($target->status, ['draft', 'rejected'])) {
             return back()->with(
-                "error",
-                "Target yang sudah disetujui tidak dapat dihapus.",
+                'error',
+                'Target yang sudah disetujui tidak dapat dihapus.',
             );
         }
 
@@ -276,26 +280,27 @@ class TargetController extends Controller
 
             // Log activity
             AuditLog::create([
-                "user_id" => $user->id,
-                "instansi_id" => $user->instansi_id,
-                "action" => "DELETE",
-                "module" => "SAKIP",
-                "description" => "Menghapus target tahun {$year} untuk indikator {$indicator->name}",
-                "old_values" => $target->toArray(),
-                "new_values" => null,
+                'user_id' => $user->id,
+                'instansi_id' => $user->instansi_id,
+                'action' => 'DELETE',
+                'module' => 'SAKIP',
+                'description' => "Menghapus target tahun {$year} untuk indikator {$indicator->name}",
+                'old_values' => $target->toArray(),
+                'new_values' => null,
             ]);
 
             DB::commit();
 
             return redirect()
-                ->route("sakip.indicators.show", $indicator)
-                ->with("success", "Target berhasil dihapus.");
+                ->route('sakip.indicators.show', $indicator)
+                ->with('success', 'Target berhasil dihapus.');
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error("Target destroy error: " . $e->getMessage());
+            \Log::error('Target destroy error: '.$e->getMessage());
+
             return back()->with(
-                "error",
-                "Terjadi kesalahan saat menghapus target.",
+                'error',
+                'Terjadi kesalahan saat menghapus target.',
             );
         }
     }
@@ -312,15 +317,15 @@ class TargetController extends Controller
 
         // Check if user has permission to approve
         $user = Auth::user();
-        if (!$user->can("approve-targets")) {
+        if (! $user->can('approve-targets')) {
             return back()->with(
-                "error",
-                "Anda tidak memiliki izin untuk menyetujui target.",
+                'error',
+                'Anda tidak memiliki izin untuk menyetujui target.',
             );
         }
 
-        if ($target->status === "approved") {
-            return back()->with("info", "Target sudah disetujui sebelumnya.");
+        if ($target->status === 'approved') {
+            return back()->with('info', 'Target sudah disetujui sebelumnya.');
         }
 
         DB::beginTransaction();
@@ -328,32 +333,33 @@ class TargetController extends Controller
             $oldValues = $target->toArray();
 
             $target->update([
-                "status" => "approved",
-                "approved_by" => $user->id,
-                "approved_at" => Carbon::now(),
-                "updated_by" => $user->id,
+                'status' => 'approved',
+                'approved_by' => $user->id,
+                'approved_at' => Carbon::now(),
+                'updated_by' => $user->id,
             ]);
 
             // Log activity
             AuditLog::create([
-                "user_id" => $user->id,
-                "instansi_id" => $user->instansi_id,
-                "action" => "APPROVE",
-                "module" => "SAKIP",
-                "description" => "Menyetujui target tahun {$target->year} untuk indikator {$indicator->name}",
-                "old_values" => $oldValues,
-                "new_values" => $target->fresh()->toArray(),
+                'user_id' => $user->id,
+                'instansi_id' => $user->instansi_id,
+                'action' => 'APPROVE',
+                'module' => 'SAKIP',
+                'description' => "Menyetujui target tahun {$target->year} untuk indikator {$indicator->name}",
+                'old_values' => $oldValues,
+                'new_values' => $target->fresh()->toArray(),
             ]);
 
             DB::commit();
 
-            return back()->with("success", "Target berhasil disetujui.");
+            return back()->with('success', 'Target berhasil disetujui.');
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error("Target approve error: " . $e->getMessage());
+            \Log::error('Target approve error: '.$e->getMessage());
+
             return back()->with(
-                "error",
-                "Terjadi kesalahan saat menyetujui target.",
+                'error',
+                'Terjadi kesalahan saat menyetujui target.',
             );
         }
     }
@@ -373,20 +379,20 @@ class TargetController extends Controller
 
         // Check if user has permission to reject
         $user = Auth::user();
-        if (!$user->can("approve-targets")) {
+        if (! $user->can('approve-targets')) {
             return back()->with(
-                "error",
-                "Anda tidak memiliki izin untuk menolak target.",
+                'error',
+                'Anda tidak memiliki izin untuk menolak target.',
             );
         }
 
         $validator = Validator::make(
             $request->all(),
             [
-                "notes" => "required|string|max:1000",
+                'notes' => 'required|string|max:1000',
             ],
             [
-                "notes.required" => "Alasan penolakan wajib diisi",
+                'notes.required' => 'Alasan penolakan wajib diisi',
             ],
         );
 
@@ -399,33 +405,34 @@ class TargetController extends Controller
             $oldValues = $target->toArray();
 
             $target->update([
-                "status" => "rejected",
-                "approved_by" => $user->id,
-                "approved_at" => Carbon::now(),
-                "notes" => $request->notes,
-                "updated_by" => $user->id,
+                'status' => 'rejected',
+                'approved_by' => $user->id,
+                'approved_at' => Carbon::now(),
+                'notes' => $request->notes,
+                'updated_by' => $user->id,
             ]);
 
             // Log activity
             AuditLog::create([
-                "user_id" => $user->id,
-                "instansi_id" => $user->instansi_id,
-                "action" => "REJECT",
-                "module" => "SAKIP",
-                "description" => "Menolak target tahun {$target->year} untuk indikator {$indicator->name}",
-                "old_values" => $oldValues,
-                "new_values" => $target->fresh()->toArray(),
+                'user_id' => $user->id,
+                'instansi_id' => $user->instansi_id,
+                'action' => 'REJECT',
+                'module' => 'SAKIP',
+                'description' => "Menolak target tahun {$target->year} untuk indikator {$indicator->name}",
+                'old_values' => $oldValues,
+                'new_values' => $target->fresh()->toArray(),
             ]);
 
             DB::commit();
 
-            return back()->with("success", "Target berhasil ditolak.");
+            return back()->with('success', 'Target berhasil ditolak.');
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error("Target reject error: " . $e->getMessage());
+            \Log::error('Target reject error: '.$e->getMessage());
+
             return back()->with(
-                "error",
-                "Terjadi kesalahan saat menolak target.",
+                'error',
+                'Terjadi kesalahan saat menolak target.',
             );
         }
     }
@@ -445,20 +452,20 @@ class TargetController extends Controller
 
         // Check if user has permission
         $user = Auth::user();
-        if (!$user->can("approve-targets")) {
+        if (! $user->can('approve-targets')) {
             return back()->with(
-                "error",
-                "Anda tidak memiliki izin untuk meminta revisi target.",
+                'error',
+                'Anda tidak memiliki izin untuk meminta revisi target.',
             );
         }
 
         $validator = Validator::make(
             $request->all(),
             [
-                "notes" => "required|string|max:1000",
+                'notes' => 'required|string|max:1000',
             ],
             [
-                "notes.required" => "Catatan revisi wajib diisi",
+                'notes.required' => 'Catatan revisi wajib diisi',
             ],
         );
 
@@ -471,31 +478,32 @@ class TargetController extends Controller
             $oldValues = $target->toArray();
 
             $target->update([
-                "status" => "revised",
-                "notes" => $request->notes,
-                "updated_by" => $user->id,
+                'status' => 'revised',
+                'notes' => $request->notes,
+                'updated_by' => $user->id,
             ]);
 
             // Log activity
             AuditLog::create([
-                "user_id" => $user->id,
-                "instansi_id" => $user->instansi_id,
-                "action" => "REVISE",
-                "module" => "SAKIP",
-                "description" => "Meminta revisi target tahun {$target->year} untuk indikator {$indicator->name}",
-                "old_values" => $oldValues,
-                "new_values" => $target->fresh()->toArray(),
+                'user_id' => $user->id,
+                'instansi_id' => $user->instansi_id,
+                'action' => 'REVISE',
+                'module' => 'SAKIP',
+                'description' => "Meminta revisi target tahun {$target->year} untuk indikator {$indicator->name}",
+                'old_values' => $oldValues,
+                'new_values' => $target->fresh()->toArray(),
             ]);
 
             DB::commit();
 
-            return back()->with("success", "Target diminta untuk direvisi.");
+            return back()->with('success', 'Target diminta untuk direvisi.');
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error("Target revise error: " . $e->getMessage());
+            \Log::error('Target revise error: '.$e->getMessage());
+
             return back()->with(
-                "error",
-                "Terjadi kesalahan saat meminta revisi target.",
+                'error',
+                'Terjadi kesalahan saat meminta revisi target.',
             );
         }
     }

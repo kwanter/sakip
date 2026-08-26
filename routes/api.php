@@ -1,7 +1,7 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\HealthController;
+use Illuminate\Support\Facades\Route;
 
 // Health check endpoint
 Route::get('/health', [HealthController::class, 'health'])->name('api.health');

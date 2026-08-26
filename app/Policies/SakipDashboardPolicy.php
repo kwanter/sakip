@@ -12,60 +12,55 @@ class SakipDashboardPolicy
     /**
      * Determine whether the user can view the SAKIP dashboard.
      *
-     * @param  \App\Models\User  $user
      * @return \Illuminate\Auth\Access\Response|bool
      */
     public function viewDashboard(User $user)
     {
         // Super Admin can access everything
-        if ($user->hasRole("Super Admin")) {
+        if ($user->hasRole('Super Admin')) {
             return true;
         }
 
-        return $user->hasPermissionTo("view-sakip-dashboard");
+        return $user->hasPermissionTo('view-sakip-dashboard');
     }
 
     /**
      * Determine whether the user can view the executive dashboard.
      *
-     * @param  \App\Models\User  $user
      * @return \Illuminate\Auth\Access\Response|bool
      */
     public function viewExecutiveDashboard(User $user)
     {
-        return $user->hasPermissionTo("view-executive-dashboard");
+        return $user->hasPermissionTo('view-executive-dashboard');
     }
 
     /**
      * Determine whether the user can view the data collector dashboard.
      *
-     * @param  \App\Models\User  $user
      * @return \Illuminate\Auth\Access\Response|bool
      */
     public function viewDataCollectorDashboard(User $user)
     {
-        return $user->hasPermissionTo("view-data-entry-dashboard");
+        return $user->hasPermissionTo('view-data-entry-dashboard');
     }
 
     /**
      * Determine whether the user can view the assessor dashboard.
      *
-     * @param  \App\Models\User  $user
      * @return \Illuminate\Auth\Access\Response|bool
      */
     public function viewAssessorDashboard(User $user)
     {
-        return $user->hasPermissionTo("view-assessor-dashboard");
+        return $user->hasPermissionTo('view-assessor-dashboard');
     }
 
     /**
      * Determine whether the user can view the audit dashboard.
      *
-     * @param  \App\Models\User  $user
      * @return \Illuminate\Auth\Access\Response|bool
      */
     public function viewAuditDashboard(User $user)
     {
-        return $user->hasPermissionTo("view-audit-dashboard");
+        return $user->hasPermissionTo('view-audit-dashboard');
     }
 }

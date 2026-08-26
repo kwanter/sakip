@@ -26,6 +26,7 @@ Homestead.yaml
 Thumbs.db
 *.md
 !CHANGELOG.md
+!/docs/**/*.md
 /.trae
 /.claude
 /Track

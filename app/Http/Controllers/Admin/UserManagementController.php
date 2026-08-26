@@ -3,12 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Services\AdminService;
-use App\Models\User;
-use App\Models\Role;
 use App\Models\Permission;
+use App\Models\Role;
+use App\Models\User;
+use App\Services\AdminService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 
 class UserManagementController extends Controller
@@ -32,7 +31,7 @@ class UserManagementController extends Controller
             $search = $request->get('search');
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
+                    ->orWhere('email', 'like', "%{$search}%");
             });
         }
 
@@ -66,6 +65,7 @@ class UserManagementController extends Controller
     {
         $roles = Role::all();
         $instansis = \App\Models\Instansi::orderBy('nama_instansi')->get();
+
         return view('admin.users.create', compact('roles', 'instansis'));
     }
 

@@ -10,16 +10,19 @@ namespace App\Constants;
 class AssessmentStatus
 {
     const DRAFT = 'draft';
+
     const SUBMITTED = 'submitted';
+
     const IN_REVIEW = 'in_review';
+
     const APPROVED = 'approved';
+
     const REJECTED = 'rejected';
+
     const REVISED = 'revised';
 
     /**
      * Get all available statuses
-     *
-     * @return array
      */
     public static function all(): array
     {
@@ -35,9 +38,6 @@ class AssessmentStatus
 
     /**
      * Check if a status is valid
-     *
-     * @param string $status
-     * @return bool
      */
     public static function isValid(string $status): bool
     {

@@ -2,11 +2,11 @@
 
 namespace Tests\Feature;
 
-use Tests\TestCase;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use App\Models\User;
-use App\Models\Instansi;
 use App\Http\Controllers\Api\Sakip\SakipApiController;
+use App\Models\Instansi;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 /**
  * SECURITY: sakip api must never honor a client-supplied foreign instansi_id.
@@ -20,6 +20,7 @@ class SakipApiTenantIsolationTest extends TestCase
     {
         $instansi = Instansi::create(['kode_instansi' => str()->random(8), 'nama_instansi' => $name]);
         $user = User::factory()->create(['email_verified_at' => now(), 'instansi_id' => $instansi->id]);
+
         return [$user, $instansi];
     }
 
@@ -34,6 +35,7 @@ class SakipApiTenantIsolationTest extends TestCase
         $m = $this->guard();
         $m->setAccessible(true);
         $ctrl = app()->makeWith(SakipApiController::class, []);
+
         return $m->invoke($ctrl, $requested);
     }
 

@@ -2,15 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Services\SakipService;
 use App\Services\SakipDashboardService;
 use App\Services\SakipDataTableService;
+use App\Services\SakipService;
+use Illuminate\Http\Request;
 
 class SakipTestController extends Controller
 {
     protected $sakipService;
+
     protected $dashboardService;
+
     protected $dataTableService;
 
     public function __construct(
@@ -33,27 +35,27 @@ class SakipTestController extends Controller
             try {
                 // Test dashboard data retrieval
                 $dashboardData = $this->dashboardService->getDashboardData('current_year');
-                
+
                 // Test notification system
                 $notifications = $this->sakipService->getNotificationChannels();
-                
+
                 // Test configuration
                 $config = $this->sakipService->getConfig();
-                
+
                 return response()->json([
                     'success' => true,
                     'data' => [
                         'dashboard' => $dashboardData,
                         'notifications' => $notifications,
                         'config' => $config,
-                        'message' => 'SAKIP Dashboard integration test successful'
-                    ]
+                        'message' => 'SAKIP Dashboard integration test successful',
+                    ],
                 ]);
             } catch (\Exception $e) {
                 return response()->json([
                     'success' => false,
                     'error' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString()
+                    'trace' => $e->getTraceAsString(),
                 ], 500);
             }
         }
@@ -71,23 +73,23 @@ class SakipTestController extends Controller
             try {
                 // Test data table initialization
                 $dataTableConfig = $this->sakipService->getDataTableConfig('indicator');
-                
+
                 // Test data retrieval
                 $data = $this->sakipService->getDataTableData('indicator', request()->all());
-                
+
                 return response()->json([
                     'success' => true,
                     'data' => [
                         'config' => $dataTableConfig,
                         'data' => $data,
-                        'message' => 'SAKIP DataTable integration test successful'
-                    ]
+                        'message' => 'SAKIP DataTable integration test successful',
+                    ],
                 ]);
             } catch (\Exception $e) {
                 return response()->json([
                     'success' => false,
                     'error' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString()
+                    'trace' => $e->getTraceAsString(),
                 ], 500);
             }
         }
@@ -105,23 +107,23 @@ class SakipTestController extends Controller
             try {
                 // Test notification channels
                 $channels = $this->sakipService->getNotificationChannels();
-                
+
                 // Test notification types
                 $types = $this->sakipService->getNotificationTypes();
-                
+
                 return response()->json([
                     'success' => true,
                     'data' => [
                         'channels' => $channels,
                         'types' => $types,
-                        'message' => 'SAKIP Notification system test successful'
-                    ]
+                        'message' => 'SAKIP Notification system test successful',
+                    ],
                 ]);
             } catch (\Exception $e) {
                 return response()->json([
                     'success' => false,
                     'error' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString()
+                    'trace' => $e->getTraceAsString(),
                 ], 500);
             }
         }
@@ -139,23 +141,23 @@ class SakipTestController extends Controller
             try {
                 // Test configuration loading
                 $config = $this->sakipService->getConfig();
-                
+
                 // Test configuration validation
                 $validation = $this->sakipService->validateConfiguration();
-                
+
                 return response()->json([
                     'success' => true,
                     'data' => [
                         'config' => $config,
                         'validation' => $validation,
-                        'message' => 'SAKIP Configuration test successful'
-                    ]
+                        'message' => 'SAKIP Configuration test successful',
+                    ],
                 ]);
             } catch (\Exception $e) {
                 return response()->json([
                     'success' => false,
                     'error' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString()
+                    'trace' => $e->getTraceAsString(),
                 ], 500);
             }
         }
@@ -180,21 +182,21 @@ class SakipTestController extends Controller
                     'calculateAchievement' => $this->sakipService->calculateAchievement(80, 100),
                     'getStatusBadge' => $this->sakipService->getStatusBadge('active'),
                     'getAssessmentColor' => $this->sakipService->getAssessmentColor(85),
-                    'getIndicatorIcon' => $this->sakipService->getIndicatorIcon('quantitative')
+                    'getIndicatorIcon' => $this->sakipService->getIndicatorIcon('quantitative'),
                 ];
-                
+
                 return response()->json([
                     'success' => true,
                     'data' => [
                         'helpers' => $helpers,
-                        'message' => 'SAKIP Helpers test successful'
-                    ]
+                        'message' => 'SAKIP Helpers test successful',
+                    ],
                 ]);
             } catch (\Exception $e) {
                 return response()->json([
                     'success' => false,
                     'error' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString()
+                    'trace' => $e->getTraceAsString(),
                 ], 500);
             }
         }

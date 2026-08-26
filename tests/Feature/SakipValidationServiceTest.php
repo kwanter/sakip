@@ -2,26 +2,26 @@
 
 namespace Tests\Feature\Services;
 
-use Tests\TestCase;
-use App\Services\SakipValidationService;
 use App\Models\PerformanceData;
 use App\Models\PerformanceIndicator;
 use App\Models\Target;
 use App\Models\User;
+use App\Services\SakipValidationService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Validation\ValidationException;
+use Tests\TestCase;
 
 class SakipValidationServiceTest extends TestCase
 {
     use RefreshDatabase;
 
     protected SakipValidationService $service;
+
     protected User $user;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->service = new SakipValidationService();
+        $this->service = new SakipValidationService;
         $this->user = User::factory()->create();
     }
 

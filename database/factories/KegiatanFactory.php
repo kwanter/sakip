@@ -2,9 +2,9 @@
 
 namespace Database\Factories;
 
-use Illuminate\Database\Eloquent\Factories\Factory;
 use App\Models\Kegiatan;
 use App\Models\Program;
+use Illuminate\Database\Eloquent\Factories\Factory;
 
 /** @extends Factory<Kegiatan> */
 class KegiatanFactory extends Factory
@@ -15,9 +15,10 @@ class KegiatanFactory extends Factory
     {
         $start = $this->faker->dateTimeBetween('-1 years', 'now');
         $end = (clone $start)->modify('+1 month');
+
         return [
             'program_id' => Program::factory(),
-            'kode_kegiatan' => 'KEG' . $this->faker->unique()->numerify('######'),
+            'kode_kegiatan' => 'KEG'.$this->faker->unique()->numerify('######'),
             'nama_kegiatan' => $this->faker->sentence(3),
             'deskripsi' => $this->faker->paragraph(),
             'anggaran' => 500000,

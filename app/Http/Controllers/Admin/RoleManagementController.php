@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Role;
 use App\Models\Permission;
+use App\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -38,6 +38,7 @@ class RoleManagementController extends Controller
     public function create()
     {
         $permissions = Permission::all();
+
         return view('admin.roles.create', compact('permissions'));
     }
 
@@ -58,7 +59,7 @@ class RoleManagementController extends Controller
             'guard_name' => $validated['guard_name'] ?? 'web',
         ]);
 
-        if (!empty($validated['permissions'])) {
+        if (! empty($validated['permissions'])) {
             $role->syncPermissions($validated['permissions']);
         }
 
@@ -73,6 +74,7 @@ class RoleManagementController extends Controller
     public function show(Role $role)
     {
         $role->load(['permissions', 'users']);
+
         return view('admin.roles.show', compact('role'));
     }
 

@@ -10,7 +10,6 @@ class Role extends SpatieRole
     use HasUuids;
 
     public $incrementing = false;
+
     protected $keyType = 'string';
 }
-
-   

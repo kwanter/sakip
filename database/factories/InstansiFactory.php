@@ -2,8 +2,8 @@
 
 namespace Database\Factories;
 
-use Illuminate\Database\Eloquent\Factories\Factory;
 use App\Models\Instansi;
+use Illuminate\Database\Eloquent\Factories\Factory;
 
 /** @extends Factory<Instansi> */
 class InstansiFactory extends Factory
@@ -13,7 +13,7 @@ class InstansiFactory extends Factory
     public function definition(): array
     {
         return [
-            'kode_instansi' => 'INS' . $this->faker->unique()->numerify('######'),
+            'kode_instansi' => 'INS'.$this->faker->unique()->numerify('######'),
             'nama_instansi' => $this->faker->company(),
             'alamat' => $this->faker->address(),
             'telepon' => $this->faker->phoneNumber(),

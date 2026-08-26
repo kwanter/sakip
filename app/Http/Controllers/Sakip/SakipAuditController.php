@@ -3,17 +3,16 @@
 namespace App\Http\Controllers\Sakip;
 
 use App\Http\Controllers\Controller;
+use App\Models\Assessment;
 use App\Models\AuditLog;
 use App\Models\PerformanceIndicator;
-use App\Models\PerformanceData;
-use App\Models\Assessment;
 use App\Models\Report;
 use App\Services\ComplianceService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
-use Carbon\Carbon;
 
 /**
  * SAKIP Audit Controller
@@ -39,8 +38,8 @@ class SakipAuditController extends Controller
      */
     private function canViewAllAuditLogs($user): bool
     {
-        return $user->can("viewAny", AuditLog::class) &&
-            $user->hasRole("Super Admin");
+        return $user->can('viewAny', AuditLog::class) &&
+            $user->hasRole('Super Admin');
     }
 
     /**
@@ -48,54 +47,54 @@ class SakipAuditController extends Controller
      */
     public function index(Request $request)
     {
-        $this->authorize("viewAny", AuditLog::class);
+        $this->authorize('viewAny', AuditLog::class);
 
         try {
             $user = Auth::user();
             $instansiId = $user->instansi_id;
 
             // Get audit logs with filtering
-            $query = AuditLog::with(["user", "instansi"])
-                ->where("module", "SAKIP")
-                ->orderBy("created_at", "desc");
+            $query = AuditLog::with(['user', 'instansi'])
+                ->where('module', 'SAKIP')
+                ->orderBy('created_at', 'desc');
 
             // Role-based filtering (using policy-based authorization)
-            if (!$this->canViewAllAuditLogs($user)) {
+            if (! $this->canViewAllAuditLogs($user)) {
                 $query->where(function ($q) use ($user, $instansiId) {
-                    $q->where("user_id", $user->id)->orWhere(
-                        "instansi_id",
+                    $q->where('user_id', $user->id)->orWhere(
+                        'instansi_id',
                         $instansiId,
                     );
                 });
             }
 
             // Apply filters
-            if ($request->filled("action")) {
-                $query->where("action", $request->get("action"));
+            if ($request->filled('action')) {
+                $query->where('action', $request->get('action'));
             }
 
-            if ($request->filled("user_id")) {
-                $query->where("user_id", $request->get("user_id"));
+            if ($request->filled('user_id')) {
+                $query->where('user_id', $request->get('user_id'));
             }
 
-            if ($request->filled("date_from")) {
+            if ($request->filled('date_from')) {
                 $query->whereDate(
-                    "created_at",
-                    ">=",
-                    $request->get("date_from"),
+                    'created_at',
+                    '>=',
+                    $request->get('date_from'),
                 );
             }
 
-            if ($request->filled("date_to")) {
-                $query->whereDate("created_at", "<=", $request->get("date_to"));
+            if ($request->filled('date_to')) {
+                $query->whereDate('created_at', '<=', $request->get('date_to'));
             }
 
-            if ($request->filled("search")) {
-                $search = $request->get("search");
+            if ($request->filled('search')) {
+                $search = $request->get('search');
                 $query->where(function ($q) use ($search) {
-                    $q->where("description", "like", "%{$search}%")
-                        ->orWhere("old_values", "like", "%{$search}%")
-                        ->orWhere("new_values", "like", "%{$search}%");
+                    $q->where('description', 'like', "%{$search}%")
+                        ->orWhere('old_values', 'like', "%{$search}%")
+                        ->orWhere('new_values', 'like', "%{$search}%");
                 });
             }
 
@@ -110,38 +109,38 @@ class SakipAuditController extends Controller
             // Get compliance status
             $complianceResult = $this->complianceService->runComplianceCheck(
                 $instansiId,
-                date("Y"),
+                date('Y'),
             );
 
             // Format compliance data for view
             $compliance = [
-                "overall_score" => $complianceResult["overall_score"] ?? 0,
-                "violations_count" =>
-                    $complianceResult["total_violations"] ?? 0,
-                "last_check" => \Carbon\Carbon::now(),
-                "checks" => $this->formatComplianceChecks($complianceResult),
-                "violations" => $complianceResult["violations"] ?? [],
-                "recommendations" => $complianceResult["recommendations"] ?? [],
+                'overall_score' => $complianceResult['overall_score'] ?? 0,
+                'violations_count' => $complianceResult['total_violations'] ?? 0,
+                'last_check' => \Carbon\Carbon::now(),
+                'checks' => $this->formatComplianceChecks($complianceResult),
+                'violations' => $complianceResult['violations'] ?? [],
+                'recommendations' => $complianceResult['recommendations'] ?? [],
             ];
 
             // Get available actions for filtering
             $availableActions = $this->getAvailableActions();
 
             return view(
-                "sakip.audit.index",
+                'sakip.audit.index',
                 compact(
-                    "auditLogs",
-                    "statistics",
-                    "recentActivities",
-                    "compliance",
-                    "availableActions",
+                    'auditLogs',
+                    'statistics',
+                    'recentActivities',
+                    'compliance',
+                    'availableActions',
                 ),
             );
         } catch (\Exception $e) {
-            \Log::error("Audit index error: " . $e->getMessage());
+            \Log::error('Audit index error: '.$e->getMessage());
+
             return back()->with(
-                "error",
-                "Terjadi kesalahan saat memuat halaman audit.",
+                'error',
+                'Terjadi kesalahan saat memuat halaman audit.',
             );
         }
     }
@@ -151,10 +150,10 @@ class SakipAuditController extends Controller
      */
     public function show(AuditLog $auditLog)
     {
-        $this->authorize("view", $auditLog);
+        $this->authorize('view', $auditLog);
 
         try {
-            $auditLog->load(["user", "instansi"]);
+            $auditLog->load(['user', 'instansi']);
 
             // Parse old and new values
             $oldValues = is_string($auditLog->old_values)
@@ -168,28 +167,29 @@ class SakipAuditController extends Controller
             $changes = $this->calculateChanges($oldValues, $newValues);
 
             // Get related audit logs
-            $relatedLogs = AuditLog::where("user_id", $auditLog->user_id)
-                ->where("module", "SAKIP")
-                ->where("id", "!=", $auditLog->id)
-                ->orderBy("created_at", "desc")
+            $relatedLogs = AuditLog::where('user_id', $auditLog->user_id)
+                ->where('module', 'SAKIP')
+                ->where('id', '!=', $auditLog->id)
+                ->orderBy('created_at', 'desc')
                 ->limit(10)
                 ->get();
 
             return view(
-                "sakip.audit.show",
+                'sakip.audit.show',
                 compact(
-                    "auditLog",
-                    "oldValues",
-                    "newValues",
-                    "changes",
-                    "relatedLogs",
+                    'auditLog',
+                    'oldValues',
+                    'newValues',
+                    'changes',
+                    'relatedLogs',
                 ),
             );
         } catch (\Exception $e) {
-            \Log::error("Show audit log error: " . $e->getMessage());
+            \Log::error('Show audit log error: '.$e->getMessage());
+
             return back()->with(
-                "error",
-                "Terjadi kesalahan saat memuat detail log audit.",
+                'error',
+                'Terjadi kesalahan saat memuat detail log audit.',
             );
         }
     }
@@ -199,7 +199,7 @@ class SakipAuditController extends Controller
      */
     public function compliance(Request $request)
     {
-        $this->authorize("viewCompliance", AuditLog::class);
+        $this->authorize('viewCompliance', AuditLog::class);
 
         try {
             $user = Auth::user();
@@ -245,23 +245,24 @@ class SakipAuditController extends Controller
             );
 
             return view(
-                "sakip.audit.compliance",
+                'sakip.audit.compliance',
                 compact(
-                    "complianceStatus",
-                    "complianceMetrics",
-                    "complianceHistory",
-                    "pendingIssues",
-                    "overdueIndicators",
-                    "missingDataIndicators",
-                    "incompleteAssessments",
-                    "currentYear",
+                    'complianceStatus',
+                    'complianceMetrics',
+                    'complianceHistory',
+                    'pendingIssues',
+                    'overdueIndicators',
+                    'missingDataIndicators',
+                    'incompleteAssessments',
+                    'currentYear',
                 ),
             );
         } catch (\Exception $e) {
-            \Log::error("Compliance dashboard error: " . $e->getMessage());
+            \Log::error('Compliance dashboard error: '.$e->getMessage());
+
             return back()->with(
-                "error",
-                "Terjadi kesalahan saat memuat dashboard kepatuhan.",
+                'error',
+                'Terjadi kesalahan saat memuat dashboard kepatuhan.',
             );
         }
     }
@@ -271,23 +272,23 @@ class SakipAuditController extends Controller
      */
     public function generateComplianceReport(Request $request)
     {
-        $this->authorize("generateComplianceReport", AuditLog::class);
+        $this->authorize('generateComplianceReport', AuditLog::class);
 
         $validator = Validator::make($request->all(), [
-            "report_type" => "required|in:summary,detailed,comparative",
-            "period" => "required|in:monthly,quarterly,semester,annual",
-            "year" => "required|integer|min:2020|max:" . Carbon::now()->year,
-            "include_recommendations" => "nullable|boolean",
-            "include_benchmarks" => "nullable|boolean",
-            "format" => "required|in:pdf,excel",
+            'report_type' => 'required|in:summary,detailed,comparative',
+            'period' => 'required|in:monthly,quarterly,semester,annual',
+            'year' => 'required|integer|min:2020|max:'.Carbon::now()->year,
+            'include_recommendations' => 'nullable|boolean',
+            'include_benchmarks' => 'nullable|boolean',
+            'format' => 'required|in:pdf,excel',
         ]);
 
         if ($validator->fails()) {
             return response()->json(
                 [
-                    "success" => false,
-                    "message" => "Validasi gagal.",
-                    "errors" => $validator->errors(),
+                    'success' => false,
+                    'message' => 'Validasi gagal.',
+                    'errors' => $validator->errors(),
                 ],
                 422,
             );
@@ -300,53 +301,53 @@ class SakipAuditController extends Controller
             // Generate compliance report
             $report = $this->complianceService->generateComplianceReport(
                 $instansiId,
-                $request->get("report_type"),
-                $request->get("period"),
-                $request->get("year"),
+                $request->get('report_type'),
+                $request->get('period'),
+                $request->get('year'),
                 $request->only([
-                    "include_recommendations",
-                    "include_benchmarks",
-                    "format",
+                    'include_recommendations',
+                    'include_benchmarks',
+                    'format',
                 ]),
             );
 
             // Log the activity
             AuditLog::create([
-                "user_id" => $user->id,
-                "instansi_id" => $instansiId,
-                "action" => "GENERATE_COMPLIANCE_REPORT",
-                "module" => "SAKIP",
-                "description" => "Menghasilkan laporan kepatuhan ({$request->get(
-                    "report_type",
-                )} - {$request->get("period")} {$request->get("year")})",
-                "old_values" => null,
-                "new_values" => [
-                    "report_type" => $request->get("report_type"),
-                    "period" => $request->get("period"),
-                    "year" => $request->get("year"),
+                'user_id' => $user->id,
+                'instansi_id' => $instansiId,
+                'action' => 'GENERATE_COMPLIANCE_REPORT',
+                'module' => 'SAKIP',
+                'description' => "Menghasilkan laporan kepatuhan ({$request->get(
+                    'report_type',
+                )} - {$request->get('period')} {$request->get('year')})",
+                'old_values' => null,
+                'new_values' => [
+                    'report_type' => $request->get('report_type'),
+                    'period' => $request->get('period'),
+                    'year' => $request->get('year'),
                 ],
             ]);
 
             return response()->json([
-                "success" => true,
-                "message" => "Laporan kepatuhan berhasil dibuat.",
-                "data" => [
-                    "file_path" => $report["file_path"],
-                    "download_url" => route(
-                        "sakip.audit.download-compliance-report",
-                        ["file" => $report["file_name"]],
+                'success' => true,
+                'message' => 'Laporan kepatuhan berhasil dibuat.',
+                'data' => [
+                    'file_path' => $report['file_path'],
+                    'download_url' => route(
+                        'sakip.audit.download-compliance-report',
+                        ['file' => $report['file_name']],
                     ),
                 ],
             ]);
         } catch (\Exception $e) {
             \Log::error(
-                "Generate compliance report error: " . $e->getMessage(),
+                'Generate compliance report error: '.$e->getMessage(),
             );
+
             return response()->json(
                 [
-                    "success" => false,
-                    "message" =>
-                        "Terjadi kesalahan saat membuat laporan kepatuhan.",
+                    'success' => false,
+                    'message' => 'Terjadi kesalahan saat membuat laporan kepatuhan.',
                 ],
                 500,
             );
@@ -358,22 +359,22 @@ class SakipAuditController extends Controller
      */
     public function export(Request $request)
     {
-        $this->authorize("export", AuditLog::class);
+        $this->authorize('export', AuditLog::class);
 
         $validator = Validator::make($request->all(), [
-            "format" => "required|in:csv,excel,pdf",
-            "date_from" => "nullable|date",
-            "date_to" => "nullable|date|after_or_equal:date_from",
-            "action" => "nullable|string",
-            "user_id" => "nullable|exists:users,id",
+            'format' => 'required|in:csv,excel,pdf',
+            'date_from' => 'nullable|date',
+            'date_to' => 'nullable|date|after_or_equal:date_from',
+            'action' => 'nullable|string',
+            'user_id' => 'nullable|exists:users,id',
         ]);
 
         if ($validator->fails()) {
             return response()->json(
                 [
-                    "success" => false,
-                    "message" => "Validasi gagal.",
-                    "errors" => $validator->errors(),
+                    'success' => false,
+                    'message' => 'Validasi gagal.',
+                    'errors' => $validator->errors(),
                 ],
                 422,
             );
@@ -384,36 +385,36 @@ class SakipAuditController extends Controller
             $instansiId = $user->instansi_id;
 
             // Get audit logs for export
-            $query = AuditLog::with(["user", "instansi"])
-                ->where("module", "SAKIP")
-                ->orderBy("created_at", "desc");
+            $query = AuditLog::with(['user', 'instansi'])
+                ->where('module', 'SAKIP')
+                ->orderBy('created_at', 'desc');
 
             // Apply filters
-            if ($request->filled("date_from")) {
+            if ($request->filled('date_from')) {
                 $query->whereDate(
-                    "created_at",
-                    ">=",
-                    $request->get("date_from"),
+                    'created_at',
+                    '>=',
+                    $request->get('date_from'),
                 );
             }
 
-            if ($request->filled("date_to")) {
-                $query->whereDate("created_at", "<=", $request->get("date_to"));
+            if ($request->filled('date_to')) {
+                $query->whereDate('created_at', '<=', $request->get('date_to'));
             }
 
-            if ($request->filled("action")) {
-                $query->where("action", $request->get("action"));
+            if ($request->filled('action')) {
+                $query->where('action', $request->get('action'));
             }
 
-            if ($request->filled("user_id")) {
-                $query->where("user_id", $request->get("user_id"));
+            if ($request->filled('user_id')) {
+                $query->where('user_id', $request->get('user_id'));
             }
 
             // Role-based filtering (using policy-based authorization)
-            if (!$this->canViewAllAuditLogs($user)) {
+            if (! $this->canViewAllAuditLogs($user)) {
                 $query->where(function ($q) use ($user, $instansiId) {
-                    $q->where("user_id", $user->id)->orWhere(
-                        "instansi_id",
+                    $q->where('user_id', $user->id)->orWhere(
+                        'instansi_id',
                         $instansiId,
                     );
                 });
@@ -422,39 +423,40 @@ class SakipAuditController extends Controller
             $auditLogs = $query->get();
 
             // Export based on format
-            $format = $request->get("format");
+            $format = $request->get('format');
             $exportResult = $this->exportAuditLogs($auditLogs, $format);
 
             // Log the activity
             AuditLog::create([
-                "user_id" => $user->id,
-                "instansi_id" => $instansiId,
-                "action" => "EXPORT_AUDIT_LOGS",
-                "module" => "SAKIP",
-                "description" => "Mengekspor log audit (Format: {$format})",
-                "old_values" => null,
-                "new_values" => [
-                    "format" => $format,
-                    "count" => $auditLogs->count(),
+                'user_id' => $user->id,
+                'instansi_id' => $instansiId,
+                'action' => 'EXPORT_AUDIT_LOGS',
+                'module' => 'SAKIP',
+                'description' => "Mengekspor log audit (Format: {$format})",
+                'old_values' => null,
+                'new_values' => [
+                    'format' => $format,
+                    'count' => $auditLogs->count(),
                 ],
             ]);
 
             return response()->json([
-                "success" => true,
-                "message" => "Log audit berhasil diekspor.",
-                "data" => [
-                    "file_path" => $exportResult["file_path"],
-                    "download_url" => route("sakip.audit.download-export", [
-                        "file" => $exportResult["file_name"],
+                'success' => true,
+                'message' => 'Log audit berhasil diekspor.',
+                'data' => [
+                    'file_path' => $exportResult['file_path'],
+                    'download_url' => route('sakip.audit.download-export', [
+                        'file' => $exportResult['file_name'],
                     ]),
                 ],
             ]);
         } catch (\Exception $e) {
-            \Log::error("Export audit logs error: " . $e->getMessage());
+            \Log::error('Export audit logs error: '.$e->getMessage());
+
             return response()->json(
                 [
-                    "success" => false,
-                    "message" => "Terjadi kesalahan saat mengekspor log audit.",
+                    'success' => false,
+                    'message' => 'Terjadi kesalahan saat mengekspor log audit.',
                 ],
                 500,
             );
@@ -466,12 +468,12 @@ class SakipAuditController extends Controller
      */
     public function getStatistics(Request $request)
     {
-        $this->authorize("viewStatistics", AuditLog::class);
+        $this->authorize('viewStatistics', AuditLog::class);
 
         try {
             $user = Auth::user();
             $instansiId = $user->instansi_id;
-            $period = $request->get("period", "30"); // Default 30 days
+            $period = $request->get('period', '30'); // Default 30 days
 
             $statistics = $this->getAuditStatistics(
                 $user,
@@ -480,16 +482,16 @@ class SakipAuditController extends Controller
             );
 
             return response()->json([
-                "success" => true,
-                "data" => $statistics,
+                'success' => true,
+                'data' => $statistics,
             ]);
         } catch (\Exception $e) {
-            \Log::error("Get audit statistics error: " . $e->getMessage());
+            \Log::error('Get audit statistics error: '.$e->getMessage());
+
             return response()->json(
                 [
-                    "success" => false,
-                    "message" =>
-                        "Terjadi kesalahan saat mengambil statistik audit.",
+                    'success' => false,
+                    'message' => 'Terjadi kesalahan saat mengambil statistik audit.',
                 ],
                 500,
             );
@@ -501,7 +503,7 @@ class SakipAuditController extends Controller
      */
     public function getComplianceStatus(Request $request)
     {
-        $this->authorize("viewCompliance", AuditLog::class);
+        $this->authorize('viewCompliance', AuditLog::class);
 
         try {
             $user = Auth::user();
@@ -512,16 +514,16 @@ class SakipAuditController extends Controller
             );
 
             return response()->json([
-                "success" => true,
-                "data" => $complianceStatus,
+                'success' => true,
+                'data' => $complianceStatus,
             ]);
         } catch (\Exception $e) {
-            \Log::error("Get compliance status error: " . $e->getMessage());
+            \Log::error('Get compliance status error: '.$e->getMessage());
+
             return response()->json(
                 [
-                    "success" => false,
-                    "message" =>
-                        "Terjadi kesalahan saat mengambil status kepatuhan.",
+                    'success' => false,
+                    'message' => 'Terjadi kesalahan saat mengambil status kepatuhan.',
                 ],
                 500,
             );
@@ -533,17 +535,17 @@ class SakipAuditController extends Controller
      */
     public function runComplianceCheck(Request $request)
     {
-        $this->authorize("viewCompliance", AuditLog::class);
+        $this->authorize('viewCompliance', AuditLog::class);
 
         try {
             $user = Auth::user();
             $instansiId = $user->instansi_id;
 
             // Get period from request or default to current year
-            $period = $request->input("period", now()->year);
+            $period = $request->input('period', now()->year);
 
             // Get options from request
-            $options = $request->input("options", []);
+            $options = $request->input('options', []);
 
             // Run compliance check through the service
             $result = $this->complianceService->runComplianceCheck(
@@ -553,17 +555,17 @@ class SakipAuditController extends Controller
             );
 
             return response()->json([
-                "success" => true,
-                "message" => "Compliance check completed successfully.",
-                "data" => $result,
+                'success' => true,
+                'message' => 'Compliance check completed successfully.',
+                'data' => $result,
             ]);
         } catch (\Exception $e) {
-            \Log::error("Run compliance check error: " . $e->getMessage());
+            \Log::error('Run compliance check error: '.$e->getMessage());
+
             return response()->json(
                 [
-                    "success" => false,
-                    "message" =>
-                        "An error occurred during compliance check." .
+                    'success' => false,
+                    'message' => 'An error occurred during compliance check.'.
                         $e->getMessage(),
                 ],
                 500,
@@ -577,16 +579,16 @@ class SakipAuditController extends Controller
     private function getAuditStatistics($user, $instansiId, $period = 30)
     {
         $startDate = Carbon::now()->subDays($period);
-        $query = AuditLog::where("module", "SAKIP")->where(
-            "created_at",
-            ">=",
+        $query = AuditLog::where('module', 'SAKIP')->where(
+            'created_at',
+            '>=',
             $startDate,
         );
 
-        if (!$this->canViewAllAuditLogs($user)) {
+        if (! $this->canViewAllAuditLogs($user)) {
             $query->where(function ($q) use ($user, $instansiId) {
-                $q->where("user_id", $user->id)->orWhere(
-                    "instansi_id",
+                $q->where('user_id', $user->id)->orWhere(
+                    'instansi_id',
                     $instansiId,
                 );
             });
@@ -594,33 +596,33 @@ class SakipAuditController extends Controller
 
         $totalLogs = $query->count();
         $byAction = $query
-            ->select("action", DB::raw("count(*) as count"))
-            ->groupBy("action")
-            ->pluck("count", "action")
+            ->select('action', DB::raw('count(*) as count'))
+            ->groupBy('action')
+            ->pluck('count', 'action')
             ->toArray();
 
         $byUser = $query
-            ->select("user_id", DB::raw("count(*) as count"))
-            ->groupBy("user_id")
-            ->pluck("count", "user_id")
+            ->select('user_id', DB::raw('count(*) as count'))
+            ->groupBy('user_id')
+            ->pluck('count', 'user_id')
             ->toArray();
 
         $byDate = $query
             ->select(
-                DB::raw("DATE(created_at) as date"),
-                DB::raw("count(*) as count"),
+                DB::raw('DATE(created_at) as date'),
+                DB::raw('count(*) as count'),
             )
-            ->groupBy(DB::raw("DATE(created_at)"))
-            ->orderBy("date")
-            ->pluck("count", "date")
+            ->groupBy(DB::raw('DATE(created_at)'))
+            ->orderBy('date')
+            ->pluck('count', 'date')
             ->toArray();
 
         return [
-            "total_logs" => $totalLogs,
-            "by_action" => $byAction,
-            "by_user" => $byUser,
-            "by_date" => $byDate,
-            "period" => $period,
+            'total_logs' => $totalLogs,
+            'by_action' => $byAction,
+            'by_user' => $byUser,
+            'by_date' => $byDate,
+            'period' => $period,
         ];
     }
 
@@ -629,15 +631,15 @@ class SakipAuditController extends Controller
      */
     private function getRecentActivities($user, $instansiId)
     {
-        $query = AuditLog::with(["user"])
-            ->where("module", "SAKIP")
-            ->orderBy("created_at", "desc")
+        $query = AuditLog::with(['user'])
+            ->where('module', 'SAKIP')
+            ->orderBy('created_at', 'desc')
             ->limit(20);
 
-        if (!$this->canViewAllAuditLogs($user)) {
+        if (! $this->canViewAllAuditLogs($user)) {
             $query->where(function ($q) use ($user, $instansiId) {
-                $q->where("user_id", $user->id)->orWhere(
-                    "instansi_id",
+                $q->where('user_id', $user->id)->orWhere(
+                    'instansi_id',
                     $instansiId,
                 );
             });
@@ -656,12 +658,12 @@ class SakipAuditController extends Controller
         if (is_array($oldValues) && is_array($newValues)) {
             foreach ($newValues as $key => $newValue) {
                 if (
-                    !array_key_exists($key, $oldValues) ||
+                    ! array_key_exists($key, $oldValues) ||
                     $oldValues[$key] !== $newValue
                 ) {
                     $changes[$key] = [
-                        "old" => $oldValues[$key] ?? null,
-                        "new" => $newValue,
+                        'old' => $oldValues[$key] ?? null,
+                        'new' => $newValue,
                     ];
                 }
             }
@@ -676,20 +678,20 @@ class SakipAuditController extends Controller
     private function getAvailableActions()
     {
         return [
-            "CREATE" => "Create",
-            "UPDATE" => "Update",
-            "DELETE" => "Delete",
-            "APPROVE" => "Approve",
-            "REJECT" => "Reject",
-            "SUBMIT_FOR_APPROVAL" => "Submit for Approval",
-            "GENERATE_FILE" => "Generate File",
-            "DOWNLOAD" => "Download",
-            "IMPORT" => "Import",
-            "EXPORT" => "Export",
-            "CALCULATE" => "Calculate",
-            "ASSESS" => "Assess",
-            "GENERATE_COMPLIANCE_REPORT" => "Generate Compliance Report",
-            "EXPORT_AUDIT_LOGS" => "Export Audit Logs",
+            'CREATE' => 'Create',
+            'UPDATE' => 'Update',
+            'DELETE' => 'Delete',
+            'APPROVE' => 'Approve',
+            'REJECT' => 'Reject',
+            'SUBMIT_FOR_APPROVAL' => 'Submit for Approval',
+            'GENERATE_FILE' => 'Generate File',
+            'DOWNLOAD' => 'Download',
+            'IMPORT' => 'Import',
+            'EXPORT' => 'Export',
+            'CALCULATE' => 'Calculate',
+            'ASSESS' => 'Assess',
+            'GENERATE_COMPLIANCE_REPORT' => 'Generate Compliance Report',
+            'EXPORT_AUDIT_LOGS' => 'Export Audit Logs',
         ];
     }
 
@@ -699,28 +701,27 @@ class SakipAuditController extends Controller
     private function formatComplianceChecks($complianceResult)
     {
         $checks = [];
-        $checksPerformed = $complianceResult["checks_performed"] ?? [];
+        $checksPerformed = $complianceResult['checks_performed'] ?? [];
         $totalChecks = count($checksPerformed);
-        $violations = $complianceResult["violations"] ?? [];
+        $violations = $complianceResult['violations'] ?? [];
 
         // Define check details
         $checkDefinitions = [
-            "data_completeness" => [
-                "name" => "Data Completeness",
-                "description" =>
-                    "Checking if all mandatory indicators have data",
+            'data_completeness' => [
+                'name' => 'Data Completeness',
+                'description' => 'Checking if all mandatory indicators have data',
             ],
-            "data_quality" => [
-                "name" => "Data Quality",
-                "description" => "Validating data quality scores and accuracy",
+            'data_quality' => [
+                'name' => 'Data Quality',
+                'description' => 'Validating data quality scores and accuracy',
             ],
-            "assessment_compliance" => [
-                "name" => "Assessment Compliance",
-                "description" => "Checking assessment status and timeliness",
+            'assessment_compliance' => [
+                'name' => 'Assessment Compliance',
+                'description' => 'Checking assessment status and timeliness',
             ],
-            "evidence_compliance" => [
-                "name" => "Evidence Compliance",
-                "description" => "Validating evidence documents and quality",
+            'evidence_compliance' => [
+                'name' => 'Evidence Compliance',
+                'description' => 'Validating evidence documents and quality',
             ],
         ];
 
@@ -728,26 +729,24 @@ class SakipAuditController extends Controller
             $checkViolations = array_filter($violations, function ($v) use (
                 $checkKey,
             ) {
-                return isset($v["check_type"]) &&
-                    $v["check_type"] === $checkKey;
+                return isset($v['check_type']) &&
+                    $v['check_type'] === $checkKey;
             });
 
             $violationCount = count($checkViolations);
-            $status = $violationCount === 0 ? "passed" : "failed";
+            $status = $violationCount === 0 ? 'passed' : 'failed';
             $score =
                 $violationCount === 0
                     ? 100
                     : max(0, 100 - $violationCount * 10);
 
             $checks[] = [
-                "name" =>
-                    $checkDefinitions[$checkKey]["name"] ??
-                    ucfirst(str_replace("_", " ", $checkKey)),
-                "description" =>
-                    $checkDefinitions[$checkKey]["description"] ?? "",
-                "status" => $status,
-                "score" => $score,
-                "violations" => $violationCount,
+                'name' => $checkDefinitions[$checkKey]['name'] ??
+                    ucfirst(str_replace('_', ' ', $checkKey)),
+                'description' => $checkDefinitions[$checkKey]['description'] ?? '',
+                'status' => $status,
+                'score' => $score,
+                'violations' => $violationCount,
             ];
         }
 
@@ -761,20 +760,20 @@ class SakipAuditController extends Controller
     {
         $currentDate = Carbon::now();
 
-        return PerformanceIndicator::where("instansi_id", $instansiId)
-            ->whereHas("targets", function ($q) use ($currentDate) {
-                $q->where("target_date", "<", $currentDate)->where(
-                    "status",
-                    "!=",
-                    "completed",
+        return PerformanceIndicator::where('instansi_id', $instansiId)
+            ->whereHas('targets', function ($q) use ($currentDate) {
+                $q->where('target_date', '<', $currentDate)->where(
+                    'status',
+                    '!=',
+                    'completed',
                 );
             })
             ->with([
-                "targets" => function ($q) use ($currentDate) {
-                    $q->where("target_date", "<", $currentDate)->where(
-                        "status",
-                        "!=",
-                        "completed",
+                'targets' => function ($q) use ($currentDate) {
+                    $q->where('target_date', '<', $currentDate)->where(
+                        'status',
+                        '!=',
+                        'completed',
                     );
                 },
             ])
@@ -786,11 +785,11 @@ class SakipAuditController extends Controller
      */
     private function getMissingDataIndicators($instansiId, $year)
     {
-        return PerformanceIndicator::where("instansi_id", $instansiId)
-            ->whereDoesntHave("performanceData", function ($q) use ($year) {
-                $q->whereYear("period", $year);
+        return PerformanceIndicator::where('instansi_id', $instansiId)
+            ->whereDoesntHave('performanceData', function ($q) use ($year) {
+                $q->whereYear('period', $year);
             })
-            ->where("is_mandatory", true)
+            ->where('is_mandatory', true)
             ->get();
     }
 
@@ -800,14 +799,14 @@ class SakipAuditController extends Controller
     private function getIncompleteAssessments($instansiId, $year)
     {
         return Assessment::whereHas(
-            "performanceData.performanceIndicator",
+            'performanceData.performanceIndicator',
             function ($q) use ($instansiId) {
-                $q->where("instansi_id", $instansiId);
+                $q->where('instansi_id', $instansiId);
             },
         )
-            ->whereYear("created_at", $year)
-            ->where("status", "pending")
-            ->with(["performanceData.performanceIndicator"])
+            ->whereYear('created_at', $year)
+            ->where('status', 'pending')
+            ->with(['performanceData.performanceIndicator'])
             ->get();
     }
 
@@ -816,18 +815,18 @@ class SakipAuditController extends Controller
      */
     private function exportAuditLogs($auditLogs, $format)
     {
-        $fileName = "audit_logs_" . Carbon::now()->format("Y_m_d_H_i_s");
-        $filePath = "exports/audit/" . $fileName;
+        $fileName = 'audit_logs_'.Carbon::now()->format('Y_m_d_H_i_s');
+        $filePath = 'exports/audit/'.$fileName;
 
         switch ($format) {
-            case "csv":
-                return $this->exportToCSV($auditLogs, $filePath . ".csv");
-            case "excel":
-                return $this->exportToExcel($auditLogs, $filePath . ".xlsx");
-            case "pdf":
-                return $this->exportToPDF($auditLogs, $filePath . ".pdf");
+            case 'csv':
+                return $this->exportToCSV($auditLogs, $filePath.'.csv');
+            case 'excel':
+                return $this->exportToExcel($auditLogs, $filePath.'.xlsx');
+            case 'pdf':
+                return $this->exportToPDF($auditLogs, $filePath.'.pdf');
             default:
-                throw new \Exception("Format ekspor tidak didukung.");
+                throw new \Exception('Format ekspor tidak didukung.');
         }
     }
 
@@ -838,7 +837,7 @@ class SakipAuditController extends Controller
     {
         // Implementation for CSV export
         // This would typically use a CSV library or Laravel's CSV export functionality
-        return ["file_path" => $filePath, "file_name" => basename($filePath)];
+        return ['file_path' => $filePath, 'file_name' => basename($filePath)];
     }
 
     /**
@@ -848,7 +847,7 @@ class SakipAuditController extends Controller
     {
         // Implementation for Excel export
         // This would typically use PhpSpreadsheet or Laravel Excel package
-        return ["file_path" => $filePath, "file_name" => basename($filePath)];
+        return ['file_path' => $filePath, 'file_name' => basename($filePath)];
     }
 
     /**
@@ -858,6 +857,6 @@ class SakipAuditController extends Controller
     {
         // Implementation for PDF export
         // This would typically use DomPDF or similar PDF library
-        return ["file_path" => $filePath, "file_name" => basename($filePath)];
+        return ['file_path' => $filePath, 'file_name' => basename($filePath)];
     }
 }

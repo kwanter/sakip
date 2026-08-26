@@ -3,9 +3,8 @@
 namespace App\Services;
 
 use App\Models\Instansi;
-use App\Models\PerformanceIndicator;
-use App\Models\Program;
 use App\Models\Kegiatan;
+use App\Models\Program;
 use App\Models\SasaranStrategis;
 use Illuminate\Support\Facades\Cache;
 
@@ -25,27 +24,26 @@ class DropdownCacheService
     /**
      * Get all active institutions for dropdown
      *
-     * @param bool $refresh Force cache refresh
+     * @param  bool  $refresh  Force cache refresh
      * @return \Illuminate\Database\Eloquent\Collection
      */
     public function getActiveInstansi(bool $refresh = false)
     {
         return Cache::remember('dropdown.instansi.active', self::CACHE_TTL, function () {
-            return Instansi::orderBy("nama_instansi")->get();
+            return Instansi::orderBy('nama_instansi')->get();
         });
     }
 
     /**
      * Get institutions by status
      *
-     * @param string $status
      * @return \Illuminate\Database\Eloquent\Collection
      */
     public function getInstansiByStatus(string $status = 'aktif')
     {
         return Cache::remember("dropdown.instansi.{$status}", self::CACHE_TTL, function () use ($status) {
             return Instansi::where('status', $status)
-                ->orderBy("nama_instansi")
+                ->orderBy('nama_instansi')
                 ->get();
         });
     }
@@ -65,7 +63,6 @@ class DropdownCacheService
     /**
      * Get programs for dropdown by institution
      *
-     * @param string|null $instansiId
      * @return \Illuminate\Database\Eloquent\Collection
      */
     public function getProgramsByInstansi(?string $instansiId = null)
@@ -104,7 +101,6 @@ class DropdownCacheService
     /**
      * Get kegiatan by program for dropdown
      *
-     * @param string|null $programId
      * @return \Illuminate\Database\Eloquent\Collection
      */
     public function getKegiatanByProgram(?string $programId = null)
@@ -127,8 +123,6 @@ class DropdownCacheService
 
     /**
      * Get performance indicator categories
-     *
-     * @return array
      */
     public function getIndicatorCategories(): array
     {
@@ -144,8 +138,6 @@ class DropdownCacheService
 
     /**
      * Get measurement types
-     *
-     * @return array
      */
     public function getMeasurementTypes(): array
     {
@@ -163,8 +155,6 @@ class DropdownCacheService
 
     /**
      * Get frequencies
-     *
-     * @return array
      */
     public function getFrequencies(): array
     {
@@ -180,8 +170,6 @@ class DropdownCacheService
 
     /**
      * Get data quality levels
-     *
-     * @return array
      */
     public function getDataQualityLevels(): array
     {
@@ -197,8 +185,6 @@ class DropdownCacheService
 
     /**
      * Get all dropdown data in a single call
-     *
-     * @return array
      */
     public function getAllDropdownData(): array
     {
@@ -247,8 +233,6 @@ class DropdownCacheService
 
     /**
      * Clear specific dropdown cache
-     *
-     * @param string $key
      */
     public function clearSpecificCache(string $key): void
     {

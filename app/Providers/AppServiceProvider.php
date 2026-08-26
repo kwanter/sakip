@@ -2,36 +2,32 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Blade;
-use Illuminate\Support\Facades\View;
-use App\Models\Program;
-use App\Models\Kegiatan;
-use App\Models\Instansi;
-use App\Models\IndikatorKinerja;
-use App\Models\LaporanKinerja;
-use App\Policies\ProgramPolicy;
-use App\Policies\KegiatanPolicy;
-use App\Policies\InstansiPolicy;
-use App\Policies\IndikatorKinerjaPolicy;
-use App\Policies\LaporanKinerjaPolicy;
-
-// SAKIP Models
-use App\Models\Target;
 use App\Models\AuditLog;
-
-// SAKIP Policies
-use App\Policies\SakipDashboardPolicy;
-use App\Policies\PerformanceIndicatorPolicy;
-use App\Policies\PerformanceDataPolicy;
+use App\Models\IndikatorKinerja;
+use App\Models\Instansi;
+use App\Models\Kegiatan;
+use App\Models\LaporanKinerja;
+use App\Models\Program;
+use App\Models\Target;
 use App\Policies\AssessmentPolicy;
-use App\Policies\ReportPolicy;
-use App\Policies\EvidenceDocumentPolicy;
-use App\Policies\TargetPolicy;
 use App\Policies\AuditLogPolicy;
+use App\Policies\EvidenceDocumentPolicy;
+use App\Policies\IndikatorKinerjaPolicy;
+use App\Policies\InstansiPolicy;
+use App\Policies\KegiatanPolicy;
+use App\Policies\LaporanKinerjaPolicy;
+// SAKIP Models
+use App\Policies\PerformanceDataPolicy;
+use App\Policies\ProgramPolicy;
+// SAKIP Policies
+use App\Policies\ReportPolicy;
+use App\Policies\SakipDashboardPolicy;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\View;
+use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -52,12 +48,12 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         // SECURITY: Validate APP_KEY in production
-        if (app()->environment("production")) {
-            $appKey = config("app.key");
+        if (app()->environment('production')) {
+            $appKey = config('app.key');
             if (empty($appKey) || strlen($appKey) < 32) {
                 throw new \Exception(
-                    "Invalid APP_KEY. A proper encryption key is required for production. " .
-                        "Run: php artisan key:generate",
+                    'Invalid APP_KEY. A proper encryption key is required for production. '.
+                        'Run: php artisan key:generate',
                 );
             }
         }
@@ -96,109 +92,112 @@ class AppServiceProvider extends ServiceProvider
 
         // Super Admin bypass: Allow Super Admin to bypass all authorization checks
         Gate::before(function ($user, $ability) {
-            return $user->hasRole("Super Admin") ? true : null;
+            return $user->hasRole('Super Admin') ? true : null;
         });
 
         // Gate abilities for admin middleware
-        Gate::define("admin.dashboard", function (\App\Models\User $user) {
-            return $user->isAdmin() || $user->hasPermission("admin.dashboard");
+        Gate::define('admin.dashboard', function (\App\Models\User $user) {
+            return $user->isAdmin() || $user->hasPermission('admin.dashboard');
         });
-        Gate::define("admin.settings", function (\App\Models\User $user) {
-            return $user->isAdmin() || $user->hasPermission("admin.settings");
+        Gate::define('admin.settings', function (\App\Models\User $user) {
+            return $user->isAdmin() || $user->hasPermission('admin.settings');
         });
 
         // SAKIP Dashboard Gates
-        Gate::define("sakip.dashboard.view", [
+        Gate::define('sakip.dashboard.view', [
             SakipDashboardPolicy::class,
-            "viewDashboard",
+            'viewDashboard',
         ]);
-        Gate::define("sakip.dashboard.executive", [
+        Gate::define('sakip.dashboard.executive', [
             SakipDashboardPolicy::class,
-            "viewExecutiveDashboard",
+            'viewExecutiveDashboard',
         ]);
-        Gate::define("sakip.dashboard.data_collector", [
+        Gate::define('sakip.dashboard.data_collector', [
             SakipDashboardPolicy::class,
-            "viewDataCollectorDashboard",
+            'viewDataCollectorDashboard',
         ]);
-        Gate::define("sakip.dashboard.assessor", [
+        Gate::define('sakip.dashboard.assessor', [
             SakipDashboardPolicy::class,
-            "viewAssessorDashboard",
+            'viewAssessorDashboard',
         ]);
-        Gate::define("sakip.dashboard.audit", [
+        Gate::define('sakip.dashboard.audit', [
             SakipDashboardPolicy::class,
-            "viewAuditDashboard",
+            'viewAuditDashboard',
         ]);
 
         // SAKIP Main Gates
-        Gate::define("sakip.view.dashboard", [
+        Gate::define('sakip.view.dashboard', [
             \App\Policies\SakipPolicy::class,
-            "viewDashboard",
+            'viewDashboard',
         ]);
-        Gate::define("sakip.view.performance-indicators", [
+        Gate::define('sakip.view.performance-indicators', [
             \App\Policies\SakipPolicy::class,
-            "viewPerformanceIndicators",
+            'viewPerformanceIndicators',
         ]);
-        Gate::define("sakip.view.performance-data", [
+        Gate::define('sakip.view.performance-data', [
             \App\Policies\SakipPolicy::class,
-            "viewPerformanceData",
+            'viewPerformanceData',
         ]);
-        Gate::define("sakip.view.assessments", [
+        Gate::define('sakip.view.assessments', [
             \App\Policies\SakipPolicy::class,
-            "viewAssessments",
+            'viewAssessments',
         ]);
-        Gate::define("sakip.view.reports", [
+        Gate::define('sakip.view.reports', [
             \App\Policies\SakipPolicy::class,
-            "viewReports",
+            'viewReports',
         ]);
-        Gate::define("sakip.export.data", [
+        Gate::define('sakip.export.data', [
             \App\Policies\SakipPolicy::class,
-            "exportData",
+            'exportData',
         ]);
 
-        Gate::define("isSuperAdmin", function ($user) {
-            return $user->hasRole("Super Admin");
+        Gate::define('isSuperAdmin', function ($user) {
+            return $user->hasRole('Super Admin');
         });
 
         // Blade directives for roles and permissions
-        Blade::if("role", function ($role) {
+        Blade::if('role', function ($role) {
             $user = auth()->user();
+
             return $user && $user->hasRole($role);
         });
 
-        Blade::if("anyrole", function (...$roles) {
+        Blade::if('anyrole', function (...$roles) {
             $user = auth()->user();
+
             return $user && $user->hasAnyRole($roles);
         });
 
-        Blade::if("permission", function ($permission) {
+        Blade::if('permission', function ($permission) {
             $user = auth()->user();
+
             return $user && $user->hasPermission($permission);
         });
 
         // NEW: Blade directive for CSP nonce
         // Usage in Blade templates: @cspnonce
         // Renders: nonce="random_value"
-        Blade::directive("cspnonce", function () {
+        Blade::directive('cspnonce', function () {
             return "<?php echo 'nonce=\"' . (app('csp-nonce') ?? '') . '\"'; ?>";
         });
 
         // NEW: Share csp_nonce helper with all views
         // Usage: {{ csp_nonce() }}
-        View::composer("*", function ($view) {
-            $view->with("csp_nonce_value", app("csp-nonce") ?? "");
+        View::composer('*', function ($view) {
+            $view->with('csp_nonce_value', app('csp-nonce') ?? '');
         });
 
         // Slow query logging (threshold: 150ms)
         DB::listen(function ($query) {
             $thresholdMs = 150;
             // $query->time is in milliseconds for Laravel 10+; guard if null
-            $duration = method_exists($query, "time") ? $query->time ?? 0 : 0;
+            $duration = method_exists($query, 'time') ? $query->time ?? 0 : 0;
             if ($duration >= $thresholdMs) {
-                Log::channel("daily")->warning("Slow query detected", [
-                    "sql" => $query->sql,
-                    "bindings" => $query->bindings,
-                    "time_ms" => $duration,
-                    "connection" => property_exists($query, "connectionName")
+                Log::channel('daily')->warning('Slow query detected', [
+                    'sql' => $query->sql,
+                    'bindings' => $query->bindings,
+                    'time_ms' => $duration,
+                    'connection' => property_exists($query, 'connectionName')
                         ? $query->connectionName
                         : null,
                 ]);

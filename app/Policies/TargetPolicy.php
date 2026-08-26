@@ -4,12 +4,12 @@ namespace App\Policies;
 
 use App\Models\Target;
 use App\Models\User;
-use Illuminate\Auth\Access\HandlesAuthorization;
 use Carbon\Carbon;
+use Illuminate\Auth\Access\HandlesAuthorization;
 
 /**
  * TargetPolicy
- * 
+ *
  * Handles authorization for target setting and management operations.
  * Implements role-based access control with period-based restrictions and approval workflows.
  */
@@ -29,7 +29,7 @@ class TargetPolicy
             'sakip.pimpinan',
             'sakip.data_collector',
             'sakip.assessor',
-            'sakip.auditor'
+            'sakip.auditor',
         ]);
     }
 
@@ -54,7 +54,7 @@ class TargetPolicy
             'sakip.pimpinan',
             'sakip.data_collector',
             'sakip.assessor',
-            'sakip.auditor'
+            'sakip.auditor',
         ]);
     }
 
@@ -67,7 +67,7 @@ class TargetPolicy
         return $user->hasAnyPermission([
             'sakip.targets.create',
             'sakip.admin',
-            'sakip.pimpinan'
+            'sakip.pimpinan',
         ]);
     }
 
@@ -107,7 +107,7 @@ class TargetPolicy
     public function delete(User $user, Target $target): bool
     {
         // Only admin can delete targets
-        if (!$user->hasPermission('sakip.admin')) {
+        if (! $user->hasPermission('sakip.admin')) {
             return false;
         }
 
@@ -209,7 +209,7 @@ class TargetPolicy
         }
 
         // Check deadline restrictions
-        if (!$this->checkDeadline($user)) {
+        if (! $this->checkDeadline($user)) {
             return false;
         }
 
@@ -240,7 +240,7 @@ class TargetPolicy
         return $user->hasAnyPermission([
             'sakip.targets.audit',
             'sakip.pimpinan',
-            'sakip.auditor'
+            'sakip.auditor',
         ]);
     }
 
@@ -265,7 +265,7 @@ class TargetPolicy
             'sakip.pimpinan',
             'sakip.data_collector',
             'sakip.assessor',
-            'sakip.auditor'
+            'sakip.auditor',
         ]);
     }
 
@@ -289,7 +289,7 @@ class TargetPolicy
             'sakip.targets.analytics',
             'sakip.pimpinan',
             'sakip.assessor',
-            'sakip.auditor'
+            'sakip.auditor',
         ]);
     }
 
@@ -313,7 +313,7 @@ class TargetPolicy
             'sakip.targets.export',
             'sakip.pimpinan',
             'sakip.assessor',
-            'sakip.auditor'
+            'sakip.auditor',
         ]);
     }
 
@@ -326,7 +326,7 @@ class TargetPolicy
         return $user->hasAnyPermission([
             'sakip.targets.bulk_set',
             'sakip.admin',
-            'sakip.pimpinan'
+            'sakip.pimpinan',
         ]);
     }
 
@@ -339,7 +339,7 @@ class TargetPolicy
         return $user->hasAnyPermission([
             'sakip.targets.bulk_approve',
             'sakip.admin',
-            'sakip.pimpinan'
+            'sakip.pimpinan',
         ]);
     }
 
@@ -363,7 +363,7 @@ class TargetPolicy
             'sakip.targets.compliance',
             'sakip.pimpinan',
             'sakip.assessor',
-            'sakip.auditor'
+            'sakip.auditor',
         ]);
     }
 
@@ -379,22 +379,22 @@ class TargetPolicy
         }
 
         $now = Carbon::now();
-        
+
         // Example: Allow target setting only during specific periods
         // Annual targets: November 1 - December 31 (for next year)
         // Quarterly targets: 15 days before quarter start
-        
+
         $currentMonth = $now->month;
-        
+
         // Allow annual target setting in November and December
         if ($currentMonth >= 11 && $currentMonth <= 12) {
             return true;
         }
-        
+
         // Allow quarterly target setting up to 15 days before quarter start
         $nextQuarterStart = Carbon::create($now->year, (ceil($now->month / 3) * 3) + 1, 1);
         $deadline = $nextQuarterStart->copy()->subDays(15);
-        
+
         return $now->lte($deadline);
     }
 
@@ -418,7 +418,7 @@ class TargetPolicy
             'sakip.targets.compare',
             'sakip.pimpinan',
             'sakip.assessor',
-            'sakip.auditor'
+            'sakip.auditor',
         ]);
     }
 

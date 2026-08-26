@@ -15,11 +15,11 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->uuid('user_id');
             $table->string('action', 100);
-$table->json('details')->nullable();
+            $table->json('details')->nullable();
             $table->ipAddress('ip_address')->nullable();
             $table->text('user_agent')->nullable();
             $table->timestamps();
-            
+
             $table->index('user_id');
             $table->index('action');
             $table->index('created_at');

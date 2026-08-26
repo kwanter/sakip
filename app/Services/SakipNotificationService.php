@@ -2,30 +2,29 @@
 
 namespace App\Services;
 
-use App\Models\User;
-use App\Models\Instansi;
-use App\Models\PerformanceData;
 use App\Models\Assessment;
-use App\Models\Target;
-use App\Models\EvidenceDocument;
-use App\Models\Report;
+use App\Models\AuditLog;
+use App\Models\Instansi;
 use App\Models\Notification;
 use App\Models\NotificationTemplate;
-use App\Models\AuditLog;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Notification as LaravelNotification;
-use Illuminate\Support\Facades\Validator;
+use App\Models\PerformanceData;
+use App\Models\Report;
+use App\Models\Target;
+use App\Models\User;
 use Carbon\Carbon;
 use Exception;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Validator;
 
 class SakipNotificationService
 {
     use \App\Traits\SortsSafely;
+
     protected $cacheTimeout = 3600; // 1 hour
-    
+
     protected $notificationTypes = [
         'target_due' => 'Target Setting Due',
         'data_submission_due' => 'Data Submission Due',
@@ -58,7 +57,7 @@ class SakipNotificationService
             // Validate data
             $validator = $this->validateNotificationData($data);
             if ($validator->fails()) {
-                throw new Exception('Validation failed: ' . $validator->errors()->first());
+                throw new Exception('Validation failed: '.$validator->errors()->first());
             }
 
             // Get recipients
@@ -69,7 +68,7 @@ class SakipNotificationService
 
             // Get notification template
             $template = $this->getNotificationTemplate($data['type']);
-            if (!$template) {
+            if (! $template) {
                 throw new Exception('Notification template not found');
             }
 
@@ -104,10 +103,10 @@ class SakipNotificationService
     /**
      * Send deadline reminder
      */
-    public function sendDeadlineReminder(string $type, $instansiId = null, Carbon $deadline = null): array
+    public function sendDeadlineReminder(string $type, $instansiId = null, ?Carbon $deadline = null): array
     {
         $results = [];
-        
+
         switch ($type) {
             case 'target_setting':
                 $results = $this->sendTargetSettingReminder($instansiId, $deadline);
@@ -160,6 +159,7 @@ class SakipNotificationService
     public function sendValidationNotification(string $type, $entity, string $status): Notification
     {
         $data = $this->prepareValidationNotificationData($type, $entity, $status);
+
         return $this->sendNotification($data);
     }
 
@@ -189,9 +189,9 @@ class SakipNotificationService
      */
     public function getUserNotifications($userId, array $filters = [], $perPage = 15)
     {
-        $query = Notification::where('recipients', 'like', '%"' . $userId . '"%')
+        $query = Notification::where('recipients', 'like', '%"'.$userId.'"%')
             ->orWhere('recipients', 'like', '%"all"%')
-            ->orWhere('recipients', 'like', '%"role:' . $this->getUserRole($userId) . '"%');
+            ->orWhere('recipients', 'like', '%"role:'.$this->getUserRole($userId).'"%');
 
         // Apply filters
         if (isset($filters['type'])) {
@@ -232,19 +232,19 @@ class SakipNotificationService
     public function markAsRead($notificationId, $userId): bool
     {
         $notification = Notification::find($notificationId);
-        if (!$notification) {
+        if (! $notification) {
             return false;
         }
 
         // Check if user is recipient
-        if (!$this->isUserRecipient($notification, $userId)) {
+        if (! $this->isUserRecipient($notification, $userId)) {
             return false;
         }
 
         $notification->update(['is_read' => true]);
-        
+
         $this->logActivity('mark_read', $notification, 'Notification marked as read');
-        
+
         return true;
     }
 
@@ -253,20 +253,20 @@ class SakipNotificationService
      */
     public function markAllAsRead($userId): int
     {
-        $notifications = Notification::where('recipients', 'like', '%"' . $userId . '"%')
+        $notifications = Notification::where('recipients', 'like', '%"'.$userId.'"%')
             ->orWhere('recipients', 'like', '%"all"%')
-            ->orWhere('recipients', 'like', '%"role:' . $this->getUserRole($userId) . '"%')
+            ->orWhere('recipients', 'like', '%"role:'.$this->getUserRole($userId).'"%')
             ->where('is_read', false)
             ->get();
 
         $count = $notifications->count();
-        
+
         foreach ($notifications as $notification) {
             $notification->update(['is_read' => true]);
         }
 
         $this->logActivity('mark_all_read', null, "All notifications marked as read for user {$userId}");
-        
+
         return $count;
     }
 
@@ -276,19 +276,19 @@ class SakipNotificationService
     public function deleteNotification($notificationId, $userId): bool
     {
         $notification = Notification::find($notificationId);
-        if (!$notification) {
+        if (! $notification) {
             return false;
         }
 
         // Check if user has permission to delete
-        if (!$this->canUserDeleteNotification($notification, $userId)) {
+        if (! $this->canUserDeleteNotification($notification, $userId)) {
             return false;
         }
 
         $result = $notification->delete();
-        
+
         $this->logActivity('delete_notification', $notification, 'Notification deleted');
-        
+
         return $result;
     }
 
@@ -298,21 +298,21 @@ class SakipNotificationService
     public function getNotificationStatistics($userId = null): array
     {
         $cacheKey = $userId ? "notification_stats_user_{$userId}" : 'notification_stats_global';
-        
+
         return Cache::remember($cacheKey, $this->cacheTimeout, function () use ($userId) {
             $query = Notification::query();
-            
+
             if ($userId) {
                 $query->where(function ($q) use ($userId) {
-                    $q->where('recipients', 'like', '%"' . $userId . '"%')
+                    $q->where('recipients', 'like', '%"'.$userId.'"%')
                         ->orWhere('recipients', 'like', '%"all"%')
-                        ->orWhere('recipients', 'like', '%"role:' . $this->getUserRole($userId) . '"%');
+                        ->orWhere('recipients', 'like', '%"role:'.$this->getUserRole($userId).'"%');
                 });
             }
 
             $total = $query->count();
             $unread = $query->where('is_read', false)->count();
-            
+
             return [
                 'total' => $total,
                 'unread' => $unread,
@@ -332,7 +332,7 @@ class SakipNotificationService
     /**
      * Send target setting reminder
      */
-    protected function sendTargetSettingReminder($instansiId = null, Carbon $deadline = null): array
+    protected function sendTargetSettingReminder($instansiId = null, ?Carbon $deadline = null): array
     {
         $results = [];
         $instansis = $this->getInstansisWithPendingTargets($instansiId);
@@ -360,7 +360,7 @@ class SakipNotificationService
     /**
      * Send data submission reminder
      */
-    protected function sendDataSubmissionReminder($instansiId = null, Carbon $deadline = null): array
+    protected function sendDataSubmissionReminder($instansiId = null, ?Carbon $deadline = null): array
     {
         $results = [];
         $instansis = $this->getInstansisWithMissingData($instansiId);
@@ -388,7 +388,7 @@ class SakipNotificationService
     /**
      * Send assessment reminder
      */
-    protected function sendAssessmentReminder($instansiId = null, Carbon $deadline = null): array
+    protected function sendAssessmentReminder($instansiId = null, ?Carbon $deadline = null): array
     {
         $results = [];
         $assessments = $this->getPendingAssessments($instansiId);
@@ -417,7 +417,7 @@ class SakipNotificationService
     /**
      * Send report generation reminder
      */
-    protected function sendReportGenerationReminder($instansiId = null, Carbon $deadline = null): array
+    protected function sendReportGenerationReminder($instansiId = null, ?Carbon $deadline = null): array
     {
         $results = [];
         $instansis = $this->getInstansisWithIncompleteReports($instansiId);
@@ -542,7 +542,7 @@ class SakipNotificationService
     protected function generateNotificationContent(NotificationTemplate $template, array $data): array
     {
         $placeholders = $data['data'] ?? [];
-        
+
         return [
             'title' => $this->replacePlaceholders($template->title_template, $placeholders),
             'message' => $this->replacePlaceholders($template->message_template, $placeholders),
@@ -555,9 +555,9 @@ class SakipNotificationService
     protected function replacePlaceholders(string $template, array $placeholders): string
     {
         foreach ($placeholders as $key => $value) {
-            $template = str_replace('{{' . $key . '}}', $value, $template);
+            $template = str_replace('{{'.$key.'}}', $value, $template);
         }
-        
+
         return $template;
     }
 
@@ -607,8 +607,8 @@ class SakipNotificationService
     {
         // Get user emails
         $emails = User::whereIn('id', $recipients)->pluck('email')->toArray();
-        
-        if (!empty($emails)) {
+
+        if (! empty($emails)) {
             // This would typically use Laravel's Mail facade
             // For now, we'll just log it
             Log::info('Email notification sent', [
@@ -630,8 +630,8 @@ class SakipNotificationService
             ->whereNotNull('phone')
             ->pluck('phone')
             ->toArray();
-        
-        if (!empty($phones)) {
+
+        if (! empty($phones)) {
             // This would typically use an SMS service
             // For now, we'll just log it
             Log::info('SMS notification sent', [
@@ -662,7 +662,7 @@ class SakipNotificationService
     protected function getUserRole($userId): string
     {
         $user = User::with('roles')->find($userId);
-        if (!$user) {
+        if (! $user) {
             return 'user';
         }
         // Map approved roles for backward compatibility where a single role string is needed
@@ -672,6 +672,7 @@ class SakipNotificationService
                 return $roleName;
             }
         }
+
         return 'user';
     }
 
@@ -679,12 +680,12 @@ class SakipNotificationService
     {
         $recipients = json_decode($notification->recipients, true) ?? [];
         $user = User::with('roles')->find($userId);
-        if (!$user) {
+        if (! $user) {
             return false;
         }
         $userRoles = $user->roles->pluck('name')->toArray();
-        $roleRecipients = array_filter($recipients, fn($r) => is_string($r) && str_starts_with($r, 'role:'));
-        $roleNames = array_map(fn($r) => substr($r, 5), $roleRecipients);
+        $roleRecipients = array_filter($recipients, fn ($r) => is_string($r) && str_starts_with($r, 'role:'));
+        $roleNames = array_map(fn ($r) => substr($r, 5), $roleRecipients);
 
         return in_array($userId, $recipients, true) ||
                in_array('all', $recipients, true) ||
@@ -694,9 +695,10 @@ class SakipNotificationService
     protected function isUserAdmin($userId): bool
     {
         $user = User::with('roles')->find($userId);
-        if (!$user) {
+        if (! $user) {
             return false;
         }
+
         return $user->hasAnyRole(['superadmin', 'executive']);
     }
 
@@ -753,8 +755,8 @@ class SakipNotificationService
     protected function getSystemAlertRecipients(): array
     {
         return User::whereHas('roles', function ($q) {
-                $q->whereIn('name', ['superadmin', 'executive']);
-            })
+            $q->whereIn('name', ['superadmin', 'executive']);
+        })
             ->pluck('id')
             ->toArray();
     }
@@ -804,7 +806,7 @@ class SakipNotificationService
      */
     protected function getInstansisWithPendingTargets($instansiId = null)
     {
-        return Instansi::when($instansiId, fn($q) => $q->where('id', $instansiId))
+        return Instansi::when($instansiId, fn ($q) => $q->where('id', $instansiId))
             ->whereHas('performanceIndicators', function ($query) {
                 $query->whereDoesntHave('targets', function ($q) {
                     $q->where('target_year', date('Y'))
@@ -819,7 +821,7 @@ class SakipNotificationService
      */
     protected function getInstansisWithMissingData($instansiId = null)
     {
-        return Instansi::when($instansiId, fn($q) => $q->where('id', $instansiId))
+        return Instansi::when($instansiId, fn ($q) => $q->where('id', $instansiId))
             ->whereHas('performanceIndicators', function ($query) {
                 $query->whereDoesntHave('performanceData', function ($q) {
                     $q->where('period_year', date('Y'))
@@ -835,7 +837,7 @@ class SakipNotificationService
      */
     protected function getPendingAssessments($instansiId = null)
     {
-        return Assessment::when($instansiId, fn($q) => $q->where('instansi_id', $instansiId))
+        return Assessment::when($instansiId, fn ($q) => $q->where('instansi_id', $instansiId))
             ->where('status', 'pending')
             ->get();
     }
@@ -845,7 +847,7 @@ class SakipNotificationService
      */
     protected function getInstansisWithIncompleteReports($instansiId = null)
     {
-        return Instansi::when($instansiId, fn($q) => $q->where('id', $instansiId))
+        return Instansi::when($instansiId, fn ($q) => $q->where('id', $instansiId))
             ->whereDoesntHave('reports', function ($query) {
                 $query->where('report_year', date('Y'))
                     ->where('report_period', $this->getCurrentPeriod())
@@ -860,6 +862,7 @@ class SakipNotificationService
     protected function getCurrentPeriod(): string
     {
         $month = date('n');
+
         return $month <= 6 ? 'first_semester' : 'second_semester';
     }
 
@@ -869,7 +872,7 @@ class SakipNotificationService
     protected function validateNotificationData(array $data): \Illuminate\Contracts\Validation\Validator
     {
         return Validator::make($data, [
-            'type' => 'required|string|in:' . implode(',', array_keys($this->notificationTypes)),
+            'type' => 'required|string|in:'.implode(',', array_keys($this->notificationTypes)),
             'title' => 'required|string|max:255',
             'message' => 'required|string|max:2000',
             'data' => 'nullable|array',

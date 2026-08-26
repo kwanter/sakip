@@ -26,7 +26,7 @@ class AccountSettingsController extends Controller
     public function updatePassword(Request $request)
     {
         $user = $request->user();
-        
+
         // SECURITY: Explicit authorization check to prevent account takeover
         $this->authorize('updatePassword', $user);
 
@@ -48,7 +48,7 @@ class AccountSettingsController extends Controller
         }
 
         // Verify current password
-        if (!Hash::check($request->current_password, $user->password)) {
+        if (! Hash::check($request->current_password, $user->password)) {
             return back()
                 ->withErrors(['current_password' => 'Kata sandi saat ini tidak sesuai.'])
                 ->withInput();

@@ -21,7 +21,7 @@ return new class extends Migration
         if ($teams && empty($columnNames['team_foreign_key'])) {
             throw new \Exception('Error: team_foreign_key on config/permission.php not loaded. Run [php artisan config:clear] and try again.');
         }
-        
+
         Schema::disableForeignKeyConstraints();
         Schema::dropIfExists($tableNames['role_has_permissions']);
         Schema::dropIfExists($tableNames['model_has_roles']);
@@ -121,7 +121,7 @@ return new class extends Migration
         app('cache')
             ->store(config('permission.cache.store') != 'default' ? config('permission.cache.store') : null)
             ->forget(config('permission.cache.key'));
-            
+
         Schema::enableForeignKeyConstraints();
     }
 

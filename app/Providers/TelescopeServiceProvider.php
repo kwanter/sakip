@@ -17,8 +17,9 @@ class TelescopeServiceProvider extends ServiceProvider
         }
 
         // Completely disable Telescope in production
-        if ($this->app->environment("production")) {
+        if ($this->app->environment('production')) {
             \Laravel\Telescope\Telescope::stopRecording();
+
             return;
         }
 
@@ -26,7 +27,7 @@ class TelescopeServiceProvider extends ServiceProvider
 
         $this->hideSensitiveRequestDetails();
 
-        $isLocal = $this->app->environment("local");
+        $isLocal = $this->app->environment('local');
 
         \Laravel\Telescope\Telescope::filter(function (\Laravel\Telescope\IncomingEntry $entry) use ($isLocal) {
             return $isLocal ||
@@ -47,27 +48,27 @@ class TelescopeServiceProvider extends ServiceProvider
             return;
         }
 
-        if ($this->app->environment("local")) {
+        if ($this->app->environment('local')) {
             return;
         }
 
         // Hide sensitive request parameters
         \Laravel\Telescope\Telescope::hideRequestParameters([
-            "_token",
-            "password",
-            "password_confirmation",
-            "api_key",
-            "secret",
-            "token",
+            '_token',
+            'password',
+            'password_confirmation',
+            'api_key',
+            'secret',
+            'token',
         ]);
 
         // Hide sensitive headers
         \Laravel\Telescope\Telescope::hideRequestHeaders([
-            "cookie",
-            "x-csrf-token",
-            "x-xsrf-token",
-            "authorization",
-            "php-auth-pw",
+            'cookie',
+            'x-csrf-token',
+            'x-xsrf-token',
+            'authorization',
+            'php-auth-pw',
         ]);
     }
 
@@ -78,10 +79,10 @@ class TelescopeServiceProvider extends ServiceProvider
      */
     protected function gate(): void
     {
-        Gate::define("viewTelescope", function ($user) {
+        Gate::define('viewTelescope', function ($user) {
             // Only allow Super Admin role to access Telescope
             // Add specific admin emails as a secondary check
-            return $user->hasRole("Super Admin") ||
+            return $user->hasRole('Super Admin') ||
                 in_array($user->email, [
                     // Add specific admin emails here in non-production environments
                     // DO NOT commit actual admin emails to version control

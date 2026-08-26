@@ -2,20 +2,14 @@
 
 namespace App\Services;
 
+use App\Models\Assessment;
+use App\Models\EvidenceDocument;
 use App\Models\PerformanceData;
 use App\Models\PerformanceIndicator;
 use App\Models\Target;
-use App\Models\Assessment;
-use App\Models\EvidenceDocument;
-use App\Models\Report;
-use App\Models\Instansi;
-use App\Models\AuditLog;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Log;
-use Carbon\Carbon;
 use Exception;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 /**
  * SAKIP Validation Service
@@ -32,7 +26,7 @@ use Exception;
 class SakipValidationService
 {
     protected $cacheTimeout = 3600; // 1 hour
-    
+
     // Validation rules for different data types
     protected $validationRules = [
         'performance_data' => [
@@ -68,10 +62,10 @@ class SakipValidationService
     /**
      * Validate performance data
      */
-    public function validatePerformanceData(array $data, PerformanceData $performanceData = null): array
+    public function validatePerformanceData(array $data, ?PerformanceData $performanceData = null): array
     {
         $validator = Validator::make($data, $this->validationRules['performance_data']);
-        
+
         if ($validator->fails()) {
             return [
                 'valid' => false,
@@ -86,7 +80,7 @@ class SakipValidationService
         // Validate indicator exists and is active
         if (isset($data['performance_indicator_id'])) {
             $indicator = PerformanceIndicator::find($data['performance_indicator_id']);
-            if (!$indicator) {
+            if (! $indicator) {
                 $errors['performance_indicator_id'] = 'Performance indicator not found';
             } elseif ($indicator->deleted_at !== null) {
                 $errors['performance_indicator_id'] = 'Performance indicator is deleted';
@@ -96,7 +90,7 @@ class SakipValidationService
         // Validate target exists for the period
         if (isset($data['performance_indicator_id']) && isset($data['period_year']) && isset($data['period_month'])) {
             $target = $this->getTargetForPeriod($data['performance_indicator_id'], $data['period_year'], $data['period_month']);
-            if (!$target) {
+            if (! $target) {
                 $warnings['target'] = 'No target set for this period';
             }
         }
@@ -122,10 +116,10 @@ class SakipValidationService
     /**
      * Validate target data
      */
-    public function validateTarget(array $data, Target $target = null): array
+    public function validateTarget(array $data, ?Target $target = null): array
     {
         $validator = Validator::make($data, $this->validationRules['target']);
-        
+
         if ($validator->fails()) {
             return [
                 'valid' => false,
@@ -140,7 +134,7 @@ class SakipValidationService
         // Validate indicator exists and is active
         if (isset($data['performance_indicator_id'])) {
             $indicator = PerformanceIndicator::find($data['performance_indicator_id']);
-            if (!$indicator) {
+            if (! $indicator) {
                 $errors['performance_indicator_id'] = 'Performance indicator not found';
             } else {
                 // Validate target value against indicator constraints
@@ -164,10 +158,10 @@ class SakipValidationService
     /**
      * Validate assessment data
      */
-    public function validateAssessment(array $data, Assessment $assessment = null): array
+    public function validateAssessment(array $data, ?Assessment $assessment = null): array
     {
         $validator = Validator::make($data, $this->validationRules['assessment']);
-        
+
         if ($validator->fails()) {
             return [
                 'valid' => false,
@@ -182,7 +176,7 @@ class SakipValidationService
         // Validate performance data exists and is validated
         if (isset($data['performance_data_id'])) {
             $performanceData = PerformanceData::find($data['performance_data_id']);
-            if (!$performanceData) {
+            if (! $performanceData) {
                 $errors['performance_data_id'] = 'Performance data not found';
             } elseif ($performanceData->validation_status !== 'validated') {
                 $errors['performance_data_id'] = 'Performance data must be validated before assessment';
@@ -209,10 +203,10 @@ class SakipValidationService
     /**
      * Validate evidence document
      */
-    public function validateEvidenceDocument(array $data, EvidenceDocument $document = null): array
+    public function validateEvidenceDocument(array $data, ?EvidenceDocument $document = null): array
     {
         $validator = Validator::make($data, $this->validationRules['evidence_document']);
-        
+
         if ($validator->fails()) {
             return [
                 'valid' => false,
@@ -253,19 +247,20 @@ class SakipValidationService
         foreach ($performanceDataIds as $id) {
             try {
                 $performanceData = PerformanceData::find($id);
-                if (!$performanceData) {
+                if (! $performanceData) {
                     $errors[$id] = 'Performance data not found';
+
                     continue;
                 }
 
                 $validationResult = $this->validatePerformanceData($performanceData->toArray(), $performanceData);
                 $results[$id] = $validationResult;
 
-                if (!$validationResult['valid']) {
+                if (! $validationResult['valid']) {
                     $errors[$id] = $validationResult['errors'];
                 }
 
-                if (!empty($validationResult['warnings'])) {
+                if (! empty($validationResult['warnings'])) {
                     $warnings[$id] = $validationResult['warnings'];
                 }
             } catch (Exception $e) {
@@ -278,8 +273,8 @@ class SakipValidationService
             'errors' => $errors,
             'warnings' => $warnings,
             'total' => count($performanceDataIds),
-            'valid' => count(array_filter($results, fn($r) => $r['valid'])),
-            'invalid' => count(array_filter($results, fn($r) => !$r['valid'])),
+            'valid' => count(array_filter($results, fn ($r) => $r['valid'])),
+            'invalid' => count(array_filter($results, fn ($r) => ! $r['valid'])),
         ];
     }
 
@@ -292,37 +287,37 @@ class SakipValidationService
 
         // Check for orphaned performance data
         $orphanedPerformanceData = $this->checkOrphanedPerformanceData($instansiId);
-        if (!empty($orphanedPerformanceData)) {
+        if (! empty($orphanedPerformanceData)) {
             $issues['orphaned_performance_data'] = $orphanedPerformanceData;
         }
 
         // Check for orphaned targets
         $orphanedTargets = $this->checkOrphanedTargets($instansiId);
-        if (!empty($orphanedTargets)) {
+        if (! empty($orphanedTargets)) {
             $issues['orphaned_targets'] = $orphanedTargets;
         }
 
         // Check for inconsistent assessment scores
         $inconsistentAssessments = $this->checkInconsistentAssessments($instansiId);
-        if (!empty($inconsistentAssessments)) {
+        if (! empty($inconsistentAssessments)) {
             $issues['inconsistent_assessments'] = $inconsistentAssessments;
         }
 
         // Check for missing evidence documents
         $missingEvidence = $this->checkMissingEvidence($instansiId);
-        if (!empty($missingEvidence)) {
+        if (! empty($missingEvidence)) {
             $issues['missing_evidence'] = $missingEvidence;
         }
 
         // Check for duplicate entries
         $duplicates = $this->checkDuplicates($instansiId);
-        if (!empty($duplicates)) {
+        if (! empty($duplicates)) {
             $issues['duplicates'] = $duplicates;
         }
 
         // Check for data completeness
         $incompleteData = $this->checkDataCompleteness($instansiId);
-        if (!empty($incompleteData)) {
+        if (! empty($incompleteData)) {
             $issues['incomplete_data'] = $incompleteData;
         }
 
@@ -407,7 +402,7 @@ class SakipValidationService
         $inconsistencies = [];
 
         // Check achievement calculations
-        $performanceData = PerformanceData::when($instansiId, fn($q) => $q->whereHas('performanceIndicator', fn($q2) => $q2->where('instansi_id', $instansiId)))
+        $performanceData = PerformanceData::when($instansiId, fn ($q) => $q->whereHas('performanceIndicator', fn ($q2) => $q2->where('instansi_id', $instansiId)))
             ->where('validation_status', 'validated')
             ->get();
 
@@ -423,7 +418,7 @@ class SakipValidationService
         }
 
         // Check assessment score calculations
-        $assessments = Assessment::when($instansiId, fn($q) => $q->where('instansi_id', $instansiId))
+        $assessments = Assessment::when($instansiId, fn ($q) => $q->where('instansi_id', $instansiId))
             ->where('status', 'completed')
             ->get();
 
@@ -450,7 +445,7 @@ class SakipValidationService
     protected function getTargetForPeriod($indicatorId, $year, $month): ?Target
     {
         $period = $this->getPeriodFromMonth($month);
-        
+
         return Target::where('performance_indicator_id', $indicatorId)
             ->where('target_year', $year)
             ->where('target_period', $period)
@@ -491,7 +486,7 @@ class SakipValidationService
      */
     protected function validateAgainstHistory(array $data, array &$errors, array &$warnings): void
     {
-        if (!isset($data['performance_indicator_id']) || !isset($data['period_year']) || !isset($data['period_month'])) {
+        if (! isset($data['performance_indicator_id']) || ! isset($data['period_year']) || ! isset($data['period_month'])) {
             return;
         }
 
@@ -572,9 +567,9 @@ class SakipValidationService
     /**
      * Validate target against history
      */
-    protected function validateTargetAgainstHistory(array $data, array &$errors, array &$warnings, Target $target = null): void
+    protected function validateTargetAgainstHistory(array $data, array &$errors, array &$warnings, ?Target $target = null): void
     {
-        if (!isset($data['performance_indicator_id']) || !isset($data['target_year']) || !isset($data['target_period'])) {
+        if (! isset($data['performance_indicator_id']) || ! isset($data['target_year']) || ! isset($data['target_period'])) {
             return;
         }
 
@@ -587,7 +582,7 @@ class SakipValidationService
                         $q->where('target_year', $data['target_year'])
                             ->where('target_period', '!=', $data['target_period']);
                     });
-                
+
                 if ($target) {
                     $query->where('id', '!=', $target->id);
                 }
@@ -600,7 +595,7 @@ class SakipValidationService
         if ($previousTargets->count() > 0 && isset($data['target_value'])) {
             $averageTarget = $previousTargets->avg('target_value');
             $change = abs($data['target_value'] - $averageTarget) / ($averageTarget ?: 1) * 100;
-            
+
             if ($change > 50) {
                 $warnings['target_value'] = 'Target value has significant change from historical values';
             }
@@ -622,7 +617,7 @@ class SakipValidationService
             if ($performanceData && $performanceData->validation_status === 'validated') {
                 $expectedScore = $this->calculateExpectedScore($performanceData);
                 $difference = abs($score - $expectedScore);
-                
+
                 if ($difference > 20) {
                     $warnings['score'] = 'Assessment score significantly differs from expected score based on performance data';
                 }
@@ -636,7 +631,7 @@ class SakipValidationService
     protected function validateEvidenceDocuments(array $documentIds, array &$errors, array &$warnings): void
     {
         $documents = EvidenceDocument::whereIn('id', $documentIds)->get();
-        
+
         if ($documents->count() !== count($documentIds)) {
             $errors['evidence_documents'] = 'Some evidence documents not found';
         }
@@ -679,7 +674,7 @@ class SakipValidationService
      */
     protected function checkOrphanedPerformanceData($instansiId = null)
     {
-        return PerformanceData::when($instansiId, fn($q) => $q->whereHas('performanceIndicator', fn($q2) => $q2->where('instansi_id', $instansiId)))
+        return PerformanceData::when($instansiId, fn ($q) => $q->whereHas('performanceIndicator', fn ($q2) => $q2->where('instansi_id', $instansiId)))
             ->where(function ($query) {
                 $query->whereNull('performance_indicator_id')
                     ->orWhereHas('performanceIndicator', function ($q) {
@@ -695,7 +690,7 @@ class SakipValidationService
      */
     protected function checkOrphanedTargets($instansiId = null)
     {
-        return Target::when($instansiId, fn($q) => $q->where('instansi_id', $instansiId))
+        return Target::when($instansiId, fn ($q) => $q->where('instansi_id', $instansiId))
             ->where(function ($query) {
                 $query->whereNull('performance_indicator_id')
                     ->orWhereHas('performanceIndicator', function ($q) {
@@ -711,7 +706,7 @@ class SakipValidationService
      */
     protected function checkInconsistentAssessments($instansiId = null)
     {
-        return Assessment::when($instansiId, fn($q) => $q->where('instansi_id', $instansiId))
+        return Assessment::when($instansiId, fn ($q) => $q->where('instansi_id', $instansiId))
             ->where('status', 'completed')
             ->where(function ($query) {
                 $query->whereNull('performance_data_id')
@@ -731,24 +726,24 @@ class SakipValidationService
         $missingEvidence = [];
 
         // Performance data without evidence documents
-        $performanceDataWithoutEvidence = PerformanceData::when($instansiId, fn($q) => $q->whereHas('performanceIndicator', fn($q2) => $q2->where('instansi_id', $instansiId)))
+        $performanceDataWithoutEvidence = PerformanceData::when($instansiId, fn ($q) => $q->whereHas('performanceIndicator', fn ($q2) => $q2->where('instansi_id', $instansiId)))
             ->where('validation_status', 'validated')
             ->whereDoesntHave('evidenceDocuments')
             ->pluck('id')
             ->toArray();
 
-        if (!empty($performanceDataWithoutEvidence)) {
+        if (! empty($performanceDataWithoutEvidence)) {
             $missingEvidence['performance_data'] = $performanceDataWithoutEvidence;
         }
 
         // Assessments without evidence documents
-        $assessmentsWithoutEvidence = Assessment::when($instansiId, fn($q) => $q->where('instansi_id', $instansiId))
+        $assessmentsWithoutEvidence = Assessment::when($instansiId, fn ($q) => $q->where('instansi_id', $instansiId))
             ->where('status', 'completed')
             ->whereDoesntHave('evidenceDocuments')
             ->pluck('id')
             ->toArray();
 
-        if (!empty($assessmentsWithoutEvidence)) {
+        if (! empty($assessmentsWithoutEvidence)) {
             $missingEvidence['assessments'] = $assessmentsWithoutEvidence;
         }
 
@@ -775,20 +770,20 @@ class SakipValidationService
             ->pluck('performance_indicator_id')
             ->toArray();
 
-        if (!empty($duplicatePerformanceData)) {
+        if (! empty($duplicatePerformanceData)) {
             $duplicates['performance_data'] = $duplicatePerformanceData;
         }
 
         // Duplicate targets
         $duplicateTargets = DB::table('targets')
-            ->when($instansiId, fn($query) => $query->where('instansi_id', $instansiId))
+            ->when($instansiId, fn ($query) => $query->where('instansi_id', $instansiId))
             ->select('performance_indicator_id', 'target_year', 'target_period', DB::raw('COUNT(*) as count'))
             ->groupBy('performance_indicator_id', 'target_year', 'target_period')
             ->having('count', '>', 1)
             ->pluck('performance_indicator_id')
             ->toArray();
 
-        if (!empty($duplicateTargets)) {
+        if (! empty($duplicateTargets)) {
             $duplicates['targets'] = $duplicateTargets;
         }
 
@@ -803,7 +798,7 @@ class SakipValidationService
         $incompleteData = [];
 
         // Performance data with missing required fields
-        $incompletePerformanceData = PerformanceData::when($instansiId, fn($q) => $q->whereHas('performanceIndicator', fn($q2) => $q2->where('instansi_id', $instansiId)))
+        $incompletePerformanceData = PerformanceData::when($instansiId, fn ($q) => $q->whereHas('performanceIndicator', fn ($q2) => $q2->where('instansi_id', $instansiId)))
             ->where(function ($query) {
                 $query->whereNull('value')
                     ->orWhereNull('data_source')
@@ -812,12 +807,12 @@ class SakipValidationService
             ->pluck('id')
             ->toArray();
 
-        if (!empty($incompletePerformanceData)) {
+        if (! empty($incompletePerformanceData)) {
             $incompleteData['performance_data'] = $incompletePerformanceData;
         }
 
         // Targets with missing required fields
-        $incompleteTargets = Target::when($instansiId, fn($q) => $q->where('instansi_id', $instansiId))
+        $incompleteTargets = Target::when($instansiId, fn ($q) => $q->where('instansi_id', $instansiId))
             ->where(function ($query) {
                 $query->whereNull('target_value')
                     ->orWhereNull('target_year')
@@ -826,7 +821,7 @@ class SakipValidationService
             ->pluck('id')
             ->toArray();
 
-        if (!empty($incompleteTargets)) {
+        if (! empty($incompleteTargets)) {
             $incompleteData['targets'] = $incompleteTargets;
         }
 
@@ -844,7 +839,7 @@ class SakipValidationService
             $performanceData->period_month
         );
 
-        if (!$target) {
+        if (! $target) {
             return 0;
         }
 
@@ -861,7 +856,7 @@ class SakipValidationService
     protected function calculateExpectedScore(PerformanceData $performanceData): float
     {
         $achievement = $this->calculateAchievement($performanceData);
-        
+
         // Simple mapping: 0-100% achievement = 0-100 score
         // This could be more sophisticated based on your scoring criteria
         return min(100, max(0, $achievement));
@@ -901,7 +896,7 @@ class SakipValidationService
     protected function calculateSeverity(array $issues): string
     {
         $totalIssues = count($issues);
-        
+
         if ($totalIssues === 0) {
             return 'none';
         } elseif ($totalIssues <= 5) {

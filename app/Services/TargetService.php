@@ -2,15 +2,13 @@
 
 namespace App\Services;
 
-use App\Models\Target;
-use App\Models\PerformanceIndicator;
-use App\Models\Instansi;
 use App\Models\AuditLog;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Validator;
-use Carbon\Carbon;
+use App\Models\PerformanceIndicator;
+use App\Models\Target;
 use Exception;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 class TargetService
 {
@@ -28,7 +26,7 @@ class TargetService
             // Validate data
             $validator = $this->validateTargetData($data);
             if ($validator->fails()) {
-                throw new Exception('Validation failed: ' . $validator->errors()->first());
+                throw new Exception('Validation failed: '.$validator->errors()->first());
             }
 
             // Check if target already exists for the same indicator and period
@@ -38,7 +36,7 @@ class TargetService
 
             // Get performance indicator
             $indicator = PerformanceIndicator::find($data['performance_indicator_id']);
-            if (!$indicator) {
+            if (! $indicator) {
                 throw new Exception('Performance indicator not found');
             }
 
@@ -92,7 +90,7 @@ class TargetService
             // Validate data
             $validator = $this->validateTargetUpdateData($data, $target);
             if ($validator->fails()) {
-                throw new Exception('Validation failed: ' . $validator->errors()->first());
+                throw new Exception('Validation failed: '.$validator->errors()->first());
             }
 
             // Get performance indicator
@@ -107,7 +105,7 @@ class TargetService
             if (isset($data['target_year']) || isset($data['target_period'])) {
                 $newYear = $data['target_year'] ?? $target->target_year;
                 $newPeriod = $data['target_period'] ?? $target->target_period;
-                
+
                 if ($this->targetExists($target->performance_indicator_id, $newYear, $newPeriod, $target->id)) {
                     throw new Exception('Target already exists for this indicator and period');
                 }
@@ -135,10 +133,10 @@ class TargetService
     /**
      * Approve target
      */
-    public function approveTarget(Target $target, string $approvalStatus, string $notes = null): Target
+    public function approveTarget(Target $target, string $approvalStatus, ?string $notes = null): Target
     {
         return DB::transaction(function () use ($target, $approvalStatus, $notes) {
-            if (!in_array($approvalStatus, ['approved', 'rejected', 'pending'])) {
+            if (! in_array($approvalStatus, ['approved', 'rejected', 'pending'])) {
                 throw new Exception('Invalid approval status');
             }
 
@@ -240,14 +238,14 @@ class TargetService
 
         if (isset($filters['search'])) {
             $query->where(function ($q) use ($filters) {
-                $q->where('target_description', 'like', '%' . $filters['search'] . '%')
-                    ->orWhere('notes', 'like', '%' . $filters['search'] . '%')
+                $q->where('target_description', 'like', '%'.$filters['search'].'%')
+                    ->orWhere('notes', 'like', '%'.$filters['search'].'%')
                     ->orWhereHas('performanceIndicator', function ($q2) use ($filters) {
-                        $q2->where('name', 'like', '%' . $filters['search'] . '%')
-                            ->orWhere('code', 'like', '%' . $filters['search'] . '%');
+                        $q2->where('name', 'like', '%'.$filters['search'].'%')
+                            ->orWhere('code', 'like', '%'.$filters['search'].'%');
                     })
                     ->orWhereHas('instansi', function ($q2) use ($filters) {
-                        $q2->where('name', 'like', '%' . $filters['search'] . '%');
+                        $q2->where('name', 'like', '%'.$filters['search'].'%');
                     });
             });
         }
@@ -344,7 +342,7 @@ class TargetService
                     'target_year' => $targetYear,
                     'target_period' => $targetPeriod,
                     'target_value' => $sourceTarget->target_value,
-                    'target_description' => $sourceTarget->target_description . ' (Copied from ' . $sourceYear . ' ' . $sourcePeriod . ')',
+                    'target_description' => $sourceTarget->target_description.' (Copied from '.$sourceYear.' '.$sourcePeriod.')',
                     'measurement_unit' => $sourceTarget->measurement_unit,
                     'calculation_method' => $sourceTarget->calculation_method,
                     'baseline_value' => $sourceTarget->baseline_value,
@@ -356,7 +354,7 @@ class TargetService
                     'set_by' => auth()->id(),
                     'set_at' => now(),
                     'approval_status' => 'pending',
-                    'notes' => 'Copied from ' . $sourceYear . ' ' . $sourcePeriod,
+                    'notes' => 'Copied from '.$sourceYear.' '.$sourcePeriod,
                 ]);
 
                 $results[] = $newTarget;
@@ -384,10 +382,10 @@ class TargetService
     {
         $cacheKey = "target_statistics_{$instansiId}_{$year}";
         $year = $year ?? date('Y');
-        
+
         return Cache::remember($cacheKey, $this->cacheTimeout, function () use ($instansiId, $year) {
             $query = Target::where('target_year', $year);
-            
+
             if ($instansiId) {
                 $query->where('instansi_id', $instansiId);
             }
@@ -431,7 +429,7 @@ class TargetService
      */
     protected function validateTargetValue($value, PerformanceIndicator $indicator): void
     {
-        if (!is_numeric($value) || $value < 0) {
+        if (! is_numeric($value) || $value < 0) {
             throw new Exception('Target value must be a positive number');
         }
 
@@ -556,13 +554,13 @@ class TargetService
     /**
      * Log activity
      */
-    protected function logActivity(string $action, Target $target, string $description, array $oldValues = null, array $newValues = null): void
+    protected function logActivity(string $action, Target $target, string $description, ?array $oldValues = null, ?array $newValues = null): void
     {
         AuditLog::create([
             'user_id' => auth()->id(),
             'instansi_id' => $target->instansi_id,
             'module' => 'sakip',
-            'activity' => $action . '_target',
+            'activity' => $action.'_target',
             'description' => $description,
             'old_values' => $oldValues,
             'new_values' => $newValues,

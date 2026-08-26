@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests\Sakip;
 
-use App\Constants\ValidationRules;
 use App\Constants\Status;
+use App\Constants\ValidationRules;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -12,15 +12,11 @@ use Illuminate\Validation\Rule;
  *
  * Handles validation for Program create and update operations.
  * Eliminates duplicate validation logic from controllers.
- *
- * @package App\Http\Requests\Sakip
  */
 class ProgramFormRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
-     *
-     * @return bool
      */
     public function authorize(): bool
     {
@@ -52,7 +48,7 @@ class ProgramFormRequest extends FormRequest
             'kode_program' => [
                 'required',
                 'string',
-                'max:' . ValidationRules::CODE_MAX_LENGTH,
+                'max:'.ValidationRules::CODE_MAX_LENGTH,
                 Rule::unique('programs', 'kode_program')
                     ->where('instansi_id', $instansiId)
                     ->ignore($programId),
@@ -60,29 +56,29 @@ class ProgramFormRequest extends FormRequest
             'nama_program' => [
                 'required',
                 'string',
-                'max:' . ValidationRules::NAME_MAX_LENGTH,
+                'max:'.ValidationRules::NAME_MAX_LENGTH,
             ],
             'deskripsi' => [
                 'nullable',
                 'string',
-                'max:' . ValidationRules::LONG_TEXT_MAX_LENGTH,
+                'max:'.ValidationRules::LONG_TEXT_MAX_LENGTH,
             ],
             'status' => [
                 'required',
                 'string',
-                'in:' . Status::DRAFT . ',' . Status::ACTIVE . ',' . Status::COMPLETED,
+                'in:'.Status::DRAFT.','.Status::ACTIVE.','.Status::COMPLETED,
             ],
             'tahun_mulai' => [
                 'required',
                 'integer',
-                'min:' . ValidationRules::MIN_YEAR,
-                'max:' . ValidationRules::MAX_YEAR,
+                'min:'.ValidationRules::MIN_YEAR,
+                'max:'.ValidationRules::MAX_YEAR,
             ],
             'tahun_selesai' => [
                 'required',
                 'integer',
-                'min:' . ValidationRules::MIN_YEAR,
-                'max:' . ValidationRules::MAX_YEAR,
+                'min:'.ValidationRules::MIN_YEAR,
+                'max:'.ValidationRules::MAX_YEAR,
                 'gte:tahun_mulai',
             ],
             'pagu_anggaran' => [
@@ -93,12 +89,12 @@ class ProgramFormRequest extends FormRequest
             'output' => [
                 'nullable',
                 'string',
-                'max:' . ValidationRules::MEDIUM_TEXT_MAX_LENGTH,
+                'max:'.ValidationRules::MEDIUM_TEXT_MAX_LENGTH,
             ],
             'sasaran' => [
                 'nullable',
                 'string',
-                'max:' . ValidationRules::MEDIUM_TEXT_MAX_LENGTH,
+                'max:'.ValidationRules::MEDIUM_TEXT_MAX_LENGTH,
             ],
         ];
     }

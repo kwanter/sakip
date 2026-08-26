@@ -14,11 +14,13 @@ class LoginController extends Controller
     public function show()
     {
         if (Auth::check()) {
-            if (!Auth::user()->hasVerifiedEmail()) {
+            if (! Auth::user()->hasVerifiedEmail()) {
                 return redirect()->route('verification.notice');
             }
+
             return redirect()->route('sakip.dashboard');
         }
+
         return view('auth.login');
     }
 
@@ -35,9 +37,10 @@ class LoginController extends Controller
         // Attempt to authenticate and regenerate session for security
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
-            if (!Auth::user()->hasVerifiedEmail()) {
+            if (! Auth::user()->hasVerifiedEmail()) {
                 return redirect()->route('verification.notice');
             }
+
             return redirect()->intended(route('sakip.dashboard'));
         }
 

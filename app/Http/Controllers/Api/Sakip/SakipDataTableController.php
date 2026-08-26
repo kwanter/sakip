@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Log;
 class SakipDataTableController extends Controller
 {
     protected $sakipService;
+
     protected $dataTableService;
 
     /**
@@ -35,13 +36,12 @@ class SakipDataTableController extends Controller
     /**
      * Get data table configuration.
      *
-     * @param string $type The data table type
-     * @return \Illuminate\Http\JsonResponse
+     * @param  string  $type  The data table type
      */
     public function configuration(string $type): \Illuminate\Http\JsonResponse
     {
         return $this->handleDataTableRequest(
-            fn() => $this->dataTableService->getDataTableConfig($type),
+            fn () => $this->dataTableService->getDataTableConfig($type),
             'data',
             'Failed to fetch data table configuration'
         );
@@ -49,9 +49,6 @@ class SakipDataTableController extends Controller
 
     /**
      * Process indicators data table.
-     *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\JsonResponse
      */
     public function indicators(Request $request): \Illuminate\Http\JsonResponse
     {
@@ -60,9 +57,6 @@ class SakipDataTableController extends Controller
 
     /**
      * Process programs data table.
-     *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\JsonResponse
      */
     public function programs(Request $request): \Illuminate\Http\JsonResponse
     {
@@ -71,9 +65,6 @@ class SakipDataTableController extends Controller
 
     /**
      * Process activities data table.
-     *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\JsonResponse
      */
     public function activities(Request $request): \Illuminate\Http\JsonResponse
     {
@@ -82,9 +73,6 @@ class SakipDataTableController extends Controller
 
     /**
      * Process reports data table.
-     *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\JsonResponse
      */
     public function reports(Request $request): \Illuminate\Http\JsonResponse
     {
@@ -94,13 +82,11 @@ class SakipDataTableController extends Controller
     /**
      * Export data table data.
      *
-     * @param \Illuminate\Http\Request $request
-     * @param string $type The data table type
-     * @return \Illuminate\Http\JsonResponse
+     * @param  string  $type  The data table type
      */
     public function export(Request $request, string $type): \Illuminate\Http\JsonResponse
     {
-        if (!in_array($type, self::ALLOWED_TYPES, true)) {
+        if (! in_array($type, self::ALLOWED_TYPES, true)) {
             return $this->errorResponse('Invalid data table type.', 400);
         }
 
@@ -132,18 +118,16 @@ class SakipDataTableController extends Controller
      * This method eliminates code duplication by providing a single
      * implementation for all data table types.
      *
-     * @param \Illuminate\Http\Request $request
-     * @param string $type The data table type
-     * @return \Illuminate\Http\JsonResponse
+     * @param  string  $type  The data table type
      */
     protected function processDataTable(Request $request, string $type): \Illuminate\Http\JsonResponse
     {
-        if (!in_array($type, self::ALLOWED_TYPES, true)) {
+        if (! in_array($type, self::ALLOWED_TYPES, true)) {
             return $this->errorResponse('Invalid data table type.', 400);
         }
 
         return $this->handleDataTableRequest(
-            fn() => $this->dataTableService->processRequest($request, $type),
+            fn () => $this->dataTableService->processRequest($request, $type),
             'data',
             "Failed to process {$type} data table"
         );
@@ -152,10 +136,9 @@ class SakipDataTableController extends Controller
     /**
      * Handle data table requests with unified error handling.
      *
-     * @param callable $callback The operation to execute
-     * @param string $dataKey The key for the data in the response
-     * @param string $errorMessage Error message for failures
-     * @return \Illuminate\Http\JsonResponse
+     * @param  callable  $callback  The operation to execute
+     * @param  string  $dataKey  The key for the data in the response
+     * @param  string  $errorMessage  Error message for failures
      */
     protected function handleDataTableRequest(
         callable $callback,
@@ -186,8 +169,8 @@ class SakipDataTableController extends Controller
     /**
      * Format data for export.
      *
-     * @param array $data The raw data to format
-     * @param string $type The data table type
+     * @param  array  $data  The raw data to format
+     * @param  string  $type  The data table type
      * @return array Formatted data with headers
      */
     protected function formatExportData(array $data, string $type): array
@@ -212,7 +195,7 @@ class SakipDataTableController extends Controller
     /**
      * Get export headers for a specific data table type.
      *
-     * @param string $type The data table type
+     * @param  string  $type  The data table type
      * @return array The export headers mapping
      */
     protected function getExportHeaders(string $type): array

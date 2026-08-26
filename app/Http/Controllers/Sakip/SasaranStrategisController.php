@@ -3,11 +3,9 @@
 namespace App\Http\Controllers\Sakip;
 
 use App\Http\Controllers\Controller;
-use App\Models\SasaranStrategis;
 use App\Models\Instansi;
+use App\Models\SasaranStrategis;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth;
 
 class SasaranStrategisController extends Controller
 {
@@ -89,7 +87,8 @@ class SasaranStrategisController extends Controller
                 ->route('sakip.sasaran-strategis.index')
                 ->with('success', 'Sasaran Strategis berhasil ditambahkan.');
         } catch (\Exception $e) {
-            \Log::error('Error creating sasaran strategis: ' . $e->getMessage());
+            \Log::error('Error creating sasaran strategis: '.$e->getMessage());
+
             return back()
                 ->withInput()
                 ->with('error', 'Terjadi kesalahan saat menyimpan data sasaran strategis.');
@@ -129,7 +128,7 @@ class SasaranStrategisController extends Controller
 
         $validated = $request->validate([
             'instansi_id' => 'required|exists:instansis,id',
-            'kode_sasaran_strategis' => 'required|string|max:255|unique:sasaran_strategis,kode_sasaran_strategis,' . $sasaranStrategis->id,
+            'kode_sasaran_strategis' => 'required|string|max:255|unique:sasaran_strategis,kode_sasaran_strategis,'.$sasaranStrategis->id,
             'nama_strategis' => 'required|string|max:255',
             'deskripsi' => 'nullable|string',
             'status' => 'required|in:aktif,nonaktif',
@@ -142,7 +141,8 @@ class SasaranStrategisController extends Controller
                 ->route('sakip.sasaran-strategis.index')
                 ->with('success', 'Sasaran Strategis berhasil diperbarui.');
         } catch (\Exception $e) {
-            \Log::error('Error updating sasaran strategis: ' . $e->getMessage());
+            \Log::error('Error updating sasaran strategis: '.$e->getMessage());
+
             return back()
                 ->withInput()
                 ->with('error', 'Terjadi kesalahan saat memperbarui data sasaran strategis.');
@@ -170,7 +170,8 @@ class SasaranStrategisController extends Controller
                 ->route('sakip.sasaran-strategis.index')
                 ->with('success', 'Sasaran Strategis berhasil dihapus.');
         } catch (\Exception $e) {
-            \Log::error('Error deleting sasaran strategis: ' . $e->getMessage());
+            \Log::error('Error deleting sasaran strategis: '.$e->getMessage());
+
             return back()->with('error', 'Terjadi kesalahan saat menghapus sasaran strategis.');
         }
     }

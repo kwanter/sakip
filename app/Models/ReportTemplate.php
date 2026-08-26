@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 /**
  * ReportTemplate Model
@@ -22,7 +22,7 @@ class ReportTemplate extends Model
      *
      * @var string
      */
-    protected $table = "report_templates";
+    protected $table = 'report_templates';
 
     /**
      * The attributes that are mass assignable.
@@ -30,16 +30,16 @@ class ReportTemplate extends Model
      * @var array<string>
      */
     protected $fillable = [
-        "name",
-        "description",
-        "module",
-        "type",
-        "content",
-        "template_file",
-        "instansi_id",
-        "is_active",
-        "created_by",
-        "updated_by",
+        'name',
+        'description',
+        'module',
+        'type',
+        'content',
+        'template_file',
+        'instansi_id',
+        'is_active',
+        'created_by',
+        'updated_by',
     ];
 
     /**
@@ -48,13 +48,13 @@ class ReportTemplate extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        "instansi_id" => "string",
-        "created_by" => "string",
-        "updated_by" => "string",
-        "is_active" => "boolean",
-        "created_at" => "datetime",
-        "updated_at" => "datetime",
-        "deleted_at" => "datetime",
+        'instansi_id' => 'string',
+        'created_by' => 'string',
+        'updated_by' => 'string',
+        'is_active' => 'boolean',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+        'deleted_at' => 'datetime',
     ];
 
     /**
@@ -62,7 +62,7 @@ class ReportTemplate extends Model
      */
     public function instansi()
     {
-        return $this->belongsTo(Instansi::class, "instansi_id");
+        return $this->belongsTo(Instansi::class, 'instansi_id');
     }
 
     /**
@@ -70,7 +70,7 @@ class ReportTemplate extends Model
      */
     public function creator()
     {
-        return $this->belongsTo(User::class, "created_by");
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     /**
@@ -78,7 +78,7 @@ class ReportTemplate extends Model
      */
     public function updater()
     {
-        return $this->belongsTo(User::class, "updated_by");
+        return $this->belongsTo(User::class, 'updated_by');
     }
 
     /**
@@ -86,7 +86,7 @@ class ReportTemplate extends Model
      */
     public function reports()
     {
-        return $this->hasMany(Report::class, "template_id");
+        return $this->hasMany(Report::class, 'template_id');
     }
 
     /**
@@ -94,7 +94,7 @@ class ReportTemplate extends Model
      */
     public function scopeActive($query)
     {
-        return $query->where("is_active", true);
+        return $query->where('is_active', true);
     }
 
     /**
@@ -102,7 +102,7 @@ class ReportTemplate extends Model
      */
     public function scopeByModule($query, $module)
     {
-        return $query->where("module", $module);
+        return $query->where('module', $module);
     }
 
     /**
@@ -110,7 +110,7 @@ class ReportTemplate extends Model
      */
     public function scopeByType($query, $type)
     {
-        return $query->where("type", $type);
+        return $query->where('type', $type);
     }
 
     /**
@@ -119,7 +119,7 @@ class ReportTemplate extends Model
     public function scopeByInstansi($query, $instansiId)
     {
         return $query->where(function ($q) use ($instansiId) {
-            $q->where("instansi_id", $instansiId)->orWhereNull("instansi_id");
+            $q->where('instansi_id', $instansiId)->orWhereNull('instansi_id');
         });
     }
 
@@ -128,7 +128,7 @@ class ReportTemplate extends Model
      */
     public function isAvailableFor($instansiId = null)
     {
-        if (!$this->is_active) {
+        if (! $this->is_active) {
             return false;
         }
 
@@ -151,7 +151,7 @@ class ReportTemplate extends Model
         }
 
         foreach ($variables as $key => $value) {
-            $content = str_replace("{{" . $key . "}}", $value, $content);
+            $content = str_replace('{{'.$key.'}}', $value, $content);
         }
 
         return $content;

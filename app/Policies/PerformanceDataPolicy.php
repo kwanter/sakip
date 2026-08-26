@@ -12,8 +12,8 @@ class PerformanceDataPolicy
 
     public function viewAny(User $user)
     {
-        return $user->can("view-data-collection-forms")
-            || $user->can("view-performance-data");
+        return $user->can('view-data-collection-forms')
+            || $user->can('view-performance-data');
     }
 
     public function view(User $user, PerformanceData $performanceData)
@@ -22,7 +22,7 @@ class PerformanceDataPolicy
             return false;
         }
 
-        if ($user->can("view-data-collection-forms") || $user->can("view-performance-data")) {
+        if ($user->can('view-data-collection-forms') || $user->can('view-performance-data')) {
             return true;
         }
 
@@ -32,7 +32,7 @@ class PerformanceDataPolicy
 
     public function create(User $user)
     {
-        return $user->can("enter-and-submit-data-records");
+        return $user->can('enter-and-submit-data-records');
     }
 
     public function update(User $user, PerformanceData $performanceData)
@@ -41,25 +41,25 @@ class PerformanceDataPolicy
             return false;
         }
 
-        return $user->can("edit-own-data-submissions")
+        return $user->can('edit-own-data-submissions')
             && ($performanceData->created_by === $user->id
                 || $performanceData->submitted_by === $user->id);
     }
 
     public function delete(User $user, PerformanceData $performanceData)
     {
-        return $user->can("manage-high-level-settings")
+        return $user->can('manage-high-level-settings')
             && $this->sameTenant($user, $performanceData->instansi_id);
     }
 
     private function sameTenant(User $user, ?string $instansiId): bool
     {
-        if ($user->hasRole("Super Admin")) {
+        if ($user->hasRole('Super Admin')) {
             return true;
         }
 
         if ($user->instansi_id === null) {
-            return $user->hasAnyRole(["Executive", "Auditor"]);
+            return $user->hasAnyRole(['Executive', 'Auditor']);
         }
 
         return $user->instansi_id === $instansiId;

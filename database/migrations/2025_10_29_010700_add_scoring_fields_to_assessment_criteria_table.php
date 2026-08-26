@@ -4,7 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      *
@@ -12,18 +13,18 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::table("assessment_criteria", function (Blueprint $table) {
+        Schema::table('assessment_criteria', function (Blueprint $table) {
             // Check if score column doesn't exist (it's already in the create migration)
-            if (!Schema::hasColumn("assessment_criteria", "score")) {
+            if (! Schema::hasColumn('assessment_criteria', 'score')) {
                 $table
-                    ->decimal("score", 5, 2)
+                    ->decimal('score', 5, 2)
                     ->nullable()
-                    ->after("criteria_name");
+                    ->after('criteria_name');
             }
 
             // Check if weight column doesn't exist (it's already in the create migration)
-            if (!Schema::hasColumn("assessment_criteria", "weight")) {
-                $table->decimal("weight", 5, 2)->default(1.0)->after("score");
+            if (! Schema::hasColumn('assessment_criteria', 'weight')) {
+                $table->decimal('weight', 5, 2)->default(1.0)->after('score');
             }
         });
     }

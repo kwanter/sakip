@@ -8,7 +8,7 @@ use Illuminate\Auth\Access\HandlesAuthorization;
 class UserPolicy
 {
     use HandlesAuthorization;
-    
+
     /**
      * Determine whether the user can view any models.
      */
@@ -16,7 +16,7 @@ class UserPolicy
     {
         return $user->can('manage-users');
     }
-    
+
     /**
      * Determine whether the user can view the model.
      */
@@ -24,7 +24,7 @@ class UserPolicy
     {
         return $user->can('manage-users') || $user->id === $model->id;
     }
-    
+
     /**
      * Determine whether the user can create models.
      */
@@ -32,7 +32,7 @@ class UserPolicy
     {
         return $user->can('manage-users');
     }
-    
+
     /**
      * Determine whether the user can update the model.
      */
@@ -40,7 +40,7 @@ class UserPolicy
     {
         return $user->can('manage-users') || $user->id === $model->id;
     }
-    
+
     /**
      * Determine whether the user can delete the model.
      */
@@ -50,10 +50,10 @@ class UserPolicy
         if ($user->id === $model->id) {
             return false;
         }
-        
+
         return $user->can('manage-users');
     }
-    
+
     /**
      * Determine whether the user can restore the model.
      */
@@ -61,7 +61,7 @@ class UserPolicy
     {
         return $user->can('manage-users');
     }
-    
+
     /**
      * Determine whether the user can permanently delete the model.
      */
@@ -71,10 +71,10 @@ class UserPolicy
         if ($user->id === $model->id) {
             return false;
         }
-        
+
         return $user->can('manage-users');
     }
-    
+
     /**
      * Determine whether the user can assign roles.
      */
@@ -82,7 +82,7 @@ class UserPolicy
     {
         return $user->can('manage-roles');
     }
-    
+
     /**
      * Determine whether the user can assign permissions.
      */
@@ -90,7 +90,7 @@ class UserPolicy
     {
         return $user->can('manage-roles');
     }
-    
+
     /**
      * Determine whether the user can view audit logs.
      */
@@ -98,7 +98,7 @@ class UserPolicy
     {
         return $user->can('manage-settings');
     }
-    
+
     /**
      * Determine whether the user can manage system settings.
      */
@@ -106,7 +106,7 @@ class UserPolicy
     {
         return $user->hasPermission('admin.settings.manage') || $user->isAdmin();
     }
-    
+
     /**
      * Determine whether the user can access the admin dashboard.
      */
@@ -114,7 +114,7 @@ class UserPolicy
     {
         return $user->hasPermission('admin.dashboard') || $user->isAdmin();
     }
-    
+
     /**
      * Determine whether the user can impersonate other users.
      */
@@ -124,10 +124,10 @@ class UserPolicy
         if ($user->id === $model->id || $model->isAdmin()) {
             return false;
         }
-        
+
         return $user->hasPermission('admin.users.impersonate') || $user->isAdmin();
     }
-    
+
     /**
      * Determine whether the user can manage user sessions.
      */
@@ -135,7 +135,7 @@ class UserPolicy
     {
         return $user->hasPermission('admin.users.sessions') || $user->isAdmin();
     }
-    
+
     /**
      * Determine whether the user can export user data.
      */
@@ -143,7 +143,7 @@ class UserPolicy
     {
         return $user->hasPermission('admin.users.export') || $user->isAdmin();
     }
-    
+
     /**
      * Determine whether the user can import user data.
      */

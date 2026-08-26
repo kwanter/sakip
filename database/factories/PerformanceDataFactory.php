@@ -2,9 +2,9 @@
 
 namespace Database\Factories;
 
+use App\Models\Instansi;
 use App\Models\PerformanceData;
 use App\Models\PerformanceIndicator;
-use App\Models\Instansi;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -29,12 +29,12 @@ class PerformanceDataFactory extends Factory
     {
         $currentYear = date('Y');
         $periods = [
-            $currentYear . '-01', // January
-            $currentYear . '-02', // February
-            $currentYear . '-03', // March
-            $currentYear . '-04', // April
-            $currentYear . '-05', // May
-            $currentYear . '-06', // June
+            $currentYear.'-01', // January
+            $currentYear.'-02', // February
+            $currentYear.'-03', // March
+            $currentYear.'-04', // April
+            $currentYear.'-05', // May
+            $currentYear.'-06', // June
         ];
 
         $actualValue = fake()->randomFloat(2, 40, 120); // 40% to 120% of typical target

@@ -2,11 +2,10 @@
 
 namespace App\Services;
 
-use App\Models\Report;
 use App\Models\PerformanceData;
-use App\Models\Instansi;
-use Illuminate\Support\Facades\DB;
+use App\Models\Report;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Report Calculation Service
@@ -20,8 +19,8 @@ class ReportCalculationService
     /**
      * Calculate report statistics for a user and year
      *
-     * @param mixed $user User instance
-     * @param int $year Year to get statistics for
+     * @param  mixed  $user  User instance
+     * @param  int  $year  Year to get statistics for
      * @return array Statistics array with totals and breakdowns
      */
     public function getReportStatistics($user, int $year): array
@@ -29,10 +28,10 @@ class ReportCalculationService
         $query = Report::whereYear('period', $year);
 
         // Apply role-based filtering
-        if (!$user->hasRole('superadmin')) {
+        if (! $user->hasRole('superadmin')) {
             $query->where(function ($q) use ($user) {
                 $q->where('created_by', $user->id)
-                  ->orWhere('instansi_id', $user->instansi_id);
+                    ->orWhere('instansi_id', $user->instansi_id);
             });
         }
 
@@ -63,7 +62,7 @@ class ReportCalculationService
     /**
      * Calculate comprehensive report summary statistics
      *
-     * @param Report $report Report instance with loaded indicators
+     * @param  Report  $report  Report instance with loaded indicators
      * @return array Summary statistics
      */
     public function calculateReportSummary(Report $report): array
@@ -102,7 +101,7 @@ class ReportCalculationService
     /**
      * Get monthly performance trends for a report
      *
-     * @param Report $report Report instance
+     * @param  Report  $report  Report instance
      * @return array Monthly trend data
      */
     public function getReportTrends(Report $report): array
@@ -135,7 +134,7 @@ class ReportCalculationService
     /**
      * Get benchmark comparisons for a report
      *
-     * @param Report $report Report instance
+     * @param  Report  $report  Report instance
      * @return array Benchmark data (institution, regional, national)
      */
     public function getReportBenchmarks(Report $report): array
@@ -153,8 +152,8 @@ class ReportCalculationService
     /**
      * Calculate institution's average performance
      *
-     * @param int $instansiId Institution ID
-     * @param int $year Year to calculate for
+     * @param  int  $instansiId  Institution ID
+     * @param  int  $year  Year to calculate for
      * @return float Average performance percentage
      */
     public function calculateInstitutionPerformance(int $instansiId, int $year): float
@@ -169,8 +168,8 @@ class ReportCalculationService
     /**
      * Calculate regional average performance
      *
-     * @param int $instansiId Institution ID to determine region
-     * @param int $year Year to calculate for
+     * @param  int  $instansiId  Institution ID to determine region
+     * @param  int  $year  Year to calculate for
      * @return float Regional average performance percentage
      */
     public function calculateRegionalPerformance(int $instansiId, int $year): float
@@ -190,7 +189,7 @@ class ReportCalculationService
     /**
      * Calculate national average performance
      *
-     * @param int $year Year to calculate for
+     * @param  int  $year  Year to calculate for
      * @return float National average performance percentage
      */
     public function calculateNationalPerformance(int $year): float
@@ -202,7 +201,7 @@ class ReportCalculationService
     /**
      * Get comprehensive report data including summary, trends, and benchmarks
      *
-     * @param Report $report Report instance
+     * @param  Report  $report  Report instance
      * @return array Complete report data
      */
     public function getReportData(Report $report): array
@@ -217,7 +216,7 @@ class ReportCalculationService
                 'benchmarks' => $this->getReportBenchmarks($report),
             ];
         } catch (\Exception $e) {
-            \Log::error('Get report data error: ' . $e->getMessage());
+            \Log::error('Get report data error: '.$e->getMessage());
             throw $e;
         }
     }

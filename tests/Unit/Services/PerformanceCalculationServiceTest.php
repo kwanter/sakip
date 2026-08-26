@@ -2,12 +2,11 @@
 
 namespace Tests\Unit\Services;
 
-use Tests\TestCase;
-use App\Services\PerformanceCalculationService;
 use App\Models\PerformanceIndicator;
 use App\Models\Target;
-use App\Models\PerformanceData;
+use App\Services\PerformanceCalculationService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 class PerformanceCalculationServiceTest extends TestCase
 {
@@ -18,7 +17,7 @@ class PerformanceCalculationServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->service = new PerformanceCalculationService();
+        $this->service = new PerformanceCalculationService;
     }
 
     /** @test */

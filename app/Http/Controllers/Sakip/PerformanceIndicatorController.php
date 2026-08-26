@@ -3,17 +3,17 @@
 namespace App\Http\Controllers\Sakip;
 
 use App\Http\Controllers\Controller;
-use App\Models\PerformanceIndicator;
-use App\Models\Target;
-use App\Models\Instansi;
-use App\Models\AuditLog;
 use App\Http\Requests\Sakip\StorePerformanceIndicatorRequest;
 use App\Http\Requests\Sakip\UpdatePerformanceIndicatorRequest;
+use App\Models\AuditLog;
+use App\Models\Instansi;
+use App\Models\PerformanceIndicator;
+use App\Models\Target;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
-use Carbon\Carbon;
 
 /**
  * Performance Indicator Controller
@@ -28,58 +28,58 @@ class PerformanceIndicatorController extends Controller
      */
     public function index(Request $request)
     {
-        $this->authorize("viewAny", PerformanceIndicator::class);
+        $this->authorize('viewAny', PerformanceIndicator::class);
 
         try {
             $user = Auth::user();
             $instansiId = $user->instansi_id;
 
             $query = PerformanceIndicator::with([
-                "instansi",
-                "targets",
-                "creator",
-                "updater",
+                'instansi',
+                'targets',
+                'creator',
+                'updater',
             ])->when($instansiId, function ($q) use ($instansiId) {
-                return $q->where("instansi_id", $instansiId);
+                return $q->where('instansi_id', $instansiId);
             });
 
             // Apply filters
-            if ($request->filled("search")) {
-                $search = $request->get("search");
+            if ($request->filled('search')) {
+                $search = $request->get('search');
                 $query->where(function ($q) use ($search) {
-                    $q->where("name", "like", "%{$search}%")
-                        ->orWhere("code", "like", "%{$search}%")
-                        ->orWhere("description", "like", "%{$search}%");
+                    $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('code', 'like', "%{$search}%")
+                        ->orWhere('description', 'like', "%{$search}%");
                 });
             }
 
-            if ($request->filled("category")) {
-                $query->where("category", $request->get("category"));
+            if ($request->filled('category')) {
+                $query->where('category', $request->get('category'));
             }
 
-            if ($request->filled("frequency")) {
-                $query->where("frequency", $request->get("frequency"));
+            if ($request->filled('frequency')) {
+                $query->where('frequency', $request->get('frequency'));
             }
 
-            if ($request->filled("is_mandatory")) {
-                $query->where("is_mandatory", $request->get("is_mandatory"));
+            if ($request->filled('is_mandatory')) {
+                $query->where('is_mandatory', $request->get('is_mandatory'));
             }
 
-            if ($request->filled("status")) {
-                $status = $request->get("status");
-                if ($status === "with_targets") {
-                    $query->has("targets");
-                } elseif ($status === "without_targets") {
-                    $query->doesntHave("targets");
-                } elseif ($status === "with_data") {
-                    $query->has("performanceData");
-                } elseif ($status === "without_data") {
-                    $query->doesntHave("performanceData");
+            if ($request->filled('status')) {
+                $status = $request->get('status');
+                if ($status === 'with_targets') {
+                    $query->has('targets');
+                } elseif ($status === 'without_targets') {
+                    $query->doesntHave('targets');
+                } elseif ($status === 'with_data') {
+                    $query->has('performanceData');
+                } elseif ($status === 'without_data') {
+                    $query->doesntHave('performanceData');
                 }
             }
 
             $indicators = $query
-                ->orderBy("created_at", "desc")
+                ->orderBy('created_at', 'desc')
                 ->paginate(15)
                 ->appends($request->query());
 
@@ -87,16 +87,17 @@ class PerformanceIndicatorController extends Controller
             $statistics = $this->getStatistics($instansiId);
 
             return view(
-                "sakip.indicators.index",
-                compact("indicators", "statistics"),
+                'sakip.indicators.index',
+                compact('indicators', 'statistics'),
             );
         } catch (\Exception $e) {
             \Log::error(
-                "Performance indicators index error: " . $e->getMessage(),
+                'Performance indicators index error: '.$e->getMessage(),
             );
+
             return back()->with(
-                "error",
-                "Terjadi kesalahan saat memuat daftar indikator kinerja.",
+                'error',
+                'Terjadi kesalahan saat memuat daftar indikator kinerja.',
             );
         }
     }
@@ -106,14 +107,14 @@ class PerformanceIndicatorController extends Controller
      */
     public function create()
     {
-        $this->authorize("create", PerformanceIndicator::class);
+        $this->authorize('create', PerformanceIndicator::class);
 
         try {
             $user = Auth::user();
 
             // Get all active instansi for dropdown (especially for Super Admin)
-            $instansis = Instansi::where("status", "aktif")
-                ->orderBy("nama_instansi")
+            $instansis = Instansi::where('status', 'aktif')
+                ->orderBy('nama_instansi')
                 ->get();
 
             // Get current user's instansi if exists
@@ -127,22 +128,23 @@ class PerformanceIndicatorController extends Controller
             $collectionMethods = $this->getCollectionMethods();
 
             return view(
-                "sakip.indicators.create",
+                'sakip.indicators.create',
                 compact(
-                    "instansis",
-                    "userInstansi",
-                    "categories",
-                    "frequencies",
-                    "collectionMethods",
+                    'instansis',
+                    'userInstansi',
+                    'categories',
+                    'frequencies',
+                    'collectionMethods',
                 ),
             );
         } catch (\Exception $e) {
             \Log::error(
-                "Performance indicator create form error: " . $e->getMessage(),
+                'Performance indicator create form error: '.$e->getMessage(),
             );
+
             return back()->with(
-                "error",
-                "Terjadi kesalahan saat memuat formulir pembuatan indikator.",
+                'error',
+                'Terjadi kesalahan saat memuat formulir pembuatan indikator.',
             );
         }
     }
@@ -152,7 +154,7 @@ class PerformanceIndicatorController extends Controller
      */
     public function store(StorePerformanceIndicatorRequest $request)
     {
-        $this->authorize("create", PerformanceIndicator::class);
+        $this->authorize('create', PerformanceIndicator::class);
 
         DB::beginTransaction();
         try {
@@ -160,104 +162,105 @@ class PerformanceIndicatorController extends Controller
 
             // Generate unique code if not provided
             $code =
-                $request->get("code") ?:
-                $this->generateCode($request->get("name"));
+                $request->get('code') ?:
+                $this->generateCode($request->get('name'));
 
             // Determine instansi_id: use user's instansi_id or from request (for Super Admin)
-            $instansiId = $user->instansi_id ?? $request->get("instansi_id");
+            $instansiId = $user->instansi_id ?? $request->get('instansi_id');
 
             // Validate that instansi_id is provided
-            if (!$instansiId) {
-                throw new \Exception("Instansi ID harus diisi.");
+            if (! $instansiId) {
+                throw new \Exception('Instansi ID harus diisi.');
             }
 
             // Create the indicator
             $indicator = PerformanceIndicator::create([
-                "instansi_id" => $instansiId,
-                "code" => $code,
-                "name" => $request->get("name"),
-                "description" => $request->get("description"),
-                "measurement_unit" => $request->get("measurement_unit"),
-                "measurement_type" => $request->get("measurement_type"),
-                "sasaran_strategis_id" => $request->get("sasaran_strategis_id"),
-                "program_id" => $request->get("program_id"),
-                "kegiatan_id" => $request->get("kegiatan_id"),
-                "data_source" => $request->get("data_source"),
-                "collection_method" => $request->get("collection_method"),
-                "calculation_formula" => $request->get("calculation_formula"),
-                "frequency" => $request->get("frequency"),
-                "category" => $request->get("category"),
-                "weight" => $request->get("weight", 0),
-                "is_mandatory" => $request->get("is_mandatory", false),
-                "metadata" => $request->get("metadata", []),
-                "created_by" => $user->id,
-                "updated_by" => $user->id,
+                'instansi_id' => $instansiId,
+                'code' => $code,
+                'name' => $request->get('name'),
+                'description' => $request->get('description'),
+                'measurement_unit' => $request->get('measurement_unit'),
+                'measurement_type' => $request->get('measurement_type'),
+                'sasaran_strategis_id' => $request->get('sasaran_strategis_id'),
+                'program_id' => $request->get('program_id'),
+                'kegiatan_id' => $request->get('kegiatan_id'),
+                'data_source' => $request->get('data_source'),
+                'collection_method' => $request->get('collection_method'),
+                'calculation_formula' => $request->get('calculation_formula'),
+                'frequency' => $request->get('frequency'),
+                'category' => $request->get('category'),
+                'weight' => $request->get('weight', 0),
+                'is_mandatory' => $request->get('is_mandatory', false),
+                'metadata' => $request->get('metadata', []),
+                'created_by' => $user->id,
+                'updated_by' => $user->id,
             ]);
 
             // Create targets from the request
             // PERFORMANCE: Use bulk insert to avoid N+1 query problem
-            if ($request->has("targets")) {
+            if ($request->has('targets')) {
                 $targetsData = [];
                 $now = now();
-                
-                foreach ($request->get("targets") as $targetData) {
+
+                foreach ($request->get('targets') as $targetData) {
                     // Skip empty target rows
                     if (
-                        !isset($targetData["year"]) ||
-                        !isset($targetData["target_value"])
+                        ! isset($targetData['year']) ||
+                        ! isset($targetData['target_value'])
                     ) {
                         continue;
                     }
 
                     $targetsData[] = [
-                        "performance_indicator_id" => $indicator->id,
-                        "year" => $targetData["year"],
-                        "target_value" => $targetData["target_value"],
-                        "minimum_value" => $targetData["minimum_value"] ?? null,
-                        "justification" => $targetData["justification"] ?? null,
-                        "status" => "draft",
-                        "created_by" => $user->id,
-                        "updated_by" => $user->id,
-                        "created_at" => $now,
-                        "updated_at" => $now,
+                        'performance_indicator_id' => $indicator->id,
+                        'year' => $targetData['year'],
+                        'target_value' => $targetData['target_value'],
+                        'minimum_value' => $targetData['minimum_value'] ?? null,
+                        'justification' => $targetData['justification'] ?? null,
+                        'status' => 'draft',
+                        'created_by' => $user->id,
+                        'updated_by' => $user->id,
+                        'created_at' => $now,
+                        'updated_at' => $now,
                     ];
                 }
-                
+
                 // Bulk insert in single query
-                if (!empty($targetsData)) {
+                if (! empty($targetsData)) {
                     \DB::table('targets')->insert($targetsData);
                 }
             }
 
             // Log the activity
             AuditLog::create([
-                "user_id" => $user->id,
-                "instansi_id" => $user->instansi_id,
-                "action" => "CREATE",
-                "module" => "SAKIP",
-                "description" => "Membuat indikator kinerja: {$indicator->name}",
-                "old_values" => null,
-                "new_values" => $indicator->toArray(),
+                'user_id' => $user->id,
+                'instansi_id' => $user->instansi_id,
+                'action' => 'CREATE',
+                'module' => 'SAKIP',
+                'description' => "Membuat indikator kinerja: {$indicator->name}",
+                'old_values' => null,
+                'new_values' => $indicator->toArray(),
             ]);
 
             DB::commit();
 
             return redirect()
-                ->route("sakip.indicators.show", $indicator)
+                ->route('sakip.indicators.show', $indicator)
                 ->with(
-                    "success",
-                    "Indikator kinerja dan target berhasil dibuat.",
+                    'success',
+                    'Indikator kinerja dan target berhasil dibuat.',
                 );
         } catch (\Exception $e) {
             DB::rollBack();
             \Log::error(
-                "Store performance indicator error: " . $e->getMessage(),
+                'Store performance indicator error: '.$e->getMessage(),
             );
+
             return back()
                 ->withInput()
                 ->with(
-                    "error",
-                    "Terjadi kesalahan saat menyimpan indikator kinerja: " .
+                    'error',
+                    'Terjadi kesalahan saat menyimpan indikator kinerja: '.
                         $e->getMessage(),
                 );
         }
@@ -268,32 +271,32 @@ class PerformanceIndicatorController extends Controller
      */
     public function show(PerformanceIndicator $indicator)
     {
-        $this->authorize("view", $indicator);
+        $this->authorize('view', $indicator);
 
         try {
             $indicator->load([
-                "instansi",
-                "targets" => function ($q) {
-                    $q->orderBy("year", "desc");
+                'instansi',
+                'targets' => function ($q) {
+                    $q->orderBy('year', 'desc');
                 },
-                "performanceData" => function ($q) {
-                    $q->orderBy("period", "desc")->limit(12);
+                'performanceData' => function ($q) {
+                    $q->orderBy('period', 'desc')->limit(12);
                 },
-                "creator",
-                "updater",
+                'creator',
+                'updater',
             ]);
 
             // Get current year targets
             $currentYear = Carbon::now()->year;
             $currentTargets = $indicator
                 ->targets()
-                ->where("year", $currentYear)
+                ->where('year', $currentYear)
                 ->get();
 
             // Get recent performance data
             $recentData = $indicator
                 ->performanceData()
-                ->orderBy("period", "desc")
+                ->orderBy('period', 'desc')
                 ->limit(6)
                 ->get();
 
@@ -301,22 +304,23 @@ class PerformanceIndicatorController extends Controller
             $performanceTrend = $this->calculatePerformanceTrend($indicator);
 
             return view(
-                "sakip.indicators.show",
+                'sakip.indicators.show',
                 compact(
-                    "indicator",
-                    "currentTargets",
-                    "recentData",
-                    "performanceTrend",
-                    "currentYear",
+                    'indicator',
+                    'currentTargets',
+                    'recentData',
+                    'performanceTrend',
+                    'currentYear',
                 ),
             );
         } catch (\Exception $e) {
             \Log::error(
-                "Show performance indicator error: " . $e->getMessage(),
+                'Show performance indicator error: '.$e->getMessage(),
             );
+
             return back()->with(
-                "error",
-                "Terjadi kesalahan saat memuat detail indikator.",
+                'error',
+                'Terjadi kesalahan saat memuat detail indikator.',
             );
         }
     }
@@ -326,14 +330,14 @@ class PerformanceIndicatorController extends Controller
      */
     public function edit(PerformanceIndicator $indicator)
     {
-        $this->authorize("update", $indicator);
+        $this->authorize('update', $indicator);
 
         try {
             $user = Auth::user();
 
             // Get all active instansi for dropdown (especially for Super Admin)
-            $instansis = Instansi::where("status", "aktif")
-                ->orderBy("nama_instansi")
+            $instansis = Instansi::where('status', 'aktif')
+                ->orderBy('nama_instansi')
                 ->get();
 
             // Get current user's instansi if exists
@@ -347,23 +351,24 @@ class PerformanceIndicatorController extends Controller
             $collectionMethods = $this->getCollectionMethods();
 
             return view(
-                "sakip.indicators.edit",
+                'sakip.indicators.edit',
                 compact(
-                    "indicator",
-                    "instansis",
-                    "userInstansi",
-                    "categories",
-                    "frequencies",
-                    "collectionMethods",
+                    'indicator',
+                    'instansis',
+                    'userInstansi',
+                    'categories',
+                    'frequencies',
+                    'collectionMethods',
                 ),
             );
         } catch (\Exception $e) {
             \Log::error(
-                "Edit performance indicator form error: " . $e->getMessage(),
+                'Edit performance indicator form error: '.$e->getMessage(),
             );
+
             return back()->with(
-                "error",
-                "Terjadi kesalahan saat memuat formulir edit.",
+                'error',
+                'Terjadi kesalahan saat memuat formulir edit.',
             );
         }
     }
@@ -375,7 +380,7 @@ class PerformanceIndicatorController extends Controller
         UpdatePerformanceIndicatorRequest $request,
         PerformanceIndicator $indicator,
     ) {
-        $this->authorize("update", $indicator);
+        $this->authorize('update', $indicator);
 
         DB::beginTransaction();
         try {
@@ -384,46 +389,47 @@ class PerformanceIndicatorController extends Controller
 
             // Update the indicator
             $indicator->update([
-                "name" => $request->get("name"),
-                "description" => $request->get("description"),
-                "measurement_unit" => $request->get("measurement_unit"),
-                "data_source" => $request->get("data_source"),
-                "collection_method" => $request->get("collection_method"),
-                "calculation_formula" => $request->get("calculation_formula"),
-                "frequency" => $request->get("frequency"),
-                "category" => $request->get("category"),
-                "weight" => $request->get("weight", 0),
-                "is_mandatory" => $request->get("is_mandatory", false),
-                "metadata" => $request->get("metadata", []),
-                "updated_by" => $user->id,
+                'name' => $request->get('name'),
+                'description' => $request->get('description'),
+                'measurement_unit' => $request->get('measurement_unit'),
+                'data_source' => $request->get('data_source'),
+                'collection_method' => $request->get('collection_method'),
+                'calculation_formula' => $request->get('calculation_formula'),
+                'frequency' => $request->get('frequency'),
+                'category' => $request->get('category'),
+                'weight' => $request->get('weight', 0),
+                'is_mandatory' => $request->get('is_mandatory', false),
+                'metadata' => $request->get('metadata', []),
+                'updated_by' => $user->id,
             ]);
 
             // Log the activity
             AuditLog::create([
-                "user_id" => $user->id,
-                "instansi_id" => $user->instansi_id,
-                "action" => "UPDATE",
-                "module" => "SAKIP",
-                "description" => "Memperbarui indikator kinerja: {$indicator->name}",
-                "old_values" => $oldValues,
-                "new_values" => $indicator->fresh()->toArray(),
+                'user_id' => $user->id,
+                'instansi_id' => $user->instansi_id,
+                'action' => 'UPDATE',
+                'module' => 'SAKIP',
+                'description' => "Memperbarui indikator kinerja: {$indicator->name}",
+                'old_values' => $oldValues,
+                'new_values' => $indicator->fresh()->toArray(),
             ]);
 
             DB::commit();
 
             return redirect()
-                ->route("sakip.indicators.show", $indicator)
-                ->with("success", "Indikator kinerja berhasil diperbarui.");
+                ->route('sakip.indicators.show', $indicator)
+                ->with('success', 'Indikator kinerja berhasil diperbarui.');
         } catch (\Exception $e) {
             DB::rollBack();
             \Log::error(
-                "Update performance indicator error: " . $e->getMessage(),
+                'Update performance indicator error: '.$e->getMessage(),
             );
+
             return back()
                 ->withInput()
                 ->with(
-                    "error",
-                    "Terjadi kesalahan saat memperbarui indikator kinerja.",
+                    'error',
+                    'Terjadi kesalahan saat memperbarui indikator kinerja.',
                 );
         }
     }
@@ -433,7 +439,7 @@ class PerformanceIndicatorController extends Controller
      */
     public function destroy(PerformanceIndicator $indicator)
     {
-        $this->authorize("delete", $indicator);
+        $this->authorize('delete', $indicator);
 
         DB::beginTransaction();
         try {
@@ -446,8 +452,8 @@ class PerformanceIndicatorController extends Controller
                 $indicator->performanceData()->exists()
             ) {
                 return back()->with(
-                    "error",
-                    "Indikator tidak dapat dihapus karena memiliki data terkait.",
+                    'error',
+                    'Indikator tidak dapat dihapus karena memiliki data terkait.',
                 );
             }
 
@@ -456,28 +462,29 @@ class PerformanceIndicatorController extends Controller
 
             // Log the activity
             AuditLog::create([
-                "user_id" => $user->id,
-                "instansi_id" => $user->instansi_id,
-                "action" => "DELETE",
-                "module" => "SAKIP",
-                "description" => "Menghapus indikator kinerja: {$indicatorName}",
-                "old_values" => $indicator->toArray(),
-                "new_values" => null,
+                'user_id' => $user->id,
+                'instansi_id' => $user->instansi_id,
+                'action' => 'DELETE',
+                'module' => 'SAKIP',
+                'description' => "Menghapus indikator kinerja: {$indicatorName}",
+                'old_values' => $indicator->toArray(),
+                'new_values' => null,
             ]);
 
             DB::commit();
 
             return redirect()
-                ->route("sakip.indicators.index")
-                ->with("success", "Indikator kinerja berhasil dihapus.");
+                ->route('sakip.indicators.index')
+                ->with('success', 'Indikator kinerja berhasil dihapus.');
         } catch (\Exception $e) {
             DB::rollBack();
             \Log::error(
-                "Delete performance indicator error: " . $e->getMessage(),
+                'Delete performance indicator error: '.$e->getMessage(),
             );
+
             return back()->with(
-                "error",
-                "Terjadi kesalahan saat menghapus indikator kinerja.",
+                'error',
+                'Terjadi kesalahan saat menghapus indikator kinerja.',
             );
         }
     }
@@ -487,45 +494,46 @@ class PerformanceIndicatorController extends Controller
      */
     public function getByInstansi(Request $request, Instansi $instansi)
     {
-        $this->authorize("viewAny", PerformanceIndicator::class);
+        $this->authorize('viewAny', PerformanceIndicator::class);
 
         try {
             $indicators = PerformanceIndicator::where(
-                "instansi_id",
+                'instansi_id',
                 $instansi->id,
             )
                 ->with([
-                    "targets" => function ($q) {
-                        $q->where("year", Carbon::now()->year);
+                    'targets' => function ($q) {
+                        $q->where('year', Carbon::now()->year);
                     },
                 ])
-                ->orderBy("name")
+                ->orderBy('name')
                 ->get();
 
             return response()->json([
-                "success" => true,
-                "data" => $indicators->map(function ($indicator) {
+                'success' => true,
+                'data' => $indicators->map(function ($indicator) {
                     return [
-                        "id" => $indicator->id,
-                        "code" => $indicator->code,
-                        "name" => $indicator->name,
-                        "category" => $indicator->category,
-                        "frequency" => $indicator->frequency,
-                        "measurement_unit" => $indicator->measurement_unit,
-                        "weight" => $indicator->weight,
-                        "is_mandatory" => $indicator->is_mandatory,
-                        "targets" => $indicator->targets,
+                        'id' => $indicator->id,
+                        'code' => $indicator->code,
+                        'name' => $indicator->name,
+                        'category' => $indicator->category,
+                        'frequency' => $indicator->frequency,
+                        'measurement_unit' => $indicator->measurement_unit,
+                        'weight' => $indicator->weight,
+                        'is_mandatory' => $indicator->is_mandatory,
+                        'targets' => $indicator->targets,
                     ];
                 }),
             ]);
         } catch (\Exception $e) {
             \Log::error(
-                "Get indicators by institution error: " . $e->getMessage(),
+                'Get indicators by institution error: '.$e->getMessage(),
             );
+
             return response()->json(
                 [
-                    "success" => false,
-                    "message" => "Gagal memuat data indikator.",
+                    'success' => false,
+                    'message' => 'Gagal memuat data indikator.',
                 ],
                 500,
             );
@@ -539,33 +547,34 @@ class PerformanceIndicatorController extends Controller
         Request $request,
         PerformanceIndicator $indicator,
     ) {
-        $this->authorize("view", $indicator);
+        $this->authorize('view', $indicator);
 
         try {
-            $year = $request->get("year", Carbon::now()->year);
+            $year = $request->get('year', Carbon::now()->year);
 
             $performanceData = $indicator
                 ->performanceData()
-                ->whereYear("period", $year)
-                ->orderBy("period")
+                ->whereYear('period', $year)
+                ->orderBy('period')
                 ->get();
 
             return response()->json([
-                "success" => true,
-                "data" => $performanceData,
-                "indicator" => [
-                    "id" => $indicator->id,
-                    "name" => $indicator->name,
-                    "measurement_unit" => $indicator->measurement_unit,
-                    "calculation_formula" => $indicator->calculation_formula,
+                'success' => true,
+                'data' => $performanceData,
+                'indicator' => [
+                    'id' => $indicator->id,
+                    'name' => $indicator->name,
+                    'measurement_unit' => $indicator->measurement_unit,
+                    'calculation_formula' => $indicator->calculation_formula,
                 ],
             ]);
         } catch (\Exception $e) {
-            \Log::error("Get performance data error: " . $e->getMessage());
+            \Log::error('Get performance data error: '.$e->getMessage());
+
             return response()->json(
                 [
-                    "success" => false,
-                    "message" => "Gagal memuat data kinerja.",
+                    'success' => false,
+                    'message' => 'Gagal memuat data kinerja.',
                 ],
                 500,
             );
@@ -577,18 +586,18 @@ class PerformanceIndicatorController extends Controller
      */
     public function import(Request $request)
     {
-        $this->authorize("create", PerformanceIndicator::class);
+        $this->authorize('create', PerformanceIndicator::class);
 
         $validator = Validator::make($request->all(), [
-            "file" => "required|file|mimes:csv,xlsx,xls|max:10240",
+            'file' => 'required|file|mimes:csv,xlsx,xls|max:10240',
         ]);
 
         if ($validator->fails()) {
             return response()->json(
                 [
-                    "success" => false,
-                    "message" => "File tidak valid.",
-                    "errors" => $validator->errors(),
+                    'success' => false,
+                    'message' => 'File tidak valid.',
+                    'errors' => $validator->errors(),
                 ],
                 422,
             );
@@ -596,7 +605,7 @@ class PerformanceIndicatorController extends Controller
 
         DB::beginTransaction();
         try {
-            $file = $request->file("file");
+            $file = $request->file('file');
             $user = Auth::user();
             $importedCount = 0;
             $errors = [];
@@ -617,56 +626,57 @@ class PerformanceIndicatorController extends Controller
 
                 try {
                     PerformanceIndicator::create([
-                        "instansi_id" => $user->instansi_id,
-                        "code" => $data[0] ?: $this->generateCode($data[1]),
-                        "name" => $data[1],
-                        "description" => $data[2] ?? "",
-                        "measurement_unit" => $data[3],
-                        "data_source" => $data[4],
-                        "collection_method" => $data[5],
-                        "calculation_formula" => $data[6] ?? "",
-                        "frequency" => $data[7],
-                        "category" => $data[8] ?? "output",
-                        "weight" => $data[9] ?? 0,
-                        "is_mandatory" => $data[10] ?? false,
-                        "created_by" => $user->id,
-                        "updated_by" => $user->id,
+                        'instansi_id' => $user->instansi_id,
+                        'code' => $data[0] ?: $this->generateCode($data[1]),
+                        'name' => $data[1],
+                        'description' => $data[2] ?? '',
+                        'measurement_unit' => $data[3],
+                        'data_source' => $data[4],
+                        'collection_method' => $data[5],
+                        'calculation_formula' => $data[6] ?? '',
+                        'frequency' => $data[7],
+                        'category' => $data[8] ?? 'output',
+                        'weight' => $data[9] ?? 0,
+                        'is_mandatory' => $data[10] ?? false,
+                        'created_by' => $user->id,
+                        'updated_by' => $user->id,
                     ]);
 
                     $importedCount++;
                 } catch (\Exception $e) {
                     $errors[] =
-                        "Baris " . ($index + 1) . ": " . $e->getMessage();
+                        'Baris '.($index + 1).': '.$e->getMessage();
                 }
             }
 
             // Log the activity
             AuditLog::create([
-                "user_id" => $user->id,
-                "instansi_id" => $user->instansi_id,
-                "action" => "IMPORT",
-                "module" => "SAKIP",
-                "description" => "Mengimpor {$importedCount} indikator kinerja",
-                "old_values" => null,
-                "new_values" => ["imported_count" => $importedCount],
+                'user_id' => $user->id,
+                'instansi_id' => $user->instansi_id,
+                'action' => 'IMPORT',
+                'module' => 'SAKIP',
+                'description' => "Mengimpor {$importedCount} indikator kinerja",
+                'old_values' => null,
+                'new_values' => ['imported_count' => $importedCount],
             ]);
 
             DB::commit();
 
             return response()->json([
-                "success" => true,
-                "message" => "Berhasil mengimpor {$importedCount} indikator kinerja.",
-                "errors" => $errors,
+                'success' => true,
+                'message' => "Berhasil mengimpor {$importedCount} indikator kinerja.",
+                'errors' => $errors,
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
             \Log::error(
-                "Import performance indicators error: " . $e->getMessage(),
+                'Import performance indicators error: '.$e->getMessage(),
             );
+
             return response()->json(
                 [
-                    "success" => false,
-                    "message" => "Terjadi kesalahan saat mengimpor data.",
+                    'success' => false,
+                    'message' => 'Terjadi kesalahan saat mengimpor data.',
                 ],
                 500,
             );
@@ -678,22 +688,22 @@ class PerformanceIndicatorController extends Controller
      */
     public function export(Request $request)
     {
-        $this->authorize("viewAny", PerformanceIndicator::class);
+        $this->authorize('viewAny', PerformanceIndicator::class);
 
         try {
             $user = Auth::user();
             $instansiId = $user->instansi_id;
 
             $indicators = PerformanceIndicator::where(
-                "instansi_id",
+                'instansi_id',
                 $instansiId,
             )
                 ->with([
-                    "targets" => function ($q) {
-                        $q->where("year", Carbon::now()->year);
+                    'targets' => function ($q) {
+                        $q->where('year', Carbon::now()->year);
                     },
                 ])
-                ->orderBy("code")
+                ->orderBy('code')
                 ->get();
 
             // Generate CSV content
@@ -702,42 +712,43 @@ class PerformanceIndicatorController extends Controller
 
             foreach ($indicators as $indicator) {
                 $csv .=
-                    implode(",", [
+                    implode(',', [
                         $indicator->code,
-                        '"' . str_replace('"', '""', $indicator->name) . '"',
-                        '"' .
-                        str_replace('"', '""', $indicator->description) .
+                        '"'.str_replace('"', '""', $indicator->name).'"',
+                        '"'.
+                        str_replace('"', '""', $indicator->description).
                         '"',
                         $indicator->measurement_unit,
                         $indicator->data_source,
                         $indicator->collection_method,
-                        '"' .
+                        '"'.
                         str_replace(
                             '"',
                             '""',
                             $indicator->calculation_formula,
-                        ) .
+                        ).
                         '"',
                         $indicator->frequency,
                         $indicator->category,
                         $indicator->weight,
-                        $indicator->is_mandatory ? "Yes" : "No",
-                    ]) . "\n";
+                        $indicator->is_mandatory ? 'Yes' : 'No',
+                    ])."\n";
             }
 
-            $filename = "indikator_kinerja_" . date("Y-m-d_H-i-s") . ".csv";
+            $filename = 'indikator_kinerja_'.date('Y-m-d_H-i-s').'.csv';
 
             return response($csv, 200, [
-                "Content-Type" => "text/csv",
-                "Content-Disposition" => "attachment; filename=\"{$filename}\"",
+                'Content-Type' => 'text/csv',
+                'Content-Disposition' => "attachment; filename=\"{$filename}\"",
             ]);
         } catch (\Exception $e) {
             \Log::error(
-                "Export performance indicators error: " . $e->getMessage(),
+                'Export performance indicators error: '.$e->getMessage(),
             );
+
             return back()->with(
-                "error",
-                "Terjadi kesalahan saat mengekspor data.",
+                'error',
+                'Terjadi kesalahan saat mengekspor data.',
             );
         }
     }
@@ -748,42 +759,42 @@ class PerformanceIndicatorController extends Controller
     private function getStatistics($instansiId)
     {
         return [
-            "total" => PerformanceIndicator::where(
-                "instansi_id",
+            'total' => PerformanceIndicator::where(
+                'instansi_id',
                 $instansiId,
             )->count(),
-            "mandatory" => PerformanceIndicator::where(
-                "instansi_id",
+            'mandatory' => PerformanceIndicator::where(
+                'instansi_id',
                 $instansiId,
             )
-                ->where("is_mandatory", true)
+                ->where('is_mandatory', true)
                 ->count(),
-            "with_targets" => PerformanceIndicator::where(
-                "instansi_id",
+            'with_targets' => PerformanceIndicator::where(
+                'instansi_id',
                 $instansiId,
             )
-                ->has("targets")
+                ->has('targets')
                 ->count(),
-            "with_data" => PerformanceIndicator::where(
-                "instansi_id",
+            'with_data' => PerformanceIndicator::where(
+                'instansi_id',
                 $instansiId,
             )
-                ->has("performanceData")
+                ->has('performanceData')
                 ->count(),
-            "by_category" => PerformanceIndicator::where(
-                "instansi_id",
+            'by_category' => PerformanceIndicator::where(
+                'instansi_id',
                 $instansiId,
             )
-                ->select("category", DB::raw("count(*) as count"))
-                ->groupBy("category")
-                ->pluck("count", "category"),
-            "by_frequency" => PerformanceIndicator::where(
-                "instansi_id",
+                ->select('category', DB::raw('count(*) as count'))
+                ->groupBy('category')
+                ->pluck('count', 'category'),
+            'by_frequency' => PerformanceIndicator::where(
+                'instansi_id',
                 $instansiId,
             )
-                ->select("frequency", DB::raw("count(*) as count"))
-                ->groupBy("frequency")
-                ->pluck("count", "frequency"),
+                ->select('frequency', DB::raw('count(*) as count'))
+                ->groupBy('frequency')
+                ->pluck('count', 'frequency'),
         ];
     }
 
@@ -798,8 +809,8 @@ class PerformanceIndicatorController extends Controller
         // Calculate performance based on actual vs target values
         $currentData = $indicator
             ->performanceData()
-            ->where("period", "like", $currentYear . "%")
-            ->with("target")
+            ->where('period', 'like', $currentYear.'%')
+            ->with('target')
             ->get();
 
         $currentPerformance = 0;
@@ -809,7 +820,7 @@ class PerformanceIndicatorController extends Controller
             foreach ($currentData as $data) {
                 $target = $data->performanceIndicator
                     ->targets()
-                    ->where("year", $currentYear)
+                    ->where('year', $currentYear)
                     ->first();
                 if ($target && $target->target_value > 0) {
                     $totalPerformance +=
@@ -822,8 +833,8 @@ class PerformanceIndicatorController extends Controller
 
         $lastYearData = $indicator
             ->performanceData()
-            ->where("period", "like", $lastYear . "%")
-            ->with("target")
+            ->where('period', 'like', $lastYear.'%')
+            ->with('target')
             ->get();
 
         $lastYearPerformance = 0;
@@ -833,7 +844,7 @@ class PerformanceIndicatorController extends Controller
             foreach ($lastYearData as $data) {
                 $target = $data->performanceIndicator
                     ->targets()
-                    ->where("year", $lastYear)
+                    ->where('year', $lastYear)
                     ->first();
                 if ($target && $target->target_value > 0) {
                     $totalPerformance +=
@@ -855,11 +866,10 @@ class PerformanceIndicatorController extends Controller
                 : 0;
 
         return [
-            "current" => round($currentPerformance, 2),
-            "last_year" => round($lastYearPerformance, 2),
-            "trend" => $trend,
-            "trend_direction" =>
-                $trend > 0 ? "up" : ($trend < 0 ? "down" : "stable"),
+            'current' => round($currentPerformance, 2),
+            'last_year' => round($lastYearPerformance, 2),
+            'trend' => $trend,
+            'trend_direction' => $trend > 0 ? 'up' : ($trend < 0 ? 'down' : 'stable'),
         ];
     }
 
@@ -868,12 +878,12 @@ class PerformanceIndicatorController extends Controller
      */
     private function generateCode($name)
     {
-        $prefix = strtoupper(substr(str_replace(" ", "", $name), 0, 3));
+        $prefix = strtoupper(substr(str_replace(' ', '', $name), 0, 3));
         $number =
-            PerformanceIndicator::where("code", "like", "{$prefix}%")->count() +
+            PerformanceIndicator::where('code', 'like', "{$prefix}%")->count() +
             1;
 
-        return $prefix . str_pad($number, 3, "0", STR_PAD_LEFT);
+        return $prefix.str_pad($number, 3, '0', STR_PAD_LEFT);
     }
 
     /**
@@ -882,10 +892,10 @@ class PerformanceIndicatorController extends Controller
     private function getCategories()
     {
         return [
-            "input" => "Input",
-            "output" => "Output",
-            "outcome" => "Outcome",
-            "impact" => "Impact",
+            'input' => 'Input',
+            'output' => 'Output',
+            'outcome' => 'Outcome',
+            'impact' => 'Impact',
         ];
     }
 
@@ -895,10 +905,10 @@ class PerformanceIndicatorController extends Controller
     private function getFrequencies()
     {
         return [
-            "monthly" => "Bulanan",
-            "quarterly" => "Triwulan",
-            "semester" => "Semester",
-            "annual" => "Tahunan",
+            'monthly' => 'Bulanan',
+            'quarterly' => 'Triwulan',
+            'semester' => 'Semester',
+            'annual' => 'Tahunan',
         ];
     }
 
@@ -908,12 +918,12 @@ class PerformanceIndicatorController extends Controller
     private function getCollectionMethods()
     {
         return [
-            "manual" => "Manual",
-            "automated" => "Otomatis",
-            "survey" => "Survei",
-            "interview" => "Wawancara",
-            "observation" => "Observasi",
-            "document_review" => "Telaah Dokumen",
+            'manual' => 'Manual',
+            'automated' => 'Otomatis',
+            'survey' => 'Survei',
+            'interview' => 'Wawancara',
+            'observation' => 'Observasi',
+            'document_review' => 'Telaah Dokumen',
         ];
     }
 }

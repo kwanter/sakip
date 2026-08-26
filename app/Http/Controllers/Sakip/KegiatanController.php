@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers\Sakip;
 
+use App\Constants\Pagination;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Sakip\KegiatanFormRequest;
 use App\Models\Kegiatan;
 use App\Models\Program;
-use App\Constants\Pagination;
 use App\Traits\WithDatabaseTransactions;
 use Illuminate\Http\Request;
 
@@ -25,39 +25,39 @@ class KegiatanController extends Controller
      */
     public function index(Request $request)
     {
-        $this->authorize("viewAny", Kegiatan::class);
+        $this->authorize('viewAny', Kegiatan::class);
 
-        $query = Kegiatan::with(["program", "program.instansi"]);
+        $query = Kegiatan::with(['program', 'program.instansi']);
 
         // Search functionality
-        if ($request->filled("search")) {
-            $search = $request->get("search");
+        if ($request->filled('search')) {
+            $search = $request->get('search');
             $query->where(function ($q) use ($search) {
-                $q->where("nama_kegiatan", "like", "%{$search}%")
-                    ->orWhere("kode_kegiatan", "like", "%{$search}%")
-                    ->orWhere("deskripsi", "like", "%{$search}%")
-                    ->orWhereHas("program", function ($q) use ($search) {
-                        $q->where("nama_program", "like", "%{$search}%");
+                $q->where('nama_kegiatan', 'like', "%{$search}%")
+                    ->orWhere('kode_kegiatan', 'like', "%{$search}%")
+                    ->orWhere('deskripsi', 'like', "%{$search}%")
+                    ->orWhereHas('program', function ($q) use ($search) {
+                        $q->where('nama_program', 'like', "%{$search}%");
                     });
             });
         }
 
         // Filter by program
-        if ($request->filled("program_id")) {
-            $query->where("program_id", $request->get("program_id"));
+        if ($request->filled('program_id')) {
+            $query->where('program_id', $request->get('program_id'));
         }
 
         // Filter by status
-        if ($request->filled("status")) {
-            $query->where("status", $request->get("status"));
+        if ($request->filled('status')) {
+            $query->where('status', $request->get('status'));
         }
 
         // REFACTORED: Use constant instead of magic number
         $kegiatans = $query
-            ->orderBy("created_at", "desc")
+            ->orderBy('created_at', 'desc')
             ->paginate(Pagination::DEFAULT);
 
-        return view("sakip.kegiatan.index", compact("kegiatans"));
+        return view('sakip.kegiatan.index', compact('kegiatans'));
     }
 
     /**
@@ -65,25 +65,25 @@ class KegiatanController extends Controller
      */
     public function create(Request $request)
     {
-        $this->authorize("create", Kegiatan::class);
+        $this->authorize('create', Kegiatan::class);
 
         // Get program_id from query parameter if provided
-        $programId = $request->get("program_id");
+        $programId = $request->get('program_id');
         $program = null;
 
         if ($programId) {
             $program = Program::find($programId);
-            if (!$program) {
-                return back()->with("error", "Program tidak ditemukan.");
+            if (! $program) {
+                return back()->with('error', 'Program tidak ditemukan.');
             }
         }
 
         // Get all programs for dropdown if no specific program selected
-        $programs = Program::where("status", "aktif")
-            ->orderBy("nama_program")
+        $programs = Program::where('status', 'aktif')
+            ->orderBy('nama_program')
             ->get();
 
-        return view("sakip.kegiatan.create", compact("program", "programs"));
+        return view('sakip.kegiatan.create', compact('program', 'programs'));
     }
 
     /**
@@ -93,16 +93,16 @@ class KegiatanController extends Controller
      */
     public function store(KegiatanFormRequest $request)
     {
-        $this->authorize("create", Kegiatan::class);
+        $this->authorize('create', Kegiatan::class);
 
         // REFACTORED: Use trait to handle transactions automatically
         return $this->runInTransaction(function () use ($request) {
             $kegiatan = Kegiatan::create($request->validated());
 
             return redirect()
-                ->route("sakip.kegiatan.show", $kegiatan)
-                ->with("success", "Kegiatan berhasil dibuat.");
-        }, "kegiatan.store");
+                ->route('sakip.kegiatan.show', $kegiatan)
+                ->with('success', 'Kegiatan berhasil dibuat.');
+        }, 'kegiatan.store');
     }
 
     /**
@@ -110,15 +110,15 @@ class KegiatanController extends Controller
      */
     public function show(Kegiatan $kegiatan)
     {
-        $this->authorize("view", $kegiatan);
+        $this->authorize('view', $kegiatan);
 
         $kegiatan->load([
-            "program",
-            "program.instansi",
-            "program.sasaranStrategis",
+            'program',
+            'program.instansi',
+            'program.sasaranStrategis',
         ]);
 
-        return view("sakip.kegiatan.show", compact("kegiatan"));
+        return view('sakip.kegiatan.show', compact('kegiatan'));
     }
 
     /**
@@ -126,13 +126,13 @@ class KegiatanController extends Controller
      */
     public function edit(Kegiatan $kegiatan)
     {
-        $this->authorize("update", $kegiatan);
+        $this->authorize('update', $kegiatan);
 
-        $programs = Program::where("status", "aktif")
-            ->orderBy("nama_program")
+        $programs = Program::where('status', 'aktif')
+            ->orderBy('nama_program')
             ->get();
 
-        return view("sakip.kegiatan.edit", compact("kegiatan", "programs"));
+        return view('sakip.kegiatan.edit', compact('kegiatan', 'programs'));
     }
 
     /**
@@ -142,16 +142,16 @@ class KegiatanController extends Controller
      */
     public function update(KegiatanFormRequest $request, Kegiatan $kegiatan)
     {
-        $this->authorize("update", $kegiatan);
+        $this->authorize('update', $kegiatan);
 
         // REFACTORED: Use trait to handle transactions automatically
         return $this->runInTransaction(function () use ($request, $kegiatan) {
             $kegiatan->update($request->validated());
 
             return redirect()
-                ->route("sakip.kegiatan.show", $kegiatan)
-                ->with("success", "Kegiatan berhasil diperbarui.");
-        }, "kegiatan.update");
+                ->route('sakip.kegiatan.show', $kegiatan)
+                ->with('success', 'Kegiatan berhasil diperbarui.');
+        }, 'kegiatan.update');
     }
 
     /**
@@ -161,7 +161,7 @@ class KegiatanController extends Controller
      */
     public function destroy(Kegiatan $kegiatan)
     {
-        $this->authorize("delete", $kegiatan);
+        $this->authorize('delete', $kegiatan);
 
         // REFACTORED: Use trait to handle transactions automatically
         return $this->runInTransaction(function () use ($kegiatan) {
@@ -171,9 +171,9 @@ class KegiatanController extends Controller
             $kegiatan->delete();
 
             return redirect()
-                ->route("sakip.program.show", $programId)
-                ->with("success", "Kegiatan berhasil dihapus.");
-        }, "kegiatan.destroy");
+                ->route('sakip.program.show', $programId)
+                ->with('success', 'Kegiatan berhasil dihapus.');
+        }, 'kegiatan.destroy');
     }
 
     /**
@@ -182,16 +182,17 @@ class KegiatanController extends Controller
     public function byProgram(Program $program)
     {
         try {
-            $kegiatans = Kegiatan::where("program_id", $program->id)
-                ->where("status", "!=", "tunda")
-                ->orderBy("nama_kegiatan")
+            $kegiatans = Kegiatan::where('program_id', $program->id)
+                ->where('status', '!=', 'tunda')
+                ->orderBy('nama_kegiatan')
                 ->get();
 
             return response()->json($kegiatans);
         } catch (\Exception $e) {
-            \Log::error("Get kegiatan by program error: " . $e->getMessage());
+            \Log::error('Get kegiatan by program error: '.$e->getMessage());
+
             return response()->json(
-                ["error" => "Gagal memuat data kegiatan"],
+                ['error' => 'Gagal memuat data kegiatan'],
                 500,
             );
         }

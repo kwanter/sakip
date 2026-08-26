@@ -2,27 +2,24 @@
 
 namespace App\Services\Sakip;
 
-use App\Models\PerformanceIndicator;
-use App\Models\PerformanceData;
-use App\Models\Target;
 use App\Models\Assessment;
-use App\Models\Report;
 use App\Models\Instansi;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
+use App\Models\PerformanceData;
+use App\Models\PerformanceIndicator;
+use App\Models\Target;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Writer\Pdf;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class SakipService
 {
     /**
      * Get dashboard data for SAKIP module
      */
-    public function getDashboardData(?int $instansiId = null, string $period = null): array
+    public function getDashboardData(?int $instansiId = null, ?string $period = null): array
     {
         $period = $period ?? date('Y');
-        
+
         $data = [
             'total_indicators' => $this->getTotalIndicators($instansiId),
             'active_targets' => $this->getActiveTargets($instansiId, $period),
@@ -41,12 +38,12 @@ class SakipService
     /**
      * Get performance summary data
      */
-    public function getPerformanceSummary(?int $instansiId = null, string $period = null): array
+    public function getPerformanceSummary(?int $instansiId = null, ?string $period = null): array
     {
         $period = $period ?? date('Y');
-        
+
         $query = PerformanceData::with(['performanceIndicator', 'instansi'])
-            ->where('period', 'like', $period . '%')
+            ->where('period', 'like', $period.'%')
             ->when($instansiId, function ($q) use ($instansiId) {
                 return $q->where('instansi_id', $instansiId);
             });
@@ -65,7 +62,7 @@ class SakipService
 
         foreach ($performanceData as $data) {
             $achievement = $this->calculateAchievementPercentage($data);
-            
+
             if ($achievement >= 100) {
                 $summary['achieved_indicators']++;
             } elseif ($achievement >= 70) {
@@ -76,7 +73,7 @@ class SakipService
 
             // Category breakdown
             $category = $data->performanceIndicator->category;
-            if (!isset($summary['category_breakdown'][$category])) {
+            if (! isset($summary['category_breakdown'][$category])) {
                 $summary['category_breakdown'][$category] = [
                     'total' => 0,
                     'achieved' => 0,
@@ -88,7 +85,7 @@ class SakipService
 
             // Instansi breakdown
             $instansiName = $data->instansi->name;
-            if (!isset($summary['instansi_breakdown'][$instansiName])) {
+            if (! isset($summary['instansi_breakdown'][$instansiName])) {
                 $summary['instansi_breakdown'][$instansiName] = [
                     'total' => 0,
                     'achieved' => 0,
@@ -161,12 +158,12 @@ class SakipService
     /**
      * Get compliance status
      */
-    public function getComplianceStatus(?int $instansiId = null, string $period = null): array
+    public function getComplianceStatus(?int $instansiId = null, ?string $period = null): array
     {
         $period = $period ?? date('Y');
-        
+
         $query = PerformanceData::with(['performanceIndicator'])
-            ->where('period', 'like', $period . '%')
+            ->where('period', 'like', $period.'%')
             ->when($instansiId, function ($q) use ($instansiId) {
                 return $q->where('instansi_id', $instansiId);
             });
@@ -194,20 +191,20 @@ class SakipService
     /**
      * Get indicator comparison data
      */
-    public function getIndicatorComparison(?int $instansiId = null, string $period = null, ?string $category = null): array
+    public function getIndicatorComparison(?int $instansiId = null, ?string $period = null, ?string $category = null): array
     {
         $period = $period ?? date('Y');
-        
+
         $query = PerformanceIndicator::with(['performanceData' => function ($q) use ($period) {
-            $q->where('period', 'like', $period . '%')
-              ->where('status', 'validated');
+            $q->where('period', 'like', $period.'%')
+                ->where('status', 'validated');
         }])
-        ->when($instansiId, function ($q) use ($instansiId) {
-            return $q->where('instansi_id', $instansiId);
-        })
-        ->when($category, function ($q) use ($category) {
-            return $q->where('category', $category);
-        });
+            ->when($instansiId, function ($q) use ($instansiId) {
+                return $q->where('instansi_id', $instansiId);
+            })
+            ->when($category, function ($q) use ($category) {
+                return $q->where('category', $category);
+            });
 
         $indicators = $query->get();
 
@@ -216,7 +213,7 @@ class SakipService
             if ($indicator->performanceData->isNotEmpty()) {
                 $latestData = $indicator->performanceData->first();
                 $achievement = $this->calculateAchievementPercentage($latestData);
-                
+
                 $comparison[] = [
                     'indicator_id' => $indicator->id,
                     'indicator_name' => $indicator->name,
@@ -241,10 +238,10 @@ class SakipService
     /**
      * Export SAKIP data
      */
-    public function exportData(?int $instansiId = null, string $type = 'performance_summary', string $format = 'excel', string $period = null)
+    public function exportData(?int $instansiId = null, string $type = 'performance_summary', string $format = 'excel', ?string $period = null)
     {
         $period = $period ?? date('Y');
-        
+
         $data = match ($type) {
             'performance_summary' => $this->getPerformanceSummary($instansiId, $period),
             'achievement_trends' => $this->getAchievementTrends($instansiId, null, 12),
@@ -253,7 +250,7 @@ class SakipService
             default => $this->getPerformanceSummary($instansiId, $period),
         };
 
-        $filename = 'sakip_' . $type . '_' . $period . '_' . date('Y-m-d');
+        $filename = 'sakip_'.$type.'_'.$period.'_'.date('Y-m-d');
 
         return match ($format) {
             'excel' => $this->exportToExcel($data, $type, $filename),
@@ -272,7 +269,7 @@ class SakipService
             ->where('year', substr($performanceData->period, 0, 4))
             ->first();
 
-        if (!$target || $target->target_value == 0) {
+        if (! $target || $target->target_value == 0) {
             return 0;
         }
 
@@ -305,49 +302,49 @@ class SakipService
         })->count();
     }
 
-    private function getActiveTargets(?int $instansiId = null, string $period = null): int
+    private function getActiveTargets(?int $instansiId = null, ?string $period = null): int
     {
         return Target::when($instansiId, function ($q) use ($instansiId) {
             return $q->whereHas('performanceIndicator', function ($subQuery) use ($instansiId) {
                 $subQuery->where('instansi_id', $instansiId);
             });
         })
-        ->where('year', $period)
-        ->where('status', 'approved')
-        ->count();
+            ->where('year', $period)
+            ->where('status', 'approved')
+            ->count();
     }
 
-    private function getSubmittedData(?int $instansiId = null, string $period = null): int
+    private function getSubmittedData(?int $instansiId = null, ?string $period = null): int
     {
         return PerformanceData::when($instansiId, function ($q) use ($instansiId) {
             return $q->where('instansi_id', $instansiId);
         })
-        ->where('period', 'like', $period . '%')
-        ->where('status', 'submitted')
-        ->count();
+            ->where('period', 'like', $period.'%')
+            ->where('status', 'submitted')
+            ->count();
     }
 
-    private function getCompletedAssessments(?int $instansiId = null, string $period = null): int
+    private function getCompletedAssessments(?int $instansiId = null, ?string $period = null): int
     {
         return Assessment::when($instansiId, function ($q) use ($instansiId) {
             return $q->whereHas('performanceData', function ($subQuery) use ($instansiId) {
                 $subQuery->where('instansi_id', $instansiId);
             });
         })
-        ->where('status', 'approved')
-        ->whereHas('performanceData', function ($q) use ($period) {
-            $q->where('period', 'like', $period . '%');
-        })
-        ->count();
+            ->where('status', 'approved')
+            ->whereHas('performanceData', function ($q) use ($period) {
+                $q->where('period', 'like', $period.'%');
+            })
+            ->count();
     }
 
-    private function getOverallAchievement(?int $instansiId = null, string $period = null): float
+    private function getOverallAchievement(?int $instansiId = null, ?string $period = null): float
     {
         $performanceData = PerformanceData::with(['performanceIndicator.targets'])
             ->when($instansiId, function ($q) use ($instansiId) {
                 return $q->where('instansi_id', $instansiId);
             })
-            ->where('period', 'like', $period . '%')
+            ->where('period', 'like', $period.'%')
             ->where('status', 'validated')
             ->get();
 
@@ -363,7 +360,7 @@ class SakipService
         return round($totalAchievement / $performanceData->count(), 2);
     }
 
-    private function getComplianceRate(?int $instansiId = null, string $period = null): float
+    private function getComplianceRate(?int $instansiId = null, ?string $period = null): float
     {
         $totalIndicators = $this->getTotalIndicators($instansiId);
         $submittedData = $this->getSubmittedData($instansiId, $period);
@@ -371,7 +368,7 @@ class SakipService
         return $totalIndicators > 0 ? round(($submittedData / $totalIndicators) * 100, 2) : 0;
     }
 
-    private function getMandatoryCompliance(?int $instansiId = null, string $period = null): array
+    private function getMandatoryCompliance(?int $instansiId = null, ?string $period = null): array
     {
         $mandatoryIndicators = PerformanceIndicator::where('is_mandatory', true)
             ->when($instansiId, function ($q) use ($instansiId) {
@@ -382,12 +379,12 @@ class SakipService
         $compliantData = PerformanceData::whereHas('performanceIndicator', function ($q) {
             $q->where('is_mandatory', true);
         })
-        ->when($instansiId, function ($q) use ($instansiId) {
-            return $q->where('instansi_id', $instansiId);
-        })
-        ->where('period', 'like', $period . '%')
-        ->where('status', 'validated')
-        ->count();
+            ->when($instansiId, function ($q) use ($instansiId) {
+                return $q->where('instansi_id', $instansiId);
+            })
+            ->where('period', 'like', $period.'%')
+            ->where('status', 'validated')
+            ->count();
 
         return [
             'mandatory_indicators' => $mandatoryIndicators,
@@ -410,7 +407,7 @@ class SakipService
             ->map(function ($data) {
                 return [
                     'type' => 'data_submission',
-                    'description' => 'Performance data submitted for ' . $data->performanceIndicator->name,
+                    'description' => 'Performance data submitted for '.$data->performanceIndicator->name,
                     'user' => $data->submitter->name,
                     'timestamp' => $data->submitted_at,
                 ];
@@ -418,13 +415,13 @@ class SakipService
             ->toArray();
     }
 
-    private function getTopPerformers(?int $instansiId = null, string $period = null, int $limit = 5): array
+    private function getTopPerformers(?int $instansiId = null, ?string $period = null, int $limit = 5): array
     {
         $performanceData = PerformanceData::with(['performanceIndicator'])
             ->when($instansiId, function ($q) use ($instansiId) {
                 return $q->where('instansi_id', $instansiId);
             })
-            ->where('period', 'like', $period . '%')
+            ->where('period', 'like', $period.'%')
             ->where('status', 'validated')
             ->get();
 
@@ -447,13 +444,13 @@ class SakipService
         return array_slice($achievements, 0, $limit);
     }
 
-    private function getUnderperformingIndicators(?int $instansiId = null, string $period = null, int $limit = 5): array
+    private function getUnderperformingIndicators(?int $instansiId = null, ?string $period = null, int $limit = 5): array
     {
         $performanceData = PerformanceData::with(['performanceIndicator'])
             ->when($instansiId, function ($q) use ($instansiId) {
                 return $q->where('instansi_id', $instansiId);
             })
-            ->where('period', 'like', $period . '%')
+            ->where('period', 'like', $period.'%')
             ->where('status', 'validated')
             ->get();
 
@@ -483,7 +480,7 @@ class SakipService
      */
     private function exportToExcel($data, string $type, string $filename)
     {
-        $spreadsheet = new Spreadsheet();
+        $spreadsheet = new Spreadsheet;
         $sheet = $spreadsheet->getActiveSheet();
 
         // Set headers and data based on type
@@ -491,10 +488,10 @@ class SakipService
         $this->setExcelData($sheet, $data, $type);
 
         $writer = new Xlsx($spreadsheet);
-        $filePath = storage_path('app/temp/' . $filename . '.xlsx');
+        $filePath = storage_path('app/temp/'.$filename.'.xlsx');
         $writer->save($filePath);
 
-        return response()->download($filePath, $filename . '.xlsx')->deleteFileAfterSend();
+        return response()->download($filePath, $filename.'.xlsx')->deleteFileAfterSend();
     }
 
     private function exportToPdf($data, string $type, string $filename)
@@ -543,15 +540,15 @@ class SakipService
     private function setExcelData($sheet, $data, string $type): void
     {
         $row = 2;
-        
+
         if ($type === 'performance_summary' && isset($data['category_breakdown'])) {
             foreach ($data['category_breakdown'] as $category => $values) {
-                $sheet->setCellValue('A' . $row, $category);
-                $sheet->setCellValue('B' . $row, $category);
-                $sheet->setCellValue('C' . $row, $values['total']);
-                $sheet->setCellValue('D' . $row, $values['achieved']);
-                $sheet->setCellValue('E' . $row, $values['average_achievement']);
-                $sheet->setCellValue('F' . $row, $this->getPerformanceStatus($values['average_achievement']));
+                $sheet->setCellValue('A'.$row, $category);
+                $sheet->setCellValue('B'.$row, $category);
+                $sheet->setCellValue('C'.$row, $values['total']);
+                $sheet->setCellValue('D'.$row, $values['achieved']);
+                $sheet->setCellValue('E'.$row, $values['average_achievement']);
+                $sheet->setCellValue('F'.$row, $this->getPerformanceStatus($values['average_achievement']));
                 $row++;
             }
         }

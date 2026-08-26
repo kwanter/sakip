@@ -37,10 +37,10 @@ class UpdateSystemSettingsRequest extends FormRequest
             $settingKey = $setting['key'] ?? '';
 
             if ($settingKey === 'app.name') {
-                $rules['settings.' . $key . '.value'] = 'sometimes|required|string|max:150';
+                $rules['settings.'.$key.'.value'] = 'sometimes|required|string|max:150';
             }
             if ($settingKey === 'app.description') {
-                $rules['settings.' . $key . '.value'] = 'sometimes|nullable|string|max:500';
+                $rules['settings.'.$key.'.value'] = 'sometimes|nullable|string|max:500';
             }
         }
 
