@@ -1,14 +1,14 @@
 {
   "schemaVersion": "mimosa-hook-status/v1",
-  "recordedAt": "2026-08-26T04:14:59.258Z",
+  "recordedAt": "2026-08-26T04:20:37.103Z",
   "sessionId": "sess_ff219367-e58b-47cc-bbd1-6c833fbbacfb",
   "event": "PostToolUse",
   "toolName": "Edit",
-  "file": "tests/Unit/ExportFormulaInjectionTest.php",
+  "file": "tests/Feature/ReportIndexRendersTest.php",
   "outcome": "clear",
   "coverage": "complete",
   "findingCount": 0,
-  "durationMs": 5,
+  "durationMs": 4,
   "hostState": "hook_complete",
   "reportHint": ".mimosa/reports/"
 }
