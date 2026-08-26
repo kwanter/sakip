@@ -487,10 +487,13 @@ class DataCollectionController extends Controller
                 ->limit(10)
                 ->get();
 
+            $data = $performanceData;
+
             return view(
                 'sakip.data-collection.show',
                 compact(
                     'performanceData',
+                    'data',
                     'indicator',
                     'target',
                     'validationHistory',
