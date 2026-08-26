@@ -139,11 +139,6 @@
                                     <a href="{{ route('sakip.reports.show', $report) }}" class="btn btn-outline-primary" title="Lihat">
                                         <i class="fas fa-eye"></i>
                                     </a>
-                                    @can('update', $report)
-                                    <a href="{{ route('sakip.reports.edit', $report) }}" class="btn btn-outline-secondary" title="Edit">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    @endcan
                                     <a href="{{ route('sakip.reports.download', $report) }}" class="btn btn-outline-info" title="Download" onclick="event.preventDefault(); downloadReport({{ $report->id }})">
                                         <i class="fas fa-download"></i>
                                     </a>
