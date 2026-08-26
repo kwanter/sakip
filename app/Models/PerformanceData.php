@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Scopes\ForYearTrait;
+use App\Models\Scopes\InstansiScope;
 use App\Models\Scopes\RecentScope;
 use App\Models\Scopes\SearchScope;
 use App\Models\Scopes\WithStatusScope;
@@ -315,5 +316,10 @@ class PerformanceData extends Model
             'validated_at' => now(),
             'validated_by' => auth()->id(),
         ]);
+    }
+
+    protected static function booted(): void
+    {
+        static::addGlobalScope(new InstansiScope);
     }
 }

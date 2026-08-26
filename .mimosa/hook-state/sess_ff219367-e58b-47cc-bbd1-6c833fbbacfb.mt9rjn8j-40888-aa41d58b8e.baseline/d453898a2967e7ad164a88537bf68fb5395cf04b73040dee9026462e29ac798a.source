@@ -1,0 +1,184 @@
+<?php $__env->startSection('title', 'Detail Sasaran Strategis'); ?>
+
+<?php $__env->startSection('content'); ?>
+<div class="container py-4">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="page-header-layout">
+            <div>
+                <a href="<?php echo e(route('sakip.sasaran-strategis.index')); ?>" class="btn btn-outline-secondary btn-sm mb-2">
+                    <i class="fas fa-arrow-left"></i>
+                    <span class="ms-1">Kembali</span>
+                </a>
+                <h1 class="page-header-title">Detail Sasaran Strategis</h1>
+                <p class="page-header-subtitle"><?php echo e($sasaranStrategis->nama_strategis); ?></p>
+            </div>
+            <div class="page-header-actions">
+                <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('update', $sasaranStrategis)): ?>
+                <a href="<?php echo e(route('sakip.sasaran-strategis.edit', $sasaranStrategis)); ?>" class="btn btn-primary">
+                    <i class="fas fa-edit"></i>
+                    <span class="ms-1">Edit</span>
+                </a>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Informasi Sasaran Strategis -->
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-bullseye me-2"></i>
+                        Informasi Sasaran Strategis
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <dl class="row detail-list">
+                        <dt class="col-sm-4">Kode Sasaran</dt>
+                        <dd class="col-sm-8"><span class="badge bg-light text-dark"><?php echo e($sasaranStrategis->kode_sasaran_strategis); ?></span></dd>
+
+                        <dt class="col-sm-4">Nama Sasaran</dt>
+                        <dd class="col-sm-8"><?php echo e($sasaranStrategis->nama_strategis); ?></dd>
+
+                        <dt class="col-sm-4">Instansi</dt>
+                        <dd class="col-sm-8">
+                            <a href="<?php echo e(route('sakip.instansi.show', $sasaranStrategis->instansi)); ?>" class="text-decoration-none">
+                                <i class="fas fa-building me-1"></i>
+                                <?php echo e($sasaranStrategis->instansi->nama_instansi); ?>
+
+                            </a>
+                        </dd>
+
+                        <dt class="col-sm-4">Deskripsi</dt>
+                        <dd class="col-sm-8"><?php echo e($sasaranStrategis->deskripsi ?? '-'); ?></dd>
+
+                        <dt class="col-sm-4">Status</dt>
+                        <dd class="col-sm-8">
+                            <?php if($sasaranStrategis->status == 'aktif'): ?>
+                                <span class="badge bg-success">Aktif</span>
+                            <?php else: ?>
+                                <span class="badge bg-secondary">Non-Aktif</span>
+                            <?php endif; ?>
+                        </dd>
+
+                        <dt class="col-sm-4">Dibuat Pada</dt>
+                        <dd class="col-sm-8 small text-muted"><?php echo e($sasaranStrategis->created_at->format('d/m/Y H:i')); ?></dd>
+
+                        <dt class="col-sm-4">Diupdate Pada</dt>
+                        <dd class="col-sm-8 small text-muted"><?php echo e($sasaranStrategis->updated_at->format('d/m/Y H:i')); ?></dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistik -->
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-bar me-2"></i>
+                        Statistik
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="stat-item">
+                        <div class="stat-item-label">Total Program</div>
+                        <div class="stat-item-value"><?php echo e($sasaranStrategis->programs->count()); ?></div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-item-label">Program Aktif</div>
+                        <div class="stat-item-value"><?php echo e($sasaranStrategis->programs->where('status', 'aktif')->count()); ?></div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-item-label">Total Kegiatan</div>
+                        <div class="stat-item-value"><?php echo e($sasaranStrategis->programs->sum(function($program) { return $program->kegiatans->count(); })); ?></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Program Terkait -->
+    <?php if($sasaranStrategis->programs->count() > 0): ?>
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-layer-group me-2"></i>
+                Program Terkait
+            </h5>
+            <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('create', App\Models\Program::class)): ?>
+            <a href="<?php echo e(route('sakip.program.create', ['sasaran_strategis_id' => $sasaranStrategis->id])); ?>" class="btn btn-primary btn-sm">
+                <i class="fas fa-plus"></i> Tambah Program
+            </a>
+            <?php endif; ?>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>No</th>
+                            <th>Kode</th>
+                            <th>Nama Program</th>
+                            <th>Tahun</th>
+                            <th>Anggaran</th>
+                            <th>Status</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php $__currentLoopData = $sasaranStrategis->programs; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $key => $program): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <tr>
+                            <td><?php echo e($key + 1); ?></td>
+                            <td><span class="badge bg-light text-dark"><?php echo e($program->kode_program); ?></span></td>
+                            <td><?php echo e($program->nama_program); ?></td>
+                            <td><?php echo e($program->tahun); ?></td>
+                            <td>Rp <?php echo e(number_format($program->anggaran ?? 0, 0, ',', '.')); ?></td>
+                            <td>
+                                <?php if($program->status == 'aktif'): ?>
+                                    <span class="badge bg-success">Aktif</span>
+                                <?php elseif($program->status == 'selesai'): ?>
+                                    <span class="badge bg-info">Selesai</span>
+                                <?php else: ?>
+                                    <span class="badge bg-secondary">Draft</span>
+                                <?php endif; ?>
+                            </td>
+                            <td>
+                                <a href="<?php echo e(route('sakip.program.show', $program)); ?>" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-eye"></i> Detail
+                                </a>
+                            </td>
+                        </tr>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <?php else: ?>
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-layer-group me-2"></i>
+                Program Terkait
+            </h5>
+            <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('create', App\Models\Program::class)): ?>
+            <a href="<?php echo e(route('sakip.program.create', ['sasaran_strategis_id' => $sasaranStrategis->id])); ?>" class="btn btn-primary btn-sm">
+                <i class="fas fa-plus"></i> Tambah Program
+            </a>
+            <?php endif; ?>
+        </div>
+        <div class="card-body">
+            <div class="empty-state">
+                <i class="fas fa-layer-group text-muted"></i>
+                <p class="mb-0">Belum ada program terkait dengan sasaran strategis ini.</p>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
+</div>
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.modern', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH /Users/macbook/Developer/php/sakip/resources/views/sakip/sasaran-strategis/show.blade.php ENDPATH**/ ?>

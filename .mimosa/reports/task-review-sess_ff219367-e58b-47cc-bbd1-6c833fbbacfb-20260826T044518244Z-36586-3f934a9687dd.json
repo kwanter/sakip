@@ -1,0 +1,703 @@
+{
+  "schema_version": "mimosa-task-review/v2",
+  "run_id": "20260826T044518244Z-36586-3f934a9687dd",
+  "run_status": "inconclusive",
+  "errors": [
+    {
+      "stage": "bash-discovery",
+      "target": "storage/framework/views/e4fa320715523c9291d7585dc2a22156.php",
+      "reason": "bash_discovery_truncated: changed-file discovery exceeded 80 files"
+    },
+    {
+      "stage": "candidate-select",
+      "target": "tests/Feature/SakipDashboardAccessTest.php",
+      "reason": "candidate_limit_exceeded: 67 changed reviewable file(s) were not scanned because the limit is 20"
+    }
+  ],
+  "coverage": {
+    "schema_version": "mimosa-hook-coverage/v1",
+    "status": "partial",
+    "scope": "hook_observed_diff",
+    "baseline": {
+      "complete": true,
+      "captured_files": 406,
+      "candidate_limit": 5000,
+      "truncated": false,
+      "enumeration_error_count": 0,
+      "snapshot_error_count": 0,
+      "compensated_target_count": 24
+    },
+    "change_tracking": {
+      "touched_observed": 10,
+      "touched_retained": 10,
+      "truncated": false,
+      "bash_mutation": true,
+      "bash_discovered": 80,
+      "bash_discovery_limit": 80,
+      "bash_discovery_truncated": true
+    },
+    "candidates": {
+      "eligible_files": 87,
+      "selected_files": 20,
+      "limit": 20,
+      "truncated": true
+    },
+    "scanning": {
+      "required_files": 16,
+      "scanned_files": 16,
+      "skipped_files": 0,
+      "failed_files": 0,
+      "project_checks_required": 2,
+      "project_checks_completed": 2
+    },
+    "notification": {
+      "eligible_findings": 0,
+      "detailed_findings": 0,
+      "detail_limit": 3,
+      "truncated": false
+    },
+    "reason_counts": {
+      "bash_discovery_truncated": 1,
+      "candidate_limit_exceeded": 1,
+      "project_check_failed": 2
+    },
+    "reasons": [
+      {
+        "code": "bash_discovery_truncated",
+        "stage": "bash-discovery",
+        "target": "storage/framework/views/e4fa320715523c9291d7585dc2a22156.php",
+        "detail": "changed-file discovery exceeded 80 files",
+        "affects_completion": true
+      },
+      {
+        "code": "candidate_limit_exceeded",
+        "stage": "candidate-select",
+        "target": "tests/Feature/SakipDashboardAccessTest.php",
+        "detail": "67 changed reviewable file(s) were not scanned because the limit is 20",
+        "affects_completion": true
+      },
+      {
+        "code": "project_check_failed",
+        "stage": "bash-discovery",
+        "target": "storage/framework/views/e4fa320715523c9291d7585dc2a22156.php",
+        "detail": "bash_discovery_truncated: changed-file discovery exceeded 80 files",
+        "affects_completion": true
+      },
+      {
+        "code": "project_check_failed",
+        "stage": "candidate-select",
+        "target": "tests/Feature/SakipDashboardAccessTest.php",
+        "detail": "candidate_limit_exceeded: 67 changed reviewable file(s) were not scanned because the limit is 20",
+        "affects_completion": true
+      }
+    ],
+    "reasons_truncated": false
+  },
+  "generated_at": "2026-08-26T04:45:18.244Z",
+  "session_id": "sess_ff219367-e58b-47cc-bbd1-6c833fbbacfb",
+  "target": ".",
+  "revision": "e663bd24b336d0bdc66c8ee3e9ee496c7ccffb34",
+  "rules_version": "unavailable",
+  "diff_hash": "539d3e6ab31b609af2eb143482d04e580521bab24eec9096166e360b84940a66",
+  "diff": {
+    "algorithm": "sha256",
+    "changed_file_count": 19,
+    "changed_files": [
+      {
+        "file": ".claude/skills/sakip/SKILL.md",
+        "ranges": [
+          {
+            "start": 3,
+            "end": 3
+          },
+          {
+            "start": 6,
+            "end": 6
+          },
+          {
+            "start": 10,
+            "end": 14
+          },
+          {
+            "start": 16,
+            "end": 16
+          },
+          {
+            "start": 18,
+            "end": 23
+          },
+          {
+            "start": 25,
+            "end": 25
+          },
+          {
+            "start": 27,
+            "end": 30
+          },
+          {
+            "start": 34,
+            "end": 36
+          }
+        ],
+        "before_hash": "06518a743e41766a686ad52fde25e6ddf52a92849f8d08885be8d5eb58ebe9aa",
+        "after_hash": "3072871dd7a9e66d73dc87f57816c5e9f1ce54fea9ad5deb72045211cda124d3"
+      },
+      {
+        "file": ".github/workflows/ci.yml",
+        "ranges": [
+          {
+            "start": 35,
+            "end": 35
+          }
+        ],
+        "before_hash": "1ca42efbfdb633327169501c1144bf4d44e7eff0335c6adcb2b02f5c4ec90352",
+        "after_hash": "d4c7c907bd2aa1fbc8537b6d30ec09c2b8061d468c138470a488357b5daf94d6"
+      },
+      {
+        "file": "app/Http/Middleware/SecureFileUploadMiddleware.php",
+        "ranges": [
+          {
+            "start": 18,
+            "end": 18
+          },
+          {
+            "start": 23,
+            "end": 31
+          },
+          {
+            "start": 34,
+            "end": 37
+          },
+          {
+            "start": 45,
+            "end": 45
+          },
+          {
+            "start": 49,
+            "end": 62
+          },
+          {
+            "start": 69,
+            "end": 91
+          },
+          {
+            "start": 108,
+            "end": 110
+          },
+          {
+            "start": 121,
+            "end": 121
+          },
+          {
+            "start": 141,
+            "end": 141
+          },
+          {
+            "start": 150,
+            "end": 151
+          },
+          {
+            "start": 156,
+            "end": 160
+          },
+          {
+            "start": 163,
+            "end": 163
+          },
+          {
+            "start": 168,
+            "end": 172
+          },
+          {
+            "start": 177,
+            "end": 177
+          },
+          {
+            "start": 186,
+            "end": 190
+          },
+          {
+            "start": 193,
+            "end": 193
+          },
+          {
+            "start": 197,
+            "end": 202
+          },
+          {
+            "start": 207,
+            "end": 210
+          },
+          {
+            "start": 217,
+            "end": 223
+          },
+          {
+            "start": 226,
+            "end": 226
+          },
+          {
+            "start": 232,
+            "end": 235
+          },
+          {
+            "start": 240,
+            "end": 240
+          },
+          {
+            "start": 245,
+            "end": 251
+          },
+          {
+            "start": 254,
+            "end": 254
+          },
+          {
+            "start": 259,
+            "end": 263
+          },
+          {
+            "start": 266,
+            "end": 266
+          },
+          {
+            "start": 270,
+            "end": 275
+          },
+          {
+            "start": 285,
+            "end": 285
+          },
+          {
+            "start": 309,
+            "end": 309
+          },
+          {
+            "start": 311,
+            "end": 314
+          },
+          {
+            "start": 316,
+            "end": 318
+          },
+          {
+            "start": 320,
+            "end": 322
+          },
+          {
+            "start": 324,
+            "end": 330
+          },
+          {
+            "start": 341,
+            "end": 341
+          },
+          {
+            "start": 346,
+            "end": 347
+          },
+          {
+            "start": 355,
+            "end": 357
+          },
+          {
+            "start": 374,
+            "end": 378
+          },
+          {
+            "start": 381,
+            "end": 381
+          },
+          {
+            "start": 392,
+            "end": 392
+          },
+          {
+            "start": 404,
+            "end": 404
+          },
+          {
+            "start": 407,
+            "end": 432
+          }
+        ],
+        "before_hash": "40c255d62d93bc4110ab7a1a30d7ead0a5cab8fcd5f95e1268ce377bb36bb6ab",
+        "after_hash": "c6c5477559c2f32406b436e7c682cb86b00c734d3383b91813489bf5e5c741fe"
+      },
+      {
+        "file": "app/Services/BackupService.php",
+        "ranges": [
+          {
+            "start": 5,
+            "end": 6
+          },
+          {
+            "start": 14,
+            "end": 14
+          },
+          {
+            "start": 24,
+            "end": 24
+          },
+          {
+            "start": 47,
+            "end": 49
+          },
+          {
+            "start": 51,
+            "end": 51
+          },
+          {
+            "start": 53,
+            "end": 54
+          },
+          {
+            "start": 56,
+            "end": 57
+          },
+          {
+            "start": 60,
+            "end": 86
+          },
+          {
+            "start": 89,
+            "end": 91
+          },
+          {
+            "start": 100,
+            "end": 118
+          },
+          {
+            "start": 121,
+            "end": 123
+          },
+          {
+            "start": 133,
+            "end": 133
+          },
+          {
+            "start": 137,
+            "end": 138
+          },
+          {
+            "start": 143,
+            "end": 143
+          },
+          {
+            "start": 154,
+            "end": 168
+          },
+          {
+            "start": 171,
+            "end": 173
+          },
+          {
+            "start": 188,
+            "end": 188
+          }
+        ],
+        "before_hash": "2b87a6b4fa4680e176147b58a9b33f6ebedd00dfd273b41600e17df103ba3055",
+        "after_hash": "0dc3263583ab96911716b5b58fc082cdc5e4ad46c15fb8ca8c66028bb3e564a9"
+      },
+      {
+        "file": "CLAUDE.md",
+        "ranges": [
+          {
+            "start": 57,
+            "end": 57
+          },
+          {
+            "start": 63,
+            "end": 63
+          },
+          {
+            "start": 87,
+            "end": 87
+          },
+          {
+            "start": 133,
+            "end": 135
+          },
+          {
+            "start": 147,
+            "end": 153
+          },
+          {
+            "start": 155,
+            "end": 155
+          },
+          {
+            "start": 161,
+            "end": 161
+          }
+        ],
+        "before_hash": "6b693f05eea310ded4aa9007ae6520d594aff9fea99ab6df98b3034ec4d5aebe",
+        "after_hash": "b1c474a6257b8ba1eee15678b639fc396f53a96a40d67dccfafe6b0482ba7d8f"
+      },
+      {
+        "file": "scripts/extract-scripts.sh",
+        "ranges": [
+          {
+            "start": 1,
+            "end": 50
+          }
+        ],
+        "before_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "after_hash": "189498f5f20567bca1b0c29b58a8b3e849f101ccc8513f877eb63691711c76e0"
+      },
+      {
+        "file": "scripts/fix-onclick.sh",
+        "ranges": [
+          {
+            "start": 1,
+            "end": 20
+          }
+        ],
+        "before_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "after_hash": "f600c2fc5ba1511a0e0be246d33b8e6bb4d978916280e6a78766970195550519"
+      },
+      {
+        "file": "tests/Feature/AdminRoleEscalationTest.php",
+        "ranges": [
+          {
+            "start": 5,
+            "end": 5
+          },
+          {
+            "start": 7,
+            "end": 7
+          },
+          {
+            "start": 9,
+            "end": 10
+          },
+          {
+            "start": 25,
+            "end": 25
+          }
+        ],
+        "before_hash": "2a0bea40361eb37f9a21316d382f51f131137213cdb8d35a0c0ae5aadf2044eb",
+        "after_hash": "4b79285bedafcb129a5c9379541b68b3904e6ffc4fcb8f8f91a8f56e8880ce6d"
+      },
+      {
+        "file": "tests/Feature/AuthenticationTest.php",
+        "ranges": [
+          {
+            "start": 159,
+            "end": 164
+          }
+        ],
+        "before_hash": "4bbd390aff4edfffd8769f95e1904a2ea137cb15a00ff93df4d23fbbbea3356b",
+        "after_hash": "711140252a96d1d9a24705da9dc101fa8c7e5c7b67b748e834fbfaefde242359"
+      },
+      {
+        "file": "tests/Feature/EvidenceUpdateIsolationTest.php",
+        "ranges": [
+          {
+            "start": 5,
+            "end": 5
+          },
+          {
+            "start": 8,
+            "end": 9
+          },
+          {
+            "start": 11,
+            "end": 12
+          }
+        ],
+        "before_hash": "a755a44179193601558ed56cdbb7a6900300494f254518acab40ff2097c2946d",
+        "after_hash": "2983b7d23c4c5bfca3d9b34cf5b516767e751599529b1976cf6ace36848292ef"
+      },
+      {
+        "file": "tests/Feature/ExampleTest.php",
+        "ranges": [
+          {
+            "start": 11,
+            "end": 11
+          }
+        ],
+        "before_hash": "663830b214e87a95721769d22d1c4f3f78baf1687fd7f8e9bc9de1a7e7d15a73",
+        "after_hash": "a3bb3fd0cc29a16b6df054a51b027101e81a9896e39e1a9d53b7b0114bdbf84f"
+      },
+      {
+        "file": "tests/Feature/PerformanceCalculationServiceTest.php",
+        "ranges": [
+          {
+            "start": 7,
+            "end": 8
+          },
+          {
+            "start": 10,
+            "end": 11
+          }
+        ],
+        "before_hash": "f5da04f0db6ff772abe5172034fc5368c876ab8bb4f9d395e0c710d8a76dbffd",
+        "after_hash": "7edd9f8143631434fe2cd74c853c3b14bccb7a8092a65f2e9a0c184c0a21f5f0"
+      },
+      {
+        "file": "tests/Feature/RateLimitingTest.php",
+        "ranges": [
+          {
+            "start": 128,
+            "end": 128
+          }
+        ],
+        "before_hash": "7521bb4d458ab37c370577e5e71137f5cb6f357ff4a95d77501b0d053faedfc8",
+        "after_hash": "f9d23638f3048218a09897bec7ebff6b958071ad37d0f9866b2c50b320c3c2b1"
+      },
+      {
+        "file": "tests/Feature/RedirectFlowTest.php",
+        "ranges": [
+          {
+            "start": 7,
+            "end": 7
+          },
+          {
+            "start": 52,
+            "end": 52
+          }
+        ],
+        "before_hash": "3c609125644e03301a23ca1d4016a30da6c49e1ee8646a9a0682a894be61ca6c",
+        "after_hash": "3c610a4ac50347109c0a06b5ac672f8753cd8233352a8a1f4640f55de6b9d959"
+      },
+      {
+        "file": "tests/Feature/SakipApiTenantIsolationTest.php",
+        "ranges": [
+          {
+            "start": 6,
+            "end": 9
+          },
+          {
+            "start": 23,
+            "end": 23
+          },
+          {
+            "start": 38,
+            "end": 38
+          }
+        ],
+        "before_hash": "5c197357fc3d5daabf472a2a65ce5890d2196eead301b568277c1240bbc83b04",
+        "after_hash": "83c4d7ce3baf501288b404c24bffb3bec0061cf6940214101a147a72f0df5410"
+      },
+      {
+        "file": "tests/TestCase.php",
+        "ranges": [
+          {
+            "start": 6,
+            "end": 6
+          }
+        ],
+        "before_hash": "9764cfb8068d5b02374b890a76c448aee4cdf0b729428d5116fb515c220bdab5",
+        "after_hash": "0f96c617277883df63843c4a0714595e444cd29b96664fa43d32da61f9ba0cb2"
+      },
+      {
+        "file": "tests/Unit/ExportFormulaInjectionTest.php",
+        "ranges": [
+          {
+            "start": 6,
+            "end": 6
+          },
+          {
+            "start": 18,
+            "end": 18
+          },
+          {
+            "start": 30,
+            "end": 30
+          },
+          {
+            "start": 32,
+            "end": 34
+          }
+        ],
+        "before_hash": "b7f60c63b9d1060bb9bc38a35c43ae3e5a513aea116326f51111de8733dbe798",
+        "after_hash": "35c0d99814d8f827b1edb2ac9dc98dded6d1d68a92d90e042a2454d56afc4f1c"
+      },
+      {
+        "file": "tests/Unit/SecurityHeadersTest.php",
+        "ranges": [
+          {
+            "start": 17,
+            "end": 17
+          }
+        ],
+        "before_hash": "af413a185a2ab5d3d74ae2039faa78f32c0bd1cea7aa051d82f557393fceb776",
+        "after_hash": "87e027f814cd0fd59386ee5616e1848f5999cd3da7b9c16f2a00c73204cd8f06"
+      },
+      {
+        "file": "tests/Unit/Services/PerformanceCalculationServiceTest.php",
+        "ranges": [
+          {
+            "start": 7,
+            "end": 7
+          },
+          {
+            "start": 9,
+            "end": 9
+          },
+          {
+            "start": 20,
+            "end": 20
+          },
+          {
+            "start": 83,
+            "end": 83
+          }
+        ],
+        "before_hash": "946fdcda7f062388acc054109ed04727928305e0ce04d834b448deee4a53c17c",
+        "after_hash": "6ebf52f2d05bdd7cb016ea49176881c635991a482d38f58e4ed2a2e7e5e1ad65"
+      }
+    ]
+  },
+  "timing": {
+    "started_at": "2026-08-26T04:45:17.047Z",
+    "completed_at": "2026-08-26T04:45:18.244Z",
+    "duration_ms": 1197,
+    "measurement": "hook_wall_clock"
+  },
+  "tokens": {
+    "input": 0,
+    "output": 0,
+    "total": 0,
+    "model_calls": 0,
+    "measurement": "known-zero"
+  },
+  "telemetry": {
+    "schemaVersion": "mimosa-gate-telemetry/v1",
+    "profile": "gate",
+    "operation": "Stop",
+    "outcome": "partial/INCONCLUSIVE",
+    "latencyMs": 1197,
+    "peakMemoryBytes": 210386944,
+    "memoryMeasurement": "max-observed-process-rss",
+    "scannedFiles": 16,
+    "cache": {
+      "hits": 0,
+      "misses": 0,
+      "measurement": "not-applicable"
+    },
+    "denyCount": 0,
+    "tokens": {
+      "input": 0,
+      "output": 0,
+      "total": 0,
+      "modelCalls": 0,
+      "measurement": "known-zero"
+    }
+  },
+  "finding_count": 0,
+  "rewake_finding_count": 0,
+  "evidence_boundary": {
+    "scan": "candidate",
+    "static_fix_verification": "observed_static_only",
+    "runtime_verification": "not_performed"
+  },
+  "finding_events": [],
+  "findings": [],
+  "artifacts": {
+    "immutable_report": ".mimosa/reports/task-review-sess_ff219367-e58b-47cc-bbd1-6c833fbbacfb-20260826T044518244Z-36586-3f934a9687dd.json",
+    "latest_report": ".mimosa/reports/task-review-sess_ff219367-e58b-47cc-bbd1-6c833fbbacfb.json",
+    "history_summary": ".mimosa/history/run-20260826T044518244Z-36586-3f934a9687dd.json"
+  }
+}

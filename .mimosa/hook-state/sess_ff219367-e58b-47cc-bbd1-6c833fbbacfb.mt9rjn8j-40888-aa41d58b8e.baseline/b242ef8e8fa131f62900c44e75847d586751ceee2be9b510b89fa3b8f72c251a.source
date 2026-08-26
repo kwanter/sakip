@@ -1,0 +1,322 @@
+<?php $__env->startSection('title', 'Audit & Compliance'); ?>
+
+<?php $__env->startSection('content'); ?>
+<div class="container py-4">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="page-header-layout">
+            <div>
+                <h1 class="page-header-title">Audit & Compliance</h1>
+                <p class="page-header-subtitle">Monitor audit trails dan kepatuhan</p>
+            </div>
+            <div class="page-header-actions">
+                <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('run-compliance-check', App\Models\SakipAudit::class)): ?>
+                <button type="button" onclick="runComplianceCheck()" class="btn btn-danger">
+                    <i class="fas fa-shield-alt"></i>
+                    <span class="ms-1">Run Compliance</span>
+                </button>
+                <?php endif; ?>
+                <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('generate-audit-report', App\Models\SakipAudit::class)): ?>
+                <a href="<?php echo e(route('sakip.audit.export-report')); ?>" class="btn btn-success">
+                    <i class="fas fa-file-export"></i>
+                    <span class="ms-1">Export Report</span>
+                </a>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alert Notifications -->
+    <?php if(session('success')): ?>
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle alert-icon"></i>
+        <span><?php echo e(session('success')); ?></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <?php endif; ?>
+
+    <?php if(session('error')): ?>
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-circle alert-icon"></i>
+        <span><?php echo e(session('error')); ?></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <?php endif; ?>
+
+    <!-- Compliance Overview Stats -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="stat-card stat-card-success">
+                <div class="stat-card-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stat-card-content">
+                    <div class="stat-card-label">Overall Compliance</div>
+                    <div class="stat-card-value"><?php echo e($compliance['overall_score'] ?? 0); ?>%</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card stat-card-warning">
+                <div class="stat-card-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="stat-card-content">
+                    <div class="stat-card-label">Violations</div>
+                    <div class="stat-card-value"><?php echo e($compliance['violations_count'] ?? 0); ?></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card stat-card-info">
+                <div class="stat-card-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-card-content">
+                    <div class="stat-card-label">Last Check</div>
+                    <div class="stat-card-value small">
+                        <?php echo e($compliance['last_check'] ? $compliance['last_check']->diffForHumans() : 'Never'); ?>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Compliance Details -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-clipboard-list me-2"></i>
+                Compliance Details
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="compliance-checks">
+                <?php $__currentLoopData = $compliance['checks'] ?? []; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $check): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                <div class="compliance-check-item">
+                    <div class="compliance-check-info">
+                        <div class="compliance-check-name"><?php echo e($check['name']); ?></div>
+                        <div class="compliance-check-desc"><?php echo e($check['description']); ?></div>
+                    </div>
+                    <div class="compliance-check-score">
+                        <div class="progress" style="width: 100px; height: 8px;">
+                            <div class="progress-bar bg-<?php echo e($check['score'] >= 80 ? 'success' : ($check['score'] >= 60 ? 'warning' : 'danger')); ?>"
+                                 role="progressbar"
+                                 style="width: <?php echo e($check['score']); ?>%"></div>
+                        </div>
+                        <span class="ms-2 fw-bold"><?php echo e($check['score']); ?>%</span>
+                    </div>
+                </div>
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Violations -->
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                Recent Violations
+            </h5>
+            <span class="badge bg-<?php echo e(count($compliance['violations'] ?? []) > 0 ? 'danger' : 'success'); ?>">
+                <?php echo e(count($compliance['violations'] ?? [])); ?> violations
+            </span>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Type</th>
+                            <th>Description</th>
+                            <th>Severity</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php $__empty_1 = true; $__currentLoopData = $compliance['violations'] ?? []; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $violation): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                        <tr>
+                            <td>
+                                <span class="badge bg-danger">
+                                    <?php echo e(ucfirst(str_replace('_', ' ', $violation['type'] ?? 'unknown'))); ?>
+
+                                </span>
+                            </td>
+                            <td>
+                                <div class="fw-bold"><?php echo e($violation['message'] ?? 'No description'); ?></div>
+                                <small class="text-muted"><?php echo e($violation['recommendation'] ?? ''); ?></small>
+                            </td>
+                            <td>
+                                <span class="badge bg-<?php echo e(($violation['severity'] ?? 'low') === 'high' ? 'danger' : (($violation['severity'] ?? 'low') === 'medium' ? 'warning' : 'info')); ?>">
+                                    <?php echo e(ucfirst($violation['severity'] ?? 'low')); ?>
+
+                                </span>
+                            </td>
+                            <td><?php echo e(now()->format('M d, Y')); ?></td>
+                            <td>
+                                <span class="text-muted">-</span>
+                            </td>
+                        </tr>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                        <tr>
+                            <td colspan="5" class="text-center py-4">
+                                <div class="empty-state">
+                                    <i class="fas fa-check-circle text-success"></i>
+                                    <p class="mb-0">No violations found</p>
+                                </div>
+                            </td>
+                        </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Audit Logs -->
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-history me-2"></i>
+                Recent Audit Logs
+            </h5>
+            <span class="text-muted small">Showing latest activities</span>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>User</th>
+                            <th>Action</th>
+                            <th>Resource</th>
+                            <th>Changes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php $__empty_1 = true; $__currentLoopData = $auditLogs ?? []; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $log): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                        <tr>
+                            <td><?php echo e($log->created_at->format('M d, Y H:i')); ?></td>
+                            <td><?php echo e($log->user->name ?? 'System'); ?></td>
+                            <td>
+                                <span class="badge bg-<?php echo e($log->event_type === 'delete' ? 'danger' : ($log->event_type === 'update' ? 'warning' : ($log->event_type === 'create' ? 'success' : 'info'))); ?>">
+                                    <?php echo e(ucfirst($log->event_type)); ?>
+
+                                </span>
+                            </td>
+                            <td><?php echo e(class_basename($log->auditable_type)); ?> #<?php echo e($log->auditable_id); ?></td>
+                            <td>
+                                <?php if($log->old_values || $log->new_values): ?>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="showChanges(<?php echo e($log->id); ?>)">
+                                        <i class="fas fa-eye"></i> View
+                                    </button>
+                                <?php else: ?>
+                                    <span class="text-muted">No changes</span>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                        <tr>
+                            <td colspan="5" class="text-center py-4">
+                                <div class="empty-state">
+                                    <i class="fas fa-clipboard-list text-muted"></i>
+                                    <p class="mb-0">No audit logs found</p>
+                                </div>
+                            </td>
+                        </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+
+            <?php if(isset($auditLogs) && $auditLogs->hasPages()): ?>
+            <div class="p-3 border-top">
+                <?php echo e($auditLogs->links()); ?>
+
+            </div>
+            <?php endif; ?>
+        </div>
+    </div>
+</div>
+
+<!-- Changes Modal -->
+<div class="modal fade" id="changesModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-exchange-alt me-2"></i>
+                    Changes Details
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="changesContent">
+                <!-- Changes will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i>
+                    <span class="ms-1">Close</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<?php $__env->stopSection(); ?>
+
+<?php $__env->startPush('scripts'); ?>
+<script>
+function runComplianceCheck() {
+    if (confirm('This will run a comprehensive compliance check. Continue?')) {
+        fetch('<?php echo e(route('sakip.audit.run-compliance-check')); ?>', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification('Compliance check completed. Found ' + data.violations_count + ' violations.', 'success');
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                showNotification('Compliance check failed: ' + data.message, 'danger');
+            }
+        })
+        .catch(error => {
+            showNotification('An error occurred during compliance check', 'danger');
+        });
+    }
+}
+
+function showChanges(logId) {
+    fetch(`/sakip/audit/logs/${logId}/changes`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Server-sanitized HTML content
+                const contentDiv = document.getElementById('changesContent');
+                contentDiv.textContent = '';
+                const temp = document.createElement('div');
+                temp.innerHTML = data.html;
+                while (temp.firstChild) {
+                    contentDiv.appendChild(temp.firstChild);
+                }
+
+                const modal = new bootstrap.Modal(document.getElementById('changesModal'));
+                modal.show();
+            }
+        })
+        .catch(error => {
+            showNotification('Failed to load changes', 'danger');
+        });
+}
+</script>
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.modern', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH /Users/macbook/Developer/php/sakip/resources/views/sakip/audit/index.blade.php ENDPATH**/ ?>

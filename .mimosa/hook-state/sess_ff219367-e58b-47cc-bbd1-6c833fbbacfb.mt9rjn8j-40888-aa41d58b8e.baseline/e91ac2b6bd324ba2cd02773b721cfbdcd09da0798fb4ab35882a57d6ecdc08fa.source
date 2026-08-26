@@ -1,0 +1,209 @@
+<?php $__env->startSection('title', 'Tambah Role Baru'); ?>
+
+<?php $__env->startSection('content'); ?>
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-plus-circle"></i> Tambah Role Baru
+        </h1>
+        <a href="<?php echo e(route('admin.roles.index')); ?>" class="btn btn-secondary btn-sm">
+            <i class="fas fa-arrow-left"></i> Kembali
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header py-3 bg-primary text-white">
+                    <h6 class="m-0 font-weight-bold">
+                        <i class="fas fa-shield-alt"></i> Informasi Role
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <?php if($errors->any()): ?>
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <h6 class="alert-heading"><i class="fas fa-exclamation-circle"></i> Validasi Gagal!</h6>
+                            <ul class="mb-0">
+                                <?php $__currentLoopData = $errors->all(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $error): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <li><?php echo e($error); ?></li>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                            </ul>
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                    <?php endif; ?>
+
+                    <form action="<?php echo e(route('admin.roles.store')); ?>" method="POST">
+                        <?php echo csrf_field(); ?>
+
+                        <!-- Role Name -->
+                        <div class="form-group mb-3">
+                            <label for="name" class="form-label font-weight-bold">
+                                Nama Role <span class="text-danger">*</span>
+                            </label>
+                            <input type="text"
+                                   class="form-control <?php $__errorArgs = ['name'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>"
+                                   id="name"
+                                   name="name"
+                                   value="<?php echo e(old('name')); ?>"
+                                   placeholder="Contoh: Editor, Reviewer, Analyst"
+                                   required>
+                            <?php $__errorArgs = ['name'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                <small class="form-text text-danger"><?php echo e($message); ?></small>
+                            <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+                            <small class="form-text text-muted">Nama unik untuk role ini</small>
+                        </div>
+
+                        <!-- Guard Name -->
+                        <div class="form-group mb-3">
+                            <label for="guard_name" class="form-label font-weight-bold">
+                                Guard Name
+                            </label>
+                            <input type="text"
+                                   class="form-control <?php $__errorArgs = ['guard_name'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>"
+                                   id="guard_name"
+                                   name="guard_name"
+                                   value="<?php echo e(old('guard_name', 'web')); ?>"
+                                   placeholder="web">
+                            <?php $__errorArgs = ['guard_name'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                <small class="form-text text-danger"><?php echo e($message); ?></small>
+                            <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+                            <small class="form-text text-muted">Opsional - untuk membedakan guard (biasanya 'web')</small>
+                        </div>
+
+                        <!-- Permissions Selection -->
+                        <div class="form-group mb-3">
+                            <label class="form-label font-weight-bold">
+                                <i class="fas fa-key"></i> Pilih Izin
+                            </label>
+                            <div class="card bg-light border">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <?php $__empty_1 = true; $__currentLoopData = $permissions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $permission): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                                            <div class="col-md-6 mb-2">
+                                                <div class="custom-control custom-checkbox">
+                                                    <input type="checkbox"
+                                                           class="custom-control-input"
+                                                           id="permission_<?php echo e($permission->id); ?>"
+                                                           name="permissions[]"
+                                                           value="<?php echo e($permission->id); ?>"
+                                                           <?php echo e(in_array($permission->id, old('permissions', [])) ? 'checked' : ''); ?>>
+                                                    <label class="custom-control-label" for="permission_<?php echo e($permission->id); ?>">
+                                                        <strong><?php echo e($permission->name); ?></strong>
+                                                        <?php if($permission->description): ?>
+                                                            <br>
+                                                            <small class="text-muted"><?php echo e($permission->description); ?></small>
+                                                        <?php endif; ?>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                                            <div class="col-12">
+                                                <p class="text-muted mb-0">Tidak ada izin tersedia</p>
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            </div>
+                            <?php $__errorArgs = ['permissions'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                <small class="form-text text-danger d-block mt-2"><?php echo e($message); ?></small>
+                            <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+                            <small class="form-text text-muted d-block mt-2">Pilih izin-izin yang akan diberikan ke role ini</small>
+                        </div>
+
+                        <!-- Submit Buttons -->
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-save"></i> Simpan Role
+                            </button>
+                            <a href="<?php echo e(route('admin.roles.index')); ?>" class="btn btn-secondary btn-lg">
+                                <i class="fas fa-times"></i> Batal
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Info Panel -->
+        <div class="col-lg-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 bg-info text-white">
+                    <h6 class="m-0 font-weight-bold">
+                        <i class="fas fa-info-circle"></i> Panduan
+                    </h6>
+                </div>
+                <div class="card-body small">
+                    <h6 class="font-weight-bold">Cara Membuat Role:</h6>
+                    <ol class="pl-3">
+                        <li>Masukkan nama role yang deskriptif</li>
+                        <li>Pilih izin-izin yang dibutuhkan</li>
+                        <li>Klik "Simpan Role"</li>
+                    </ol>
+
+                    <hr>
+
+                    <h6 class="font-weight-bold">Tips:</h6>
+                    <ul class="pl-3 mb-0">
+                        <li>Gunakan nama yang jelas dan deskriptif</li>
+                        <li>Pilih izin minimal yang dibutuhkan</li>
+                        <li>Anda dapat mengubah izin nanti</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card shadow">
+                <div class="card-header py-3 bg-warning text-dark">
+                    <h6 class="m-0 font-weight-bold">
+                        <i class="fas fa-lightbulb"></i> Contoh Role
+                    </h6>
+                </div>
+                <div class="card-body small">
+                    <p><strong>Editor:</strong> Dapat membuat dan mengedit konten</p>
+                    <p><strong>Reviewer:</strong> Dapat melihat dan mengomentari konten</p>
+                    <p><strong>Admin:</strong> Akses penuh ke semua fitur</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.modern', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH /Users/macbook/Developer/php/sakip/resources/views/admin/roles/create.blade.php ENDPATH**/ ?>

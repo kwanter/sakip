@@ -1,0 +1,135 @@
+{
+  "schemaVersion": "mimosa-finding-ledger-batch/v1",
+  "batchId": "stop-20260826T044518244Z-36586-3f934a9687dd",
+  "runId": "20260826T044518244Z-36586-3f934a9687dd",
+  "runStatus": "inconclusive",
+  "coverage": {
+    "status": "partial",
+    "reasons": [
+      {
+        "code": "bash_discovery_truncated",
+        "stage": "bash-discovery",
+        "target": "storage/framework/views/e4fa320715523c9291d7585dc2a22156.php",
+        "detail": "changed-file discovery exceeded 80 files",
+        "affectsCompletion": true
+      },
+      {
+        "code": "candidate_limit_exceeded",
+        "stage": "candidate-select",
+        "target": "tests/Feature/SakipDashboardAccessTest.php",
+        "detail": "67 changed reviewable file(s) were not scanned because the limit is 20",
+        "affectsCompletion": true
+      },
+      {
+        "code": "project_check_failed",
+        "stage": "bash-discovery",
+        "target": "storage/framework/views/e4fa320715523c9291d7585dc2a22156.php",
+        "detail": "bash_discovery_truncated: changed-file discovery exceeded 80 files",
+        "affectsCompletion": true
+      },
+      {
+        "code": "project_check_failed",
+        "stage": "candidate-select",
+        "target": "tests/Feature/SakipDashboardAccessTest.php",
+        "detail": "candidate_limit_exceeded: 67 changed reviewable file(s) were not scanned because the limit is 20",
+        "affectsCompletion": true
+      }
+    ]
+  },
+  "source": {
+    "component": "zcode-hook",
+    "operationId": "Stop"
+  },
+  "revision": "e663bd24b336d0bdc66c8ee3e9ee496c7ccffb34",
+  "diffHash": "539d3e6ab31b609af2eb143482d04e580521bab24eec9096166e360b84940a66",
+  "rulesVersion": "unavailable",
+  "sessionHash": "cc51e25bb5b5a5895c269894fc2658f26d7d503c5b6c1078dfb819f2ecdcdfa4",
+  "reportRef": ".mimosa/reports/task-review-sess_ff219367-e58b-47cc-bbd1-6c833fbbacfb-20260826T044518244Z-36586-3f934a9687dd.json",
+  "events": [],
+  "observedFindingIds": [
+    "mimosa-45c13139a1307605d8f2cc2c"
+  ],
+  "verifiedFiles": [
+    {
+      "file": "scripts/fix-onclick.sh",
+      "direct": "complete",
+      "projectContext": "partial"
+    },
+    {
+      "file": "scripts/extract-scripts.sh",
+      "direct": "complete",
+      "projectContext": "partial"
+    },
+    {
+      "file": "app/Http/Middleware/SecureFileUploadMiddleware.php",
+      "direct": "complete",
+      "projectContext": "partial"
+    },
+    {
+      "file": "app/Services/BackupService.php",
+      "direct": "complete",
+      "projectContext": "partial"
+    },
+    {
+      "file": "tests/Feature/AuthenticationTest.php",
+      "direct": "complete",
+      "projectContext": "partial"
+    },
+    {
+      "file": "tests/Unit/ExportFormulaInjectionTest.php",
+      "direct": "complete",
+      "projectContext": "partial"
+    },
+    {
+      "file": "tests/TestCase.php",
+      "direct": "complete",
+      "projectContext": "partial"
+    },
+    {
+      "file": "tests/Unit/SecurityHeadersTest.php",
+      "direct": "complete",
+      "projectContext": "partial"
+    },
+    {
+      "file": "tests/Unit/Services/PerformanceCalculationServiceTest.php",
+      "direct": "complete",
+      "projectContext": "partial"
+    },
+    {
+      "file": "tests/Feature/AdminRoleEscalationTest.php",
+      "direct": "complete",
+      "projectContext": "partial"
+    },
+    {
+      "file": "tests/Feature/EvidenceUpdateIsolationTest.php",
+      "direct": "complete",
+      "projectContext": "partial"
+    },
+    {
+      "file": "tests/Feature/ExampleTest.php",
+      "direct": "complete",
+      "projectContext": "partial"
+    },
+    {
+      "file": "tests/Feature/PerformanceCalculationServiceTest.php",
+      "direct": "complete",
+      "projectContext": "partial"
+    },
+    {
+      "file": "tests/Feature/RateLimitingTest.php",
+      "direct": "complete",
+      "projectContext": "partial"
+    },
+    {
+      "file": "tests/Feature/RedirectFlowTest.php",
+      "direct": "complete",
+      "projectContext": "partial"
+    },
+    {
+      "file": "tests/Feature/SakipApiTenantIsolationTest.php",
+      "direct": "complete",
+      "projectContext": "partial"
+    }
+  ],
+  "recordedAt": "2026-08-26T04:45:18.493Z"
+}

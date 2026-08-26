@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Scopes\InstansiScope;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -77,6 +78,8 @@ class AuditLog extends Model
     protected static function boot()
     {
         parent::boot();
+
+        static::addGlobalScope(new InstansiScope);
 
         static::creating(function ($auditLog) {
             foreach (['details', 'old_values', 'new_values'] as $field) {

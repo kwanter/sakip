@@ -1,173 +1,36 @@
 ---
 name: sakip-conventions
-description: Development conventions and patterns for sakip. TypeScript project with conventional commits.
+description: Development conventions and patterns for kwanter/sakip. PHP Laravel 12 monolith — government performance accountability system.
 ---
 
-# Sakip Conventions
-
-> Generated from [kwanter/sakip](https://github.com/kwanter/sakip) on 2026-08-22
-
-## Overview
-
-This skill teaches Claude the development patterns and conventions used in sakip.
+# SAKIP Conventions
 
 ## Tech Stack
 
-- **Primary Language**: TypeScript
-- **Architecture**: hybrid module organization
-- **Test Location**: separate
+- **Language**: PHP 8.3, Laravel 12
+- **Frontend**: Blade layouts + Bootstrap 5 / jQuery / DataTables (CDN) + Vite-bundled vanilla JS modules + chart.js + Tailwind 4
+- **DB**: SQLite (dev/test), MySQL/PostgreSQL (production)
+- **Auth**: Session-based, Spatie Laravel Permission for roles/permissions
+- **Tenant isolation**: `InstansiScope` global scope (applied to Program, SasaranStrategis, PerformanceData, Report, AuditLog, PerformanceIndicator) + per-model policies
 
-## When to Use This Skill
+## Key Architecture
 
-Activate this skill when:
-- Making changes to this repository
-- Adding new features following established patterns
-- Writing tests that match project conventions
-- Creating commits with proper message format
+- **Service layer**: Business logic in `app/Services/`. Controllers delegate to services.
+- **No repositories** — Eloquent models used directly.
+- **No Inertia/React** — removed in 2026 architecture cleanup. The frontend is Blade + Bootstrap + Vite-bundled vanilla JS.
+- **API surface**: `/sakip/api/*` AJAX endpoints in `routes/web_sakip.php` (session auth, not Sanctum). No `routes/api.php` CRUD API.
+- **UUID primary keys**, soft deletes on all tracked models.
+- **Instansi tenancy**: `InstansiScope` global scope on direct-column models. Use `Model::withoutGlobalScope(InstansiScope::class)` for admin reports.
 
-## Commit Conventions
+## Route Naming
 
-Follow these commit message conventions based on 15 analyzed commits.
-
-### Commit Style: Conventional Commits
-
-### Prefixes Used
-
-- `fix`
-- `chore`
-- `test`
-
-### Message Guidelines
-
-- Average message length: ~108 characters
-- Keep first line concise and descriptive
-- Use imperative mood ("Add feature" not "Added feature")
-
-
-*Commit message example*
-
-```text
-fix(api): remove dead parallel api_sakip+api_v1 route stacks (66 dead routes) ; real api is web_sakip sakip/api group
-```
-
-*Commit message example*
-
-```text
-test(rates): drop dead-endpoint throttle tests (api_sakip removed)
-```
-
-*Commit message example*
-
-```text
-chore(templates): remove dead public-disk uploader (no callers)
-```
-
-*Commit message example*
-
-```text
-fix(api): pin non-HQ users to own instansi, block cross-tenant pivot
-```
-
-*Commit message example*
-
-```text
-test(target): confirm foreign-tenant approve blocked by indicator scope (404)
-```
-
-*Commit message example*
-
-```text
-chore(deps): update guzzle/commonmark — composer audit clean (0 advisories)
-```
-
-*Commit message example*
-
-```text
-fix(calc): remove phantom Benchmark/PerformanceMeasurement refs; trends read real PerformanceData
-```
-
-*Commit message example*
-
-```text
-fix(export): add phpspreadsheet+dompdf, formula-injection guard, row caps (DoS)
-```
-
-## Architecture
-
-### Project Structure: Single Package
-
-This project uses **hybrid** module organization.
-
-### Guidelines
-
-- This project uses a hybrid organization
-- Follow existing patterns when adding new code
+- All SAKIP routes live in `routes/web_sakip.php`, prefixed `/sakip`, middleware `auth` + `verified`.
+- Admin routes in `routes/web.php`, prefixed `/admin`.
+- API-like endpoints under `/sakip/api/` (web middleware, not api middleware).
+- Route names follow `sakip.{resource}.{action}` pattern.
 
 ## Code Style
 
-### Language: TypeScript
-
-### Naming Conventions
-
-| Element | Convention |
-|---------|------------|
-| Files | PascalCase |
-| Functions | camelCase |
-| Classes | PascalCase |
-| Constants | SCREAMING_SNAKE_CASE |
-
-### Import Style: Relative Imports
-
-### Export Style: Named Exports
-
-
-*Preferred import style*
-
-```typescript
-// Use relative imports
-import { Button } from '../components/Button'
-import { useAuth } from './hooks/useAuth'
-```
-
-*Preferred export style*
-
-```typescript
-// Use named exports
-export function calculateTotal() { ... }
-export const TAX_RATE = 0.1
-export interface Order { ... }
-```
-
-## Testing
-
-### Test Framework
-
-No specific test framework detected — use the repository's existing test patterns.
-
-### File Pattern: `*.test.ts`
-
-### Test Types
-
-- **Unit tests**: Test individual functions and components in isolation
-
-
-## Best Practices
-
-Based on analysis of the codebase, follow these practices:
-
-### Do
-
-- Use conventional commit format (feat:, fix:, etc.)
-- Follow *.test.ts naming pattern
-- Use PascalCase for file names
-- Prefer named exports
-
-### Don't
-
-- Don't write vague commit messages
-- Don't skip tests for new features
-- Don't deviate from established patterns without discussion
-
----
-
-*This skill was auto-generated by [ECC Tools](https://ecc.tools). Review and customize as needed for your team.*
+- Laravel Pint enforcement (CI gate). No `|| true` escape.
+- Use `booted()` for model global scopes; `boot()` when `parent::boot()` is needed.
+- New models with `instansi_id` column must add the `InstansiScope` global scope.
