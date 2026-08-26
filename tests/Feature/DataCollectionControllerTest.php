@@ -2,13 +2,11 @@
 
 namespace Tests\Feature;
 
-use Tests\TestCase;
-use App\Models\User;
 use App\Models\Instansi;
-use App\Models\PerformanceIndicator;
-use App\Models\PerformanceData;
 use App\Models\Permission;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 /**
  * Characterization tests for DataCollectionController.
@@ -22,6 +20,7 @@ class DataCollectionControllerTest extends TestCase
     use RefreshDatabase;
 
     private User $user;
+
     private Instansi $instansi;
 
     protected function setUp(): void

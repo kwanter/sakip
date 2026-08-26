@@ -2,10 +2,10 @@
 
 namespace Tests\Unit;
 
+use FilesystemIterator;
 use Illuminate\Support\Facades\Route;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
-use FilesystemIterator;
 use Tests\TestCase;
 
 /**

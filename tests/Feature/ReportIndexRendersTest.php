@@ -2,12 +2,12 @@
 
 namespace Tests\Feature;
 
-use Tests\TestCase;
-use App\Models\User;
-use App\Models\Report;
 use App\Models\Instansi;
 use App\Models\Permission;
+use App\Models\Report;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 class ReportIndexRendersTest extends TestCase
 {
