@@ -1,0 +1,14 @@
+{
+  "schemaVersion": "mimosa-hook-status/v1",
+  "recordedAt": "2026-08-26T04:11:24.498Z",
+  "sessionId": "sess_ff219367-e58b-47cc-bbd1-6c833fbbacfb",
+  "event": "PostToolUse",
+  "toolName": "Edit",
+  "file": "app/Services/BackupService.php",
+  "outcome": "clear",
+  "coverage": "complete",
+  "findingCount": 0,
+  "durationMs": 6,
+  "hostState": "hook_complete",
+  "reportHint": ".mimosa/reports/"
+}

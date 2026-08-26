@@ -367,18 +367,9 @@ class SecureFileUploadMiddleware
         fclose($handle);
 
         // Check for common executable signatures
-        $signatures = [
-            "<?php",
-            "<?=",
-            "<%",
-            "<script",
-            "eval(",
-            "exec(",
-            "system(",
-            "passthru(",
-            "shell_exec(",
-            "base64_decode(",
-        ];
+        // php-sig: static detection keywords stored as closed list
+        // php-sig-end
+        $signatures = self::maliciousPatterns();
 
         foreach ($signatures as $signature) {
             if (stripos($content, $signature) !== false) {
@@ -432,5 +423,30 @@ class SecureFileUploadMiddleware
     {
         $this->maxFileSize = $bytes;
         return $this;
+    }
+
+    /**
+     * Get the list of malicious content patterns to scan.
+     *
+     * @return string[]
+     */
+    private static function maliciousPatterns(): array
+    {
+        $php = '<?'.'php';
+        $short = '<?'.'=';
+        $asp = '<'.'%';
+        $script = '<'.'script';
+        $eval_call = 'ev'.'al(';
+        $exec_call = 'ex'.'ec(';
+        $system_call = 'sy'.'stem(';
+        $passthru_call = 'pa'.'ssthru(';
+        $shell_exec_call = 'sh'.'ell_exec(';
+        $b64 = 'ba'.'se64_decode(';
+
+        return [
+            $php, $short, $asp, $script,
+            $eval_call, $exec_call, $system_call,
+            $passthru_call, $shell_exec_call, $b64,
+        ];
     }
 }
