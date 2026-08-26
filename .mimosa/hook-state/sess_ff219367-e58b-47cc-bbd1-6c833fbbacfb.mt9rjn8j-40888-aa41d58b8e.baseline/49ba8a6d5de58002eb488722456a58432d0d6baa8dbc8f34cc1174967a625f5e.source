@@ -1,0 +1,379 @@
+<?php $__env->startSection('title', 'Buat Penilaian Kinerja'); ?>
+
+<?php $__env->startSection('content'); ?>
+<div class="container py-4">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="page-header-layout">
+            <div>
+                <a href="<?php echo e(route('sakip.assessments.index')); ?>" class="btn btn-outline-secondary btn-sm mb-2">
+                    <i class="fas fa-arrow-left"></i>
+                    <span class="ms-1">Kembali</span>
+                </a>
+                <h1 class="page-header-title">Buat Penilaian Kinerja</h1>
+                <p class="page-header-subtitle">Evaluasi dan berikan penilaian kinerja instansi</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alert Section -->
+    <?php if($errors->any()): ?>
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-circle alert-icon"></i>
+        <div>
+            <strong>Terjadi kesalahan</strong>
+            <ul class="mb-0 mt-2">
+                <?php $__currentLoopData = $errors->all(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $error): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <li><?php echo e($error); ?></li>
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+            </ul>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <?php endif; ?>
+
+    <!-- Assessment Form -->
+    <div class="card">
+        <div class="card-body">
+            <form action="<?php echo e(route('sakip.assessments.store')); ?>" method="POST" id="assessmentForm">
+                <?php echo csrf_field(); ?>
+
+                <!-- Section: Informasi Dasar -->
+                <div class="form-section mb-4">
+                    <div class="form-section-header">
+                        <i class="fas fa-info-circle"></i>
+                        <span>Informasi Dasar</span>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label for="performance_data_id" class="form-label">Data Kinerja <span class="text-danger">*</span></label>
+                                <select name="performance_data_id" id="performance_data_id" required class="form-select <?php $__errorArgs = ['performance_data_id'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>">
+                                    <option value="">Pilih Data Kinerja</option>
+                                    <?php $__currentLoopData = $performanceData; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $data): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <option value="<?php echo e($data->id); ?>"><?php echo e($data->indicator->code); ?> - <?php echo e($data->indicator->name); ?></option>
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                </select>
+                                <?php $__errorArgs = ['performance_data_id'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                    <div class="invalid-feedback"><?php echo e($message); ?></div>
+                                <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label for="assessor_id" class="form-label">Penilai <span class="text-danger">*</span></label>
+                                <select name="assessor_id" id="assessor_id" required class="form-select <?php $__errorArgs = ['assessor_id'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>">
+                                    <option value="">Pilih Penilai</option>
+                                    <?php $__currentLoopData = $assessors; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $assessor): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <option value="<?php echo e($assessor->id); ?>"><?php echo e($assessor->name); ?></option>
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                </select>
+                                <?php $__errorArgs = ['assessor_id'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                    <div class="invalid-feedback"><?php echo e($message); ?></div>
+                                <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label for="period" class="form-label">Periode <span class="text-danger">*</span></label>
+                                <select name="period" id="period" required class="form-select <?php $__errorArgs = ['period'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>">
+                                    <option value="">Pilih Periode</option>
+                                    <option value="triwulan-1">Triwulan I (Januari - Maret)</option>
+                                    <option value="triwulan-2">Triwulan II (April - Juni)</option>
+                                    <option value="triwulan-3">Triwulan III (Juli - September)</option>
+                                    <option value="triwulan-4">Triwulan IV (Oktober - Desember)</option>
+                                    <option value="bulanan">Bulanan</option>
+                                    <option value="tahunan">Tahunan</option>
+                                </select>
+                                <?php $__errorArgs = ['period'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                    <div class="invalid-feedback"><?php echo e($message); ?></div>
+                                <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label for="year" class="form-label">Tahun <span class="text-danger">*</span></label>
+                                <select name="year" id="year" required class="form-select <?php $__errorArgs = ['year'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>">
+                                    <?php for($y = date('Y') - 2; $y <= date('Y') + 1; $y++): ?>
+                                        <option value="<?php echo e($y); ?>" <?php echo e($y == date('Y') ? 'selected' : ''); ?>><?php echo e($y); ?></option>
+                                    <?php endfor; ?>
+                                </select>
+                                <?php $__errorArgs = ['year'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                    <div class="invalid-feedback"><?php echo e($message); ?></div>
+                                <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section: Penilaian -->
+                <div class="form-section mb-4">
+                    <div class="form-section-header">
+                        <i class="fas fa-clipboard-check"></i>
+                        <span>Penilaian</span>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label for="score" class="form-label">Skor (0-100) <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <input type="number" name="score" id="score" min="0" max="100" step="0.1" required class="form-control <?php $__errorArgs = ['score'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>" placeholder="Masukkan skor 0-100">
+                                    <span class="input-group-text">%</span>
+                                </div>
+                                <div class="form-text">Skor akan menentukan grade penilaian secara otomatis</div>
+                                <?php $__errorArgs = ['score'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                    <div class="invalid-feedback"><?php echo e($message); ?></div>
+                                <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label for="status" class="form-label">Status <span class="text-danger">*</span></label>
+                                <select name="status" id="status" required class="form-select <?php $__errorArgs = ['status'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>">
+                                    <option value="">Pilih Status</option>
+                                    <option value="pending">Menunggu Penilaian</option>
+                                    <option value="in_review">Dalam Penilaian</option>
+                                    <option value="completed">Selesai</option>
+                                    <option value="rejected">Ditolak</option>
+                                    <option value="needs_revision">Perlu Revisi</option>
+                                </select>
+                                <?php $__errorArgs = ['status'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                    <div class="invalid-feedback"><?php echo e($message); ?></div>
+                                <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-group mb-0">
+                                <label for="notes" class="form-label">Catatan Penilaian</label>
+                                <textarea name="notes" id="notes" rows="4" class="form-control <?php $__errorArgs = ['notes'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>" placeholder="Masukkan catatan, komentar, atau rekomendasi penilaian..."></textarea>
+                                <?php $__errorArgs = ['notes'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                    <div class="invalid-feedback"><?php echo e($message); ?></div>
+                                <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Grade Preview -->
+                <div class="alert alert-info mb-4" id="gradePreview" style="display: none;">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-star fa-2x me-3"></i>
+                        <div>
+                            <h6 class="mb-1">Prediksi Grade</h6>
+                            <p class="mb-0" id="gradeText">-</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="form-actions">
+                    <a href="<?php echo e(route('sakip.assessments.index')); ?>" class="btn btn-outline-secondary">
+                        <i class="fas fa-times"></i>
+                        <span class="ms-1">Batal</span>
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i>
+                        <span class="ms-1">Simpan Penilaian</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Reference Card -->
+    <div class="card mt-4">
+        <div class="card-body">
+            <h6 class="card-title">
+                <i class="fas fa-info-circle me-2 text-info"></i>
+                Referensi Penilaian
+            </h6>
+            <div class="row text-center">
+                <div class="col-md-3 col-6">
+                    <div class="p-3 border rounded bg-success bg-opacity-10">
+                        <span class="badge bg-success fs-6 mb-2">A</span>
+                        <p class="mb-0 small">90 - 100<br><strong>Sangat Baik</strong></p>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="p-3 border rounded bg-info bg-opacity-10">
+                        <span class="badge bg-info fs-6 mb-2">B</span>
+                        <p class="mb-0 small">75 - 89<br><strong>Baik</strong></p>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="p-3 border rounded bg-warning bg-opacity-10">
+                        <span class="badge bg-warning fs-6 mb-2">C</span>
+                        <p class="mb-0 small">60 - 74<br><strong>Cukup</strong></p>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="p-3 border rounded bg-danger bg-opacity-10">
+                        <span class="badge bg-danger fs-6 mb-2">D</span>
+                        <p class="mb-0 small">&lt; 60<br><strong>Kurang</strong></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<?php $__env->startPush('scripts'); ?>
+<script>
+    // Grade calculation based on score - using safe DOM methods
+    const scoreInput = document.getElementById('score');
+    const gradePreview = document.getElementById('gradePreview');
+    const gradeText = document.getElementById('gradeText');
+
+    // Pre-create badge elements
+    const gradeBadges = {
+        A: createBadge('A', 'bg-success'),
+        B: createBadge('B', 'bg-info'),
+        C: createBadge('C', 'bg-warning'),
+        D: createBadge('D', 'bg-danger')
+    };
+
+    const gradeDescriptions = {
+        A: 'Sangat Baik',
+        B: 'Baik',
+        C: 'Cukup',
+        D: 'Kurang'
+    };
+
+    function createBadge(text, className) {
+        const span = document.createElement('span');
+        span.className = 'badge ' + className + ' me-2';
+        span.textContent = text;
+        return span;
+    }
+
+    function updateGradePreview(score) {
+        gradeText.innerHTML = '';
+
+        if (score >= 90) {
+            gradeText.appendChild(gradeBadges.A.cloneNode(true));
+            gradeText.appendChild(document.createTextNode(' (' + score + '%) - Sangat Baik'));
+        } else if (score >= 75) {
+            gradeText.appendChild(gradeBadges.B.cloneNode(true));
+            gradeText.appendChild(document.createTextNode(' (' + score + '%) - Baik'));
+        } else if (score >= 60) {
+            gradeText.appendChild(gradeBadges.C.cloneNode(true));
+            gradeText.appendChild(document.createTextNode(' (' + score + '%) - Cukup'));
+        } else {
+            gradeText.appendChild(gradeBadges.D.cloneNode(true));
+            gradeText.appendChild(document.createTextNode(' (' + score + '%) - Kurang'));
+        }
+    }
+
+    scoreInput.addEventListener('input', function() {
+        const score = parseFloat(this.value);
+
+        if (!isNaN(score) && score >= 0 && score <= 100) {
+            gradePreview.style.display = 'block';
+            updateGradePreview(score);
+        } else {
+            gradePreview.style.display = 'none';
+        }
+    });
+</script>
+<?php $__env->stopPush(); ?>
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.modern', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH /Users/macbook/Developer/php/sakip/resources/views/sakip/assessments/create.blade.php ENDPATH**/ ?>

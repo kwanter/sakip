@@ -1,0 +1,202 @@
+<?php $__env->startSection('title', 'Laporan SAKIP'); ?>
+
+<?php $__env->startSection('content'); ?>
+<div class="container py-4">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="page-header-layout">
+            <div>
+                <h1 class="page-header-title">Laporan SAKIP</h1>
+                <p class="page-header-subtitle">Kelola dan pantau laporan kinerja instansi</p>
+            </div>
+            <div class="page-header-actions">
+                <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('create', App\Models\Report::class)): ?>
+                <a href="<?php echo e(route('sakip.reports.create')); ?>" class="btn btn-primary">
+                    <i class="fas fa-plus"></i>
+                    <span class="ms-1">Buat Laporan</span>
+                </a>
+                <?php endif; ?>
+                <button class="btn btn-secondary" onclick="showExportModal()">
+                    <i class="fas fa-download"></i>
+                    <span class="ms-1">Download</span>
+                </button>
+                <button class="btn btn-info" onclick="showTemplateModal()">
+                    <i class="fas fa-file-contract"></i>
+                    <span class="ms-1">Template</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <?php if(isset($statistics)): ?>
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-card-header">
+                    <div class="stat-icon primary">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                </div>
+                <div class="stat-value"><?php echo e($statistics['total'] ?? 0); ?></div>
+                <div class="stat-label">Total Laporan</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-card-header">
+                    <div class="stat-icon success">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                </div>
+                <div class="stat-value"><?php echo e($statistics['approved'] ?? 0); ?></div>
+                <div class="stat-label">Disetujui</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-card-header">
+                    <div class="stat-icon warning">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                </div>
+                <div class="stat-value"><?php echo e($statistics['pending'] ?? 0); ?></div>
+                <div class="stat-label">Menunggu</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-card-header">
+                    <div class="stat-icon info">
+                        <i class="fas fa-calendar"></i>
+                    </div>
+                </div>
+                <div class="stat-value"><?php echo e($statistics['this_year'] ?? 0); ?></div>
+                <div class="stat-label">Tahun Ini</div>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
+
+    <!-- Table Card -->
+    <div class="card">
+        <div class="card-body">
+            <?php if(session('success')): ?>
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle alert-icon"></i>
+                <span><?php echo e(session('success')); ?></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            <?php endif; ?>
+
+            <?php if(session('error')): ?>
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-circle alert-icon"></i>
+                <span><?php echo e(session('error')); ?></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            <?php endif; ?>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Judul Laporan</th>
+                            <th>Instansi</th>
+                            <th>Periode</th>
+                            <th>Tahun</th>
+                            <th>Status</th>
+                            <th>Dibuat</th>
+                            <th class="text-end">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php $__empty_1 = true; $__currentLoopData = ($reports ?? []); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $report): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                        <tr>
+                            <td>
+                                <div>
+                                    <strong><?php echo e($report->title); ?></strong>
+                                    <?php if($report->description): ?>
+                                    <br><small class="text-muted"><?php echo e(Str::limit($report->description, 50)); ?></small>
+                                    <?php endif; ?>
+                                </div>
+                            </td>
+                            <td><?php echo e($report->instansi->nama_instansi ?? '-'); ?></td>
+                            <td><?php echo e(ucfirst($report->period ?? '-')); ?></td>
+                            <td><?php echo e($report->year ?? '-'); ?></td>
+                            <td>
+                                <span class="badge <?php if($report->status === 'approved'): ?> bg-success <?php elseif($report->status === 'submitted'): ?> bg-info <?php else: ?> bg-secondary <?php endif; ?>">
+                                    <?php echo e(ucfirst(str_replace('_', ' ', $report->status ?? 'draft'))); ?>
+
+                                </span>
+                            </td>
+                            <td>
+                                <small><?php echo e($report->created_at?->format('d/m/Y')); ?></small>
+                            </td>
+                            <td class="text-end">
+                                <div class="btn-group btn-group-sm">
+                                    <a href="<?php echo e(route('sakip.reports.show', $report)); ?>" class="btn btn-outline-primary" title="Lihat">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('update', $report)): ?>
+                                    <a href="<?php echo e(route('sakip.reports.edit', $report)); ?>" class="btn btn-outline-secondary" title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <?php endif; ?>
+                                    <a href="<?php echo e(route('sakip.reports.download', $report)); ?>" class="btn btn-outline-info" title="Download" onclick="event.preventDefault(); downloadReport(<?php echo e($report->id); ?>)">
+                                        <i class="fas fa-download"></i>
+                                    </a>
+                                    <?php if($report->status !== 'approved'): ?>
+                                    <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('approve', $report)): ?>
+                                    <form action="<?php echo e(route('sakip.reports.approve', $report)); ?>" method="POST" class="d-inline">
+                                        <?php echo csrf_field(); ?>
+                                        <button type="submit" class="btn btn-outline-success" title="Setujui" onclick="return confirm('Setujui laporan ini?')">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                    </form>
+                                    <?php endif; ?>
+                                    <?php endif; ?>
+                                </div>
+                            </td>
+                        </tr>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                        <tr>
+                            <td colspan="7" class="text-center py-5">
+                                <div class="empty-state">
+                                    <i class="fas fa-file-alt text-muted"></i>
+                                    <p class="mb-0">Tidak ada laporan</p>
+                                    <small class="text-muted">Silakan buat laporan baru</small>
+                                </div>
+                            </td>
+                        </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+
+            <?php if(isset($reports) && $reports->hasPages()): ?>
+            <div class="mt-3">
+                <?php echo e($reports->links()); ?>
+
+            </div>
+            <?php endif; ?>
+        </div>
+    </div>
+</div>
+
+<script>
+function showExportModal() {
+    alert('Modal export akan ditambahkan segera');
+}
+
+function showTemplateModal() {
+    alert('Modal template akan ditambahkan segera');
+}
+
+function downloadReport(id) {
+    window.location.href = `/sakip/reports/${id}/download`;
+}
+</script>
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.modern', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH /Users/macbook/Developer/php/sakip/resources/views/sakip/reports/index.blade.php ENDPATH**/ ?>

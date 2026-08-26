@@ -1,0 +1,200 @@
+<?php $__env->startSection('title', 'Detail Kegiatan'); ?>
+
+<?php $__env->startSection('content'); ?>
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-tasks"></i> Detail Kegiatan
+        </h1>
+        <div>
+            <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('update', $kegiatan)): ?>
+            <a href="<?php echo e(route('sakip.kegiatan.edit', $kegiatan)); ?>" class="btn btn-warning btn-sm">
+                <i class="fas fa-edit"></i> Edit
+            </a>
+            <?php endif; ?>
+            <a href="<?php echo e(route('sakip.kegiatan.index')); ?>" class="btn btn-secondary btn-sm">
+                <i class="fas fa-arrow-left"></i> Kembali
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Informasi Kegiatan -->
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Informasi Kegiatan</h6>
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless">
+                        <tr>
+                            <th width="250">Kode Kegiatan</th>
+                            <td>: <strong><?php echo e($kegiatan->kode_kegiatan); ?></strong></td>
+                        </tr>
+                        <tr>
+                            <th>Nama Kegiatan</th>
+                            <td>: <?php echo e($kegiatan->nama_kegiatan); ?></td>
+                        </tr>
+                        <tr>
+                            <th>Program</th>
+                            <td>:
+                                <?php if($kegiatan->program): ?>
+                                    <a href="<?php echo e(route('sakip.program.show', $kegiatan->program)); ?>">
+                                        <?php echo e($kegiatan->program->nama_program); ?>
+
+                                    </a>
+                                <?php else: ?>
+                                    <span class="text-muted">-</span>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                        <?php if($kegiatan->program): ?>
+                        <tr>
+                            <th>Instansi</th>
+                            <td>:
+                                <a href="<?php echo e(route('sakip.instansi.show', $kegiatan->program->instansi)); ?>">
+                                    <?php echo e($kegiatan->program->instansi->nama_instansi); ?>
+
+                                </a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Sasaran Strategis</th>
+                            <td>:
+                                <a href="<?php echo e(route('sakip.sasaran-strategis.show', $kegiatan->program->sasaranStrategis)); ?>">
+                                    <?php echo e($kegiatan->program->sasaranStrategis->nama_strategis); ?>
+
+                                </a>
+                            </td>
+                        </tr>
+                        <?php endif; ?>
+                        <tr>
+                            <th>Deskripsi</th>
+                            <td>: <?php echo e($kegiatan->deskripsi ?? '-'); ?></td>
+                        </tr>
+                        <tr>
+                            <th>Anggaran</th>
+                            <td>: <strong>Rp <?php echo e(number_format($kegiatan->anggaran, 0, ',', '.')); ?></strong></td>
+                        </tr>
+                        <tr>
+                            <th>Tanggal Mulai</th>
+                            <td>: <?php echo e($kegiatan->tanggal_mulai ? $kegiatan->tanggal_mulai->format('d/m/Y') : '-'); ?></td>
+                        </tr>
+                        <tr>
+                            <th>Tanggal Selesai</th>
+                            <td>: <?php echo e($kegiatan->tanggal_selesai ? $kegiatan->tanggal_selesai->format('d/m/Y') : '-'); ?></td>
+                        </tr>
+                        <tr>
+                            <th>Penanggung Jawab</th>
+                            <td>: <?php echo e($kegiatan->penanggung_jawab ?? '-'); ?></td>
+                        </tr>
+                        <tr>
+                            <th>Status</th>
+                            <td>:
+                                <?php if($kegiatan->status == 'aktif'): ?>
+                                    <span class="badge badge-success">Aktif</span>
+                                <?php elseif($kegiatan->status == 'selesai'): ?>
+                                    <span class="badge badge-info">Selesai</span>
+                                <?php else: ?>
+                                    <span class="badge badge-secondary">Draft</span>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Dibuat Pada</th>
+                            <td>: <?php echo e($kegiatan->created_at->format('d/m/Y H:i')); ?></td>
+                        </tr>
+                        <tr>
+                            <th>Diupdate Pada</th>
+                            <td>: <?php echo e($kegiatan->updated_at->format('d/m/Y H:i')); ?></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="card shadow">
+                <div class="card-body">
+                    <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('update', $kegiatan)): ?>
+                    <a href="<?php echo e(route('sakip.kegiatan.edit', $kegiatan)); ?>" class="btn btn-warning btn-sm">
+                        <i class="fas fa-edit"></i> Edit Kegiatan
+                    </a>
+                    <?php endif; ?>
+                    <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('delete', $kegiatan)): ?>
+                    <form action="<?php echo e(route('sakip.kegiatan.destroy', $kegiatan)); ?>" method="POST" style="display: inline;"
+                          onsubmit="return confirm('Apakah Anda yakin ingin menghapus kegiatan ini?');">
+                        <?php echo csrf_field(); ?>
+                        <?php echo method_field('DELETE'); ?>
+                        <button type="submit" class="btn btn-danger btn-sm">
+                            <i class="fas fa-trash"></i> Hapus Kegiatan
+                        </button>
+                    </form>
+                    <?php endif; ?>
+                    <a href="<?php echo e(route('sakip.kegiatan.index')); ?>" class="btn btn-secondary btn-sm">
+                        <i class="fas fa-list"></i> Lihat Semua Kegiatan
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistik -->
+        <div class="col-lg-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Statistik</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <small class="text-muted">Status Kegiatan</small>
+                        <h4>
+                            <?php if($kegiatan->status == 'aktif'): ?>
+                                <span class="badge badge-success">Aktif</span>
+                            <?php elseif($kegiatan->status == 'selesai'): ?>
+                                <span class="badge badge-info">Selesai</span>
+                            <?php else: ?>
+                                <span class="badge badge-secondary">Draft</span>
+                            <?php endif; ?>
+                        </h4>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted">Anggaran Kegiatan</small>
+                        <h4>Rp <?php echo e(number_format($kegiatan->anggaran, 0, ',', '.')); ?></h4>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted">Durasi</small>
+                        <h4>
+                            <?php if($kegiatan->tanggal_mulai && $kegiatan->tanggal_selesai): ?>
+                                <?php echo e($kegiatan->tanggal_mulai->diffInDays($kegiatan->tanggal_selesai)); ?> Hari
+                            <?php else: ?>
+                                -
+                            <?php endif; ?>
+                        </h4>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Program Terkait -->
+            <?php if($kegiatan->program): ?>
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Program Terkait</h6>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0">
+                        <strong><?php echo e($kegiatan->program->nama_program); ?></strong>
+                    </p>
+                    <small class="text-muted"><?php echo e($kegiatan->program->kode_program); ?></small>
+                    <br><br>
+                    <a href="<?php echo e(route('sakip.program.show', $kegiatan->program)); ?>" class="btn btn-primary btn-sm btn-block">
+                        <i class="fas fa-arrow-right"></i> Lihat Program
+                    </a>
+                </div>
+            </div>
+            <?php endif; ?>
+        </div>
+    </div>
+</div>
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH /Users/macbook/Developer/php/sakip/resources/views/sakip/kegiatan/show.blade.php ENDPATH**/ ?>
