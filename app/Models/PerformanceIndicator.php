@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Scopes\ForYearTrait;
+use App\Models\Scopes\InstansiScope;
 use App\Models\Scopes\RecentScope;
 use App\Models\Scopes\SearchScope;
 use App\Models\Scopes\WithStatusScope;
@@ -260,18 +261,7 @@ class PerformanceIndicator extends Model
      */
     protected static function booted()
     {
-        // Add global scope for instansi_id filtering to prevent IDOR
-        // Super admins can see all indicators, regular users are scoped to their instansi
-        static::addGlobalScope('instansi_scope', function ($query) {
-            if (
-                auth()->check() &&
-                ! auth()
-                    ->user()
-                    ->hasRole(\App\Constants\SystemRoles::SUPER_ADMIN)
-            ) {
-                $query->where('instansi_id', auth()->user()->instansi_id);
-            }
-        });
+        static::addGlobalScope(new InstansiScope);
     }
 
     /**

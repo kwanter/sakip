@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Scopes\ForYearTrait;
+use App\Models\Scopes\InstansiScope;
 use App\Models\Scopes\RecentScope;
 use App\Models\Scopes\SearchScope;
 use App\Models\Scopes\WithStatusScope;
@@ -64,5 +65,10 @@ class Program extends Model
     public function performanceIndicators(): HasMany
     {
         return $this->hasMany(PerformanceIndicator::class);
+    }
+
+    protected static function booted(): void
+    {
+        static::addGlobalScope(new InstansiScope);
     }
 }

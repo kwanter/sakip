@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Scopes\InstansiScope;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -327,6 +328,8 @@ class Report extends Model
     protected static function boot()
     {
         parent::boot();
+
+        static::addGlobalScope(new InstansiScope);
 
         static::deleting(function ($report) {
             if ($report->isForceDeleting()) {

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Scopes\InstansiScope;
 use App\Models\Scopes\RecentScope;
 use App\Models\Scopes\SearchScope;
 use App\Models\Scopes\WithStatusScope;
@@ -67,5 +68,10 @@ class SasaranStrategis extends Model
     public function scopeByInstansi($query, $instansiId)
     {
         return $query->where('instansi_id', $instansiId);
+    }
+
+    protected static function booted(): void
+    {
+        static::addGlobalScope(new InstansiScope);
     }
 }
