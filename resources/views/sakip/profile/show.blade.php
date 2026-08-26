@@ -106,11 +106,9 @@
                 <div style="color: var(--text-primary);">
                     {{ $institution->name ?? $institution->nama ?? '—' }}
                 </div>
-                @if(Route::has('institution.profile'))
-                    <a href="{{ route('institution.profile') }}" style="color: var(--primary-600); font-size: 0.875rem; text-decoration: none; display: inline-flex; align-items: center; gap: var(--space-xs); margin-top: var(--space-sm);">
+                <a href="{{ route('sakip.instansi.show', $institution) }}" style="color: var(--primary-600); font-size: 0.875rem; text-decoration: none; display: inline-flex; align-items: center; gap: var(--space-xs); margin-top: var(--space-sm);">
                         Lihat profil institusi <i class="fas fa-arrow-right" style="font-size: 0.75rem;"></i>
                     </a>
-                @endif
             @else
                 <div style="color: var(--text-tertiary);">Belum terdaftar pada institusi</div>
             @endif

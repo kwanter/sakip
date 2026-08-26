@@ -1,0 +1,201 @@
+<?php
+
+namespace App\Providers;
+
+use App\Models\AuditLog;
+use App\Models\Instansi;
+use App\Models\Kegiatan;
+use App\Models\Program;
+use App\Models\Target;
+use App\Policies\AssessmentPolicy;
+use App\Policies\AuditLogPolicy;
+use App\Policies\EvidenceDocumentPolicy;
+use App\Policies\InstansiPolicy;
+use App\Policies\KegiatanPolicy;
+// SAKIP Models
+use App\Policies\PerformanceDataPolicy;
+use App\Policies\ProgramPolicy;
+// SAKIP Policies
+use App\Policies\ReportPolicy;
+use App\Policies\SakipDashboardPolicy;
+use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\View;
+use Illuminate\Support\ServiceProvider;
+
+class AppServiceProvider extends ServiceProvider
+{
+    /**
+     * Register any application services.
+     */
+    public function register(): void
+    {
+        // Register CSP nonce as a singleton for security headers
+        $this->app->singleton('csp-nonce', function () {
+            return bin2hex(random_bytes(16));
+        });
+    }
+
+    /**
+     * Bootstrap any application services.
+     */
+    public function boot(): void
+    {
+        // SECURITY: Validate APP_KEY in production
+        if (app()->environment('production')) {
+            $appKey = config('app.key');
+            if (empty($appKey) || strlen($appKey) < 32) {
+                throw new \Exception(
+                    'Invalid APP_KEY. A proper encryption key is required for production. '.
+                        'Run: php artisan key:generate',
+                );
+            }
+        }
+
+        Gate::policy(Program::class, ProgramPolicy::class);
+        Gate::policy(Kegiatan::class, KegiatanPolicy::class);
+        Gate::policy(Instansi::class, InstansiPolicy::class);
+        Gate::policy(
+            \App\Models\SasaranStrategis::class,
+            \App\Policies\SasaranStrategisPolicy::class,
+        );
+
+        Gate::policy(
+            \App\Models\PerformanceIndicator::class,
+            \App\Policies\PerformanceIndicatorPolicy::class,
+        );
+
+        // Register SAKIP policies (flat models; auto-discovery covers the rest)
+        Gate::policy(PerformanceData::class, PerformanceDataPolicy::class);
+        Gate::policy(Assessment::class, AssessmentPolicy::class);
+        Gate::policy(Report::class, ReportPolicy::class);
+        Gate::policy(EvidenceDocument::class, EvidenceDocumentPolicy::class);
+        Gate::policy(AuditLog::class, AuditLogPolicy::class);
+        Gate::policy(
+            \App\Models\AssessmentCriterion::class,
+            \App\Policies\AssessmentCriterionPolicy::class,
+        );
+
+        // Explicitly register Target policy to override auto-discovery
+        Gate::policy(
+            \App\Models\Target::class,
+            \App\Policies\TargetPolicy::class,
+        );
+
+        // Super Admin bypass: Allow Super Admin to bypass all authorization checks
+        Gate::before(function ($user, $ability) {
+            return $user->hasRole('Super Admin') ? true : null;
+        });
+
+        // Gate abilities for admin middleware
+        Gate::define('admin.dashboard', function (\App\Models\User $user) {
+            return $user->isAdmin() || $user->hasPermission('admin.dashboard');
+        });
+        Gate::define('admin.settings', function (\App\Models\User $user) {
+            return $user->isAdmin() || $user->hasPermission('admin.settings');
+        });
+
+        // SAKIP Dashboard Gates
+        Gate::define('sakip.dashboard.view', [
+            SakipDashboardPolicy::class,
+            'viewDashboard',
+        ]);
+        Gate::define('sakip.dashboard.executive', [
+            SakipDashboardPolicy::class,
+            'viewExecutiveDashboard',
+        ]);
+        Gate::define('sakip.dashboard.data_collector', [
+            SakipDashboardPolicy::class,
+            'viewDataCollectorDashboard',
+        ]);
+        Gate::define('sakip.dashboard.assessor', [
+            SakipDashboardPolicy::class,
+            'viewAssessorDashboard',
+        ]);
+        Gate::define('sakip.dashboard.audit', [
+            SakipDashboardPolicy::class,
+            'viewAuditDashboard',
+        ]);
+
+        // SAKIP Main Gates
+        Gate::define('sakip.view.dashboard', [
+            \App\Policies\SakipPolicy::class,
+            'viewDashboard',
+        ]);
+        Gate::define('sakip.view.performance-indicators', [
+            \App\Policies\SakipPolicy::class,
+            'viewPerformanceIndicators',
+        ]);
+        Gate::define('sakip.view.performance-data', [
+            \App\Policies\SakipPolicy::class,
+            'viewPerformanceData',
+        ]);
+        Gate::define('sakip.view.assessments', [
+            \App\Policies\SakipPolicy::class,
+            'viewAssessments',
+        ]);
+        Gate::define('sakip.view.reports', [
+            \App\Policies\SakipPolicy::class,
+            'viewReports',
+        ]);
+        Gate::define('sakip.export.data', [
+            \App\Policies\SakipPolicy::class,
+            'exportData',
+        ]);
+
+        Gate::define('isSuperAdmin', function ($user) {
+            return $user->hasRole('Super Admin');
+        });
+
+        // Blade directives for roles and permissions
+        Blade::if('role', function ($role) {
+            $user = auth()->user();
+
+            return $user && $user->hasRole($role);
+        });
+
+        Blade::if('anyrole', function (...$roles) {
+            $user = auth()->user();
+
+            return $user && $user->hasAnyRole($roles);
+        });
+
+        Blade::if('permission', function ($permission) {
+            $user = auth()->user();
+
+            return $user && $user->hasPermission($permission);
+        });
+
+        // NEW: Blade directive for CSP nonce
+        // Usage in Blade templates: @cspnonce
+        // Renders: nonce="random_value"
+        Blade::directive('cspnonce', function () {
+            return "<?php echo 'nonce=\"' . (app('csp-nonce') ?? '') . '\"'; ?>";
+        });
+
+        // NEW: Share csp_nonce helper with all views
+        // Usage: {{ csp_nonce() }}
+        View::composer('*', function ($view) {
+            $view->with('csp_nonce_value', app('csp-nonce') ?? '');
+        });
+
+        // Slow query logging (threshold: 150ms)
+        DB::listen(function ($query) {
+            $thresholdMs = 150;
+            // $query->time is in milliseconds for Laravel 10+; guard if null
+            $duration = method_exists($query, 'time') ? $query->time ?? 0 : 0;
+            if ($duration >= $thresholdMs) {
+                Log::channel('daily')->warning('Slow query detected', [
+                    'sql' => $query->sql,
+                    'bindings' => $query->bindings,
+                    'time_ms' => $duration,
+                    'connection' => property_exists($query, 'connectionName')
+                        ? $query->connectionName
+                        : null,
+                ]);
+            }
+        });
+    }
+}

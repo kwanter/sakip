@@ -1,0 +1,14 @@
+{
+  "schemaVersion": "mimosa-hook-status/v1",
+  "recordedAt": "2026-08-26T07:57:20.428Z",
+  "sessionId": "sess_afb682b5-4d70-478f-9dfd-0c8c4cae4e29",
+  "event": "PostToolUse",
+  "toolName": "Write",
+  "file": "resources/views/_impeccable_smoke_test.blade.php",
+  "outcome": "clear",
+  "coverage": "complete",
+  "findingCount": 0,
+  "durationMs": 6,
+  "hostState": "hook_complete",
+  "reportHint": ".mimosa/reports/"
+}
