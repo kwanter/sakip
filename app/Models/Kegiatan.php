@@ -9,7 +9,6 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Kegiatan extends Model
@@ -44,13 +43,5 @@ class Kegiatan extends Model
     public function program(): BelongsTo
     {
         return $this->belongsTo(Program::class);
-    }
-
-    /**
-     * Relasi ke Indikator Kinerja
-     */
-    public function indikatorKinerjas(): HasMany
-    {
-        return $this->hasMany(IndikatorKinerja::class);
     }
 }
