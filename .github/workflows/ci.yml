@@ -32,8 +32,7 @@ jobs:
       - run: composer validate --strict --no-check-all
       - run: composer install --no-interaction --prefer-dist --no-progress --no-scripts
       - run: npm ci
-      - run: ./vendor/bin/pint --test --no-interaction || true
-      - run: npx tsc --noEmit --pretty || true
+      - run: ./vendor/bin/pint --test --no-interaction
 
   unit-feature-tests:
     name: Tests (PHP ${{ matrix.php }})
