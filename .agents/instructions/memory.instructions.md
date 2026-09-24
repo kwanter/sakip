@@ -270,6 +270,8 @@ description: "Project memory file for tracking progress, active artifacts, and c
   - **Falsified two PRD claims against the codebase** and replaced them with verified facts: `reports.period` exists (`string(20)`, indexed) and `ReportController@index` already filters `?status/?type/?period/?category`. Evidence that decided the question: the suite seeds `'period' => '2024-Q1'` (`tests/Feature/ReportIndexRendersTest.php:34`), i.e. report periods are quarter-coded, so no verified range mapping exists.
   - Created `CONTEXT.md` — the project's first domain glossary — and patched `.gitignore` with `!/CONTEXT.md` so the glossary stays versionable.
   - Scored the PRD 82/100 (Completeness 35/40, Clarity 26/30, Alignment 21/30, Critical Flaw Veto **not** triggered).
+  - Re-ran the CI-parity suite as the pre-commit gate (Session 3 runner `/tmp/sakip-run-tests-ci-parity.sh`) → **identical GREEN baseline**: `Tests: 83, Assertions: 263, PHPUnit Deprecations: 63, Skipped: 2`, zero failures. No PHP/Blade/CSS file was touched, so the baseline cannot have moved by construction.
+  - Saved the session's artifacts as four atomic commits: `067d697` (architecture map), `78c1ca9` (glossary + ignore rules), `20277d0` (memory), `c8b26b4` (discovery + PRD + clarification report). Verified via `git log --name-only` that none of them contains application source.
 - **Dead-Ends (Do NOT Repeat):**
   - **Attempted:** trusting the PRD's statement that reports have no period column and no index filtering.
   - **Reason:** both claims are false — verified against `create_reports_table.php:28,46` and `ReportController@index`. Echoing unverified column/filter claims downstream is how a Spec inherits a defect.
@@ -297,6 +299,7 @@ description: "Project memory file for tracking progress, active artifacts, and c
   - New chat session → `/tdd-prd` in remediation mode, applying the four mandatory corrections in `docs/audit/clarification-report-admin-triage-landing-2026-09-24.md` §4, then `/tdd-spec` with `@CONTEXT.md` plus the four target seams from discovery §5.
   - `CONTEXT.md` is now versionable; the glossary must not be extended without a resolved canonical term (lazy creation).
   - Backlog unchanged: **F1** (2 skipped rate-limit tests) → `/tdd-bug-report`; **F2** (63 PHPUnit 12 deprecations) → `/tdd-spec` item; still-unverified gates `composer audit --locked` and `npm audit --omit=dev`.
+  - **Pre-existing working-tree dirt (NOT part of this feature):** `.mimosa/hook-state/` runtime churn plus uncommitted edits to `app/Http/Controllers/Admin/AdminDashboardController.php`, `app/Http/Controllers/AdminController.php`, `app/Services/AdminService.php`, `resources/views/admin/dashboard.blade.php`, `public/css/modern-sakip.css`, and a deleted `resources/views/_impeccable_smoke_test.blade.php`. Never stage these as part of the triage landing.
 
 <!-- checkpoint-tail: PRD for the admin triage landing is clarified at 82/100, CONTEXT.md now exists with 7 canonical terms, and .gitignore no longer swallows the glossary; the next session runs `/tdd-prd` remediation on four mandatory text corrections before `/tdd-spec`. -->
 
