@@ -1,0 +1,18 @@
+docs/audit/clarification-report-admin-triage-landing-2026-09-24.md
+  h_00672522f4dbdd 1-120
+docs/discovery/idea-admin-triage-landing.md
+  h_00672522f4dbdd 1-191
+docs/prd/prd-admin-triage-landing.md
+  h_00672522f4dbdd 1-451
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c8b26b412d718784d3521e651852a35c152eb4e1",
+  "prompts": {},
+  "humans": {
+    "h_00672522f4dbdd": {
+      "author": "ragrin <kwanterpepen@gmail.com>"
+    }
+  }
+}
