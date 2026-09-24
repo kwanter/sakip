@@ -27,6 +27,18 @@ Thumbs.db
 *.md
 !CHANGELOG.md
 !/docs/**/*.md
+
+# AI agent governance contracts (TDD-Spec SDLC) — these must be versioned
+!/AGENTS.md
+!/CONSTITUTION.md
+!/CONSTRAINTS.md
+!/CONTEXT.md
+!/.agents/instructions/**/*.md
+!/.agents/rules/**/*.md
+!/.agents/standards/**/*.md
+!/.agents/skills/standards/**/*.md
+!/.agents/skills/memory-manager/**/*.md
+!/.agents/skills/tdd-*/**/*.md
 /.trae
 /.claude
 /Track
@@ -85,3 +97,7 @@ docker/mysql/data/
 /storage/framework/views/*
 /docs/security/
 .atlas/
+
+# impeccable runtime cache (keep .impeccable/config.json committed)
+.impeccable/hook.cache.json
+.impeccable/hook.pending.json
