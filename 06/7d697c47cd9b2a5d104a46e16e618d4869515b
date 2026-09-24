@@ -1,0 +1,19 @@
+docs/ARCHITECTURE.md
+  s_b8e9fd6d5908bb::t_c5e90b1ae9a4f6 1-222
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "067d697c47cd9b2a5d104a46e16e618d4869515b",
+  "prompts": {},
+  "sessions": {
+    "s_b8e9fd6d5908bb": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f2db6725bffe0XVL6aoUeJTZHK",
+        "model": "unknown"
+      },
+      "human_author": "ragrin <kwanterpepen@gmail.com>"
+    }
+  }
+}
