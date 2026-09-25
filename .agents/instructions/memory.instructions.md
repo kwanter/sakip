@@ -8,7 +8,7 @@ description: "Project memory file for tracking progress, active artifacts, and c
 
 ## 1. Project Context
 - **Project Name:** SAKIP (Sistem Akuntabilitas Kinerja Instansi Pemerintah)
-- **Current Phase:** Phase 4 (Code) — remediation of the Admin Triage Landing code-review findings. The review produced **17 findings (9 Standards, 8 Spec; none `[CRITICAL]`)** and the four-phase `plan/plan-refactor-admin-triage-landing-v1.0.md`. **Phase 1 of that plan is delivered** (`775a201`); **Phase 2 (architecture-map fidelity plus the floor-guard test) is in progress**; Phases 3–4 remain. Every gate is green except the PHP **coverage** gate, which is `unverified` because no Xdebug/PCOV driver is installed.
+- **Current Phase:** Phase 4 (Code) — remediation of the Admin Triage Landing code-review findings. The review produced **17 findings (9 Standards, 8 Spec; none `[CRITICAL]`)** and the four-phase `plan/plan-refactor-admin-triage-landing-v1.0.md`. **Phases 1 and 2 of that plan are delivered** (`775a201`, `17947ff`); **Phase 3 (configuration-seam hardening and test hygiene) is in progress**; Phase 4 is human-gated. Every gate is green except the PHP **coverage** gate, which is `unverified` because no Xdebug/PCOV driver is installed.
 
 ## 2. Active Artifacts & Documents
 - `AGENTS.md`, `CONSTITUTION.md`, `CONSTRAINTS.md`, `CONTEXT.md` — governance contracts (versioned via `.gitignore` negations)
@@ -20,7 +20,7 @@ description: "Project memory file for tracking progress, active artifacts, and c
 ## 3. Session Progress Log
 - Initialized TDD-Spec SDLC Architecture.
 - Session 8: implemented the Admin Triage Landing Phases 1 + 2 (11/11 tickets) under strict Red-Green-Refactor; 144 passed / 2 skipped, Pint clean, coverage `unverified`.
-- Session 9: reviewed that delivery on two axes (**17 findings, none critical** — 9 Standards, 8 Spec), wrote the four-phase remediation plan, and executed **Phase 1** of it (AC-028 pinned with a mutation RED-proof, `data-triage-period-select` rendered and asserted, Spec amended to **v1.4**); 145 passed / 2 skipped, 674 assertions, Pint clean, coverage `unverified`.
+- Session 9: reviewed that delivery on two axes (**17 findings, none critical** — 9 Standards, 8 Spec), wrote the four-phase remediation plan, and executed **Phase 1** of it (AC-028 pinned with a mutation RED-proof, `data-triage-period-select` rendered and asserted, Spec amended to **v1.4**), then **Phase 2** (architecture-map fidelity plus the static floor-guard test TC-070); 147 passed / 2 skipped, 683 assertions, Pint clean on 252 files, coverage `unverified`.
 
 ## 4. Permanent Knowledge Base & Architecture Decisions
 - Strict Test-First & Pre-Agreed Seams Mandate enforced across all phases.
@@ -361,7 +361,8 @@ description: "Project memory file for tracking progress, active artifacts, and c
   - **TASK-101/102** (`86235e0`): the AC-028 pin — the **only** acceptance criterion in the entire delivery with no test at any seam, because the Plan never assigned it or its checklist case TC-045 to a ticket.
   - **TASK-103/104/105** (`775a201`): the `data-triage-period-select` handle (declared in Spec §4.4, rendered nowhere, asserted nowhere) added to the blade and asserted by TC-051, plus the Spec amendment to **v1.4**.
   - **Plan record** (`6fa2bda`): Phase-1 rows ticked with dates; TASK-10Y left open because the plan requires explicit human approval before Phase 2.
-- **Verified Evidence:** full suite 144 → **145 passed / 2 skipped, 674 assertions**; `AdminTriageLandingTest` now carries all **29** checklist S3 cases (was 28); Pint **PASS 251 files**; Unit **1.63 s** against the 10 s floor; `git diff app/ database/ routes/` empty after the mutation revert; working tree clean. Coverage stays **unverified** (no Xdebug/PCOV) — never reported green.
+  - **Phase 2** (`5cce6fa`, `17947ff`, `534f3ac`): every figure in `docs/ARCHITECTURE.md` re-measured rather than inherited (**135** / **9** / **14**, zero stale numbers left, seams S1–S4 now named in §10 with their boundaries and the F-1 caveat), and `tests/Unit/FloorGuardTest.php` added implementing checklist **TC-070** — a static scan of four roots for suppression tokens and out-of-allow-list skips, with reachability assertions so a broken iterator cannot pass vacuously.
+- **Verified Evidence:** full suite 144 → **147 passed / 2 skipped, 683 assertions**; `AdminTriageLandingTest` carries all **29** checklist S3 cases (was 28); Pint **PASS 252 files**; Unit **56 passed in 1.70 s** against the 10 s floor; `FloorGuardTest` failed on an injected `@phpstan-ignore` in a scratch file under `app/` with that exact path in the offender list, then passed once the scratch was deleted; `git diff app/ database/ routes/` empty after both mutation probes; working tree clean. Coverage stays **unverified** (no Xdebug/PCOV) — never reported green.
 
 - **Key Findings:**
   - **The worst Spec finding was an untested criterion, not a bug:** AC-028 — the US-006 honesty invariant that a period switch must move only the verification figure — had no test at any seam, and was the single acceptance criterion unreferenced by any test file.
@@ -382,11 +383,10 @@ description: "Project memory file for tracking progress, active artifacts, and c
   - The Spec is amended in the **same commit** as the change it describes; a test comment or a memory note is not a substitute.
   - `isYearScoped()` and the `SAKIP_ACTIVE_YEAR` hardening wait for Phase 3 — nothing is changed silently now, and nothing is deleted from the class without also leaving Spec §4.1.
 - **Next Action / Pending:**
-  - **Phase 2 (in progress):** TASK-201…203 — correct the `docs/ARCHITECTURE.md` counts, list the new unit files and subdirectories, add S1–S4 to §10, and add `tests/Unit/FloorGuardTest.php` (checklist TC-070) with a mutation proof; then TASK-20X verify and TASK-20Y human approval.
-  - **Phase 3:** TASK-301/302 (validate the configured active year — the non-numeric case is a genuine RED), TASK-303 (extract `tests/Support/ExtractsTriageMarkup.php`, promote FQCNs to imports, drop the source-file assertion, rename the two same-valued constants), TASK-304 (settle `isYearScoped()`).
+  - **Phase 3 (in progress):** TASK-301/302 (harden the configured active year — the non-numeric case is a genuine RED, because `SAKIP_ACTIVE_YEAR=abc` casts to year 0 and silently moves every year-scoped query), TASK-303 (extract `tests/Support/ExtractsTriageMarkup.php`, promote the inline FQCNs to imports, drop the source-file assertion in TC-050, rename the two same-valued constants), TASK-304 (settle `isYearScoped()` — the unconsumed flag is scheduled for **removal** together with its Spec §4.1 line, because the plan's "consume it" branch would merely have documented why a *different* predicate operates).
   - **Phase 4 (human-gated):** the PRD's long-agency-name criterion (implement or defer explicitly), the three manual PRD metrics, and the checklist inventory reconciliation.
   - Coverage stays `unverified`; **F1** (2 skipped rate-limit tests) and **F2** (63 PHPUnit 12 deprecations) remain backlog.
 
-<!-- checkpoint-tail: the Admin Triage Landing was reviewed (17 findings, none critical), a four-phase remediation plan was written, and its Phase 1 is delivered — AC-028 pinned with a mutation RED-proof, `data-triage-period-select` rendered and asserted, the Spec amended to v1.4 — with 145 passing tests, a clean Pint run, Phase 2 in progress, and the coverage gate still unverified. -->
+<!-- checkpoint-tail: the Admin Triage Landing was reviewed (17 findings, none critical), a four-phase remediation plan was written, and its Phases 1 and 2 are delivered — AC-028 pinned with a mutation RED-proof, `data-triage-period-select` rendered and asserted, the Spec amended to v1.4, the architecture map re-measured at 135 / 9 / 14 with seams S1–S4 named, and the static floor-guard test TC-070 added — with 147 passing tests, a clean Pint run, Phase 3 in progress, and the coverage gate still unverified. -->
 
 ---
