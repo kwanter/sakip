@@ -1,0 +1,27 @@
+docs/audit/consistency-audit-admin-triage-landing-iteration-3-2026-09-24.md
+  s_5acd42377ddbca::t_52717446a95f9f 1-111
+docs/checklist/checklist-admin-triage-landing.md
+  s_5acd42377ddbca::t_0869a2731a4067 1-176
+docs/prd/prd-admin-triage-landing.md
+  s_5acd42377ddbca::t_b94f2cd3fa2fd1 3-4,8,13-19,141-143,201-202,212,302,306-307,337,346,366-367,483-485,533-536
+plan/plan-admin-triage-landing.md
+  s_5acd42377ddbca::t_c6379ec81ecb4a 1-246
+spec/spec-admin-triage-landing.md
+  s_5acd42377ddbca::t_0c96fbfc03a721 3,6,9,35-43,55-57,78-79,141-142,153,360-364
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8982cd3300c51bbd962e81289ac9a535df4c72a0",
+  "prompts": {},
+  "sessions": {
+    "s_5acd42377ddbca": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0d174-a095-7550-8b7c-f4b9d6dcbecb",
+        "model": "gpt-6-luna"
+      },
+      "human_author": "ragrin <kwanterpepen@gmail.com>"
+    }
+  }
+}
