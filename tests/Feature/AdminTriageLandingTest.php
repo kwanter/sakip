@@ -307,6 +307,21 @@ class AdminTriageLandingTest extends TestCase
         return $user->refresh();
     }
 
+    /** A landing viewer that ALSO holds the two target permissions its deep links point at. */
+    private function targetViewerFor(\App\Models\Instansi $agency): User
+    {
+        $user = $this->permittedViewerFor($agency);
+
+        foreach (['view-performance-data', 'view-assessment-reports'] as $permission) {
+            $user->givePermissionTo(Permission::firstOrCreate(
+                ['name' => $permission],
+                ['display_name' => $permission],
+            ));
+        }
+
+        return $user->refresh();
+    }
+
     private function superAdminViewer(): User
     {
         $user = User::factory()->create(['email_verified_at' => now()]);
@@ -484,5 +499,130 @@ class AdminTriageLandingTest extends TestCase
         preg_match('/stat-value">([^<]*)</', $anchor[1] ?? '', $value);
 
         return trim($value[1] ?? '');
+    }
+
+    /** TC-052 / AC-034 + CON-003 — the domain-statement budget per viewer state. */
+    public function test_domain_query_count_matches_the_expectation_for_each_viewer_state(): void
+    {
+        $agency = $this->agencyWithSubmittedData(['2026-03']);
+
+        $counts = [
+            'cross-agency' => $this->domainStatementsFor($this->superAdminViewer()),
+            'agency-bound' => $this->domainStatementsFor($this->permittedViewerFor($agency)),
+            'unassigned' => $this->domainStatementsFor($this->permittedViewer()),
+        ];
+
+        $this->assertSame(4, $counts['cross-agency'], '3 counts + 1 recent-activity list');
+        $this->assertSame(5, $counts['agency-bound'], '3 counts + 1 agency-name lookup + 1 recent-activity list');
+        $this->assertSame(1, $counts['unassigned'], '0 counts (short-circuit) + 1 recent-activity list');
+
+        foreach ($counts as $state => $count) {
+            $this->assertLessThanOrEqual(6, $count, "the ceiling was exceeded for {$state}");
+        }
+    }
+
+    /** TC-053 / §6.2 invariant — a Super Admin render equals an unauthenticated service call (C-2). */
+    public function test_super_admin_figures_equal_an_unauthenticated_service_call(): void
+    {
+        $this->agencyWithSubmittedData(['2026-03', '2025-03']);
+
+        $superAdmin = $this->superAdminViewer();
+
+        // Deliberately no actingAs(): with no authenticated user the ambient InstansiScope is a no-op,
+        // so this call exercises the service's explicit cross-agency path rather than the ambient one.
+        $direct = app(\App\Services\AdminTriageService::class)
+            ->summaryFor($superAdmin, \App\Support\ReportingPeriod::fromKey('current_year'));
+
+        $content = $this->actingAs($superAdmin)->get(route('admin.dashboard'))->getContent();
+
+        $this->assertSame((string) $direct->verificationCount, $this->figureValue($content, 'verification'));
+        $this->assertSame((string) $direct->assessmentCount, $this->figureValue($content, 'assessment'));
+        $this->assertSame((string) $direct->reportCount, $this->figureValue($content, 'report'));
+    }
+
+    /** TC-054 / AC-037 — the queues hold the rows their figures counted (§5.0 matrix, D-S4). */
+    public function test_verification_and_assessment_targets_agree_with_their_figures(): void
+    {
+        $agency = $this->agencyWithSubmittedData(['2026-03', '2026-09', '2025-03']);
+        $viewer = $this->targetViewerFor($agency);
+
+        $row = \App\Models\PerformanceData::query()->where('instansi_id', $agency->id)->firstOrFail();
+        \App\Models\Assessment::factory()->pending()->forPerformanceData($row->id)->create();
+
+        // Exact equality where the target filter can express the selection: a single month.
+        $monthly = $this->actingAs($viewer)->get(route('admin.dashboard', ['period' => 'current_month']))->getContent();
+        $monthlyFigure = (int) $this->figureValue($monthly, 'verification');
+        $this->assertSame(1, $monthlyFigure);
+
+        // The targets paginate at 15, so a figure <= 15 is compared exactly rather than contained.
+        $monthlyTarget = $this->get($this->figureHref($monthly, 'verification'));
+        $monthlyTarget->assertOk();
+        $this->assertSame($monthlyFigure, $this->renderedRowCount($monthlyTarget->getContent()));
+
+        // A year selection cannot be expressed by the target filter (D-S4), so the page may list more
+        // rows than the figure counted: the assertion is containment of every counted row.
+        $yearly = $this->actingAs($viewer)->get(route('admin.dashboard', ['period' => 'current_year']))->getContent();
+        $yearlyTarget = $this->get($this->figureHref($yearly, 'verification'));
+        $yearlyTarget->assertOk();
+
+        $countedIds = \App\Models\PerformanceData::query()->submitted()
+            ->whereBetween('period', ['2026-01', '2026-12'])
+            ->where('instansi_id', $agency->id)
+            ->pluck('id');
+
+        foreach ($countedIds as $id) {
+            $this->assertStringContainsString($id, $yearlyTarget->getContent(), 'every counted row is present');
+        }
+
+        $assessmentFigure = (int) $this->figureValue($yearly, 'assessment');
+        $assessmentTarget = $this->get($this->figureHref($yearly, 'assessment'));
+        $assessmentTarget->assertOk();
+        $this->assertSame($assessmentFigure, $this->renderedRowCount($assessmentTarget->getContent()));
+    }
+
+    /** TC-055 / AC-038 — the accepted divergence D-S8: a figure with an empty cross-agency queue. */
+    public function test_cross_agency_verification_link_is_reachable_despite_the_empty_queue(): void
+    {
+        $this->agencyWithSubmittedData(['2026-03']);
+
+        $content = $this->actingAs($this->superAdminViewer())->get(route('admin.dashboard'))->getContent();
+
+        $this->assertSame('1', $this->figureValue($content, 'verification'), 'the cross-agency figure counts the work');
+
+        $href = $this->figureHref($content, 'verification');
+        $this->assertStringContainsString('validation_status=submitted', $href);
+
+        $target = $this->get(parse_url($href, PHP_URL_PATH) ?: '/');
+
+        $this->assertContains($target->getStatusCode(), [200, 302], 'the link never 404s or 500s');
+        $this->assertSame(0, $this->renderedRowCount($target->getContent()), 'D-S8: the target has no cross-agency branch');
+    }
+
+    private function domainStatementsFor(\App\Models\User $viewer): int
+    {
+        \Illuminate\Support\Facades\DB::flushQueryLog();
+        \Illuminate\Support\Facades\DB::enableQueryLog();
+
+        $this->actingAs($viewer)->get(route('admin.dashboard'))->assertOk();
+
+        $statements = collect(\Illuminate\Support\Facades\DB::getQueryLog())->filter(
+            fn (array $query) => \Illuminate\Support\Str::contains(
+                $query['query'],
+                ['performance_data', 'assessments', 'reports', 'instansis', 'audit_logs'],
+            ),
+        );
+
+        \Illuminate\Support\Facades\DB::disableQueryLog();
+
+        return $statements->count();
+    }
+
+    /** Counts data rows in the first table body, ignoring the colspan'd empty-state row. */
+    private function renderedRowCount(string $content): int
+    {
+        preg_match('/<tbody>(.*?)<\/tbody>/s', $content, $body);
+        $rows = substr_count($body[1] ?? '', '<tr');
+
+        return str_contains($body[1] ?? '', 'colspan') ? max(0, $rows - 1) : $rows;
     }
 }
