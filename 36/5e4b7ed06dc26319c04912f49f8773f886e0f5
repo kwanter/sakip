@@ -1,0 +1,16 @@
+resources/views/admin/dashboard.blade.php
+  h_00672522f4dbdd 43-66
+tests/Feature/AdminTriageLandingTest.php
+  h_00672522f4dbdd 415-487
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "365e4b7ed06dc26319c04912f49f8773f886e0f5",
+  "prompts": {},
+  "humans": {
+    "h_00672522f4dbdd": {
+      "author": "ragrin <kwanterpepen@gmail.com>"
+    }
+  }
+}
