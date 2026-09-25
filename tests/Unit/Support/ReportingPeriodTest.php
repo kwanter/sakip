@@ -203,7 +203,7 @@ class ReportingPeriodTest extends TestCase
      * Note on `2026.5`: under this frozen 2026 clock the assertion below cannot tell "rejected" from
      * "truncated to 2026", so the fractional value is probed a second time under a 2027 clock.
      */
-    public function test_invalid_active_year_falls_back_to_the_clock(): void
+    public function test_non_numeric_or_out_of_range_active_year_falls_back_to_the_clock(): void
     {
         foreach (['abc', '0', '-5', '2026.5', '99999'] as $value) {
             config()->set('sakip.reporting.active_year', $value);
