@@ -1,0 +1,18 @@
+resources/views/admin/dashboard.blade.php
+  h_00672522f4dbdd 30
+spec/spec-admin-triage-landing.md
+  h_00672522f4dbdd 3,5-6,44-50,456,462-466,499,506-509,863,869-872
+tests/Feature/AdminTriageLandingTest.php
+  h_00672522f4dbdd 187-190,202-233
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "775a201be558a8455b01bdfcabd4268e28870dbf",
+  "prompts": {},
+  "humans": {
+    "h_00672522f4dbdd": {
+      "author": "ragrin <kwanterpepen@gmail.com>"
+    }
+  }
+}
