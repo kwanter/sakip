@@ -321,4 +321,95 @@ class AdminTriageLandingTest extends TestCase
 
         return $user->refresh();
     }
+
+    /** TC-038 / AC-018 — the verification anchor carries the period only for a single-month selection. */
+    public function test_verification_anchor_carries_the_period_only_for_single_month_selection(): void
+    {
+        $viewer = $this->permittedViewer();
+
+        $yearlyContent = $this->actingAs($viewer)->get(route('admin.dashboard', ['period' => 'current_year']))->getContent();
+        $yearlyHref = $this->figureHref($yearlyContent, 'verification');
+
+        $this->assertSame(
+            route('sakip.data-collection.index', ['validation_status' => 'submitted']),
+            $yearlyHref,
+            'a year selection cannot be expressed by the target filter, so no period is sent',
+        );
+        $this->assertStringContainsString('validation_status=submitted', $yearlyHref);
+        $this->assertStringNotContainsString('period=', $yearlyHref);
+
+        $monthlyContent = $this->actingAs($viewer)->get(route('admin.dashboard', ['period' => 'current_month']))->getContent();
+        $monthlyHref = $this->figureHref($monthlyContent, 'verification');
+
+        $this->assertSame(
+            route('sakip.data-collection.index', ['validation_status' => 'submitted', 'period' => '2026-09']),
+            $monthlyHref,
+            'a single-month selection is expressible exactly',
+        );
+    }
+
+    /** TC-039 / AC-019 — the assessment anchor always carries its status and never a period. */
+    public function test_assessment_anchor_always_carries_pending_status_and_never_a_period(): void
+    {
+        $this->assertAnchorHoldsForEveryPeriod('assessment', ['status' => 'pending']);
+    }
+
+    /** TC-040 / AC-020 — the report anchor always carries its status and never a period. */
+    public function test_report_anchor_always_carries_submitted_status_and_never_a_period(): void
+    {
+        $this->assertAnchorHoldsForEveryPeriod('report', ['status' => 'submitted']);
+    }
+
+    /** TC-041 / AC-021 — every figure href resolves to a reachable page, never 404 or 500. */
+    public function test_every_figure_href_resolves_to_a_reachable_page(): void
+    {
+        $viewer = $this->superAdminViewer();
+        $content = $this->actingAs($viewer)->get(route('admin.dashboard'))->getContent();
+
+        foreach (['verification', 'assessment', 'report'] as $handle) {
+            $path = parse_url($this->figureHref($content, $handle), PHP_URL_PATH) ?: '/';
+            $status = $this->get($path)->getStatusCode();
+
+            $this->assertContains($status, [200, 302], "href of {$handle} resolved with {$status}");
+        }
+    }
+
+    /** TC-056 / §4.3 — no figure emits a parameter its target does not honour. */
+    public function test_no_forbidden_target_parameter_is_ever_emitted_by_any_figure(): void
+    {
+        $content = $this->actingAs($this->superAdminViewer())
+            ->get(route('admin.dashboard', ['period' => 'current_month']))
+            ->getContent();
+
+        foreach (['verification', 'assessment', 'report'] as $handle) {
+            $href = $this->figureHref($content, $handle);
+
+            foreach (['instansi=', 'category=', 'type=', 'priority='] as $forbidden) {
+                $this->assertStringNotContainsString($forbidden, $href, "{$forbidden} in the {$handle} anchor");
+            }
+        }
+    }
+
+    private function assertAnchorHoldsForEveryPeriod(string $handle, array $parameters): void
+    {
+        $viewer = $this->permittedViewer();
+        $resource = $handle === 'assessment' ? 'assessments' : 'reports';
+        $expected = route("sakip.{$resource}.index", $parameters);
+
+        foreach (\App\Support\ReportingPeriod::KEYS as $key) {
+            $content = $this->actingAs($viewer)->get(route('admin.dashboard', ['period' => $key]))->getContent();
+            $href = $this->figureHref($content, $handle);
+
+            $this->assertSame($expected, $href, "href of {$handle} for {$key}");
+            $this->assertStringNotContainsString('period=', $href, "period leaked into {$handle} for {$key}");
+        }
+    }
+
+    private function figureHref(string $content, string $handle): string
+    {
+        preg_match('/<a[^>]*data-triage-figure="'.$handle.'"[^>]*>/s', $content, $tag);
+        preg_match('/href="([^"]*)"/', $tag[0] ?? '', $href);
+
+        return html_entity_decode($href[1] ?? '');
+    }
 }
