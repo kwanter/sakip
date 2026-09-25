@@ -27,7 +27,7 @@
                 <form method="GET" action="{{ route('admin.dashboard') }}" class="row g-2 align-items-end">
                     <div class="col-md-4">
                         <label for="triage-period" class="form-label">Periode Pelaporan</label>
-                        <select name="period" id="triage-period" class="form-select">
+                        <select name="period" id="triage-period" class="form-select" data-triage-period-select>
                             @foreach (\App\Support\ReportingPeriod::KEYS as $key)
                             <option value="{{ $key }}" @selected($key === $summary->period->key)>{{ \App\Support\ReportingPeriod::fromKey($key)->label() }}</option>
                             @endforeach

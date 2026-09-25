@@ -1,9 +1,9 @@
 ---
 title: Admin Triage Landing — Period-Scoped, Instansi-Explicit Triage Read Model
-version: 1.3
+version: 1.4
 date_created: 2026-09-24
-date_revised: 2026-09-24
-status: Draft (v1.3 — consistency-audit corrections applied; gate 89/100, pending plan)
+date_revised: 2026-09-25
+status: Draft (v1.4 — post-review traceability amendments applied; implementation complete)
 remediation_of: docs/audit/clarification-report-spec-admin-triage-landing-2026-09-24.md
 remediation_of_iteration_2: docs/audit/clarification-report-spec-admin-triage-landing-iteration-2-2026-09-24.md
 remediation_of_consistency_audit: docs/audit/consistency-audit-admin-triage-landing-2026-09-24.md
@@ -41,6 +41,13 @@ target_plan: /plan/plan-admin-triage-landing.md
 > **Post-verification addendum (Iteration 3).** The independent consistency audit confirmed A-1…A-4 as closed and found one residual **inside this Spec**: `REQ-011` still annotated FEAT-006 as "Phase 2" while §1,
 > §4.4 and AC-033 place the telemetry removal in **Phase 1**. The annotation is corrected above (finding **A-11**), leaving no self-contradiction in this document. The two PRD-side residues (A-9, A-10) were
 > corrected in PRD v1.2.
+>
+> **Remediation note (v1.4).** This revision applies the Spec-side findings of `docs/review/code-review-admin-triage-landing-2026-09-25.md` and nothing else. **`SPEC-B-02`** is closed in code, not here: the
+> `data-triage-period-select` handle that §4.4 declares is now rendered by `resources/views/admin/dashboard.blade.php` and asserted by TC-051. **`SPEC-B-01`:** §4.5's Phase-1 "pendingDataCount continuity" clause is
+> replaced by the delivered badge ownership (composer-only, from the first release), including the five-commit window in which no `layouts.modern` page rendered a badge. **`SPEC-B-04`:** §4.4's Phase-2 budget row for the
+> unassigned state is corrected from `2` to `1` and the measured `5 / 6 / 1` is recorded, so §9.4 obligation 3 can be marked discharged rather than left as an instruction that would have produced a false assertion. **`SPEC-B-03`**
+> is closed by a new S3 case (`test_switching_period_moves_only_the_verification_figure`, AC-028) because the criterion had no test at any seam; the Spec's own AC-028 text needed no change. No requirement was weakened, no
+> acceptance criterion was removed, and no ratified decision was altered.
 
 ## 1. Purpose & Scope
 
@@ -446,11 +453,16 @@ under Spatie permission checks.
 | --- | --- | --- | --- |
 | Cross-agency (`Super Admin`) | 4 | 5 | 3 counts + 1 recent-activity list |
 | Agency-bound | 5 | 6 | 3 counts + 1 agency-name lookup + 1 recent-activity list |
-| Unassigned | 1 | 2 | 0 counts (short-circuit) + 1 recent-activity list |
+| Unassigned | 1 | **1** — not 2 (v1.4): the badge short-circuits before issuing a statement, so Phase 2 adds nothing | 0 counts (short-circuit) + 1 recent-activity list |
 | Hard ceiling | **≤ 6** in every state and every phase | | |
 
 Each count is one statement; `whereHas('performanceData')` compiles into the same statement, never an extra query. Zero N+1 patterns. `[Assumed — the exact numbers must be confirmed during the RED step; if a genuine framework statement appears inside the counted
 table set, the ticket records it in the test comment and adjusts the exact expectation while keeping the ≤ 6 ceiling.]`
+
+**Delivered measurement (v1.4).** The shipped values are **`5 / 6 / 1`**, asserted exactly per viewer state in `tests/Feature/AdminTriageLandingTest.php::test_domain_query_count_matches_the_expectation_for_each_viewer_state` with the `≤ 6` ceiling alongside it. The
+unassigned column is `1`, not the `2` this table originally predicted: `AdminTriageService::verificationCountFor()` returns `0` for an unassigned viewer before touching the database
+(`app/Services/AdminTriageService.php:69-71`), so the badge contributes no statement to that state. Taken literally, the pre-v1.4 §9.4 obligation 3 would have written a false assertion. Recorded in
+`docs/review/code-review-admin-triage-landing-2026-09-25.md` as finding `SPEC-B-04`.
 
 ### 4.5 Controller & Phase-2 Badge Composer Contracts
 
@@ -484,16 +496,17 @@ final class AdminDashboardController extends Controller
         return view('admin.dashboard', [
             'summary' => $summary,
             'recentLogs' => $recentLogs,
-            'pendingDataCount' => $summary->verificationCount,   // Phase 1 keeps the layout badge alive (see below)
-        ]);
+        ]);   // no `pendingDataCount`: the layout-owned composer below owns the badge (v1.4)
     }
 }
 ```
 
 - The constructor contains **no** `$this->middleware(...)` call (REQ-013). Authorization stays at the route.
 - The controller performs no counting, no label building, and no period arithmetic; it only validates the query parameter envelope and binds the view.
-- **Phase 1 badge continuity:** `layouts/modern.blade.php:91-92` reads `isset($pendingDataCount)`; passing `$summary->verificationCount` keeps the existing badge working on the landing and makes it equal the verification figure. Phase 2 removes this variable
-  **in the same commit** that introduces the composer below, so no intermediate state loses the badge.
+- **Badge ownership (v1.4 — replaces the Phase-1 "pendingDataCount continuity" clause).** `layouts/modern.blade.php:91-92` reads `isset($pendingDataCount)`, but the variable is produced **only** by the composer below, from the first
+  release. The earlier plan of a controller-owned Phase-1 variable was abandoned during implementation because it cannot satisfy US-005: the badge must render on *every* page that uses the layout, and a controller variable reaches only its own
+  page. The consequence is recorded openly rather than smoothed over — between ticket T4 (`df57eb8`) and T10 (`7e8642e`) no `layouts.modern` page rendered a badge at all, and no test could see it because the S4 seam did not exist until Phase 2.
+  The delivered state (HEAD onward) is the composer-only one, and AC-023 … AC-026 now pin it. `docs/review/code-review-admin-triage-landing-2026-09-25.md` finding `SPEC-B-01` records the deviation in full.
 
 **Phase-2 sidebar badge composer (`app/View/Composers/SidebarQueueBadgeComposer.php`, new directory)**
 
@@ -847,11 +860,14 @@ No ADR is written. Each decision above is reversible (a resolver, a label, a par
 | Audit C-7 (anchor precedence) | REQ-015, D-S2 | AC-039 |
 | Audit C-1 / C-2 / C-8 / C-9 | A2 removal-scope carve-out, CON-007, REQ-015, §4.6 | AC-033 (rescoped), §6.1 S2/S3 rows, AC-004, §6.3 negative idiom |
 | Audit Iteration-2 refinements (D-1, D-2, D-5, D-4) | REQ-015, A8, D-S7 | AC-039, AC-004, AC-037 (scope clause), §5.0 F-12 with AC-036 |
+| Review v1.4 (`SPEC-B-01`…`SPEC-B-04`) | REQ-015, §4.4, §4.5, §9.4 | AC-028 (pinned by `test_switching_period_moves_only_the_verification_figure`), §4.4 `data-triage-period-select` (TC-051), §4.4 delivered budget `5 / 6 / 1`, §4.5 badge ownership |
 
 ### 9.4 Post-implementation obligations
 
 1. Update `docs/ARCHITECTURE.md` §5/§6 for `app/Support/` (Phase 1) and `app/View/Composers/` (Phase 2) — Living Architecture Map Mandate.
 2. Record the manually verified metrics (above-the-fold placement at 1280×800, the five-participant ≤10 s usability check, the p95 < 500 ms measurement) in the Phase-1 review artifact; they create no floor-guard obligation.
-3. After Phase 2, update the §4.4 exact query expectations from 4/5/1 to 5/6/2 in the same commit as the composer.
-4. Record the three accepted decisions of the v1.1 remediation — D-S7 (assessment figure/target frame divergence), D-S8 (empty cross-agency verification target) and D-S9 (canonical assessment population) — in the Phase-1 review artifact. If the product owner resolves ASSUMPTION A9 differently, amend this Spec and its ACs **before** Phase 2 starts; the divergences are accepted, not forgotten.
+3. **DISCHARGED (v1.4).** The §4.4 exact query expectations are updated to the measured **`5 / 6 / 1`** in the same cycle as the composer (`7e8642e`); the numbers are asserted per viewer state, not predicted. The instruction's original target of
+   `5 / 6 / 2` was wrong for the unassigned state, whose badge short-circuits without issuing a statement — see §4.4 "Delivered measurement (v1.4)" and review finding `SPEC-B-04`.
+4. Record the three accepted decisions of the v1.1 remediation — D-S7 (assessment figure/target frame divergence), D-S8 (empty cross-agency verification target) and D-S9 (canonical assessment population) — in the Phase-1 review artifact. If the product owner resolves ASSUMPTION A9 differently, amend this Spec and its ACs **before** Phase 2 starts; the divergences are accepted, not forgotten. **Discharged 2026-09-25** by
+   `docs/review/code-review-admin-triage-landing-2026-09-25.md` (§5.2 records that AC-037/AC-038 assert them as positive expectations).
 5. No change to `CONTEXT.md`, `docs/adr/`, or the memory file is required by this specification — the seven canonical terms already exist and no decision meets the Triple Gate.

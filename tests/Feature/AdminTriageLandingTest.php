@@ -184,7 +184,10 @@ class AdminTriageLandingTest extends TestCase
         }
     }
 
-    /** TC-051 / CON-004 — the selector is a GET form and carries no inline event handler. */
+    /**
+     * TC-051 / CON-004 — the selector is a GET form that exposes its declared handle and carries no
+     * inline event handler.
+     */
     public function test_selector_is_a_get_form_without_inline_event_handlers(): void
     {
         $content = $this->actingAs($this->permittedViewer())
@@ -196,6 +199,38 @@ class AdminTriageLandingTest extends TestCase
         $this->assertMatchesRegularExpression('/<form[^>]*method="GET"[^>]*>/i', $content);
         $this->assertStringNotContainsString('onchange=', $content);
         $this->assertStringNotContainsString('onsubmit=', $content);
+
+        preg_match('/<section[^>]*data-triage-region[^>]*>(.*?)<\/section>/s', $content, $region);
+        $regionHtml = $region[1] ?? '';
+        $this->assertNotSame('', $regionHtml, 'the triage region must be extractable');
+        $this->assertSame(1, substr_count($regionHtml, 'data-triage-period-select'), 'one declared selector handle');
+
+        preg_match('/<form\b[^>]*>/i', $regionHtml, $form);
+        $this->assertStringContainsString('method="GET"', $form[0] ?? '', 'the selector must submit as GET');
+        $this->assertStringContainsString(
+            route('admin.dashboard'),
+            $form[0] ?? '',
+            'the selector must submit back to the landing',
+        );
+
+        preg_match('/<select[^>]*data-triage-period-select[^>]*>(.*?)<\/select>/s', $regionHtml, $select);
+        $this->assertNotSame('', $select[1] ?? '', 'the declared selector must be extractable');
+
+        preg_match_all('/<option value="([^"]+)"([^>]*)>/', $select[1], $options, PREG_SET_ORDER);
+
+        $this->assertSame(
+            \App\Support\ReportingPeriod::KEYS,
+            array_column($options, 1),
+            'the five canonical keys must render in their declared order',
+        );
+
+        $selected = array_values(array_filter(
+            $options,
+            fn (array $option) => str_contains($option[2], 'selected'),
+        ));
+
+        $this->assertCount(1, $selected, 'exactly one option is marked selected');
+        $this->assertSame('current_year', $selected[0][1], 'the resolved key is the selected one');
     }
 
     /** A verified holder of `admin.dashboard` that is deliberately NOT a Super Admin (finding C1). */
