@@ -2,6 +2,7 @@
 
 namespace App\Models\Scopes;
 
+use App\Support\ReportingPeriod;
 use Illuminate\Database\Eloquent\Builder;
 
 /**
@@ -30,7 +31,7 @@ trait ForYearTrait
      */
     public function scopeForCurrentYear(Builder $query, string $column): Builder
     {
-        return $query->whereYear($column, date('Y'));
+        return $query->whereYear($column, ReportingPeriod::activeYear());
     }
 
     /**

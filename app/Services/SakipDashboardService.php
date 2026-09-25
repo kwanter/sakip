@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Services\Sakip\SakipService;
+use App\Support\ReportingPeriod;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -607,42 +608,12 @@ class SakipDashboardService
      */
     protected function getDateRange(string $period): array
     {
-        $allowed = ['current_month', 'last_month', 'current_quarter', 'last_quarter', 'current_year'];
-        $period = in_array($period, $allowed, true) ? $period : 'current_year';
+        $resolved = ReportingPeriod::fromKey($period);
 
-        $now = Carbon::now();
-        switch ($period) {
-            case 'current_month':
-                return [
-                    $now->copy()->startOfMonth(),
-                    $now->copy()->endOfMonth(),
-                ];
-            case 'last_month':
-                $lastMonth = $now->copy()->subMonth();
-
-                return [
-                    $lastMonth->copy()->startOfMonth(),
-                    $lastMonth->copy()->endOfMonth(),
-                ];
-            case 'current_quarter':
-                return [
-                    $now->copy()->startOfQuarter(),
-                    $now->copy()->endOfQuarter(),
-                ];
-            case 'last_quarter':
-                $lastQuarter = $now->copy()->subQuarter();
-
-                return [
-                    $lastQuarter->copy()->startOfQuarter(),
-                    $lastQuarter->copy()->endOfQuarter(),
-                ];
-            case 'current_year':
-            default:
-                return [
-                    $now->copy()->startOfYear(),
-                    $now->copy()->endOfYear(),
-                ];
-        }
+        return [
+            Carbon::instance($resolved->start),
+            Carbon::instance($resolved->end),
+        ];
     }
 
     /**
