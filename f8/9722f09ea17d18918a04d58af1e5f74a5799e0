@@ -1,0 +1,16 @@
+docs/review/code-review-admin-triage-landing-2026-09-25.md
+  h_00672522f4dbdd 1-323
+plan/plan-refactor-admin-triage-landing-v1.0.md
+  h_00672522f4dbdd 1-166
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f89722f09ea17d18918a04d58af1e5f74a5799e0",
+  "prompts": {},
+  "humans": {
+    "h_00672522f4dbdd": {
+      "author": "ragrin <kwanterpepen@gmail.com>"
+    }
+  }
+}
