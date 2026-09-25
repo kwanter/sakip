@@ -8,22 +8,29 @@ description: "Project memory file for tracking progress, active artifacts, and c
 
 ## 1. Project Context
 - **Project Name:** SAKIP (Sistem Akuntabilitas Kinerja Instansi Pemerintah)
-- **Current Phase:** Phase 1 (PRD) clarified — `docs/prd/prd-admin-triage-landing.md` verified at Readiness Score 82/100 → Phase 2 (Specification) is the next route
+- **Current Phase:** Phase 4 (Code) — the Admin Triage Landing Phases 1 + 2 are complete (11/11 plan tickets, Red-Green-Refactor throughout). Every gate is green except the PHP **coverage** gate, which is `unverified` because no Xdebug/PCOV driver is installed. → **Phase 5 (`/tdd-code-review`) is the next route**, and it must run in a **new chat session** because the implementation session is locked to the code persona.
 
 ## 2. Active Artifacts & Documents
 - `AGENTS.md`, `CONSTITUTION.md`, `CONSTRAINTS.md`, `CONTEXT.md` — governance contracts (versioned via `.gitignore` negations)
 - `docs/ARCHITECTURE.md`, `docs/discovery/`, `docs/prd/`, `docs/audit/` — architecture map, discovery drafts, requirements, clarification reports
-- `/spec/`, `/plan/`, `docs/adr/` — not created yet
+- `spec/spec-admin-triage-landing.md` (v1.3), `plan/plan-admin-triage-landing.md` (v1.0), `docs/checklist/checklist-admin-triage-landing.md` (70 test cases) — the approved blueprint, its task matrix, and the test-case inventory for the admin triage landing
+- `docs/adr/` — still not created; the Triple Gate has been unmet for every decision taken so far
 - Per-session artifact status lives in the **Active Artifacts** list of the latest checkpoint below; this section is only the top-level index.
 
 ## 3. Session Progress Log
 - Initialized TDD-Spec SDLC Architecture.
+- Session 8: implemented the Admin Triage Landing Phases 1 + 2 (11/11 tickets) under strict Red-Green-Refactor; 144 passed / 2 skipped, Pint clean, coverage `unverified`.
 
 ## 4. Permanent Knowledge Base & Architecture Decisions
 - Strict Test-First & Pre-Agreed Seams Mandate enforced across all phases.
 - **Memory fast path is already configured:** the `## Memory Configuration` section of `AGENTS.md` (lines 439–443) records `Active Memory Path: .agents/instructions/memory.instructions.md`, which matches this file. The `memory-manager` Workflow 1 Step 0 fast path therefore works; checkpoints in Sessions 1–2 that listed this as "pending" are **superseded** and no `AGENTS.md` edit is required.
 - **`InstansiScope` is default-deny and marked immutable** (`app/Models/Scopes/InstansiScope.php:11-18`): a viewer whose `instansi_id` is null sees **nothing**. No requirement, PRD, or spec may therefore promise an unscoped viewer a cross-agency view. A PRD that promised "viewers without an agency see all agencies" had to be corrected on this ground (Session 7, finding F-03).
 - **Period vocabulary is not uniform across tables:** `performance_data.period` is a `string(7)` `YYYY-MM`, `targets.year` is an integer, and `reports.period` is a free-form `string(20)` seeded in the test suite as `YYYY-Qn` (`tests/Feature/ReportIndexRendersTest.php:34`). Never map one period vocabulary onto another without verifying the stored format first (Session 7, finding F-02).
+- **A sidebar badge is a property of (link × count), never of the count alone.** The queue badge lives inside the `@can('manage-sakip')` section of `resources/views/layouts/modern.blade.php:81,88-93`, so a viewer who cannot see that link sees no badge even at a count above zero. Never assert a badge without first establishing that the viewer may open its link (Session 8, finding F-1).
+- **The permission `manage-sakip` is referenced by two blade guards but defined and granted nowhere** (`resources/views/layouts/modern.blade.php:81`, `resources/views/layouts/app.blade.php:97`; no seeder or config defines it). In practice that sidebar section, and therefore the Phase-2 badge, is Super-Admin-only today. Pre-existing governance gap, recorded rather than fixed (Session 8, finding F-1).
+- **`PerformanceDataFactory` has no `approved()` state** (its states are `draft()`, `submitted()`, `validated()`, `rejected()`, plus `forInstansi()`/`forPeriod()`). The landing figures are `verification` (submitted data), `assessment` (`Assessment::pending()`) and `report` (submitted reports) — never a "pending/approved" pair (Session 8).
+- **A statement budget can legitimately reshape production code.** Because Spec §4.4 caps the landing at six statements, `AdminTriageService::verificationCountFor()` resolves the scope kind *without* the agency-name lookup (a badge renders no label), while `resolveScope()` keeps the label carve-out for the summary path that does render it. The budget measured seven before the split (Session 8).
+- **Reproduce "manual" browser checks with a throwaway HTTP-kernel harness.** The repository installs no browser harness; a temporary PHPUnit class that renders pages through the kernel and writes text to `/tmp` yields readable evidence, and it must be deleted afterwards — never commit a non-asserting probe (Session 8).
 
 ---
 
@@ -302,5 +309,45 @@ description: "Project memory file for tracking progress, active artifacts, and c
   - **Pre-existing working-tree dirt (NOT part of this feature):** `.mimosa/hook-state/` runtime churn plus uncommitted edits to `app/Http/Controllers/Admin/AdminDashboardController.php`, `app/Http/Controllers/AdminController.php`, `app/Services/AdminService.php`, `resources/views/admin/dashboard.blade.php`, `public/css/modern-sakip.css`, and a deleted `resources/views/_impeccable_smoke_test.blade.php`. Never stage these as part of the triage landing.
 
 <!-- checkpoint-tail: PRD for the admin triage landing is clarified at 82/100, CONTEXT.md now exists with 7 canonical terms, and .gitignore no longer swallows the glossary; the next session runs `/tdd-prd` remediation on four mandatory text corrections before `/tdd-spec`. -->
+
+---
+
+## 📝 Session Checkpoint: 2026-09-25 — Session 8: Admin Triage Landing Implementation (Phases 1 + 2)
+
+- **Summary:** The eleven-ticket implementation plan for the admin triage landing is fully executed under Red-Green-Refactor. Phase 1 (T1–T9) and Phase 2 (T10–T11) are complete, the working tree is clean, and every gate is green except the PHP coverage gate, which is `unverified` because no Xdebug/PCOV driver is installed.
+- **Work Done:**
+  - **T1–T2** (`0c6fc64`, `4bd7291`): seam S1 read model (`ReportingPeriod`, `TriageScope`, `AdminTriageSummary`), the `reporting.active_year` config key, the active-year source, the `getDateRange()` adapter, and the deletion of `ForYearScope.php`.
+  - **T3** (`0fb08c1`): seam S2 `AdminTriageService` with fourteen unit cases.
+  - **T4–T7** (`df57eb8`, `2f6236f`, `10bc90c`, `365e4b7`): the landing region, the scope indicator with basis labels, deep links (mutation-verified), and the attention strip plus empty state.
+  - **T8–T9** (`01675b6`, `6937515`): measured statement contracts and the architecture note. `6937515` came from a **concurrent external writer** (`ragrin`, framework hook automation) and did exactly T9's deliverable — always re-check `git log` before assuming state.
+  - **T10** (`7e8642e`): the Phase-2 badge. `app/View/Composers/SidebarQueueBadgeComposer.php` resolves the period from the request and delegates to `AdminTriageService::verificationCountFor()`; it is registered on `layouts.modern` beside the global nonce composer. TC-057 and TC-059 drove the RED; TC-058 turned into a real guard for the empty queue.
+  - **T11** (`cf08e72`): recorded `app/View/Composers/` in `docs/ARCHITECTURE.md` (tree plus boundary table). All ten `app/` subdirectories are now named in the map.
+- **Measured Contract (Spec §4.4):** cross-agency **5**, agency-bound **6**, unassigned **1** statements against a ceiling of six. The spec's Phase-2 column predicted two for the unassigned state; its short-circuit issues no badge query at all, and the test comment records the measured one.
+- **Key Findings:**
+  - **The six-statement ceiling reshaped production code.** With the composer in place the agency-bound landing measured **seven** statements, because the shared resolver spent a second statement on an agency name the badge never renders. `verificationCountFor()` now resolves the scope through `resolveScopeKind()` (no lookup), while `resolveScope()` keeps the A7 label carve-out for the summary. The S2 label cases still pass.
+  - **A sidebar badge is a property of (link × count).** The badge sits inside `@can('manage-sakip')` (`layouts/modern.blade.php:81,88-93`), so an agency-bound viewer without that permission sees no badge even at a count of two. Spec AC-023/024/026 name a `Super Admin` viewer, which is exactly why. A throwaway HTTP-kernel smoke proved the behaviour instead of assuming it.
+  - **The three deep links need their own permissions** (`view-performance-data`, `view-assessment-reports`): a viewer without them receives an explicit **403**, never a 500, while a Super Admin receives 200.
+  - **Spec §5.0 F-6 is still documentation-misleading:** `assessments.performance_data_id` is UNIQUE, so its "three assessments on one row" scenario is not executable; the deviation lives only in a test header and a commit message.
+  - **`ReportFactory` writes a `metadata` column absent from the `reports` table** (pre-existing, worked around with `Report::forceCreate`, unfixed).
+  - **AC-004 residual:** the `(int)` cast in `AdminTriageSummary` is unfalsifiable in a non-strict-types repository — recorded for review instead of being silently closed.
+- **Updated Files:**
+  - `app/Support/ReportingPeriod.php`, `app/Support/TriageScope.php`, `app/Support/AdminTriageSummary.php` — new read-model contracts
+  - `app/Services/AdminTriageService.php` — new service with split scope resolution
+  - `app/View/Composers/SidebarQueueBadgeComposer.php` — new layout composer
+  - `app/Providers/AppServiceProvider.php`, `config/sakip.php`, `app/Models/Scopes/ForYearTrait.php`, `app/Services/SakipDashboardService.php`, `app/Http/Controllers/Admin/AdminDashboardController.php`, `resources/views/admin/dashboard.blade.php`
+  - `tests/Unit/Support/ReportingPeriodTest.php`, `tests/Unit/Scopes/ForYearTraitTest.php`, `tests/Unit/Services/DashboardDateRangeAdapterTest.php`, `tests/Unit/Services/AdminTriageServiceTest.php`, `tests/Feature/AdminTriageLandingTest.php`, `tests/Feature/SidebarQueueBadgeTest.php`
+  - `docs/ARCHITECTURE.md` — the `app/Support/` and `app/View/Composers/` boundaries
+  - `app/Models/Scopes/ForYearScope.php` — **deleted** (superseded by the trait)
+- **Decisions Made:**
+  - The composer owns the badge value; no controller passes it. The old controller variable was dropped in T4, so T10 needed no controller change.
+  - Accepted spec divergences D-S7/D-S8/D-S9 are **asserted openly** (AC-037/AC-038) rather than hidden.
+  - No ADR was written; the Triple Gate remains unmet.
+- **Next Action / Pending:**
+  - **New chat session → `/tdd-code-review`** with `@spec/spec-admin-triage-landing.md` and `@plan/plan-admin-triage-landing.md` (its mandatory upstream documents), plus `docs/checklist/checklist-admin-triage-landing.md` as the case inventory.
+  - Carry these into the review: the Spec §5.0 F-6 wording, the `ReportFactory` defect, the new F-1 `manage-sakip` finding, and the AC-004 cast residual.
+  - Coverage stays `unverified` until a driver is installed; never report it green.
+  - Backlog unchanged: **F1** (2 skipped rate-limit tests), **F2** (63 PHPUnit 12 deprecations), `composer audit --locked`, `npm audit --omit=dev`.
+
+<!-- checkpoint-tail: the admin triage landing is implemented across Phases 1 + 2 (11/11 tickets, commits 0c6fc64 → cf08e72) with 144 passing tests and a clean Pint run; the next session runs `/tdd-code-review` on the Spec and Plan, carrying four open findings (Spec §5.0 F-6, ReportFactory, manage-sakip F-1, AC-004 cast) and an unverified coverage gate. -->
 
 ---
