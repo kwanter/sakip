@@ -82,7 +82,7 @@ flowchart TD
 │   └── standards/               # Same standards set at the top level of .agents/
 ├── .claude/                     # Claude Code mirror of the .agents scaffolding
 ├── .github/workflows/ci.yml     # CI: lint-check, unit-feature-tests, security-audit, build-assets
-├── app/                         # Application code (131 PHP files)
+├── app/                         # Application code (135 PHP files)
 │   ├── Constants/               # Status, ReportStatus, AssessmentStatus, SystemRoles, ValidationRules, Pagination
 │   ├── Console/Commands/        # AddSakipPermissions, CheckMissingClasses, RemoveTestUsers
 │   ├── Http/
@@ -116,8 +116,11 @@ flowchart TD
 │   ├── api.php                  # /api/health and /api/csp-reports only (no CRUD API)
 │   └── console.php              # Artisan command definitions
 ├── tests/
-│   ├── Feature/                 # 12 HTTP/workflow tests
-│   ├── Unit/                    # 5 tests, including ArchitectureGuardTest
+│   ├── Feature/                 # 14 HTTP/workflow tests (incl. AdminTriageLandingTest, SidebarQueueBadgeTest)
+│   ├── Unit/                    # 9 tests: 4 guards at the root, 3 under Services/, 1 each under Scopes/ and Support/
+│   │   ├── Scopes/              # ForYearTraitTest (the active-year seam, REQ-014)
+│   │   ├── Services/            # PerformanceCalculationServiceTest, AdminTriageServiceTest, DashboardDateRangeAdapterTest
+│   │   └── Support/             # ReportingPeriodTest (seam S1: pure unit, no DB, HTTP or auth)
 │   └── TestCase.php             # RefreshDatabase + $seed = true + Spatie permission cache reset
 ├── AGENTS.md                    # Agent operating contract and SDLC map
 ├── CONSTITUTION.md              # Non-negotiable engineering principles
@@ -149,8 +152,8 @@ flowchart TD
 | `resources/views/` | Server-rendered UI | `sakip/`, `admin/`, `layouts/`, `auth/`, `errors/` Blade templates | Bootstrap CDN + `modern-sakip.css` components; user-facing strings in Bahasa Indonesia; WCAG AA. |
 | `resources/js/` | Frontend assets | Vite entry plus `sakip/` modules | Vite bundles are not loaded by every Bootstrap layout today; verify at runtime before relying on them. |
 | `routes/` | HTTP surface | `web.php`, `web_sakip.php`, `api.php`, `console.php` | `web_sakip.php` is required by `web.php`; SAKIP AJAX endpoints live under `/sakip/api/` with session auth. |
-| `tests/Feature/` | End-to-end HTTP behavior | 13 tests covering auth, dashboards, data collection, isolation, rendering, rate limiting, and the triage landing | Assert HTTP status, redirects, rendered content, and persisted rows. |
-| `tests/Unit/` | Guards and isolated logic | `ArchitectureGuardTest`, `SecurityHeadersTest`, export injection test, service test | `ArchitectureGuardTest` prevents duplicate class names and missing route names from recurring. |
+| `tests/Feature/` | End-to-end HTTP behavior | 14 tests covering auth, dashboards, data collection, isolation, rendering, rate limiting, and the triage landing | Assert HTTP status, redirects, rendered content, and persisted rows. |
+| `tests/Unit/` | Guards and isolated logic | Root: `ArchitectureGuardTest`, `SecurityHeadersTest`, the export-injection guard, `ExampleTest`. `Services/`: `PerformanceCalculationServiceTest`, `AdminTriageServiceTest` (seam S2 — real DB, no `actingAs()`), `DashboardDateRangeAdapterTest`. `Scopes/`: `ForYearTraitTest`. `Support/`: `ReportingPeriodTest` (seam S1) | `ArchitectureGuardTest` prevents duplicate class names and missing route names from recurring. Seams S3 and S4 live in `tests/Feature/AdminTriageLandingTest.php` and `tests/Feature/SidebarQueueBadgeTest.php`. |
 | `docs/` | Project documentation | This map, plans, history, security notes, ADRs | ADRs follow `.agents/standards/ADR-FORMAT.md` and live in `docs/adr/`. |
 | `.agents/`, `.claude/` | Agent governance scaffolding | Instructions, rules, 21 skills, standards | Governance artifacts only; never place application code here. |
 
@@ -210,6 +213,11 @@ php artisan test --coverage --min=75     # coverage gate (requires Xdebug or PCO
   - Service contracts — `tests/Unit/Services/PerformanceCalculationServiceTest.php` and `tests/Feature/PerformanceCalculationServiceTest.php` call services with factory-built models.
   - Architecture guards — `tests/Unit/ArchitectureGuardTest.php` walks `app_path()` to prevent duplicate short class names and missing route names.
   - Security invariants — `tests/Unit/SecurityHeadersTest.php`, `tests/Unit/ExportFormulaInjectionTest.php`, `tests/Feature/RateLimitingTest.php`.
+  - **Admin triage landing seams S1–S4** (pre-agreed in `spec/spec-admin-triage-landing.md` §6.1):
+    - **S1** `app/Support/ReportingPeriod` — pure value object, `tests/Unit/Support/ReportingPeriodTest.php`. No database, no HTTP, no auth: a query or an `actingAs()` here would hide the boundary the seam exists to specify.
+    - **S2** `app/Services/AdminTriageService::summaryFor()` / `verificationCountFor()` — `tests/Unit/Services/AdminTriageServiceTest.php`, real database and factories but **no `actingAs()`**, because the service applies agency coverage explicitly. The ambient `InstansiScope` is a documented no-op without an authenticated user, so this seam can prove nothing about ambient auth; S3 owns that invariant.
+    - **S3** `GET /admin/dashboard` — `tests/Feature/AdminTriageLandingTest.php` (`actingAs()`, seeded permissions, driven through the router). It owns the ambient-auth invariant: a `Super Admin` render must equal a direct `summaryFor()` call made with no authenticated user.
+    - **S4** the sidebar queue badge on `layouts.modern` — `tests/Feature/SidebarQueueBadgeTest.php`, driven through two routes owned by two controllers. **The badge sits inside `@can('manage-sakip')`** (`resources/views/layouts/modern.blade.php:81,88-93`) and that permission is defined and granted nowhere, so the seam is effectively Super-Admin-only today: never assert a badge without first establishing that the viewer may open its link.
 - **Fixtures:** 11 model factories exist (`User`, `Instansi`, `Program`, `Kegiatan`, `PerformanceIndicator`, `Target`, `PerformanceData`, `Assessment`, `AssessmentCriterion`, `EvidenceDocument`, `Report`). Seeders provide roles, permissions, instansi, and system settings. There is no factory for `SasaranStrategis`; create records explicitly or add a factory when a test needs one.
 
 ## 11. AI Agent Boundaries
