@@ -1,0 +1,16 @@
+spec/spec-admin-triage-landing.md
+  h_00672522f4dbdd 50-52
+tests/Unit/Support/ReportingPeriodTest.php
+  h_00672522f4dbdd 81-88
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5c94ed7cb5ad08ef31298aee689595dbd7a771c1",
+  "prompts": {},
+  "humans": {
+    "h_00672522f4dbdd": {
+      "author": "ragrin <kwanterpepen@gmail.com>"
+    }
+  }
+}
