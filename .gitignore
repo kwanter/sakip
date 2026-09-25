@@ -39,9 +39,21 @@ Thumbs.db
 !/.agents/skills/standards/**/*.md
 !/.agents/skills/memory-manager/**/*.md
 !/.agents/skills/tdd-*/**/*.md
+
+# SDLC specification & plan artifacts (TDD-Spec SDLC) — executable sources of truth must be versioned
+!/spec/**/*.md
+!/plan/**/*.md
+
 /.trae
 /.claude
 /Track
+
+# Tool runtime state & OS junk (local only — never versioned)
+.mimosa/
+.impeccable/
+.playwright-mcp/
+.video_agent/
+.zcode/
 
 # Debug and test files
 test_*.php
