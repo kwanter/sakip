@@ -1,0 +1,22 @@
+app/Support/AdminTriageSummary.php
+  h_00672522f4dbdd 1-27
+app/Support/ReportingPeriod.php
+  h_00672522f4dbdd 1-116
+app/Support/TriageScope.php
+  h_00672522f4dbdd 1-25
+config/sakip.php
+  h_00672522f4dbdd 116-127
+tests/Unit/Support/ReportingPeriodTest.php
+  h_00672522f4dbdd 1-190
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0c6fc6445081cc616ad325f9817c081040abcc5c",
+  "prompts": {},
+  "humans": {
+    "h_00672522f4dbdd": {
+      "author": "ragrin <kwanterpepen@gmail.com>"
+    }
+  }
+}
