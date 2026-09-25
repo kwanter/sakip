@@ -479,6 +479,67 @@ class AdminTriageLandingTest extends TestCase
         $this->assertSame('0', $this->figureValue($empty, 'verification'), 'no value carries over from the previous period');
     }
 
+    /**
+     * TC-045 / AC-028 — a period switch moves only the verification figure.
+     *
+     * Pin, not a RED: the assessment and report counts are already period-independent (A1/D9), so this
+     * case is green on first write. Its falsifiability was proven by the TASK-101 mutation — temporarily
+     * period-scoping `AdminTriageService::assessmentQuery()` makes it fail — and that mutation was
+     * reverted before this commit.
+     */
+    public function test_switching_period_moves_only_the_verification_figure(): void
+    {
+        $agency = $this->agencyWithSubmittedData(['2026-03', '2025-03']);
+        $viewer = $this->permittedViewerFor($agency);
+
+        $row = \App\Models\PerformanceData::query()
+            ->where('instansi_id', $agency->id)
+            ->where('period', '2026-03')
+            ->firstOrFail();
+        \App\Models\Assessment::factory()->pending()->forPerformanceData($row->id)->create();
+
+        // ReportFactory writes metadata columns the reports table does not have, so this fixture follows
+        // the house idiom of AdminTriageServiceTest::newReportFor() instead.
+        \App\Models\Report::forceCreate([
+            'id' => (string) \Illuminate\Support\Str::uuid(),
+            'instansi_id' => $agency->id,
+            'generated_by' => $viewer->id,
+            'report_type' => 'quarterly_report',
+            'period' => '2026-Q3',
+            'status' => 'submitted',
+            'generated_at' => now(),
+        ]);
+
+        $yearly = $this->actingAs($viewer)->get(route('admin.dashboard', ['period' => 'current_year']))->getContent();
+        $emptyMonth = $this->actingAs($viewer)->get(route('admin.dashboard', ['period' => 'current_month']))->getContent();
+
+        $this->assertSame('1', $this->figureValue($yearly, 'verification'), 'the year window holds the 2026 row');
+        $this->assertSame('0', $this->figureValue($emptyMonth, 'verification'), 'the month window holds no row');
+
+        foreach (['assessment', 'report'] as $handle) {
+            $this->assertSame(
+                $this->figureValue($yearly, $handle),
+                $this->figureValue($emptyMonth, $handle),
+                "a period switch must not move the {$handle} figure (A1/D9)",
+            );
+            $this->assertNotSame(
+                '0',
+                $this->figureValue($yearly, $handle),
+                "the {$handle} figure is non-zero, so the equality above is falsifiable",
+            );
+
+            foreach (['current_year' => $yearly, 'current_month' => $emptyMonth] as $key => $render) {
+                preg_match('/<a[^>]*data-triage-figure="'.$handle.'"[^>]*>(.*?)<\/a>/s', $render, $anchor);
+
+                $this->assertStringContainsString(
+                    'Tidak dibatasi periode',
+                    $anchor[1] ?? '',
+                    "basis of {$handle} under {$key}",
+                );
+            }
+        }
+    }
+
     /** @param list<string> $periods */
     private function agencyWithSubmittedData(array $periods): \App\Models\Instansi
     {
