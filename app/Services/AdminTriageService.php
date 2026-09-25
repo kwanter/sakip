@@ -20,14 +20,19 @@ use Illuminate\Database\Eloquent\Builder;
  */
 final class AdminTriageService
 {
-    /** Filter value honoured by AssessmentController@index and matching Assessment::pending(). */
+    /**
+     * `?status=` value honoured by AssessmentController@index and matching Assessment::pending().
+     *
+     * The name is pinned by Spec §4.2 (A-4), so it keeps the `_STATUS` suffix even though its two
+     * siblings below carry the clearer `_FILTER_VALUE` one — each names the query parameter it feeds.
+     */
     private const ASSESSMENT_PENDING_STATUS = 'pending';
 
-    /** Filter value honoured by DataCollectionController@index. */
-    private const VERIFICATION_SUBMITTED_STATUS = 'submitted';
+    /** `?validation_status=` value honoured by DataCollectionController@index. */
+    private const VERIFICATION_FILTER_VALUE = 'submitted';
 
-    /** Filter value honoured by ReportController@index and matching Report::submitted(). */
-    private const REPORT_SUBMITTED_STATUS = 'submitted';
+    /** `?status=` value honoured by ReportController@index and matching Report::submitted(). */
+    private const REPORT_FILTER_VALUE = 'submitted';
 
     public function summaryFor(User $user, ReportingPeriod $period): AdminTriageSummary
     {
@@ -163,7 +168,7 @@ final class AdminTriageService
     /** The only target whose filter can express the selection exactly, so only it ever gets `period`. */
     private function verificationUrl(ReportingPeriod $period): string
     {
-        $parameters = ['validation_status' => self::VERIFICATION_SUBMITTED_STATUS];
+        $parameters = ['validation_status' => self::VERIFICATION_FILTER_VALUE];
 
         if ($period->isSingleMonth()) {
             $parameters['period'] = $period->performancePeriodRange()[0];
@@ -179,6 +184,6 @@ final class AdminTriageService
 
     private function reportUrl(): string
     {
-        return route('sakip.reports.index', ['status' => self::REPORT_SUBMITTED_STATUS]);
+        return route('sakip.reports.index', ['status' => self::REPORT_FILTER_VALUE]);
     }
 }
