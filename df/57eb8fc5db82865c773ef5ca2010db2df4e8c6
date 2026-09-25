@@ -1,0 +1,19 @@
+tests/Feature/AdminTriageLandingTest.php
+  s_0732e313cece3f::t_26fbdf60ea3670 1-215
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "df57eb8fc5db82865c773ef5ca2010db2df4e8c6",
+  "prompts": {},
+  "sessions": {
+    "s_0732e313cece3f": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f2bfce8c6ffeed2k0pd3txMZIh",
+        "model": "unknown"
+      },
+      "human_author": "ragrin <kwanterpepen@gmail.com>"
+    }
+  }
+}
