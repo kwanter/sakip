@@ -2,11 +2,13 @@
 
 namespace Tests\Feature;
 
-use App\Models\Permission;
-use App\Models\User;
+use App\Models\Instansi;
+use App\Models\PerformanceData;
+use App\Models\PerformanceIndicator;
 use Carbon\Carbon;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Support\ExtractsTriageMarkup;
 use Tests\TestCase;
 
 /**
@@ -19,6 +21,7 @@ use Tests\TestCase;
  */
 class SidebarQueueBadgeTest extends TestCase
 {
+    use ExtractsTriageMarkup;
     use RefreshDatabase;
 
     protected function setUp(): void
@@ -48,7 +51,7 @@ class SidebarQueueBadgeTest extends TestCase
         $landing = $this->actingAs($viewer)->get(route('admin.dashboard'))->getContent();
         $sakipDashboard = $this->actingAs($viewer)->get(route('sakip.dashboard'))->getContent();
 
-        $figure = $this->verificationFigure($landing);
+        $figure = $this->figureValue($landing, 'verification');
         $this->assertSame('2', $figure, 'the landing figure counts the two in-period rows');
 
         $this->assertStringContainsString('sidebar-link-badge', $landing);
@@ -87,42 +90,12 @@ class SidebarQueueBadgeTest extends TestCase
     /** @param list<string> $periods */
     private function agencyWithSubmittedData(array $periods): void
     {
-        $agency = \App\Models\Instansi::factory()->create(['nama_instansi' => 'Dinas A']);
+        $agency = Instansi::factory()->create(['nama_instansi' => 'Dinas A']);
 
         foreach ($periods as $period) {
-            \App\Models\PerformanceData::factory()->submitted()->forInstansi($agency->id)->forPeriod($period)->create([
-                'performance_indicator_id' => \App\Models\PerformanceIndicator::factory()->create(['instansi_id' => $agency->id])->id,
+            PerformanceData::factory()->submitted()->forInstansi($agency->id)->forPeriod($period)->create([
+                'performance_indicator_id' => PerformanceIndicator::factory()->create(['instansi_id' => $agency->id])->id,
             ]);
         }
-    }
-
-    private function superAdminViewer(): User
-    {
-        $user = User::factory()->create(['email_verified_at' => now()]);
-        $user->givePermissionTo(Permission::firstOrCreate(
-            ['name' => 'admin.dashboard'],
-            ['display_name' => 'admin.dashboard'],
-        ));
-        $user->assignRole(\App\Models\Role::firstOrCreate(
-            ['name' => \App\Constants\SystemRoles::SUPER_ADMIN],
-            ['display_name' => \App\Constants\SystemRoles::SUPER_ADMIN],
-        ));
-
-        return $user->refresh();
-    }
-
-    private function badgeValue(string $content): string
-    {
-        preg_match('/sidebar-link-badge">\s*([^<]*?)\s*</s', $content, $matches);
-
-        return trim($matches[1] ?? '');
-    }
-
-    private function verificationFigure(string $content): string
-    {
-        preg_match('/<a[^>]*data-triage-figure="verification"[^>]*>(.*?)<\/a>/s', $content, $anchor);
-        preg_match('/stat-value">([^<]*)</', $anchor[1] ?? '', $value);
-
-        return trim($value[1] ?? '');
     }
 }

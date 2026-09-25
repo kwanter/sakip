@@ -2,11 +2,20 @@
 
 namespace Tests\Feature;
 
-use App\Models\Permission;
+use App\Models\Assessment;
+use App\Models\Instansi;
+use App\Models\PerformanceData;
+use App\Models\PerformanceIndicator;
+use App\Models\Report;
 use App\Models\User;
+use App\Services\AdminTriageService;
+use App\Support\ReportingPeriod;
 use Carbon\Carbon;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Tests\Support\ExtractsTriageMarkup;
 use Tests\TestCase;
 
 /**
@@ -16,6 +25,7 @@ use Tests\TestCase;
  */
 class AdminTriageLandingTest extends TestCase
 {
+    use ExtractsTriageMarkup;
     use RefreshDatabase;
 
     protected function setUp(): void
@@ -174,13 +184,12 @@ class AdminTriageLandingTest extends TestCase
 
         foreach ($expected as $handle => [$name, $basis]) {
             $this->assertSame(1, substr_count($content, $name), "the name of {$handle} renders once");
-            $this->assertSame(
-                1,
-                preg_match('/<a[^>]*data-triage-figure="'.$handle.'"[^>]*>(.*?)<\/a>/s', $content, $matches),
-                "anchor {$handle} is extractable",
-            );
-            $this->assertStringContainsString($name, $matches[1], "name inside {$handle}");
-            $this->assertStringContainsString($basis, $matches[1], "basis inside {$handle}");
+
+            $anchor = $this->figureAnchor($content, $handle);
+
+            $this->assertNotSame('', $anchor, "anchor {$handle} is extractable");
+            $this->assertStringContainsString($name, $anchor, "name inside {$handle}");
+            $this->assertStringContainsString($basis, $anchor, "basis inside {$handle}");
         }
     }
 
@@ -219,7 +228,7 @@ class AdminTriageLandingTest extends TestCase
         preg_match_all('/<option value="([^"]+)"([^>]*)>/', $select[1], $options, PREG_SET_ORDER);
 
         $this->assertSame(
-            \App\Support\ReportingPeriod::KEYS,
+            ReportingPeriod::KEYS,
             array_column($options, 1),
             'the five canonical keys must render in their declared order',
         );
@@ -233,25 +242,10 @@ class AdminTriageLandingTest extends TestCase
         $this->assertSame('current_year', $selected[0][1], 'the resolved key is the selected one');
     }
 
-    /** A verified holder of `admin.dashboard` that is deliberately NOT a Super Admin (finding C1). */
-    private function permittedViewer(): User
-    {
-        $user = User::factory()->create(['email_verified_at' => now(), 'instansi_id' => null]);
-
-        $permission = Permission::firstOrCreate(
-            ['name' => 'admin.dashboard'],
-            ['display_name' => 'admin.dashboard'],
-        );
-
-        $user->givePermissionTo($permission);
-
-        return $user->refresh();
-    }
-
     /** TC-033 / AC-013 — each viewer state renders its own scope handle and label. */
     public function test_scope_handle_and_label_match_the_viewer_state(): void
     {
-        $agency = \App\Models\Instansi::factory()->create(['nama_instansi' => 'Dinas A']);
+        $agency = Instansi::factory()->create(['nama_instansi' => 'Dinas A']);
 
         $agencyContent = $this->actingAs($this->permittedViewerFor($agency))
             ->get(route('admin.dashboard'))
@@ -292,11 +286,11 @@ class AdminTriageLandingTest extends TestCase
             ->getContent();
 
         foreach (['assessment', 'report'] as $handle) {
-            preg_match('/<a[^>]*data-triage-figure="'.$handle.'"[^>]*>(.*?)<\/a>/s', $content, $matches);
+            $anchor = $this->figureAnchor($content, $handle);
 
-            $this->assertNotSame('', $matches[1] ?? '', "anchor {$handle} is extractable");
-            $this->assertStringContainsString('Tidak dibatasi periode', $matches[1], "basis of {$handle}");
-            $this->assertStringNotContainsString('Triwulan II 2026', $matches[1], "period label leaked into {$handle}");
+            $this->assertNotSame('', $anchor, "anchor {$handle} is extractable");
+            $this->assertStringContainsString('Tidak dibatasi periode', $anchor, "basis of {$handle}");
+            $this->assertStringNotContainsString('Triwulan II 2026', $anchor, "period label leaked into {$handle}");
         }
 
         $this->assertStringContainsString('Triwulan II 2026', $content, 'the verification figure states its period');
@@ -328,48 +322,6 @@ class AdminTriageLandingTest extends TestCase
 
         $this->assertStringContainsString('Indikator Kinerja', $content, 'the shell still renders its own label');
         $this->assertStringNotContainsString('Indikator Kinerja', $region[1] ?? '');
-        $this->assertStringContainsString('Indikator Kinerja', (string) file_get_contents(resource_path('views/layouts/modern.blade.php')));
-    }
-
-    private function permittedViewerFor(\App\Models\Instansi $agency): User
-    {
-        $user = User::factory()->create(['email_verified_at' => now(), 'instansi_id' => $agency->id]);
-        $user->givePermissionTo(Permission::firstOrCreate(
-            ['name' => 'admin.dashboard'],
-            ['display_name' => 'admin.dashboard'],
-        ));
-
-        return $user->refresh();
-    }
-
-    /** A landing viewer that ALSO holds the two target permissions its deep links point at. */
-    private function targetViewerFor(\App\Models\Instansi $agency): User
-    {
-        $user = $this->permittedViewerFor($agency);
-
-        foreach (['view-performance-data', 'view-assessment-reports'] as $permission) {
-            $user->givePermissionTo(Permission::firstOrCreate(
-                ['name' => $permission],
-                ['display_name' => $permission],
-            ));
-        }
-
-        return $user->refresh();
-    }
-
-    private function superAdminViewer(): User
-    {
-        $user = User::factory()->create(['email_verified_at' => now()]);
-        $user->givePermissionTo(Permission::firstOrCreate(
-            ['name' => 'admin.dashboard'],
-            ['display_name' => 'admin.dashboard'],
-        ));
-        $user->assignRole(\App\Models\Role::firstOrCreate(
-            ['name' => \App\Constants\SystemRoles::SUPER_ADMIN],
-            ['display_name' => \App\Constants\SystemRoles::SUPER_ADMIN],
-        ));
-
-        return $user->refresh();
     }
 
     /** TC-038 / AC-018 — the verification anchor carries the period only for a single-month selection. */
@@ -446,7 +398,7 @@ class AdminTriageLandingTest extends TestCase
         $resource = $handle === 'assessment' ? 'assessments' : 'reports';
         $expected = route("sakip.{$resource}.index", $parameters);
 
-        foreach (\App\Support\ReportingPeriod::KEYS as $key) {
+        foreach (ReportingPeriod::KEYS as $key) {
             $content = $this->actingAs($viewer)->get(route('admin.dashboard', ['period' => $key]))->getContent();
             $href = $this->figureHref($content, $handle);
 
@@ -455,18 +407,10 @@ class AdminTriageLandingTest extends TestCase
         }
     }
 
-    private function figureHref(string $content, string $handle): string
-    {
-        preg_match('/<a[^>]*data-triage-figure="'.$handle.'"[^>]*>/s', $content, $tag);
-        preg_match('/href="([^"]*)"/', $tag[0] ?? '', $href);
-
-        return html_entity_decode($href[1] ?? '');
-    }
-
     /** TC-046 / AC-030 — an empty period is explained, and no empty strip is rendered. */
     public function test_empty_state_hides_the_attention_strip_and_explains_the_period(): void
     {
-        $agency = \App\Models\Instansi::factory()->create(['nama_instansi' => 'Dinas Kosong']);
+        $agency = Instansi::factory()->create(['nama_instansi' => 'Dinas Kosong']);
 
         $content = $this->actingAs($this->permittedViewerFor($agency))
             ->get(route('admin.dashboard'))
@@ -527,16 +471,16 @@ class AdminTriageLandingTest extends TestCase
         $agency = $this->agencyWithSubmittedData(['2026-03', '2025-03']);
         $viewer = $this->permittedViewerFor($agency);
 
-        $row = \App\Models\PerformanceData::query()
+        $row = PerformanceData::query()
             ->where('instansi_id', $agency->id)
             ->where('period', '2026-03')
             ->firstOrFail();
-        \App\Models\Assessment::factory()->pending()->forPerformanceData($row->id)->create();
+        Assessment::factory()->pending()->forPerformanceData($row->id)->create();
 
         // ReportFactory writes metadata columns the reports table does not have, so this fixture follows
         // the house idiom of AdminTriageServiceTest::newReportFor() instead.
-        \App\Models\Report::forceCreate([
-            'id' => (string) \Illuminate\Support\Str::uuid(),
+        Report::forceCreate([
+            'id' => (string) Str::uuid(),
             'instansi_id' => $agency->id,
             'generated_by' => $viewer->id,
             'report_type' => 'quarterly_report',
@@ -564,11 +508,9 @@ class AdminTriageLandingTest extends TestCase
             );
 
             foreach (['current_year' => $yearly, 'current_month' => $emptyMonth] as $key => $render) {
-                preg_match('/<a[^>]*data-triage-figure="'.$handle.'"[^>]*>(.*?)<\/a>/s', $render, $anchor);
-
                 $this->assertStringContainsString(
                     'Tidak dibatasi periode',
-                    $anchor[1] ?? '',
+                    $this->figureAnchor($render, $handle),
                     "basis of {$handle} under {$key}",
                 );
             }
@@ -576,25 +518,17 @@ class AdminTriageLandingTest extends TestCase
     }
 
     /** @param list<string> $periods */
-    private function agencyWithSubmittedData(array $periods): \App\Models\Instansi
+    private function agencyWithSubmittedData(array $periods): Instansi
     {
-        $agency = \App\Models\Instansi::factory()->create(['nama_instansi' => 'Dinas A']);
+        $agency = Instansi::factory()->create(['nama_instansi' => 'Dinas A']);
 
         foreach ($periods as $period) {
-            \App\Models\PerformanceData::factory()->submitted()->forInstansi($agency->id)->forPeriod($period)->create([
-                'performance_indicator_id' => \App\Models\PerformanceIndicator::factory()->create(['instansi_id' => $agency->id])->id,
+            PerformanceData::factory()->submitted()->forInstansi($agency->id)->forPeriod($period)->create([
+                'performance_indicator_id' => PerformanceIndicator::factory()->create(['instansi_id' => $agency->id])->id,
             ]);
         }
 
         return $agency;
-    }
-
-    private function figureValue(string $content, string $handle): string
-    {
-        preg_match('/<a[^>]*data-triage-figure="'.$handle.'"[^>]*>(.*?)<\/a>/s', $content, $anchor);
-        preg_match('/stat-value">([^<]*)</', $anchor[1] ?? '', $value);
-
-        return trim($value[1] ?? '');
     }
 
     /** TC-052 / AC-034 + CON-003 — the domain-statement budget per viewer state. */
@@ -627,8 +561,8 @@ class AdminTriageLandingTest extends TestCase
 
         // Deliberately no actingAs(): with no authenticated user the ambient InstansiScope is a no-op,
         // so this call exercises the service's explicit cross-agency path rather than the ambient one.
-        $direct = app(\App\Services\AdminTriageService::class)
-            ->summaryFor($superAdmin, \App\Support\ReportingPeriod::fromKey('current_year'));
+        $direct = app(AdminTriageService::class)
+            ->summaryFor($superAdmin, ReportingPeriod::fromKey('current_year'));
 
         $content = $this->actingAs($superAdmin)->get(route('admin.dashboard'))->getContent();
 
@@ -643,8 +577,8 @@ class AdminTriageLandingTest extends TestCase
         $agency = $this->agencyWithSubmittedData(['2026-03', '2026-09', '2025-03']);
         $viewer = $this->targetViewerFor($agency);
 
-        $row = \App\Models\PerformanceData::query()->where('instansi_id', $agency->id)->firstOrFail();
-        \App\Models\Assessment::factory()->pending()->forPerformanceData($row->id)->create();
+        $row = PerformanceData::query()->where('instansi_id', $agency->id)->firstOrFail();
+        Assessment::factory()->pending()->forPerformanceData($row->id)->create();
 
         // Exact equality where the target filter can express the selection: a single month.
         $monthly = $this->actingAs($viewer)->get(route('admin.dashboard', ['period' => 'current_month']))->getContent();
@@ -662,7 +596,7 @@ class AdminTriageLandingTest extends TestCase
         $yearlyTarget = $this->get($this->figureHref($yearly, 'verification'));
         $yearlyTarget->assertOk();
 
-        $countedIds = \App\Models\PerformanceData::query()->submitted()
+        $countedIds = PerformanceData::query()->submitted()
             ->whereBetween('period', ['2026-01', '2026-12'])
             ->where('instansi_id', $agency->id)
             ->pluck('id');
@@ -695,31 +629,22 @@ class AdminTriageLandingTest extends TestCase
         $this->assertSame(0, $this->renderedRowCount($target->getContent()), 'D-S8: the target has no cross-agency branch');
     }
 
-    private function domainStatementsFor(\App\Models\User $viewer): int
+    private function domainStatementsFor(User $viewer): int
     {
-        \Illuminate\Support\Facades\DB::flushQueryLog();
-        \Illuminate\Support\Facades\DB::enableQueryLog();
+        DB::flushQueryLog();
+        DB::enableQueryLog();
 
         $this->actingAs($viewer)->get(route('admin.dashboard'))->assertOk();
 
-        $statements = collect(\Illuminate\Support\Facades\DB::getQueryLog())->filter(
-            fn (array $query) => \Illuminate\Support\Str::contains(
+        $statements = collect(DB::getQueryLog())->filter(
+            fn (array $query) => Str::contains(
                 $query['query'],
                 ['performance_data', 'assessments', 'reports', 'instansis', 'audit_logs'],
             ),
         );
 
-        \Illuminate\Support\Facades\DB::disableQueryLog();
+        DB::disableQueryLog();
 
         return $statements->count();
-    }
-
-    /** Counts data rows in the first table body, ignoring the colspan'd empty-state row. */
-    private function renderedRowCount(string $content): int
-    {
-        preg_match('/<tbody>(.*?)<\/tbody>/s', $content, $body);
-        $rows = substr_count($body[1] ?? '', '<tr');
-
-        return str_contains($body[1] ?? '', 'colspan') ? max(0, $rows - 1) : $rows;
     }
 }

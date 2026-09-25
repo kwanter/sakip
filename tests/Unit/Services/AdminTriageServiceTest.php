@@ -6,6 +6,7 @@ use App\Constants\SystemRoles;
 use App\Models\Assessment;
 use App\Models\Instansi;
 use App\Models\PerformanceData;
+use App\Models\PerformanceIndicator;
 use App\Models\Report;
 use App\Models\Role;
 use App\Models\User;
@@ -14,7 +15,9 @@ use App\Support\ReportingPeriod;
 use App\Support\TriageScope;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 /**
@@ -365,13 +368,13 @@ class AdminTriageServiceTest extends TestCase
 
     private function newIndicatorFor(Instansi $agency): string
     {
-        return \App\Models\PerformanceIndicator::factory()->create(['instansi_id' => $agency->id])->id;
+        return PerformanceIndicator::factory()->create(['instansi_id' => $agency->id])->id;
     }
 
     private function newReportFor(Instansi $agency, string $status, string $authorId): Report
     {
         return Report::forceCreate([
-            'id' => (string) \Illuminate\Support\Str::uuid(),
+            'id' => (string) Str::uuid(),
             'instansi_id' => $agency->id,
             'generated_by' => $authorId,
             'report_type' => 'quarterly_report',
@@ -381,8 +384,8 @@ class AdminTriageServiceTest extends TestCase
         ]);
     }
 
-    /** @return \Illuminate\Support\Collection<int, PerformanceData> */
-    private function livePerformanceDataOf(Instansi $agency): \Illuminate\Support\Collection
+    /** @return Collection<int, PerformanceData> */
+    private function livePerformanceDataOf(Instansi $agency): Collection
     {
         return PerformanceData::query()->where('instansi_id', $agency->id)->get();
     }
