@@ -40,6 +40,30 @@
             </div>
         </div>
 
+        @if ($summary->verificationCount + $summary->assessmentCount + $summary->reportCount > 0)
+        <div class="card card-accent-warning mb-4" data-triage-attention>
+            <div class="card-body d-flex flex-wrap gap-4">
+                @foreach ([
+                    ['handle' => 'verification', 'count' => $summary->verificationCount, 'subject' => 'data kinerja', 'action' => 'Tinjau Antrean Verifikasi', 'url' => $summary->verificationUrl],
+                    ['handle' => 'assessment', 'count' => $summary->assessmentCount, 'subject' => 'asesmen', 'action' => 'Tinjau Antrean Asesmen', 'url' => $summary->assessmentUrl],
+                    ['handle' => 'report', 'count' => $summary->reportCount, 'subject' => 'laporan', 'action' => 'Tinjau Antrean Laporan', 'url' => $summary->reportUrl],
+                ] as $signal)
+                @if ($signal['count'] > 0)
+                <div class="d-flex align-items-center gap-2" data-triage-signal="{{ $signal['handle'] }}">
+                    <i class="fas fa-clock text-warning" aria-hidden="true"></i>
+                    <span><strong>{{ number_format($signal['count']) }}</strong> {{ $signal['subject'] }} menunggu tindakan</span>
+                    <a href="{{ $signal['url'] }}" class="btn btn-sm btn-warning">{{ $signal['action'] }}</a>
+                </div>
+                @endif
+                @endforeach
+            </div>
+        </div>
+        @else
+        <div class="card mb-4" data-triage-empty>
+            <div class="card-body">Belum ada pekerjaan tertunda pada periode ini.</div>
+        </div>
+        @endif
+
         <div class="row">
             @foreach ([
                 ['handle' => 'verification', 'name' => 'Antrean Verifikasi', 'count' => $summary->verificationCount, 'basis' => $summary->periodLabel, 'url' => $summary->verificationUrl],

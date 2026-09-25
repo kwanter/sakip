@@ -412,4 +412,77 @@ class AdminTriageLandingTest extends TestCase
 
         return html_entity_decode($href[1] ?? '');
     }
+
+    /** TC-046 / AC-030 — an empty period is explained, and no empty strip is rendered. */
+    public function test_empty_state_hides_the_attention_strip_and_explains_the_period(): void
+    {
+        $agency = \App\Models\Instansi::factory()->create(['nama_instansi' => 'Dinas Kosong']);
+
+        $content = $this->actingAs($this->permittedViewerFor($agency))
+            ->get(route('admin.dashboard'))
+            ->getContent();
+
+        $this->assertStringNotContainsString('data-triage-attention', $content);
+        $this->assertStringNotContainsString('data-triage-signal', $content);
+        $this->assertStringContainsString('data-triage-empty', $content);
+        $this->assertStringContainsString('Belum ada pekerjaan tertunda pada periode ini.', $content);
+    }
+
+    /** TC-047 / AC-031 — one signal for the single non-empty queue, with exactly one action. */
+    public function test_single_non_empty_queue_renders_exactly_one_signal_with_one_action(): void
+    {
+        $agency = $this->agencyWithSubmittedData(['2026-03']);
+
+        $content = $this->actingAs($this->permittedViewerFor($agency))
+            ->get(route('admin.dashboard'))
+            ->getContent();
+
+        $this->assertStringContainsString('data-triage-attention', $content);
+        $this->assertSame(1, substr_count($content, 'data-triage-signal='), 'exactly one signal');
+        $this->assertStringContainsString('data-triage-signal="verification"', $content);
+        $this->assertSame(1, substr_count($content, 'Tinjau Antrean Verifikasi'), 'exactly one action');
+        $this->assertStringNotContainsString('Tinjau Antrean Asesmen', $content);
+        $this->assertStringNotContainsString('Tinjau Antrean Laporan', $content);
+        $this->assertStringNotContainsString('data-triage-empty', $content);
+    }
+
+    /** TC-048 / AC-032 — switching periods toggles the strip and carries no value over. */
+    public function test_switching_between_empty_and_non_empty_periods_carries_no_values_over(): void
+    {
+        $agency = $this->agencyWithSubmittedData(['2026-03', '2026-05']);
+        $viewer = $this->permittedViewerFor($agency);
+
+        $nonEmpty = $this->actingAs($viewer)->get(route('admin.dashboard', ['period' => 'current_year']))->getContent();
+        $empty = $this->actingAs($viewer)->get(route('admin.dashboard', ['period' => 'current_month']))->getContent();
+
+        $this->assertStringContainsString('data-triage-attention', $nonEmpty);
+        $this->assertStringNotContainsString('data-triage-empty', $nonEmpty);
+        $this->assertStringNotContainsString('data-triage-attention', $empty);
+        $this->assertStringContainsString('data-triage-empty', $empty);
+
+        $this->assertSame('2', $this->figureValue($nonEmpty, 'verification'));
+        $this->assertSame('0', $this->figureValue($empty, 'verification'), 'no value carries over from the previous period');
+    }
+
+    /** @param list<string> $periods */
+    private function agencyWithSubmittedData(array $periods): \App\Models\Instansi
+    {
+        $agency = \App\Models\Instansi::factory()->create(['nama_instansi' => 'Dinas A']);
+
+        foreach ($periods as $period) {
+            \App\Models\PerformanceData::factory()->submitted()->forInstansi($agency->id)->forPeriod($period)->create([
+                'performance_indicator_id' => \App\Models\PerformanceIndicator::factory()->create(['instansi_id' => $agency->id])->id,
+            ]);
+        }
+
+        return $agency;
+    }
+
+    private function figureValue(string $content, string $handle): string
+    {
+        preg_match('/<a[^>]*data-triage-figure="'.$handle.'"[^>]*>(.*?)<\/a>/s', $content, $anchor);
+        preg_match('/stat-value">([^<]*)</', $anchor[1] ?? '', $value);
+
+        return trim($value[1] ?? '');
+    }
 }
