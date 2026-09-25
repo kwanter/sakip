@@ -1,0 +1,105 @@
+.agents/instructions/clean-code-clean-architecture.instructions.md
+  s_d79749604f85c8::t_310509d9f5147c 1-34
+.agents/instructions/markdown.instructions.md
+  s_d79749604f85c8::t_870766576d1bfe 1-52
+.agents/rules/SDLCOrchestrator.md
+  s_d79749604f85c8::t_6e7a5747207ec5 1-87
+.agents/skills/memory-manager/SKILL.md
+  s_d79749604f85c8::t_3f5e078152d1e1 1-278
+.agents/skills/standards/ADR-FORMAT.md
+  s_d79749604f85c8::t_3f7c10a85e829e 1-54
+.agents/skills/standards/CONSTITUTION-TEMPLATE.md
+  s_d79749604f85c8::t_12949b05f640db 1-29
+.agents/skills/standards/CONSTRAINTS-TEMPLATE.md
+  s_d79749604f85c8::t_16e2edab62f1af 1-30
+.agents/skills/standards/CONTEXT-FORMAT.md
+  s_d79749604f85c8::t_96d7342b56a0f9 1-77
+.agents/skills/tdd-analyze/SKILL.md
+  s_d79749604f85c8::t_f5d9444a837b8d 1-133
+.agents/skills/tdd-analyze/references/AUDIT-REPORT-TEMPLATE.md
+  s_d79749604f85c8::t_2cfcf71ac989bb 1-55
+.agents/skills/tdd-ask-help/SKILL.md
+  s_d79749604f85c8::t_a959ebd8382b10 1-189
+.agents/skills/tdd-bug-report/SKILL.md
+  s_d79749604f85c8::t_f3ba9363dbc19d 1-227
+.agents/skills/tdd-checklist/SKILL.md
+  s_d79749604f85c8::t_2b29a8a6308c9c 1-95
+.agents/skills/tdd-clarify/SKILL.md
+  s_d79749604f85c8::t_d135cf0bea4e23 1-189
+.agents/skills/tdd-clarify/references/CLARIFICATION-REPORT-TEMPLATE.md
+  s_d79749604f85c8::t_241c1615143e65 1-43
+.agents/skills/tdd-code-review/SKILL.md
+  s_d79749604f85c8::t_9576a1ffb6e948 1-269
+.agents/skills/tdd-code-review/references/CLEAN-CODE-ARCHITECTURE.md
+  s_d79749604f85c8::t_9b1b2a0bbbb4d1 1-54
+.agents/skills/tdd-code-review/references/CODE-SMELLS.md
+  s_d79749604f85c8::t_1319abc8c162c6 1-108
+.agents/skills/tdd-code-review/references/FIVE-AXIS-REVIEW.md
+  s_d79749604f85c8::t_d4e0ae35319bcd 1-145
+.agents/skills/tdd-code-review/references/SECURITY-HARDENING.md
+  s_d79749604f85c8::t_e8bb5f37ce1b8e 1-294
+.agents/skills/tdd-configure-ci/SKILL.md
+  s_d79749604f85c8::t_b1fdec6dd115e4 1-127
+.agents/skills/tdd-explore-ideas/SKILL.md
+  s_d79749604f85c8::t_06f3c8f4de3001 1-188
+.agents/skills/tdd-generate-docs/SKILL.md
+  s_d79749604f85c8::t_ab13c9caafabe9 1-186
+.agents/skills/tdd-generate-fixtures/SKILL.md
+  s_d79749604f85c8::t_4f166d5ffaaafe 1-105
+.agents/skills/tdd-init/SKILL.md
+  s_d79749604f85c8::t_9fdab7133fe296 1-229
+.agents/skills/tdd-map-architecture/SKILL.md
+  s_d79749604f85c8::t_85422cdb9266b3 1-187
+.agents/skills/tdd-map-architecture/references/ARCHITECTURE-TEMPLATE.md
+  s_d79749604f85c8::t_bda6b4161e8c0b 1-83
+.agents/skills/tdd-mutation-test/SKILL.md
+  s_d79749604f85c8::t_e828f3de8e5adf 1-101
+.agents/skills/tdd-pair-coach/SKILL.md
+  s_d79749604f85c8::t_71561e23a806f6 1-116
+.agents/skills/tdd-plan-tasks/SKILL.md
+  s_d79749604f85c8::t_4e5f5743d7e48d 1-278
+.agents/skills/tdd-prd/SKILL.md
+  s_d79749604f85c8::t_2111df13d888c3 1-229
+.agents/skills/tdd-refactor-legacy/SKILL.md
+  s_d79749604f85c8::t_10d70f9c4e781c 1-91
+.agents/skills/tdd-retro/SKILL.md
+  s_d79749604f85c8::t_facd1d9a39d157 1-159
+.agents/skills/tdd-spec/SKILL.md
+  s_d79749604f85c8::t_757ce360415552 1-230
+.agents/skills/tdd-write-code/SKILL.md
+  s_d79749604f85c8::t_4b7c9aceb97869 1-178
+.agents/skills/tdd-write-code/references/COMMUNICATION-PROTOCOL.md
+  s_d79749604f85c8::t_a1f0321f7d779a 1-34
+.agents/skills/tdd-write-code/references/EXECUTION-WORKFLOW.md
+  s_d79749604f85c8::t_78463921913341 1-51
+.agents/skills/tdd-write-code/references/KARPATHY-GUIDELINES.md
+  s_d79749604f85c8::t_b0526b62294ecd 1-50
+.agents/standards/ADR-FORMAT.md
+  s_d79749604f85c8::t_32a0e6b1ff2414 1-54
+.agents/standards/CONSTITUTION-TEMPLATE.md
+  s_d79749604f85c8::t_6d098118da1dcb 1-29
+.agents/standards/CONSTRAINTS-TEMPLATE.md
+  s_d79749604f85c8::t_f2c4dbd2efcad3 1-30
+.agents/standards/CONTEXT-FORMAT.md
+  s_d79749604f85c8::t_d382907699fafe 1-77
+AGENTS.md
+  s_d79749604f85c8::t_5886a45eea7776 1-536
+CONSTRAINTS.md
+  s_d79749604f85c8::t_1318465c735ca0 1-70
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "74025266946c910af71e49619dec21ea36253243",
+  "prompts": {},
+  "sessions": {
+    "s_d79749604f85c8": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f32a4bec3ffeaDd6uYJSfsXgef",
+        "model": "unknown"
+      },
+      "human_author": "ragrin <kwanterpepen@gmail.com>"
+    }
+  }
+}
