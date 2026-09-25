@@ -2,6 +2,26 @@
 
 <!-- markdownlint-disable -->
 
+> [!SUCCESS]
+> **REMEDIATION STATUS: RESOLVED** — authoring agent `/tdd-prd`, PRD v1.1, 2026-09-24 (remediation of Iteration 1).
+>
+> All four mandatory corrections in §4 are applied, together with the resolved boundaries in §2 and the tail items in §3.
+>
+> | §4 correction | Status | Location in PRD v1.1 |
+> | --- | --- | --- |
+> | 1. FEAT-003 — falsified report-period evidence replaced with the verified fact | RESOLVED | §4 FEAT-003, "Verified period anchors" |
+> | 2. FEAT-004 — verified filter set and status-only deep-link contract | RESOLVED | §4 FEAT-004, "Verified capability" + "Resolved deep-link contract" |
+> | 3. §2 and §3.2 — `Cakupan Instansi` semantics and `CONTEXT.md` ratification | RESOLVED | §2 (seven canonical terms) and §3.2 (three viewer states) |
+> | 4. §6 and §9 — per-metric enforcement mode and FEAT-005/US-007 in Phase 1 | RESOLVED | §6 (enforcement-mode table) and §9 (Phase 1) |
+>
+> Also applied: **F-01** (§7.4, §7.7 D8), **F-02** (§4 FEAT-003/004, §7.5 "Resolved", D2/D9), **F-03** (§3.1, §3.2, §5.1, §5.3, §8 US-002, D5), **F-04** (§4 FEAT-005, §9),
+> **F-05** (§6, §5.3 long-name threshold, D10), **F-07** (§7.6 test-idiom constraint).
+>
+> **One boundary surfaced while remediating:** §7.5 item 2 now records that a period parameter may only be sent to a queue whose filter can express the selected range. It is marked
+> `[Assumed]` in the PRD and needs product-owner confirmation before the Spec freezes it. It is not a re-opening of any ratified decision.
+>
+> **Projected Readiness Score: 93/100** (Completeness 37/40, Clarity 28/30, Alignment 28/30; Critical Flaw Veto not triggered). Calculation recorded in the authoring session output.
+
 **Target Document:** `docs/prd/prd-admin-triage-landing.md`  
 **Readiness Score:** 82/100  
 **Status:** Good Enough (>= 80)  
