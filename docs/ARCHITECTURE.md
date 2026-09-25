@@ -95,7 +95,9 @@ flowchart TD
 │   ├── Providers/               # AppServiceProvider, RateLimitServiceProvider, TelescopeServiceProvider
 │   ├── Services/                # Business logic (35 files): Export/, Import/, Sakip/, Validation/
 │   ├── Support/                 # Read-model contracts (seam S1): ReportingPeriod, TriageScope, AdminTriageSummary
-│   └── Traits/                  # ClearsCacheByKey, SortsSafely, WithDatabaseTransactions
+│   ├── Traits/                  # ClearsCacheByKey, SortsSafely, WithDatabaseTransactions
+│   └── View/                    # View composition
+│       └── Composers/           # SidebarQueueBadgeComposer (layouts.modern queue badge, seam S4)
 ├── bootstrap/app.php            # Laravel 12 wiring: routing, global middleware, aliases, throttles
 ├── config/                      # sakip.php, sakip_templates.php, permission.php, telescope.php, ...
 ├── database/
@@ -140,6 +142,7 @@ flowchart TD
 | `app/Policies/` | Authorization | 15 policies bound in `AppServiceProvider` | Authorization decisions live in policies, not in Blade conditionals alone. |
 | `app/Constants/` | System-wide values | Status, ReportStatus, AssessmentStatus, SystemRoles, ValidationRules, Pagination | Prefer these constants over inline magic strings. |
 | `app/Traits/` | Reusable behaviors | `ClearsCacheByKey`, `SortsSafely`, `WithDatabaseTransactions` | Use `SortsSafely` for any user-supplied sort parameter. |
+| `app/View/Composers/` | Layout-owned view state | `SidebarQueueBadgeComposer` | Composes state that every page of a layout needs (the sidebar queue badge) from the request, so no controller owns it. Registered beside the global nonce composer in `AppServiceProvider`. |
 | `config/` | Runtime configuration | `sakip.php`, `sakip_templates.php`, `permission.php`, `telescope.php`, and Laravel defaults | Performance thresholds and upload limits are configuration, not code; use `env()` only here. |
 | `database/migrations/` | Schema evolution | 54 migrations, including index migrations for hot tables | Follow UUID PK and soft-delete conventions. |
 | `database/seeders/` | Baseline data | Roles/permissions, instansi, system settings, admin user | Tests seed via `DatabaseSeeder` because `TestCase::$seed = true`. |
