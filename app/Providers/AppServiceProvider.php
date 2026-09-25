@@ -18,6 +18,7 @@ use App\Policies\ProgramPolicy;
 // SAKIP Policies
 use App\Policies\ReportPolicy;
 use App\Policies\SakipDashboardPolicy;
+use App\View\Composers\SidebarQueueBadgeComposer;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -180,6 +181,9 @@ class AppServiceProvider extends ServiceProvider
         View::composer('*', function ($view) {
             $view->with('csp_nonce_value', app('csp-nonce') ?? '');
         });
+
+        // Sidebar queue badge for every page that renders layouts.modern (Spec §4.5, seam S4).
+        View::composer('layouts.modern', SidebarQueueBadgeComposer::class);
 
         // Slow query logging (threshold: 150ms)
         DB::listen(function ($query) {

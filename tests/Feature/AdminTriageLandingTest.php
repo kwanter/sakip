@@ -512,9 +512,10 @@ class AdminTriageLandingTest extends TestCase
             'unassigned' => $this->domainStatementsFor($this->permittedViewer()),
         ];
 
-        $this->assertSame(4, $counts['cross-agency'], '3 counts + 1 recent-activity list');
-        $this->assertSame(5, $counts['agency-bound'], '3 counts + 1 agency-name lookup + 1 recent-activity list');
-        $this->assertSame(1, $counts['unassigned'], '0 counts (short-circuit) + 1 recent-activity list');
+        // Phase 2 adds one statement per layouts.modern render: the badge composer's count query.
+        $this->assertSame(5, $counts['cross-agency'], '3 counts + 1 badge query + 1 recent-activity list');
+        $this->assertSame(6, $counts['agency-bound'], '3 counts + 1 agency-name lookup + 1 badge query + 1 recent-activity list');
+        $this->assertSame(1, $counts['unassigned'], '0 counts (short-circuit, badge included) + 1 recent-activity list');
 
         foreach ($counts as $state => $count) {
             $this->assertLessThanOrEqual(6, $count, "the ceiling was exceeded for {$state}");

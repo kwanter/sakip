@@ -59,11 +59,12 @@ final class AdminTriageService
     /**
      * Antrean Verifikasi count for one viewer; a null period means the default period.
      * Shares one implementation with {@see summaryFor()} so the figure and the Phase-2 badge agree.
+     * It resolves the scope without the agency-name lookup, because a badge never renders that label.
      */
     public function verificationCountFor(User $user, ?ReportingPeriod $period = null): int
     {
         $period ??= ReportingPeriod::default();
-        $state = $this->resolveScope($user);
+        $state = $this->resolveScopeKind($user);
 
         if ($state['scope'] === TriageScope::Unassigned) {
             return 0;
@@ -73,29 +74,46 @@ final class AdminTriageService
     }
 
     /**
-     * Cakupan Instansi for one viewer, in the fixed order of §4.2.
+     * Cakupan Instansi for one viewer in the fixed order of §4.2, without the agency-name lookup.
+     *
+     * The count path uses this form so that a badge render does not spend a second statement on a
+     * label it never shows — the §4.4 ceiling depends on it.
+     *
+     * @return array{scope: TriageScope, instansi_id: ?string}
+     */
+    private function resolveScopeKind(User $user): array
+    {
+        if ($user->hasRole(SystemRoles::SUPER_ADMIN)) {
+            return ['scope' => TriageScope::CrossAgency, 'instansi_id' => null];
+        }
+
+        if ($user->instansi_id !== null) {
+            return ['scope' => TriageScope::Agency, 'instansi_id' => $user->instansi_id];
+        }
+
+        return ['scope' => TriageScope::Unassigned, 'instansi_id' => null];
+    }
+
+    /**
+     * Cakupan Instansi plus the label rendered on screen. A7: a soft-deleted agency must still name
+     * itself, and when no name resolves at all the viewer is treated as unassigned so that a scope
+     * label is never empty.
      *
      * @return array{scope: TriageScope, label: string, instansi_id: ?string}
      */
     private function resolveScope(User $user): array
     {
-        if ($user->hasRole(SystemRoles::SUPER_ADMIN)) {
-            return [
-                'scope' => TriageScope::CrossAgency,
-                'label' => (string) TriageScope::CrossAgency->defaultLabel(),
-                'instansi_id' => null,
-            ];
+        $state = $this->resolveScopeKind($user);
+
+        if ($state['scope'] !== TriageScope::Agency) {
+            return $state + ['label' => (string) $state['scope']->defaultLabel()];
         }
 
-        $instansiId = $user->instansi_id;
+        // Label-only carve-out: the withTrashed() lookup never participates in a count.
+        $label = Instansi::withTrashed()->whereKey($state['instansi_id'])->value('nama_instansi');
 
-        if ($instansiId !== null) {
-            // Label-only carve-out: a soft-deleted agency must still name itself on screen.
-            $label = Instansi::withTrashed()->whereKey($instansiId)->value('nama_instansi');
-
-            if (is_string($label) && $label !== '') {
-                return ['scope' => TriageScope::Agency, 'label' => $label, 'instansi_id' => $instansiId];
-            }
+        if (is_string($label) && $label !== '') {
+            return ['scope' => TriageScope::Agency, 'label' => $label, 'instansi_id' => $state['instansi_id']];
         }
 
         return [
