@@ -89,12 +89,6 @@ final readonly class ReportingPeriod
         };
     }
 
-    /** True only for current_year: the selected range covers a whole calendar year. */
-    public function isYearScoped(): bool
-    {
-        return $this->key === 'current_year';
-    }
-
     /** True for current_month and last_month: the range collapses into exactly one YYYY-MM value. */
     public function isSingleMonth(): bool
     {

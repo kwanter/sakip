@@ -47,7 +47,9 @@ target_plan: /plan/plan-admin-triage-landing.md
 > replaced by the delivered badge ownership (composer-only, from the first release), including the five-commit window in which no `layouts.modern` page rendered a badge. **`SPEC-B-04`:** §4.4's Phase-2 budget row for the
 > unassigned state is corrected from `2` to `1` and the measured `5 / 6 / 1` is recorded, so §9.4 obligation 3 can be marked discharged rather than left as an instruction that would have produced a false assertion. **`SPEC-B-03`**
 > is closed by a new S3 case (`test_switching_period_moves_only_the_verification_figure`, AC-028) because the criterion had no test at any seam; the Spec's own AC-028 text needed no change. No requirement was weakened, no
-> acceptance criterion was removed, and no ratified decision was altered.
+> acceptance criterion was removed, and no ratified decision was altered. **`STD-A-03` (added by the same execution):** §4.1 no longer declares `isYearScoped()` — the flag had zero production call sites, and the only predicate the
+> deep-link rule can act on is `isSingleMonth()`, so the method was removed from the class rather than kept as declared-but-unused API. TC-004 now asserts the single-month flag alone; the checklist line for TC-004 keeps its
+> older wording until the Phase-4 inventory reconciliation (TASK-403).
 
 ## 1. Purpose & Scope
 
@@ -247,9 +249,6 @@ final readonly class ReportingPeriod
 
     /** Indonesian label: 'Tahun 2026' | 'Triwulan III 2026' | 'September 2026'. */
     public function label(): string;
-
-    /** True only for current_year: the selected range covers a whole calendar year. */
-    public function isYearScoped(): bool;
 
     /** True for current_month and last_month: the range collapses into exactly one YYYY-MM value. */
     public function isSingleMonth(): bool;

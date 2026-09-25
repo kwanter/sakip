@@ -78,13 +78,18 @@ class ReportingPeriodTest extends TestCase
         }
     }
 
-    /** TC-004 / AC-003 — each shape flag is true for exactly its own key set (quarters are neither). */
-    public function test_single_month_and_year_scoped_flags_are_true_only_for_their_own_keys(): void
+    /**
+     * TC-004 / AC-003 — the single-month shape flag is true for exactly the two month keys.
+     *
+     * It is the only shape flag the class exposes: `isYearScoped()` was removed because no consumer
+     * existed (TASK-304) — the deep-link rule is driven by `isSingleMonth()`, which is the predicate the
+     * target filter can actually express.
+     */
+    public function test_single_month_flag_is_true_only_for_the_month_keys(): void
     {
         foreach (ReportingPeriod::KEYS as $key) {
             $period = ReportingPeriod::fromKey($key, $this->now);
 
-            $this->assertSame($key === 'current_year', $period->isYearScoped(), "isYearScoped of {$key}");
             $this->assertSame(
                 in_array($key, ['current_month', 'last_month'], true),
                 $period->isSingleMonth(),
