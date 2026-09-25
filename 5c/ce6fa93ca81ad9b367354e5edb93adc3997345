@@ -1,0 +1,14 @@
+docs/ARCHITECTURE.md
+  h_00672522f4dbdd 85,119-123,155-156,216-220
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5cce6fa93ca81ad9b367354e5edb93adc3997345",
+  "prompts": {},
+  "humans": {
+    "h_00672522f4dbdd": {
+      "author": "ragrin <kwanterpepen@gmail.com>"
+    }
+  }
+}
