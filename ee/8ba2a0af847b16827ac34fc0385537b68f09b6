@@ -1,0 +1,16 @@
+app/Support/ReportingPeriod.php
+  h_00672522f4dbdd 53-57,66-71,73
+tests/Unit/Support/ReportingPeriodTest.php
+  h_00672522f4dbdd 190-218
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ee8ba2a0af847b16827ac34fc0385537b68f09b6",
+  "prompts": {},
+  "humans": {
+    "h_00672522f4dbdd": {
+      "author": "ragrin <kwanterpepen@gmail.com>"
+    }
+  }
+}
