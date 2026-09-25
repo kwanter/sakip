@@ -90,10 +90,11 @@ flowchart TD
 │   │   ├── Middleware/          # SecurityHeadersMiddleware, SecureFileUploadMiddleware
 │   │   └── Requests/            # 11 Form Requests under Admin/ and Sakip/
 │   ├── Models/                  # 18 Eloquent models
-│   │   └── Scopes/              # InstansiScope, ForYearScope(+Trait), RecentScope, SearchScope, WithStatusScope
+│   │   └── Scopes/              # InstansiScope, ForYearTrait, RecentScope, SearchScope, WithStatusScope
 │   ├── Policies/                # 15 authorization policies
 │   ├── Providers/               # AppServiceProvider, RateLimitServiceProvider, TelescopeServiceProvider
-│   ├── Services/                # Business logic (34 files): Export/, Import/, Sakip/, Validation/
+│   ├── Services/                # Business logic (35 files): Export/, Import/, Sakip/, Validation/
+│   ├── Support/                 # Read-model contracts (seam S1): ReportingPeriod, TriageScope, AdminTriageSummary
 │   └── Traits/                  # ClearsCacheByKey, SortsSafely, WithDatabaseTransactions
 ├── bootstrap/app.php            # Laravel 12 wiring: routing, global middleware, aliases, throttles
 ├── config/                      # sakip.php, sakip_templates.php, permission.php, telescope.php, ...
@@ -132,7 +133,8 @@ flowchart TD
 | `app/Http/Controllers/` | HTTP orchestration | `Admin/`, `Auth/`, `Sakip/`, plus Health/Docs/Feedback/Profile controllers | Keep thin: validate, authorize, delegate to services, return a view/redirect/export. No workflow business rules. |
 | `app/Http/Requests/` | Input validation | Form Requests for `Admin/` and `Sakip/` operations | Validate here, not in controllers; authorization may live in the request's `authorize()`. |
 | `app/Http/Middleware/` | Cross-cutting HTTP concerns | `SecurityHeadersMiddleware`, `SecureFileUploadMiddleware` | Registered in `bootstrap/app.php`; header middleware is global, the upload middleware is an alias. |
-| `app/Services/` | Domain and workflow logic | 34 services, including `Export/`, `Import/`, `Sakip/`, `Validation/` | Performance-data transitions and calculations belong here. Wrap multi-write operations in `WithDatabaseTransactions`. |
+| `app/Services/` | Domain and workflow logic | 35 services, including `Export/`, `Import/`, `Sakip/`, `Validation/` | Performance-data transitions and calculations belong here. Wrap multi-write operations in `WithDatabaseTransactions`. |
+| `app/Support/` | Period vocabulary and read-model contracts | `ReportingPeriod`, `TriageScope`, `AdminTriageSummary` | One source of truth for "what does this period mean" and for the agency-coverage labels. Keep it pure: no database, HTTP, or auth access, or the seam it exists to specify is hidden. |
 | `app/Models/` | Persistence and relationships | 18 Eloquent models | UUID primary keys, soft deletes on data-tracking models, `instansi_id`-bearing models keep `InstansiScope`. |
 | `app/Models/Scopes/` | Query constraints | Tenancy, year, recent, search, and status scopes | Do not remove `InstansiScope` to make a test pass; bypassing it requires an authorized path plus a test. |
 | `app/Policies/` | Authorization | 15 policies bound in `AppServiceProvider` | Authorization decisions live in policies, not in Blade conditionals alone. |
@@ -144,7 +146,7 @@ flowchart TD
 | `resources/views/` | Server-rendered UI | `sakip/`, `admin/`, `layouts/`, `auth/`, `errors/` Blade templates | Bootstrap CDN + `modern-sakip.css` components; user-facing strings in Bahasa Indonesia; WCAG AA. |
 | `resources/js/` | Frontend assets | Vite entry plus `sakip/` modules | Vite bundles are not loaded by every Bootstrap layout today; verify at runtime before relying on them. |
 | `routes/` | HTTP surface | `web.php`, `web_sakip.php`, `api.php`, `console.php` | `web_sakip.php` is required by `web.php`; SAKIP AJAX endpoints live under `/sakip/api/` with session auth. |
-| `tests/Feature/` | End-to-end HTTP behavior | 12 tests covering auth, dashboards, data collection, isolation, rendering, and rate limiting | Assert HTTP status, redirects, rendered content, and persisted rows. |
+| `tests/Feature/` | End-to-end HTTP behavior | 13 tests covering auth, dashboards, data collection, isolation, rendering, rate limiting, and the triage landing | Assert HTTP status, redirects, rendered content, and persisted rows. |
 | `tests/Unit/` | Guards and isolated logic | `ArchitectureGuardTest`, `SecurityHeadersTest`, export injection test, service test | `ArchitectureGuardTest` prevents duplicate class names and missing route names from recurring. |
 | `docs/` | Project documentation | This map, plans, history, security notes, ADRs | ADRs follow `.agents/standards/ADR-FORMAT.md` and live in `docs/adr/`. |
 | `.agents/`, `.claude/` | Agent governance scaffolding | Instructions, rules, 21 skills, standards | Governance artifacts only; never place application code here. |
