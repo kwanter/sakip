@@ -1,0 +1,14 @@
+.gitignore
+  h_00672522f4dbdd 58-62
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ba7a425bc9e03d9de9bfb8287429e6a441d27693",
+  "prompts": {},
+  "humans": {
+    "h_00672522f4dbdd": {
+      "author": "ragrin <kwanterpepen@gmail.com>"
+    }
+  }
+}
