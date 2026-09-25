@@ -1,15 +1,22 @@
 # Product Requirements Document: Admin Triage Landing (Landing Triage)
 
-**Status:** Draft (v1.1 — clarification corrections applied, pending product-owner re-approval)
-**Version:** 1.1
+**Status:** Draft (v1.2 — post-ratification alignment with the consistency audit; supersedes v1.1)
+**Version:** 1.2
 **Date:** 2026-09-24
 **Author:** TDD Product Manager
 **Target Technical Spec:** `/spec/spec-admin-triage-landing.md`
-**Target Quality Gate:** `/tdd-clarify` (Iteration 1 complete: `docs/audit/clarification-report-admin-triage-landing-2026-09-24.md`)
+**Target Quality Gate:** `/tdd-clarify` (Iteration 1: `docs/audit/clarification-report-admin-triage-landing-2026-09-24.md`) · `/tdd-analyze` (Iteration 1: `docs/audit/consistency-audit-admin-triage-landing-2026-09-24.md`)
 
 > **Remediation note (v1.1):** this revision applies the four mandatory text corrections listed in §4 of the clarification report — (1) FEAT-003 report-period evidence replaced with the
 > verified fact, (2) FEAT-004 deep-link contract stated, (3) §2 and §3.2 aligned with the ratified `CONTEXT.md` and the F-03 scope semantics, (4) §6 and §9 carry per-metric enforcement
 > modes and the corrected phase allocation. **No ratified product decision was changed**; this revision only aligns the document with the decisions recorded on 2026-09-24.
+>
+> **Remediation note (v1.2).** This revision applies the three critical findings of `docs/audit/consistency-audit-admin-triage-landing-2026-09-24.md`. **A-1:** decision **A1** is now recorded in
+> §7.7, the assessment half of decision D2 is marked superseded, and FEAT-003 together with US-001 scenario 1 no longer claim a period basis for the assessment figure. **A-2:** FEAT-006 (removal of the
+> login-telemetry figure) moves into **Phase 1** in §9 — matching how the figure is actually removed by the Phase-1 triage-block rewrite — and the now-satisfied assessment-demotion contingency leaves
+> Phase 2. **A-3:** the status of the deep-link parameter name is recorded at §7.5 item 2. No other ratified decision was changed, and no requirement was added or removed. This revision also closes the two
+> residue sentences found by **Iteration 3** of the same audit — **A-9** in the US-006 context block and **A-10** in the happy-path step and the empty-state bullet — so no section still describes the
+> assessment figure as awaiting a decision.
 
 > Upstream input: `docs/discovery/idea-admin-triage-landing.md` (Phase 0, verdict GO). Findings **C1–C7** with `file:line` evidence live in that draft §3 and are
 > referenced here, never restated. Architectural facts live in `docs/ARCHITECTURE.md`; quality bars in `CONSTRAINTS.md`; product intent in `PRODUCT.md`.
@@ -131,8 +138,9 @@ only to a viewer entitled to cross-agency data, and `Instansi Belum Ditetapkan` 
     Asesmen** (`Assessment` pending), and **Antrean Laporan** (`Report` status `submitted`, period-independent in Phase 1 — see the verified anchors below).
   - **Verified period anchors (clarification finding F-02, checked against the working tree on 2026-09-24):**
     - **Antrean Verifikasi** — `performance_data.period` is a real, indexed period column (`string(7)`, `YYYY-MM`); this figure is period-scoped.
-    - **Antrean Asesmen** — `Assessment` has no period column; the only existing precedent derives the year from `created_at` (`app/Http/Controllers/Sakip/AssessmentController.php:91-92`).
-      This figure is period-scoped on that year precedent, flagged for Spec confirmation (§7.5 item 1).
+    - **Antrean Asesmen** — `Assessment` has no period column and no verified period anchor. **Resolved on 2026-09-24 (decision A1, §7.7):** the figure is **not** period-scoped in Phase 1; it is
+      presented as an explicitly labelled period-independent figure (`Tidak dibatasi periode`) governed by US-006. The `created_at`-year precedent (`app/Http/Controllers/Sakip/AssessmentController.php:91-92`)
+      was considered and **declined** as a basis: the target's own query already bounds that queue to the current calendar year, so the landing must not claim a frame the figure's data cannot support.
     - **Antrean Laporan** — `reports.period` **does exist** (`string(20)`, indexed; `2025_10_14_080006_create_reports_table.php`), but it is free-form: the migration comment reads
       "YYYY-MM format or custom period", and the existing suite seeds `'period' => '2024-Q1'` (`tests/Feature/ReportIndexRendersTest.php:34`), i.e. report periods are quarter-coded.
       No verified mapping exists from the landing's calendar range to that vocabulary, so the report figure is **deliberately not period-scoped in Phase 1** and is presented as an
@@ -190,8 +198,8 @@ act on" (impeccable critique #10), and that is precisely what this landing must 
 ### 5.2 Core Experience & Happy Path
 
 1. The administrator lands on `/admin/dashboard`; period defaults to the current reporting year and the scope chip states the scope in plain Indonesian.
-2. Three figures render — Antrean Verifikasi, Antrean Asesmen, and the report figure — each carrying the same *Cakupan Instansi*, and each carrying the selected *Periode Pelaporan*
-   label where a verified period anchor exists (FEAT-003). The report figure carries no period label in Phase 1 (US-006).
+2. Three figures render — Antrean Verifikasi, Antrean Asesmen, and the report figure — each carrying the same *Cakupan Instansi*. The verification figure carries the selected *Periode Pelaporan* label because
+   it has a verified period anchor (FEAT-003); the **assessment and report figures** carry no period label in Phase 1 and are labelled as period-independent instead (US-006, decision A1).
 3. The attention strip appears above the figures only when at least one queue is non-empty, showing one signal per non-empty queue with a single named action.
 4. The administrator activates a figure or a strip action; the corresponding queue opens pre-filtered to the same period and status.
 5. The administrator changes the period using the selector; all figures recompute on the identical range, and the selected period is reflected in the URL so the view can
@@ -201,7 +209,7 @@ Step 5 is a product requirement, not an implementation detail: a shareable, peri
 
 ### 5.3 Edge Cases & UI/UX Highlights
 
-- **Empty period:** every period-scoped figure shows `0` with its period label and the report figure shows `0` as a labelled period-independent figure; the attention strip is hidden; a
+- **Empty period:** the verification figure shows `0` with its period label, while the **assessment and report figures** show `0` as labelled period-independent figures; the attention strip is hidden; a
   short Indonesian sentence states that the period has no pending work. The page must never present an empty region without explanation.
 - **Mixed emptiness:** only non-empty queues appear in the attention strip. A zero queue is legitimate information in the figure row, but is not an "attention" signal.
 - **Unauthorized viewer:** a user without `admin.dashboard` who is not a Super Admin receives a 403 and must not see a partially rendered landing.
@@ -291,10 +299,12 @@ review artifact.
 1. **Assessment period anchor** — `Assessment` has no period column; the only existing precedent derives the year from `created_at` (`AssessmentController.php:91-92`). The Spec either
    confirms that precedent explicitly, stating on screen that the assessment figure is scoped by submission year, or demotes the figure to the labelled period-independent variant
    permitted by FEAT-003.
+   **Resolved on 2026-09-24 (decision A1, §7.7):** the Spec **demoted** the figure. It is not period-scoped in Phase 1 and carries the explicit period-independent label `Tidak dibatasi periode`.
 2. **Period addressing in the URL and in deep links** — required by §5.2 step 5 for shareability; the Spec chooses the parameter name and range semantics. Two constraints are already fixed:
    a period parameter may be sent to a queue only when that queue's filter can express the selected range (the verification and report filters match `period` **exactly**; the assessment
    filter reads a **year**), and US-004 scenario 1's "belong to the selected period" clause is asserted only for targets that can express the selected period — every other link degrades
-   per §7.1. `[Assumed — surfaced during v1.1 remediation; confirm with the product owner before the Spec freezes it]`
+   per §7.1. **Status on 2026-09-24:** the Spec has frozen the parameter name as `period` (Spec `REQ-002`). The product owner's confirmation of that **name** is still unrecorded, so the Spec carries a
+   matching `[ASSUMPTION]` tag on `REQ-002`. If the name is confirmed, that tag and this note are replaced by a ratified row in §7.7.
 3. **Single source of truth for periods** — the Spec decides the mechanism (value object, service, or consolidated trait) and how the duplicated year-filtering implementations are retired
    (discovery draft §3, C2).
 4. **View-composer ownership of the sidebar badge** — confirm the mechanism and its effect on other layouts that embed the same sidebar.
@@ -324,7 +334,7 @@ their v1.0 phrasing is superseded.
 | ID | Decision | Ratified answer |
 | --- | --- | --- |
 | D1 | Active reporting year | Calendar year derived from the server clock, behind a configuration seam so fiscal-year semantics can be added later without touching call sites |
-| D2 | Period anchor for the other queues | Assessment uses the existing `created_at`-year precedent and is flagged for Spec confirmation; the report figure is **not** period-scoped in Phase 1 (US-006 governs its presentation). Grounds verified 2026-09-24: `reports.period` exists but is free-form and quarter-coded (`2024-Q1` in the suite), so no honest calendar-range mapping exists (finding F-02) |
+| D2 | Period anchor for the other queues | **The assessment half is superseded by A1 (ratified 2026-09-24):** the assessment figure is **not** period-scoped in Phase 1 and is presented under US-006 as a labelled period-independent figure. The report figure is likewise **not** period-scoped in Phase 1 (US-006 governs its presentation). Grounds verified 2026-09-24: `reports.period` exists but is free-form and quarter-coded (`2024-Q1` in the suite), so no honest calendar-range mapping exists (finding F-02) |
 | D3 | Empty period | Every period-scoped figure shows `0` with its period label; the period-independent report figure shows `0` labelled as such; the attention strip is hidden; one Indonesian sentence explains that the period is empty |
 | D4 | Attention-strip composition | Three signals — one per non-empty queue |
 | D5 | Cross-agency labelling | `Semua Instansi` is reserved for a viewer entitled to cross-agency data; an agency-bound administrator is labelled with their agency; an administrator with no agency assignment sees `Instansi Belum Ditetapkan` with zero counts. This supersedes the v1.0 wording ("HQ viewer without agency affiliation → `Semua Instansi`"), which contradicted the default-deny `InstansiScope` (finding F-03) |
@@ -333,10 +343,10 @@ their v1.0 phrasing is superseded.
 | D8 | Assessment agency coverage | Derived through `performance_data.instansi_id`, keeping tenancy single-sourced (finding F-01) |
 | D9 | Report deep link | `?status=submitted` only, with no period parameter, because the report index matches `period` exactly against quarter-coded values (finding F-02) |
 | D10 | Metric enforcement modes | CI-enforced: query count, period/scope presence per figure, accessible name, deep-link filtering. Manual with explicit criteria: above-the-fold placement, usability timing, p95 latency (finding F-05) |
+| A1 | Assessment figure's period basis | **Ratified by the product owner on 2026-09-24:** `Assessment` carries no period column and no verified anchor, so the assessment figure is **not** period-scoped in Phase 1. It is presented as an explicitly labelled period-independent figure (`Tidak dibatasi periode`) governed by US-006, and its deep link carries `?status=pending` with no period parameter. This supersedes the assessment half of D2 and closes §7.5 item 1. The demoted variant ships in **Phase 1** (§9) |
 
 **Consequence for downstream phases:** these are *ratified product decisions*, not open assumptions. `/tdd-clarify` may interrogate their **testability**, but re-opening a
 decision requires an explicit reversal by the product owner.
-
 
 ---
 
@@ -353,8 +363,8 @@ decision requires an explicit reversal by the product owner.
 - **Scenario 1: Happy Path (Standard Execution)**
   - **Given** performance data existing in two different reporting periods, and the viewer is a cross-agency administrator
   - **When** the viewer opens `/admin/dashboard` without specifying a period
-  - **Then** the current reporting year is selected; the Antrean Verifikasi and Antrean Asesmen figures are computed over exactly that year's range and each is displayed with its period
-    label; the report figure is displayed as a labelled period-independent figure that claims no period (FEAT-003, US-006)
+  - **Then** the current reporting year is selected; the Antrean Verifikasi figure is computed over exactly that year's range and is displayed with its period label; the Antrean Asesmen and Antrean
+    Laporan figures are displayed as labelled period-independent figures that claim no period (FEAT-003, US-006, decision A1)
 
 - **Scenario 2: Boundary / Validation Error**
   - **Given** the viewer supplies an unrecognised period value (for example a malformed or unsupported key)
@@ -470,8 +480,9 @@ decision requires an explicit reversal by the product owner.
 **I want to** be told plainly when a figure cannot be scoped to a period,
 **So that** I never quote a number believing it covers a window it does not cover.
 
-> Context: the report figure has no verified period anchor — `reports.period` is free-form and quarter-coded (finding F-02) — so it must not claim one. The assessment anchor rests on the
-> `created_at`-year precedent and awaits Spec confirmation (FEAT-003, §7.5 item 1); this story's honesty rule applies to it as well if the Spec demotes it.
+> Context: the **report** figure has no verified period anchor — `reports.period` is free-form and quarter-coded (finding F-02) — so it must not claim one. The **assessment** figure's
+> `created_at`-year precedent was considered and declined: on 2026-09-24 the product owner ratified that demotion (decision A1, §7.7). Both figures are therefore presented as labelled
+> period-independent figures, and this story's honesty rule governs **both** of them; only the verification figure claims a period.
 
 #### Acceptance Criteria (Given-When-Then)
 
@@ -519,10 +530,9 @@ decision requires an explicit reversal by the product owner.
 ## 9. Milestones & Suggested Phasing
 
 - **Phase 1 (MVP Vertical Slice):** the period dimension, the explicit agency scope with its three viewer states, the three queue figures with their deep links, the three-signal attention strip
-  with its honest empty-period copy, and the single-gate authorization fix. This slice is independently demonstrable: an administrator sees scoped figures for a chosen period, understands
-  what is waiting, and reaches the corresponding filtered queues.
-  Covers FEAT-001, FEAT-002, FEAT-003, FEAT-004, FEAT-005, FEAT-008, and US-001 through US-004 plus US-006 and US-007.
-- **Phase 2 (Edge Cases & Polish):** removal of the telemetry figure, the layout-owned sidebar badge, and the contingency that the Spec demotes the assessment figure to the labelled
-  period-independent variant permitted by FEAT-003. Covers FEAT-006, FEAT-007, and US-005.
+  with its honest empty-period copy, the removal of the login-telemetry figure from the triage row, and the single-gate authorization fix. This slice is independently demonstrable: an administrator sees
+  scoped figures for a chosen period, understands what is waiting, and reaches the corresponding filtered queues.
+  Covers FEAT-001, FEAT-002, FEAT-003, FEAT-004, FEAT-005, FEAT-006, FEAT-008, and US-001 through US-004 plus US-006 and US-007.
+- **Phase 2 (Edge Cases & Polish):** the layout-owned sidebar badge. Covers FEAT-007 and US-005.
 - **Phase 3 (Deferred — needs its own cycle):** period-scoped report figures once a verified anchor exists, a caching decision with defined invalidation, and any trend visualisation.
   These are explicitly outside this PRD's acceptance scope.

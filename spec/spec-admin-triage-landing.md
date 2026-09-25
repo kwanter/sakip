@@ -1,11 +1,12 @@
 ---
 title: Admin Triage Landing — Period-Scoped, Instansi-Explicit Triage Read Model
-version: 1.2
+version: 1.3
 date_created: 2026-09-24
 date_revised: 2026-09-24
-status: Draft (v1.2 — Iteration-2 REFINE applied; gate 89/100, pending plan)
+status: Draft (v1.3 — consistency-audit corrections applied; gate 89/100, pending plan)
 remediation_of: docs/audit/clarification-report-spec-admin-triage-landing-2026-09-24.md
 remediation_of_iteration_2: docs/audit/clarification-report-spec-admin-triage-landing-iteration-2-2026-09-24.md
+remediation_of_consistency_audit: docs/audit/consistency-audit-admin-triage-landing-2026-09-24.md
 upstream_prd: docs/prd/prd-admin-triage-landing.md
 target_plan: /plan/plan-admin-triage-landing.md
 ---
@@ -31,6 +32,15 @@ target_plan: /plan/plan-admin-triage-landing.md
 > `docs/audit/clarification-report-spec-admin-triage-landing-iteration-2-2026-09-24.md` §4: a new S1 precedence criterion (AC-039, D-1), a falsifiable `(int)` cast in AC-004 (D-2), a scope clause on AC-037
 > (D-5), the defined trashed-parent fixture **F-12** behind F-8 (D-4), and four one-line alignments (D-3 `instansis` needle, D-6 §4.3 reference, D-7 list formatting, D-8 REQ-007 wording). **No criterion was
 > weakened and no decision was changed**; Readiness 89/100 → projected ≈97/100.
+>
+> **Remediation note (v1.3).** This revision applies the three Spec-side findings of `docs/audit/consistency-audit-admin-triage-landing-2026-09-24.md`. **A-2:** the phase allocation is corrected — FEAT-006
+> (telemetry removal) belongs to **Phase 1**, matching §4.4, AC-033 and PRD §9 v1.2, and Phase 2 is FEAT-007 plus US-005 only. **A-3:** REQ-002 now carries the `[ASSUMPTION]` tag that PRD §7.5 item 2 points to,
+> because the parameter name was frozen without a recorded product-owner confirmation. **A-4:** §4.2 states why the assessment filter value is held in a local constant, and records the decision about
+> `ReportStatus`. **A-1 required no Spec change** — the Spec already recorded the ratified demotion; the PRD was the stale side and was amended to v1.2.
+>
+> **Post-verification addendum (Iteration 3).** The independent consistency audit confirmed A-1…A-4 as closed and found one residual **inside this Spec**: `REQ-011` still annotated FEAT-006 as "Phase 2" while §1,
+> §4.4 and AC-033 place the telemetry removal in **Phase 1**. The annotation is corrected above (finding **A-11**), leaving no self-contradiction in this document. The two PRD-side residues (A-9, A-10) were
+> corrected in PRD v1.2.
 
 ## 1. Purpose & Scope
 
@@ -42,8 +52,9 @@ rules, the Indonesian copy that CI asserts, the domain-query budget, and the aut
 
 **Delivered in two phases inside one specification:**
 
-- **Phase 1 (MVP vertical slice)** — FEAT-001…FEAT-005, FEAT-008 and US-001…US-004, US-006, US-007 (PRD §9). Test seams S1, S2, S3.
-- **Phase 2 (Edge cases & polish)** — FEAT-006, FEAT-007 and US-005 (PRD §9). Test seam S4. Phase 2 reuses the S1/S2 contracts unchanged; it adds no new domain concept.
+- **Phase 1 (MVP vertical slice)** — FEAT-001…FEAT-005, FEAT-008 and US-001…US-004, US-006, US-007 (PRD §9). Test seams S1, S2, S3. **FEAT-006 (telemetry removal) also belongs to Phase 1** — the Phase-1
+  rewrite in §4.4 and §7.2 removes the telemetry figure from the triage row and AC-033 asserts its absence; the allocation is stated here to match PRD §9 v1.2 (consistency finding A-2).
+- **Phase 2 (Edge cases & polish)** — FEAT-007 and US-005 (PRD §9 v1.2). Test seam S4. Phase 2 reuses the S1/S2 contracts unchanged; it adds no new domain concept.
 
 ### 1.1 Out of Scope
 
@@ -64,8 +75,8 @@ rules, the Indonesian copy that CI asserts, the domain-query budget, and the aut
 > **A1 — RESOLVED (product owner, 2026-09-24).** PRD §7.5 item 1 asked the Spec to either confirm the `created_at`-year anchor for **Antrean Asesmen** or demote the figure to the labelled period-independent variant permitted by FEAT-003. The
 > product owner ratified **demotion**: the assessment figure is **not period-scoped in Phase 1** and carries the explicit period-independent basis label `Tidak dibatasi periode`, exactly like **Antrean Laporan**. Consequences, all applied in this revision:
 > §2 term table, REQ-007/REQ-008, §4.1 (one shared `PERIOD_INDEPENDENT_BASIS_LABEL`), §4.2 (the assessment count carries no period filter), §4.3 (the assessment deep link never sends `period`), AC-005, AC-019, AC-022, AC-027, AC-028 and AC-029, plus D-S1 in §9.1.
-> Because the decision is taken **before** implementation, the demoted variant ships in **Phase 1**; PRD §9's Phase-2 contingency entry ("the contingency that the Spec demotes the assessment figure to the labelled period-independent variant") is satisfied here
-> and therefore no longer applies as a Phase-2 item.
+> Because the decision is taken **before** implementation, the demoted variant ships in **Phase 1**. PRD §9 v1.2 no longer carries a Phase-2 contingency entry for it: that entry is satisfied here and was removed
+> from the PRD during the consistency remediation (finding A-2), so the demotion is a Phase-1 commitment rather than a deferred possibility.
 
 - **ASSUMPTION A2 — the triage figure row carries exactly three figures.** FEAT-003 mandates three; the §6 metric counts "0 of 3 ambiguous"; D7 removes login telemetry. This specification therefore removes the two inventory cards (`Tervalidasi (<bulan>)`,
   `Indikator Kinerja`) from the landing's triage block as well. They are neither attention signals nor figures whose basis the PRD requires stating. If the product owner prefers to retain them, they must return with their own basis labels (a separate ticket).
@@ -127,6 +138,8 @@ rules, the Indonesian copy that CI asserts, the domain-query budget, and the aut
 - **REQ-001** (FEAT-001) A single period resolver, `ReportingPeriod`, owns every "what does this period mean" decision. Its key vocabulary is exactly
   `['current_year', 'current_quarter', 'last_quarter', 'current_month', 'last_month']`, default `current_year`.
 - **REQ-002** (FEAT-001) `GET /admin/dashboard` accepts an optional `period` query parameter carrying one of those five keys. An unknown, empty, absent, or non-string value resolves to `current_year` and never raises an exception (US-001 scenario 2).
+  **`[ASSUMPTION]`** — the parameter **name** `period` was frozen in v1.0 before the product owner confirmed it. PRD §7.5 item 2 (v1.2) records the same status; once the name is confirmed, that note and this
+  tag are replaced by a ratified row in the PRD's decision log.
 - **REQ-003** (FEAT-001) The selected *Periode Pelaporan* is rendered on the page in Indonesian at all times, and is reproducible from the URL: re-requesting the same URL yields the same period and the same figures (US-001 scenario 3).
 - **REQ-004** (FEAT-002) The landing renders exactly one scope indicator, always visible, resolved to one of the three `TriageScope` states. Its absence, its omission for a single-agency install, and colour-only expression are all forbidden.
 - **REQ-005** (FEAT-003) The landing renders exactly three triage figures — **Antrean Verifikasi**, **Antrean Asesmen**, **Antrean Laporan** — in that order, each carrying the same scope and each carrying its own basis label.
@@ -137,7 +150,7 @@ rules, the Indonesian copy that CI asserts, the domain-query budget, and the aut
 - **REQ-009** (FEAT-004) Every figure is a single anchor to a named queue route, pre-filtered by the rules in §4.3. No figure is rendered as a non-link, and no deep link is constructed by string concatenation.
 - **REQ-010** (FEAT-005) When at least one queue count is greater than zero, the attention strip renders one signal per non-empty queue (three distinct signals possible), each with exactly one named action. When all three counts are zero, the strip element is not
   rendered at all and the empty-period sentence in §4.4 takes its place.
-- **REQ-011** (FEAT-006, Phase 2) The login-event telemetry count is removed from the landing. No telemetry value may occupy a triage figure slot. Recent activity (`AuditLog`, `latest()`, limit 10) may remain as secondary content below the triage block.
+- **REQ-011** (FEAT-006, **Phase 1** — annotation corrected by consistency finding A-11) The login-event telemetry count is removed from the landing. No telemetry value may occupy a triage figure slot. Recent activity (`AuditLog`, `latest()`, limit 10) may remain as secondary content below the triage block.
 - **REQ-012** (FEAT-007, Phase 2) The sidebar queue badge for `layouts.modern` is produced by a dedicated view composer, not by a controller view variable, and renders on every page that uses that layout.
 - **REQ-013** (FEAT-008) Exactly one authorization gate governs the landing: the route middleware `can:admin.dashboard` (`routes/web.php:201`). The controller-level `$this->middleware('can:access-admin-dashboard')`
   (`app/Http/Controllers/Admin/AdminDashboardController.php:14`) is **deleted**; `access-admin-dashboard` is referenced nowhere else in the repository (verified by repository-wide grep: one hit, that line).
@@ -344,7 +357,11 @@ Report::query()->submitted()->count();                                          
 ```
 
 **Prohibited in this service:** raw status literals in the three count queries (use the model scopes), `whereYear(...)` for period scoping, any period or date filter on the assessment and report counts (A1, D9), any `withoutGlobalScope`/`withoutInstansiScope` call, any write, any cache call
-(D6), any `now()` call outside `ReportingPeriod`, and any second period vocabulary.
+(D6), any `now()` call outside `ReportingPeriod`, and any second period vocabulary. **Status-value sourcing (A-4):** the assessment filter value is held in the single named constant
+`ASSESSMENT_PENDING_STATUS = 'pending'` rather than in a literal inside a query, which satisfies the reuse obligation of PRD §7.2. It is deliberately **not** read from `App\Constants\AssessmentStatus`,
+because that class exposes no `PENDING` member (verified: DRAFT, SUBMITTED, IN_REVIEW, APPROVED, REJECTED, REVISED), and `App\Constants\Status::PENDING` belongs to a different domain vocabulary. The report
+status is likewise taken from the model scope `Report::submitted()`; `App\Constants\ReportStatus` is **not** used, because the report figure's filter value must match the value the target controller
+accepts on `?status=` and the model scope is the single authority for it.
 
 **Deep links** are produced with `route()` using the named routes and the §4.3 parameter rules. `verificationCountFor()` delegates to the same query builder as `summaryFor()` (single implementation; the Phase-2 badge and the landing figure must never diverge).
 
