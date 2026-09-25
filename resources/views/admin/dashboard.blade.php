@@ -16,74 +16,49 @@
         </div>
     </div>
 
-    <!-- Attention strip: only when performance data awaits verification -->
-    @if($pendingDataCount > 0)
-    <div class="card card-accent-warning mb-4">
-        <div class="card-body d-flex flex-wrap align-items-center justify-content-between gap-3">
-            <div class="d-flex align-items-center gap-3">
-                <i class="fas fa-clock text-warning fa-lg" aria-hidden="true"></i>
-                <span>
-                    <strong>{{ number_format($pendingDataCount) }}</strong> data kinerja menunggu verifikasi
-                </span>
+    <!-- Triage region: the period envelope, the Cakupan Instansi and the three queue figures -->
+    <section class="mb-4" data-triage-region data-triage-period="{{ $summary->period->key }}" data-triage-scope="{{ $summary->scope->value }}">
+        <div class="card mb-4">
+            <div class="card-body">
+                <form method="GET" action="{{ route('admin.dashboard') }}" class="row g-2 align-items-end">
+                    <div class="col-md-4">
+                        <label for="triage-period" class="form-label">Periode Pelaporan</label>
+                        <select name="period" id="triage-period" class="form-select">
+                            @foreach (\App\Support\ReportingPeriod::KEYS as $key)
+                            <option value="{{ $key }}" @selected($key === $summary->period->key)>{{ \App\Support\ReportingPeriod::fromKey($key)->label() }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-auto">
+                        <button type="submit" class="btn btn-primary">Terapkan</button>
+                    </div>
+                </form>
             </div>
-            <a href="{{ route('sakip.data-collection.index', ['validation_status' => 'submitted']) }}" class="btn btn-warning">
-                Tinjau Sekarang
-            </a>
         </div>
-    </div>
-    @endif
 
-    <!-- Stat Cards -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <a href="{{ route('sakip.data-collection.index', ['validation_status' => 'submitted']) }}" class="d-block text-decoration-none">
-                <div class="stat-card">
-                    <div class="stat-card-header">
-                        <div class="stat-icon warning">
-                            <i class="fas fa-hourglass-half"></i>
+        <div class="row">
+            @foreach ([
+                ['handle' => 'verification', 'name' => 'Antrean Verifikasi', 'count' => $summary->verificationCount, 'basis' => $summary->periodLabel, 'url' => $summary->verificationUrl],
+                ['handle' => 'assessment', 'name' => 'Antrean Asesmen', 'count' => $summary->assessmentCount, 'basis' => \App\Support\AdminTriageSummary::PERIOD_INDEPENDENT_BASIS_LABEL, 'url' => $summary->assessmentUrl],
+                ['handle' => 'report', 'name' => 'Antrean Laporan', 'count' => $summary->reportCount, 'basis' => \App\Support\AdminTriageSummary::PERIOD_INDEPENDENT_BASIS_LABEL, 'url' => $summary->reportUrl],
+            ] as $figure)
+            <div class="col-md-4">
+                <a href="{{ $figure['url'] }}" class="d-block text-decoration-none" data-triage-figure="{{ $figure['handle'] }}">
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div class="stat-icon primary">
+                                <i class="fas fa-clipboard-list"></i>
+                            </div>
                         </div>
+                        <div class="stat-value">{{ number_format($figure['count']) }}</div>
+                        <div class="stat-label">{{ $figure['name'] }}</div>
+                        <small class="text-muted"@if ($figure['handle'] === 'verification') data-triage-period-label @endif>{{ $figure['basis'] }}</small>
                     </div>
-                    <div class="stat-value">{{ number_format($pendingDataCount) }}</div>
-                    <div class="stat-label">Menunggu Verifikasi</div>
-                </div>
-            </a>
-        </div>
-        <div class="col-md-3">
-            <div class="stat-card">
-                <div class="stat-card-header">
-                    <div class="stat-icon success">
-                        <i class="fas fa-check-circle"></i>
-                    </div>
-                </div>
-                    <div class="stat-value">{{ number_format($validatedCount) }}</div>
-                    <div class="stat-label">Tervalidasi ({{ $currentPeriodLabel }})</div>
+                </a>
             </div>
+            @endforeach
         </div>
-        <div class="col-md-3">
-            <a href="{{ route('sakip.indicators.index') }}" class="d-block text-decoration-none">
-                <div class="stat-card">
-                    <div class="stat-card-header">
-                        <div class="stat-icon primary">
-                            <i class="fas fa-bullseye"></i>
-                        </div>
-                    </div>
-                    <div class="stat-value">{{ number_format($indicatorCount) }}</div>
-                    <div class="stat-label">Indikator Kinerja</div>
-                </div>
-            </a>
-        </div>
-        <div class="col-md-3">
-            <div class="stat-card">
-                <div class="stat-card-header">
-                    <div class="stat-icon info">
-                        <i class="fas fa-user-clock"></i>
-                    </div>
-                </div>
-                    <div class="stat-value">{{ number_format($recentLogins) }}</div>
-                    <div class="stat-label">Aktivitas Login (7 Hari)</div>
-            </div>
-        </div>
-    </div>
+    </section>
 
     <!-- Recent Activity and Quick Actions -->
     <div class="row">

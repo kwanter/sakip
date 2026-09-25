@@ -4,47 +4,37 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
-use App\Models\PerformanceData;
-use App\Models\PerformanceIndicator;
+use App\Models\User;
+use App\Services\AdminTriageService;
+use App\Support\ReportingPeriod;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\Request;
 
-class AdminDashboardController extends Controller
+final class AdminDashboardController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('can:access-admin-dashboard');
-    }
+    public function __construct(private readonly AdminTriageService $triageService) {}
 
     /**
-     * Display the admin triage dashboard: verification queue, pipeline health,
-     * and recent activity. Counts feed both the stat cards and the layout's
-     * sidebar pending-data badge (pendingDataCount).
+     * The HQ triage landing: three queue figures for the selected period and Cakupan Instansi.
+     *
+     * Authorization is owned by the route group (`can:admin.dashboard`, routes/web.php:201): this
+     * controller must not add a second gate (REQ-013, finding C1).
      */
-    public function index()
+    public function index(Request $request): View
     {
-        $pendingDataCount = PerformanceData::where('status', 'submitted')->count();
-        $currentPeriod = now()->format('Y-m');
-        $validatedCount = PerformanceData::where('status', 'validated')
-            ->where('period', $currentPeriod)
-            ->count();
-        $indicatorCount = PerformanceIndicator::count();
-        $currentPeriodLabel = now()->locale('id')->translatedFormat('M Y');
+        /** @var User $viewer */
+        $viewer = $request->user();
 
-        $recentLogins = AuditLog::where('action', 'login')
-            ->where('created_at', '>', now()->subDays(7))
-            ->count();
+        $rawPeriod = $request->query('period'); // untrusted: validated by the whitelist below (SEC-003)
+        $period = ReportingPeriod::fromKey(is_string($rawPeriod) ? $rawPeriod : null);
+
+        $summary = $this->triageService->summaryFor($viewer, $period);
 
         $recentLogs = AuditLog::with('user')
             ->latest()
             ->limit(10)
             ->get();
 
-        return view('admin.dashboard', compact(
-            'pendingDataCount',
-            'validatedCount',
-            'indicatorCount',
-            'recentLogins',
-            'recentLogs',
-            'currentPeriodLabel',
-        ));
+        return view('admin.dashboard', compact('summary', 'recentLogs'));
     }
 }
