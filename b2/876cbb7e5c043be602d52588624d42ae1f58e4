@@ -1,0 +1,20 @@
+tests/Feature/AdminTriageLandingTest.php
+  h_00672522f4dbdd 5-9,11-12,16-18,28,187-192,231,248,289,291-293,401,413,474,478,482-483,513,521,523,526-527,564-565,580-581,599,632,634-635,639-640,646
+tests/Feature/SidebarQueueBadgeTest.php
+  h_00672522f4dbdd 5-7,11,24,54,93,96-97
+tests/Support/ExtractsTriageMarkup.php
+  h_00672522f4dbdd 1-117
+tests/Unit/Services/AdminTriageServiceTest.php
+  h_00672522f4dbdd 9,18,20,371,377,387-388
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b2876cbb7e5c043be602d52588624d42ae1f58e4",
+  "prompts": {},
+  "humans": {
+    "h_00672522f4dbdd": {
+      "author": "ragrin <kwanterpepen@gmail.com>"
+    }
+  }
+}
