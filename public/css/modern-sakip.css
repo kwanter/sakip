@@ -2136,3 +2136,32 @@ body {
 .stat-item-value.small {
     font-size: 1.25rem;
 }
+
+/* ==============================
+   DARK MODE: BOOTSTRAP CARDS
+   [data-theme="dark"] remaps the custom vars but plain Bootstrap .card
+   kept its light background, leaving white cards on the dark shell.
+   ============================== */
+[data-theme="dark"] .card {
+    --bs-card-bg: var(--bg-card);
+    --bs-card-border-color: var(--border-light);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .card-header {
+    color: var(--text-primary);
+    border-bottom-color: var(--border-light);
+}
+
+[data-theme="dark"] .text-muted {
+    color: var(--text-secondary) !important;
+}
+
+/* Card left-accent using the system warning token (Bootstrap's border-start
+   + border-4 utilities fight each other and border-warning uses #ffc107,
+   not --warning). */
+.card-accent-warning {
+    border-left: 4px solid var(--warning);
+}
+
+

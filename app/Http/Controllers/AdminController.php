@@ -35,25 +35,6 @@ class AdminController extends Controller
         $this->middleware('can:manage-high-level-settings');
     }
 
-    public function dashboard()
-    {
-        $stats = $this->adminService->getSystemStats();
-        $recentLogs = AuditLog::with('user')->latest()->limit(10)->get();
-
-        $userGrowth = User::selectRaw(
-            'DATE(created_at) as date, COUNT(*) as count',
-        )
-            ->where('created_at', '>', now()->subDays(30))
-            ->groupBy('date')
-            ->orderBy('date')
-            ->get();
-
-        return view(
-            'admin.dashboard',
-            compact('stats', 'recentLogs', 'userGrowth'),
-        );
-    }
-
     public function users(Request $request)
     {
         $query = User::with(['roles.permissions']);

@@ -1,87 +1,86 @@
 @extends('layouts.modern')
 
-@section('title', 'Admin Dashboard')
+@section('title', 'Panel Admin')
+
+@section('page-title', 'Panel Admin')
 
 @section('content')
-<div class="container-fluid">
-    <div class="row mb-4">
-        <div class="col-12">
-            <h1 class="h3 mb-0 text-gray-800">Admin Dashboard</h1>
-            <p class="text-muted">System administration and monitoring</p>
+<div class="container py-4">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="page-header-layout">
+            <div>
+                <h1 class="page-header-title">Panel Admin</h1>
+                <p class="page-header-subtitle">Antrean verifikasi dan aktivitas sistem</p>
+            </div>
         </div>
     </div>
 
-    <!-- Stats Cards -->
-    <div class="row">
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-primary shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                Total Users
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $stats['total_users'] }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-users fa-2x text-gray-300"></i>
+    <!-- Attention strip: only when performance data awaits verification -->
+    @if($pendingDataCount > 0)
+    <div class="card card-accent-warning mb-4">
+        <div class="card-body d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <div class="d-flex align-items-center gap-3">
+                <i class="fas fa-clock text-warning fa-lg" aria-hidden="true"></i>
+                <span>
+                    <strong>{{ number_format($pendingDataCount) }}</strong> data kinerja menunggu verifikasi
+                </span>
+            </div>
+            <a href="{{ route('sakip.data-collection.index', ['validation_status' => 'submitted']) }}" class="btn btn-warning">
+                Tinjau Sekarang
+            </a>
+        </div>
+    </div>
+    @endif
+
+    <!-- Stat Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <a href="{{ route('sakip.data-collection.index', ['validation_status' => 'submitted']) }}" class="d-block text-decoration-none">
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <div class="stat-icon warning">
+                            <i class="fas fa-hourglass-half"></i>
                         </div>
                     </div>
+                    <div class="stat-value">{{ number_format($pendingDataCount) }}</div>
+                    <div class="stat-label">Menunggu Verifikasi</div>
                 </div>
+            </a>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-card-header">
+                    <div class="stat-icon success">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                </div>
+                    <div class="stat-value">{{ number_format($validatedCount) }}</div>
+                    <div class="stat-label">Tervalidasi ({{ $currentPeriodLabel }})</div>
             </div>
         </div>
-
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-success shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                Total Roles
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $stats['total_roles'] }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-user-tag fa-2x text-gray-300"></i>
+        <div class="col-md-3">
+            <a href="{{ route('sakip.indicators.index') }}" class="d-block text-decoration-none">
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <div class="stat-icon primary">
+                            <i class="fas fa-bullseye"></i>
                         </div>
                     </div>
+                    <div class="stat-value">{{ number_format($indicatorCount) }}</div>
+                    <div class="stat-label">Indikator Kinerja</div>
                 </div>
-            </div>
+            </a>
         </div>
-
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-info shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                Active Sessions
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $stats['active_sessions'] }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-user-clock fa-2x text-gray-300"></i>
-                        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-card-header">
+                    <div class="stat-icon info">
+                        <i class="fas fa-user-clock"></i>
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-warning shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                System Load
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ number_format($stats['system_load'], 2) }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-tachometer-alt fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
+                    <div class="stat-value">{{ number_format($recentLogins) }}</div>
+                    <div class="stat-label">Aktivitas Login (7 Hari)</div>
             </div>
         </div>
     </div>
@@ -90,19 +89,19 @@
     <div class="row">
         <!-- Recent Audit Logs -->
         <div class="col-lg-8">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Recent Activity</h6>
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="m-0 fw-bold text-primary">Aktivitas Terbaru</h6>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table table-hover">
+                        <table class="table table-hover modern-table align-middle">
                             <thead>
                                 <tr>
-                                    <th>User</th>
-                                    <th>Action</th>
-                                    <th>Time</th>
-                                    <th>IP Address</th>
+                                    <th scope="col">Pengguna</th>
+                                    <th scope="col">Aktivitas</th>
+                                    <th scope="col">Waktu</th>
+                                    <th scope="col">Alamat IP</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -113,14 +112,14 @@
                                             <strong>{{ $log->user->name }}</strong><br>
                                             <small class="text-muted">{{ $log->user->email }}</small>
                                         @else
-                                            <em>System</em>
+                                            <em>Sistem</em>
                                         @endif
                                     </td>
                                     <td>
-                                        <span class="badge badge-info">{{ $log->action }}</span>
+                                        <span class="badge rounded-pill text-bg-secondary">{{ $log->action }}</span>
                                     </td>
                                     <td>
-                                        <small>{{ $log->created_at->diffForHumans() }}</small>
+                                        <small title="{{ $log->created_at->locale('id')->translatedFormat('d F Y H:i') }}">{{ $log->created_at->locale('id')->diffForHumans() }}</small>
                                     </td>
                                     <td>
                                         <code>{{ $log->ip_address }}</code>
@@ -128,7 +127,13 @@
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="4" class="text-center text-muted">No recent activity</td>
+                                    <td colspan="4" class="text-center py-5">
+                                        <div class="empty-state">
+                                            <i class="fas fa-inbox text-muted"></i>
+                                            <p class="mb-0">Belum ada aktivitas tercatat</p>
+                                            <small class="text-muted">Aktivitas pengguna akan tampil di sini</small>
+                                        </div>
+                                    </td>
                                 </tr>
                                 @endforelse
                             </tbody>
@@ -136,7 +141,7 @@
                     </div>
                     <div class="text-center mt-3">
                         <a href="{{ route('admin.audit-logs') }}" class="btn btn-sm btn-primary">
-                            View All Activity
+                            Lihat Semua Aktivitas
                         </a>
                     </div>
                 </div>
@@ -145,110 +150,34 @@
 
         <!-- Quick Actions -->
         <div class="col-lg-4">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Quick Actions</h6>
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="m-0 fw-bold text-primary">Aksi Cepat</h6>
                 </div>
                 <div class="card-body">
                     <div class="list-group">
                         <a href="{{ route('admin.users.create') }}" class="list-group-item list-group-item-action">
-                            <i class="fas fa-user-plus fa-fw mr-2"></i>
-                            Create New User
+                            <i class="fas fa-user-plus fa-fw me-2"></i>
+                            Buat Pengguna Baru
                         </a>
                         <a href="{{ route('admin.users.index') }}" class="list-group-item list-group-item-action">
-                            <i class="fas fa-users fa-fw mr-2"></i>
-                            Manage Users
+                            <i class="fas fa-users fa-fw me-2"></i>
+                            Kelola Pengguna
                         </a>
                         <a href="{{ route('admin.audit-logs') }}" class="list-group-item list-group-item-action">
-                            <i class="fas fa-history fa-fw mr-2"></i>
-                            View Audit Logs
+                            <i class="fas fa-history fa-fw me-2"></i>
+                            Log Audit
                         </a>
                         @can('manage-settings')
                         <a href="{{ route('admin.settings.index') }}" class="list-group-item list-group-item-action">
-                            <i class="fas fa-cog fa-fw mr-2"></i>
-                            System Settings
+                            <i class="fas fa-cog fa-fw me-2"></i>
+                            Pengaturan Sistem
                         </a>
                         @endcan
-                    </div>
-                </div>
-            </div>
-
-            <!-- System Info -->
-            <div class="card shadow">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">System Information</h6>
-                </div>
-                <div class="card-body">
-                    <div class="small text-muted">
-                        <strong>Permissions:</strong> {{ $stats['total_permissions'] }}<br>
-                        <strong>Recent Logins:</strong> {{ $stats['recent_logins'] }} (last 7 days)<br>
-                        <strong>PHP Version:</strong> {{ phpversion() }}<br>
-                        <strong>Laravel Version:</strong> {{ app()->version() }}<br>
-                        <strong>Environment:</strong> {{ config('app.env') }}
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
-@endsection
-
-@section('scripts')
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-    // User growth chart
-    const userGrowthData = @json($userGrowth);
-    
-    if (userGrowthData && userGrowthData.length > 0) {
-        // Wait for DOM to be ready
-        document.addEventListener('DOMContentLoaded', function() {
-            const chartContainer = document.createElement('div');
-            chartContainer.className = 'row';
-            chartContainer.innerHTML = `
-                <div class="col-12">
-                    <div class="card shadow mb-4">
-                        <div class="card-header py-3">
-                            <h6 class="m-0 font-weight-bold text-primary">User Growth (Last 30 Days)</h6>
-                        </div>
-                        <div class="card-body">
-                            <canvas id="userGrowthChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            // Insert before the closing of the main container
-            const mainContent = document.querySelector('.container-fluid');
-            if (mainContent) {
-                mainContent.appendChild(chartContainer);
-                
-                // Create chart after DOM element exists
-                const ctx = document.getElementById('userGrowthChart');
-                if (ctx && typeof Chart !== 'undefined') {
-                    new Chart(ctx, {
-                        type: 'line',
-                        data: {
-                            labels: userGrowthData.map(item => item.date),
-                            datasets: [{
-                                label: 'New Users',
-                                data: userGrowthData.map(item => item.count),
-                                borderColor: 'rgb(75, 192, 192)',
-                                backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                                tension: 0.1
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            scales: {
-                                y: {
-                                    beginAtZero: true
-                                }
-                            }
-                        }
-                    });
-                }
-            }
-        });
-    }
-</script>
 @endsection

@@ -159,20 +159,4 @@ class AdminService
             'user_agent' => request()->userAgent(),
         ]);
     }
-
-    public function getSystemStats(): array
-    {
-        return [
-            'total_users' => User::count(),
-            'total_roles' => Role::count(),
-            'total_permissions' => Permission::count(),
-            'active_sessions' => DB::table('sessions')
-                ->where('last_activity', '>', now()->subMinutes(30)->timestamp)
-                ->count(),
-            'recent_logins' => AuditLog::where('action', 'login')
-                ->where('created_at', '>', now()->subDays(7))
-                ->count(),
-            'system_load' => sys_getloadavg()[0] ?? 0,
-        ];
-    }
 }
