@@ -1,0 +1,18 @@
+app/Http/Controllers/Admin/AdminDashboardController.php
+  h_00672522f4dbdd 7-8,12,18-20,24-34,41-48
+public/css/modern-sakip.css
+  h_00672522f4dbdd 2139-2167
+resources/views/admin/dashboard.blade.php
+  h_00672522f4dbdd 3-5,8-15,19-27,29-31,33-34,36-43,46-47,49,51-55,58-59,62-67,70-71,73-83,92-94,98,101-104,115,119,122,130-136,144,153-155,160-161,164-165,168-169,173-174
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "9c3eaeec2c9046544f7692ce9c32283afa37a135",
+  "prompts": {},
+  "humans": {
+    "h_00672522f4dbdd": {
+      "author": "ragrin <kwanterpepen@gmail.com>"
+    }
+  }
+}
