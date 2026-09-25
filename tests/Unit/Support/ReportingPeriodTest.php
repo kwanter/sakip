@@ -187,4 +187,33 @@ class ReportingPeriodTest extends TestCase
             }
         }
     }
+
+    /**
+     * TASK-301 / REQ-003 + PRN-003 — the active-year seam is a trust boundary like any other input.
+     *
+     * A configured value that is not a whole year inside a sane window must fall back to the clock
+     * instead of moving every year-scoped query somewhere absurd: `(int) 'abc'` is 0 today, so an
+     * operator typo silently re-points the whole application at year 0.
+     *
+     * Note on `2026.5`: under this frozen 2026 clock the assertion below cannot tell "rejected" from
+     * "truncated to 2026", so the fractional value is probed a second time under a 2027 clock.
+     */
+    public function test_invalid_active_year_falls_back_to_the_clock(): void
+    {
+        foreach (['abc', '0', '-5', '2026.5', '99999'] as $value) {
+            config()->set('sakip.reporting.active_year', $value);
+
+            $this->assertSame(2026, ReportingPeriod::activeYear(), "active year for '{$value}'");
+            $this->assertSame(
+                2026,
+                ReportingPeriod::fromKey('current_year')->start->year,
+                "window for '{$value}'",
+            );
+        }
+
+        CarbonImmutable::setTestNow(CarbonImmutable::parse('2027-03-15 09:00:00'));
+        config()->set('sakip.reporting.active_year', '2026.5');
+
+        $this->assertSame(2027, ReportingPeriod::activeYear(), 'a fractional year is malformed, not a year');
+    }
 }

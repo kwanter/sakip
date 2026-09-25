@@ -50,19 +50,27 @@ final readonly class ReportingPeriod
     /**
      * Anchor instant (REQ-015, C-7 precedence): an explicitly injected clock is authoritative and
      * ignores the config seam; only when no clock is injected does config('sakip.reporting.active_year')
-     * replace the clock's year (it is stored as a string by env(), hence the cast).
+     * replace the clock's year.
+     *
+     * The seam is untrusted input, so the configured value must be a whole year inside a sane window;
+     * anything else (null, a typo, a fraction, a zero or a negative) falls back to the clock rather than
+     * silently moving every year-scoped query somewhere absurd.
      */
     public static function anchor(?CarbonImmutable $now = null): CarbonImmutable
     {
-        $configuredYear = config('sakip.reporting.active_year');
-
         if ($now !== null) {
             return $now;
         }
 
         $anchor = CarbonImmutable::now();
+        $configuredYear = config('sakip.reporting.active_year');
+        $year = $configuredYear === null ? false : filter_var($configuredYear, FILTER_VALIDATE_INT);
 
-        return $configuredYear === null ? $anchor : $anchor->setYear((int) $configuredYear);
+        if ($year === false || $year < 1970 || $year > 9999) {
+            return $anchor;
+        }
+
+        return $anchor->setYear($year);
     }
 
     /** Calendar year of the anchor (REQ-015). */
