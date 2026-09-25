@@ -212,4 +212,113 @@ class AdminTriageLandingTest extends TestCase
 
         return $user->refresh();
     }
+
+    /** TC-033 / AC-013 — each viewer state renders its own scope handle and label. */
+    public function test_scope_handle_and_label_match_the_viewer_state(): void
+    {
+        $agency = \App\Models\Instansi::factory()->create(['nama_instansi' => 'Dinas A']);
+
+        $agencyContent = $this->actingAs($this->permittedViewerFor($agency))
+            ->get(route('admin.dashboard'))
+            ->getContent();
+
+        $this->assertStringContainsString('data-triage-scope="agency"', $agencyContent);
+        $this->assertStringContainsString('data-triage-scope-label', $agencyContent);
+        $this->assertStringContainsString('Cakupan: Dinas A', $agencyContent);
+
+        $crossContent = $this->actingAs($this->superAdminViewer())
+            ->get(route('admin.dashboard'))
+            ->getContent();
+
+        $this->assertStringContainsString('data-triage-scope="cross_agency"', $crossContent);
+        $this->assertStringContainsString('Cakupan: Semua Instansi', $crossContent);
+    }
+
+    /** TC-034 / AC-014 — an unassigned viewer sees its own handle, three zeros, no `Semua Instansi`. */
+    public function test_unassigned_viewer_renders_its_handle_with_zero_figures(): void
+    {
+        $content = $this->actingAs($this->permittedViewer())
+            ->get(route('admin.dashboard'))
+            ->getContent();
+
+        preg_match('/<section[^>]*data-triage-region[^>]*>(.*?)<\/section>/s', $content, $region);
+
+        $this->assertStringContainsString('data-triage-scope="unassigned"', $content);
+        $this->assertStringContainsString('Cakupan: Instansi Belum Ditetapkan', $content);
+        $this->assertStringNotContainsString('Semua Instansi', $content);
+        $this->assertSame(3, substr_count($region[1] ?? '', 'stat-value">0<'), 'three zero-valued figures');
+    }
+
+    /** TC-044 / AC-027 — the period-independent anchors never claim the selected period. */
+    public function test_assessment_and_report_anchors_never_claim_the_selected_period(): void
+    {
+        $content = $this->actingAs($this->permittedViewer())
+            ->get(route('admin.dashboard', ['period' => 'last_quarter']))
+            ->getContent();
+
+        foreach (['assessment', 'report'] as $handle) {
+            preg_match('/<a[^>]*data-triage-figure="'.$handle.'"[^>]*>(.*?)<\/a>/s', $content, $matches);
+
+            $this->assertNotSame('', $matches[1] ?? '', "anchor {$handle} is extractable");
+            $this->assertStringContainsString('Tidak dibatasi periode', $matches[1], "basis of {$handle}");
+            $this->assertStringNotContainsString('Triwulan II 2026', $matches[1], "period label leaked into {$handle}");
+        }
+
+        $this->assertStringContainsString('Triwulan II 2026', $content, 'the verification figure states its period');
+    }
+
+    /** TC-049 / AC-033 — the removed telemetry and inventory copy is gone from the region. */
+    public function test_removed_telemetry_and_inventory_copy_is_absent_from_the_triage_region(): void
+    {
+        $content = $this->actingAs($this->permittedViewer())
+            ->get(route('admin.dashboard'))
+            ->getContent();
+
+        preg_match('/<section[^>]*data-triage-region[^>]*>(.*?)<\/section>/s', $content, $region);
+
+        $this->assertNotSame('', $region[1] ?? '', 'the triage region must be extractable');
+        $this->assertStringNotContainsString('Aktivitas Login (7 Hari)', $region[1]);
+        $this->assertStringNotContainsString('Tervalidasi', $region[1]);
+    }
+
+    /** TC-050 / finding C-1 — the layout shell keeps its own copy, outside the asserted region. */
+    public function test_layout_shell_copy_is_untouched_and_sits_outside_the_region(): void
+    {
+        // A Super Admin also satisfies `@can('manage-sakip')`, so the shell's own sidebar section renders.
+        $content = $this->actingAs($this->superAdminViewer())
+            ->get(route('admin.dashboard'))
+            ->getContent();
+
+        preg_match('/<section[^>]*data-triage-region[^>]*>(.*?)<\/section>/s', $content, $region);
+
+        $this->assertStringContainsString('Indikator Kinerja', $content, 'the shell still renders its own label');
+        $this->assertStringNotContainsString('Indikator Kinerja', $region[1] ?? '');
+        $this->assertStringContainsString('Indikator Kinerja', (string) file_get_contents(resource_path('views/layouts/modern.blade.php')));
+    }
+
+    private function permittedViewerFor(\App\Models\Instansi $agency): User
+    {
+        $user = User::factory()->create(['email_verified_at' => now(), 'instansi_id' => $agency->id]);
+        $user->givePermissionTo(Permission::firstOrCreate(
+            ['name' => 'admin.dashboard'],
+            ['display_name' => 'admin.dashboard'],
+        ));
+
+        return $user->refresh();
+    }
+
+    private function superAdminViewer(): User
+    {
+        $user = User::factory()->create(['email_verified_at' => now()]);
+        $user->givePermissionTo(Permission::firstOrCreate(
+            ['name' => 'admin.dashboard'],
+            ['display_name' => 'admin.dashboard'],
+        ));
+        $user->assignRole(\App\Models\Role::firstOrCreate(
+            ['name' => \App\Constants\SystemRoles::SUPER_ADMIN],
+            ['display_name' => \App\Constants\SystemRoles::SUPER_ADMIN],
+        ));
+
+        return $user->refresh();
+    }
 }

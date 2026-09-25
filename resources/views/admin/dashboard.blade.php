@@ -18,6 +18,10 @@
 
     <!-- Triage region: the period envelope, the Cakupan Instansi and the three queue figures -->
     <section class="mb-4" data-triage-region data-triage-period="{{ $summary->period->key }}" data-triage-scope="{{ $summary->scope->value }}">
+        <div class="mb-3">
+            <span class="badge text-bg-light border" data-triage-scope-label>Cakupan: {{ $summary->scopeLabel }}</span>
+        </div>
+
         <div class="card mb-4">
             <div class="card-body">
                 <form method="GET" action="{{ route('admin.dashboard') }}" class="row g-2 align-items-end">
