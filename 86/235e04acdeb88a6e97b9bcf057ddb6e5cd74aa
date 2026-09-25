@@ -1,0 +1,14 @@
+tests/Feature/AdminTriageLandingTest.php
+  h_00672522f4dbdd 482-542
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "86235e04acdeb88a6e97b9bcf057ddb6e5cd74aa",
+  "prompts": {},
+  "humans": {
+    "h_00672522f4dbdd": {
+      "author": "ragrin <kwanterpepen@gmail.com>"
+    }
+  }
+}
