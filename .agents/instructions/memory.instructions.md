@@ -8,7 +8,7 @@ description: "Project memory file for tracking progress, active artifacts, and c
 
 ## 1. Project Context
 - **Project Name:** SAKIP (Sistem Akuntabilitas Kinerja Instansi Pemerintah)
-- **Current Phase:** Phase 4 (Code) — the Admin Triage Landing Phases 1 + 2 are complete (11/11 plan tickets, Red-Green-Refactor throughout). Every gate is green except the PHP **coverage** gate, which is `unverified` because no Xdebug/PCOV driver is installed. → **Phase 5 (`/tdd-code-review`) is the next route**, and it must run in a **new chat session** because the implementation session is locked to the code persona.
+- **Current Phase:** Phase 4 (Code) — remediation of the Admin Triage Landing code-review findings. The review produced **17 findings (9 Standards, 8 Spec; none `[CRITICAL]`)** and the four-phase `plan/plan-refactor-admin-triage-landing-v1.0.md`. **Phase 1 of that plan is delivered** (`775a201`); **Phase 2 (architecture-map fidelity plus the floor-guard test) is in progress**; Phases 3–4 remain. Every gate is green except the PHP **coverage** gate, which is `unverified` because no Xdebug/PCOV driver is installed.
 
 ## 2. Active Artifacts & Documents
 - `AGENTS.md`, `CONSTITUTION.md`, `CONSTRAINTS.md`, `CONTEXT.md` — governance contracts (versioned via `.gitignore` negations)
@@ -20,6 +20,7 @@ description: "Project memory file for tracking progress, active artifacts, and c
 ## 3. Session Progress Log
 - Initialized TDD-Spec SDLC Architecture.
 - Session 8: implemented the Admin Triage Landing Phases 1 + 2 (11/11 tickets) under strict Red-Green-Refactor; 144 passed / 2 skipped, Pint clean, coverage `unverified`.
+- Session 9: reviewed that delivery on two axes (**17 findings, none critical** — 9 Standards, 8 Spec), wrote the four-phase remediation plan, and executed **Phase 1** of it (AC-028 pinned with a mutation RED-proof, `data-triage-period-select` rendered and asserted, Spec amended to **v1.4**); 145 passed / 2 skipped, 674 assertions, Pint clean, coverage `unverified`.
 
 ## 4. Permanent Knowledge Base & Architecture Decisions
 - Strict Test-First & Pre-Agreed Seams Mandate enforced across all phases.
@@ -31,6 +32,10 @@ description: "Project memory file for tracking progress, active artifacts, and c
 - **`PerformanceDataFactory` has no `approved()` state** (its states are `draft()`, `submitted()`, `validated()`, `rejected()`, plus `forInstansi()`/`forPeriod()`). The landing figures are `verification` (submitted data), `assessment` (`Assessment::pending()`) and `report` (submitted reports) — never a "pending/approved" pair (Session 8).
 - **A statement budget can legitimately reshape production code.** Because Spec §4.4 caps the landing at six statements, `AdminTriageService::verificationCountFor()` resolves the scope kind *without* the agency-name lookup (a badge renders no label), while `resolveScope()` keeps the label carve-out for the summary path that does render it. The budget measured seven before the split (Session 8).
 - **Reproduce "manual" browser checks with a throwaway HTTP-kernel harness.** The repository installs no browser harness; a temporary PHPUnit class that renders pages through the kernel and writes text to `/tmp` yields readable evidence, and it must be deleted afterwards — never commit a non-asserting probe (Session 8).
+- **A pin needs a mutation to be honest.** When a new test guards behaviour that is already correct it cannot produce a RED, so its falsifiability must be *proven* rather than assumed: mutate the production line its subject depends on, observe **the intended assertion** fail, then revert and confirm the production diff is empty before committing. A mutation that fails at a *different* assertion than intended is evidence the **fixture**, not the guard, is wrong — the AC-028 pin failed at its non-zero guard until the fixture stopped relying on row order (Session 9).
+- **A query without an explicit order makes a test non-deterministic when *which* row matches changes the assertion.** `Model::query()->where(...)->firstOrFail()` returns whichever row the database happens to yield; when the test's meaning depends on that row's attributes (year, period, status), select it **by attribute**, never by position (Session 9).
+- **An accepted deviation recorded only in a code comment, a memory checkpoint, or a commit message is not recorded.** The Spec is this project's executable truth, so the amendment belongs in the Spec **in the same commit** as the change. The review found three cases where the delivered behaviour was right and only the document was stale, plus one where the Spec's planned value — the `5 / 6 / 2` statement budget — would have produced a **false assertion** had it been followed literally (Session 9).
+- **Numeric inventory counts in a map rot silently, and a prose claim of freshness is not a measurement.** `docs/ARCHITECTURE.md` carried three different figures for the same test count and a file count four short of reality, while a commit message asserted the counts had been refreshed. Re-measure every count a change moves, in that same change (Session 9).
 
 ---
 
@@ -348,6 +353,40 @@ description: "Project memory file for tracking progress, active artifacts, and c
   - Coverage stays `unverified` until a driver is installed; never report it green.
   - Backlog unchanged: **F1** (2 skipped rate-limit tests), **F2** (63 PHPUnit 12 deprecations), `composer audit --locked`, `npm audit --omit=dev`.
 
-<!-- checkpoint-tail: the admin triage landing is implemented across Phases 1 + 2 (11/11 tickets, commits 0c6fc64 → cf08e72) with 144 passing tests and a clean Pint run; the next session runs `/tdd-code-review` on the Spec and Plan, carrying four open findings (Spec §5.0 F-6, ReportFactory, manage-sakip F-1, AC-004 cast) and an unverified coverage gate. -->
+## 📝 Session Checkpoint: 2026-09-25 — Session 9: Review of the Admin Triage Landing, Its Remediation Plan, and Phase 1 Execution
+
+- **Summary:** The eleven-ticket delivery was reviewed on two axes (Standards vs Spec) and then remediated. The review reproduced every gate and produced **17 findings, none `[CRITICAL]`** — 9 Standards (all hygiene; the strongest is an unvalidated `SAKIP_ACTIVE_YEAR`) and 8 Spec issues (all traceability/documentation fidelity, no behaviour defect). Those findings became `plan/plan-refactor-admin-triage-landing-v1.0.md`, a four-phase TDD remediation plan. **Phase 1 is delivered and committed; Phase 2 is in progress.**
+- **Work Done:**
+  - **Review + plan** (`f89722f`): `docs/review/code-review-admin-triage-landing-2026-09-25.md` (five-axis report, inventory reconciliation, security tables) plus the refactoring plan. The review document doubles as the **Phase-1 review artifact** that Spec §9.4 obligations 2 and 4 require and that `docs/review/` did not previously exist to hold.
+  - **TASK-101/102** (`86235e0`): the AC-028 pin — the **only** acceptance criterion in the entire delivery with no test at any seam, because the Plan never assigned it or its checklist case TC-045 to a ticket.
+  - **TASK-103/104/105** (`775a201`): the `data-triage-period-select` handle (declared in Spec §4.4, rendered nowhere, asserted nowhere) added to the blade and asserted by TC-051, plus the Spec amendment to **v1.4**.
+  - **Plan record** (`6fa2bda`): Phase-1 rows ticked with dates; TASK-10Y left open because the plan requires explicit human approval before Phase 2.
+- **Verified Evidence:** full suite 144 → **145 passed / 2 skipped, 674 assertions**; `AdminTriageLandingTest` now carries all **29** checklist S3 cases (was 28); Pint **PASS 251 files**; Unit **1.63 s** against the 10 s floor; `git diff app/ database/ routes/` empty after the mutation revert; working tree clean. Coverage stays **unverified** (no Xdebug/PCOV) — never reported green.
+
+- **Key Findings:**
+  - **The worst Spec finding was an untested criterion, not a bug:** AC-028 — the US-006 honesty invariant that a period switch must move only the verification figure — had no test at any seam, and was the single acceptance criterion unreferenced by any test file.
+  - **The most surprising finding was historical:** Spec §4.5's own "no intermediate state loses the badge" clause was violated by T4 (`df57eb8`) and repaired only at T10 (`7e8642e`), so for five commits no `layouts.modern` page rendered a badge at all — invisible to the suite because the S4 seam arrived in Phase 2. Now recorded in Spec §4.5 and as `SPEC-B-01` in the review.
+  - **The Spec predicted a value that would have been a false assertion:** §4.4's Phase-2 column said the unassigned viewer would cost 2 statements; it costs **1**, because the badge short-circuits before querying. The measured `5 / 6 / 1` is now in the Spec and §9.4 obligation 3 is marked discharged.
+  - **`docs/ARCHITECTURE.md` was stale exactly where this feature moved:** `131` PHP files vs **135** actual, `5` unit tests vs **9**, `12`/`13` feature tests vs **14** (three different figures for one quantity), and §10 never listed the four new seams. Phase 2 (TASK-202) fixes it.
+  - **The review's own non-findings matter too:** zero `[CRITICAL]` issues, no tautological tests, no over-mocking (no `Mockery` in any seam file), tenancy intact, and the accepted divergences asserted as positive expectations rather than contained loosely.
+  - **Two pruned-but-real defects surfaced only under mutation and probing:** a period-scoped assessment count was correctly caught by the new pin, and a regex-or-similar fixture weakness (row-order dependence) was exposed by the same mutation. Neither was visible from reading the code.
+- **Updated Files:**
+  - `docs/review/code-review-admin-triage-landing-2026-09-25.md` — new five-axis review artifact
+  - `plan/plan-refactor-admin-triage-landing-v1.0.md` — new remediation plan (Phase 1 ticked, TASK-10Y open)
+  - `tests/Feature/AdminTriageLandingTest.php` — the AC-028 pin plus the extended TC-051 (now 29 methods)
+  - `resources/views/admin/dashboard.blade.php` — one additive attribute (`data-triage-period-select`)
+  - `spec/spec-admin-triage-landing.md` — **v1.4**: §4.4 budget row plus delivered measurement, §4.5 badge ownership, §9.3 closure row, §9.4 obligations 3 and 4, front-matter note
+  - `.agents/instructions/memory.instructions.md` — this checkpoint
+- **Decisions Made:**
+  - The badge owner is the **composer only**, from the first release; the Spec's Phase-1 controller variable is formally abandoned rather than retro-fitted, and the five-commit consequence is stated in the Spec instead of smoothed over.
+  - The Spec is amended in the **same commit** as the change it describes; a test comment or a memory note is not a substitute.
+  - `isYearScoped()` and the `SAKIP_ACTIVE_YEAR` hardening wait for Phase 3 — nothing is changed silently now, and nothing is deleted from the class without also leaving Spec §4.1.
+- **Next Action / Pending:**
+  - **Phase 2 (in progress):** TASK-201…203 — correct the `docs/ARCHITECTURE.md` counts, list the new unit files and subdirectories, add S1–S4 to §10, and add `tests/Unit/FloorGuardTest.php` (checklist TC-070) with a mutation proof; then TASK-20X verify and TASK-20Y human approval.
+  - **Phase 3:** TASK-301/302 (validate the configured active year — the non-numeric case is a genuine RED), TASK-303 (extract `tests/Support/ExtractsTriageMarkup.php`, promote FQCNs to imports, drop the source-file assertion, rename the two same-valued constants), TASK-304 (settle `isYearScoped()`).
+  - **Phase 4 (human-gated):** the PRD's long-agency-name criterion (implement or defer explicitly), the three manual PRD metrics, and the checklist inventory reconciliation.
+  - Coverage stays `unverified`; **F1** (2 skipped rate-limit tests) and **F2** (63 PHPUnit 12 deprecations) remain backlog.
+
+<!-- checkpoint-tail: the Admin Triage Landing was reviewed (17 findings, none critical), a four-phase remediation plan was written, and its Phase 1 is delivered — AC-028 pinned with a mutation RED-proof, `data-triage-period-select` rendered and asserted, the Spec amended to v1.4 — with 145 passing tests, a clean Pint run, Phase 2 in progress, and the coverage gate still unverified. -->
 
 ---
