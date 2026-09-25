@@ -113,6 +113,18 @@ return [
         'include_charts' => true,
         'include_evidence_summary' => true,
         'max_report_size_mb' => 50,
+
+        /*
+         |--------------------------------------------------------------------------
+         | Active Reporting Year
+         |--------------------------------------------------------------------------
+         |
+         | The calendar year treated as the active reporting year. Null means
+         | "derive it from the server clock"; pinning it lets fiscal-year
+         | semantics arrive later without touching any call site (Spec REQ-015).
+         |
+         */
+        'active_year' => env('SAKIP_ACTIVE_YEAR', null),
     ],
 
     'assessment' => [
