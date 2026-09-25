@@ -55,6 +55,11 @@ Thumbs.db
 .video_agent/
 .zcode/
 
+# The Codex per-agent skill copy is local state; .codex/ itself stays tracked
+# (AGENTS.md, agents/, config.toml, hooks.json) and the canonical skill suite
+# lives in .agents/skills/, versioned since 7402526
+.codex/skills/
+
 # Debug and test files
 test_*.php
 *_test.php
