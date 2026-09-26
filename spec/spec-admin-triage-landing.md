@@ -1,9 +1,9 @@
 ---
 title: Admin Triage Landing — Period-Scoped, Instansi-Explicit Triage Read Model
-version: 1.4
+version: 1.5
 date_created: 2026-09-24
 date_revised: 2026-09-25
-status: Draft (v1.4 — post-review traceability amendments applied; implementation complete)
+status: Draft (v1.5 — review remediation closed; implementation complete)
 remediation_of: docs/audit/clarification-report-spec-admin-triage-landing-2026-09-24.md
 remediation_of_iteration_2: docs/audit/clarification-report-spec-admin-triage-landing-iteration-2-2026-09-24.md
 remediation_of_consistency_audit: docs/audit/consistency-audit-admin-triage-landing-2026-09-24.md
@@ -50,6 +50,11 @@ target_plan: /plan/plan-admin-triage-landing.md
 > acceptance criterion was removed, and no ratified decision was altered. **`STD-A-03` (added by the same execution):** §4.1 no longer declares `isYearScoped()` — the flag had zero production call sites, and the only predicate the
 > deep-link rule can act on is `isSingleMonth()`, so the method was removed from the class rather than kept as declared-but-unused API. TC-004 now asserts the single-month flag alone; the checklist line for TC-004 keeps its
 > older wording until the Phase-4 inventory reconciliation (TASK-403).
+>
+> **Remediation note (v1.5).** This revision records the two product-owner decisions that closed the review's last two findings, and nothing else. **Decision 1A (`SPEC-B-06`):** the PRD's long-agency-name criterion is
+> **delivered**, not deferred — §4.4 now specifies the `triage-scope-chip` truncation contract (ellipsis beyond ≈49ch, with the untruncated name kept in `title`) and TC-072 asserts it at seam S3; the rendered ellipsis
+> itself needs a browser, so it joins the deferred manual set. **Decision 2B (`SPEC-B-05`):** the three manually measured metrics are formally re-scoped to `[Assumed / Backlog]` by the product owner — §9.4 obligation 2 is
+> discharged as a deliberate deferral rather than left as an unverifiable expectation, and the decision of record is PRD §6. Coverage is **not** part of that re-scope and remains an unmet, unverified gate.
 
 ## 1. Purpose & Scope
 
@@ -442,6 +447,10 @@ The landing exposes stable machine-checkable handles so that every CI-enforced P
 | Signal action — assessment | `Tinjau Antrean Asesmen` |
 | Signal action — report | `Tinjau Antrean Laporan` |
 
+**Long agency names (PRD §5.3, delivered 2026-09-25 under review finding `SPEC-B-06`).** The scope chip carries `triage-scope-chip` — `max-width: 49ch` (the 9-character `Cakupan: ` prefix plus the 40-character
+name threshold), `overflow: hidden`, `text-overflow: ellipsis`, `white-space: nowrap` — and exposes the untruncated name through `title`, because a shortened label must never become the only available value. The
+contract is asserted at S3 (`AdminTriageLandingTest::test_long_agency_name_is_wired_for_ellipsis_truncation`); the rendered ellipsis itself needs a browser and therefore belongs to the deferred manual set of PRD §6.
+
 **Removed from the landing (Phase 1):** the `Aktivitas Login (7 Hari)` telemetry figure (D7/REQ-011) and the `Tervalidasi (<bulan>)` and `Indikator Kinerja` inventory cards (ASSUMPTION A2). The recent-activity table and the quick-actions panel remain as secondary
 content and are unchanged by this specification.
 
@@ -662,7 +671,7 @@ report). The numbers above are therefore correct **only with that deletion**, an
 | --- | --- | --- | --- | --- |
 | **S1** | `App\Support\ReportingPeriod` (pure value object) | `tests/Unit/Support/ReportingPeriodTest.php` | Unit — no HTTP, no DB, no auth | AC-001, AC-002, AC-003, AC-004, AC-022, AC-039, plus: the **precedence case** asserted in both directions (config set **and** an explicit `$now` → the injected clock wins; config set **and** `$now === null` → the config wins); every key resolves inside the anchor year; `performancePeriodRange()` is lexicographically ordered `YYYY-MM → YYYY-MM`; `start` is at `00:00:00` and `end` at `23:59:59` of the resolved window |
 | **S2** | `App\Services\AdminTriageService::summaryFor()` / `verificationCountFor()` | `tests/Unit/Services/AdminTriageServiceTest.php` | Unit with real DB (`RefreshDatabase`, factories), **no `actingAs()`** | AC-009, AC-010, AC-011, AC-012, AC-025, AC-036, plus: a **period-invariance case** proving the assessment and report counts are identical for `current_year`, `last_quarter`, and `current_month` over the same dataset (A1, D9); a soft-deleted-agency case proving the label still resolves and the counts stay agency-bound (ASSUMPTION A7). Every case builds its fixtures from the §5.0 canonical matrix. **The former "not narrowed by ambient auth" case is removed (C-2):** with no authenticated user `InstansiScope` is a no-op, so that case is unsatisfiable at S2 and now lives at S3 |
-| **S3** | `GET /admin/dashboard` (HTTP route boundary) | `tests/Feature/AdminTriageLandingTest.php` | HTTP feature (`actingAs`, `RefreshDatabase`, seeded permissions) | AC-005 … AC-008, AC-013 … AC-022, AC-027 … AC-034, AC-037, AC-038, plus the **ambient-auth invariant moved here (C-2)**: a `Super Admin` render's three figures must equal a direct `summaryFor()` call made with no authenticated user, so the invariant is falsifiable rather than tautological |
+| **S3** | `GET /admin/dashboard` (HTTP route boundary) | `tests/Feature/AdminTriageLandingTest.php` | HTTP feature (`actingAs`, `RefreshDatabase`, seeded permissions) | AC-005 … AC-008, AC-013 … AC-022, AC-027 … AC-034, AC-037, AC-038, plus the **ambient-auth invariant moved here (C-2)**: a `Super Admin` render's three figures must equal a direct `summaryFor()` call made with no authenticated user, so the invariant is falsifiable rather than tautological, and the long-agency-name markup contract (TC-072, review `SPEC-B-06`) |
 | **S4** | Sidebar badge render on `layouts.modern` (view rendering boundary) | `tests/Feature/SidebarQueueBadgeTest.php` | HTTP feature on **two** routes owned by two controllers, with the `Super Admin` viewer pre-agreed in §5.5 | AC-023, AC-024, AC-026 (Phase 2 only) |
 
 ### 6.2 Mocking & Isolation Boundaries
@@ -864,7 +873,9 @@ No ADR is written. Each decision above is reversible (a resolver, a label, a par
 ### 9.4 Post-implementation obligations
 
 1. Update `docs/ARCHITECTURE.md` §5/§6 for `app/Support/` (Phase 1) and `app/View/Composers/` (Phase 2) — Living Architecture Map Mandate.
-2. Record the manually verified metrics (above-the-fold placement at 1280×800, the five-participant ≤10 s usability check, the p95 < 500 ms measurement) in the Phase-1 review artifact; they create no floor-guard obligation.
+2. **DISCHARGED BY RE-SCOPE (v1.5).** The three manually verified metrics (above-the-fold placement at 1280×800, the five-participant ≤10 s usability check, the p95 < 500 ms measurement) were never produced, and no harness in this
+   repository can produce them. On 2026-09-25 the product owner re-scoped them to `[Assumed / Backlog]` — the decision of record is `docs/prd/prd-admin-triage-landing.md` §6, and it is reflected in the review artifact
+   (`docs/review/code-review-admin-triage-landing-2026-09-25.md` §7) that also carries obligation 4's record.
 3. **DISCHARGED (v1.4).** The §4.4 exact query expectations are updated to the measured **`5 / 6 / 1`** in the same cycle as the composer (`7e8642e`); the numbers are asserted per viewer state, not predicted. The instruction's original target of
    `5 / 6 / 2` was wrong for the unassigned state, whose badge short-circuits without issuing a statement — see §4.4 "Delivered measurement (v1.4)" and review finding `SPEC-B-04`.
 4. Record the three accepted decisions of the v1.1 remediation — D-S7 (assessment figure/target frame divergence), D-S8 (empty cross-agency verification target) and D-S9 (canonical assessment population) — in the Phase-1 review artifact. If the product owner resolves ASSUMPTION A9 differently, amend this Spec and its ACs **before** Phase 2 starts; the divergences are accepted, not forgotten. **Discharged 2026-09-25** by

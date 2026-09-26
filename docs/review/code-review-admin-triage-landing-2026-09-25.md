@@ -305,19 +305,41 @@ Only two of the seventy inventoried cases are missing, and both are named — wh
 - **Recommendation:** **Proceed to Refactoring Plan.** The implementation is functionally sound and the suite is honest; the outstanding work is traceability closure (one missing test, one missing render handle, one dropped PRD criterion) plus documentation
   fidelity (Spec §4.4/§4.5/§9.4 and ARCHITECTURE.md). Nothing requires a redesign, and no single finding blocks merge on its own — but none should be left as folklore either.
 
-## 7. Outstanding Manual Evidence (must stay unverified until measured)
+## 7. Manual Evidence — Re-Scoped by the Product Owner (decision 2B, 2026-09-25)
 
-| Metric (PRD §6 / Spec §9.4 obligation 2) | Status |
+The three measurements below were never produced, and no harness in this repository can produce them. The product owner has re-scoped them to `[Assumed / Backlog]` rather than leaving them as permanently
+unverified expectations; the decision of record is in `docs/prd/prd-admin-triage-landing.md` §6. **Coverage is not part of that decision** — it stays an unmet gate, reported unverified.
+
+| Item | Status after the decision |
 | --- | --- |
-| First meaningful figure visible without scrolling at 1280×800 | **UNVERIFIED** — no browser harness in this repository and no measurement recorded |
-| Largest queue identified within 10 s by 4 of 5 participants | **UNVERIFIED** — no session record exists |
-| Landing p95 < 500 ms against the seeded dataset | **UNVERIFIED** — no performance harness (PRD finding F-05); the CI substitute is the exact query budget, which *is* asserted |
-| Test coverage (line ≥ 80% target / ≥ 75% floor, branch ≥ 75% / ≥ 70%) | **UNVERIFIED** — no Xdebug/PCOV, so `php artisan test --coverage --min=75` cannot run here |
+| First meaningful figure visible without scrolling at 1280×800 | `[Assumed / Backlog]` — deferred, not expected |
+| Largest queue identified within 10 s by 4 of 5 participants | `[Assumed / Backlog]` — deferred, not expected |
+| Landing p95 < 500 ms against the seeded dataset | `[Assumed / Backlog]` — deferred; the CI substitute (the exact domain-query budget) *is* asserted |
+| Ellipsis rendering for a >40-character agency name (PRD §5.3, delivered under decision 1A) | `[Assumed / Backlog]` — the markup contract is CI-enforced; the rendered truncation needs a browser |
+| Test coverage (line ≥ 80% target / ≥ 75% floor, branch ≥ 75% / ≥ 70%) | **UNVERIFIED — deliberately not re-scoped.** No Xdebug/PCOV driver, so `php artisan test --coverage --min=75` cannot run here |
 
 ## 8. Handoff
 
 1. The refactoring plan for these findings is `plan/plan-refactor-admin-triage-landing-v1.0.md` — execute it with `/tdd-write-code`.
 2. Spec-side amendments (`SPEC-B-01`, `SPEC-B-04`, `SPEC-B-06`) and the architecture-map corrections (`SPEC-B-07`) are documentation edits; they belong in the same tickets as their behavioural siblings so the Spec never trails the code again.
-3. `SPEC-B-05` (manual metrics) can only be closed by a human observer; schedule it as Phase-1 sign-off, not as code work.
+3. `SPEC-B-05` (manual metrics) was closed on 2026-09-25 by an explicit product-owner re-scope to `[Assumed / Backlog]` (decision 2B) — see §7. `SPEC-B-06` was closed the same day by delivering the truncation contract (decision 1A), recorded in PRD §5.3 and asserted at seam S3.
 4. After the plan is executed, re-run all gates in §2 and re-measure the Unit runtime — the new S3 case adds a second HTTP render per assertion set.
+
+### 8.1 Closure Log — all seventeen findings, as of 2026-09-25
+
+| Finding | Closed by | Evidence |
+| --- | --- | --- |
+| `STD-A-01`, `STD-A-02`, `STD-A-07` | one shared markup trait, the inline FQCNs promoted to imports, the source-file probe deleted | `b2876cb` |
+| `STD-A-03` | `isYearScoped()` removed from the class **and** from Spec §4.1 | `5c94ed7` |
+| `STD-A-04` | the two same-valued constants renamed for the parameters they feed | `79b67c1` |
+| `STD-A-05`, `STD-A-06` | `anchor()` validates the configured year (`FILTER_VALIDATE_INT` + 1970–9999) and reads config after the injected-clock return | `ee8ba2a` |
+| `STD-A-08`, `STD-A-09` | recorded as accepted cosmetic items; remedies deliberately deferred until the template is next touched | §3 |
+| `SPEC-B-01` | Spec §4.5 badge ownership clause rewritten to the delivered design | `775a201` |
+| `SPEC-B-02` | `data-triage-period-select` rendered and asserted by TC-051 | `775a201` |
+| `SPEC-B-03` | AC-028 pinned at S3, RED-proofed by a reverted mutation | `86235e0` |
+| `SPEC-B-04` | Spec §4.4 budget corrected to the measured `5 / 6 / 1`; §9.4 obligation 3 discharged | `775a201` |
+| `SPEC-B-05` | **product-owner re-scope** (decision 2B): three manual metrics → `[Assumed / Backlog]` | §7, PRD §6 |
+| `SPEC-B-06` | **delivered** (decision 1A): truncation class + `title`, asserted at S3; PRD §5.3 records it | PRD §5.3, Spec §4.4 |
+| `SPEC-B-07` | map counts re-measured (135 / 9 / 14) and seams S1–S4 named in §10 | `5cce6fa` |
+| `SPEC-B-08` | TC-070 implemented as a static scan; the 70-case inventory reconciled | `17947ff`, `b49a117` |
 

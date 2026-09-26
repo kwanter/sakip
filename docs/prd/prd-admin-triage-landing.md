@@ -217,7 +217,9 @@ Step 5 is a product requirement, not an implementation detail: a shareable, peri
 - **Cross-agency viewer:** sees all agencies under the `Semua Instansi` label — the label matters most for this persona, because their data is the union of every agency.
 - **Viewer with no agency assignment:** sees `Instansi Belum Ditetapkan` with zero counts and an explanation of that state — never the `Semua Instansi` label (§3.2, finding F-03).
 - **Long agency names:** the scope indicator truncates with an ellipsis once the agency name exceeds 40 characters, and the header neither wraps nor reflows at a 1280 px viewport
-  (finding F-05 replaced "degrades gracefully" with this measurable threshold).
+  (finding F-05 replaced "degrades gracefully" with this measurable threshold). **Delivered 2026-09-25 (decision 1A, review finding `SPEC-B-06`):** the chip carries `triage-scope-chip` — `max-width: 49ch`,
+  the 9-character `Cakupan: ` prefix plus the 40-character name threshold, with `text-overflow: ellipsis` and `white-space: nowrap` — and exposes the untruncated name through `title`. CI pins that markup
+  contract at seam S3 (`AdminTriageLandingTest::test_long_agency_name_is_wired_for_ellipsis_truncation`); the rendered ellipsis itself needs a browser, so it sits with the deferred manual metrics in §6.
 - **Language and codes:** every label is Indonesian; raw machine codes must not leak into the interface (impeccable critique #2).
 - **Accessibility:** each period-scoped figure is a link whose accessible name includes its period; the scope indicator is text, never colour alone; contrast stays at WCAG AA.
 
@@ -236,6 +238,11 @@ review artifact.
 | Figures whose basis is not stated on screen | 0 of 3 ambiguous (today's baseline: 3 of 3). A figure's basis is stated when its *Cakupan Instansi* is shown and, for a period-scoped figure, its period label is shown; a period-independent figure must be labelled as such | **CI-enforced** — HTTP content assertions |
 | Triage question answerable without navigation | 0 clicks to *understand* the state, 1 click to *act* on it | **CI-enforced** for the click count (each figure is an anchor to a named queue route); **manual** for comprehension |
 | Largest queue identified within 10 seconds of first view | 4 of 5 participants | **Manual** — five-participant usability check, pass threshold 4 of 5 |
+
+> **Manual metrics re-scoped 2026-09-25 (decision 2B, review finding `SPEC-B-05`).** The three manual entries above — above-the-fold placement at 1280×800, the five-participant ≤ 10 s usability check and the
+> p95 < 500 ms latency measurement — are now formally `[Assumed / Backlog]`: this repository installs no browser or performance harness, and no observer has produced the figures, so they stand as deferred
+> evidence rather than as unverified CI expectations. The decision and its reasoning are recorded in `docs/review/code-review-admin-triage-landing-2026-09-25.md` §7. The visual ellipsis of §5.3 "Long agency
+> names" joins this deferred set for the same reason — the missing harness is what makes it unmeasurable here, while its markup wiring stays CI-enforced.
 
 **Business Metrics**
 
