@@ -1,0 +1,19 @@
+Makefile
+  s_53886809fad91c::t_5a0ad5becba147 4,25-26,155-179
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "46cb5884521b7a3ec22776cdfaae76cd727660c7",
+  "prompts": {},
+  "sessions": {
+    "s_53886809fad91c": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f279bc765ffegzQ5h314HToVyK",
+        "model": "unknown"
+      },
+      "human_author": "ragrin <kwanterpepen@gmail.com>"
+    }
+  }
+}
