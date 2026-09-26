@@ -29,7 +29,7 @@ the project is not organized as a strict Clean Architecture or a package-level m
 - **Architectural Pattern:** Laravel MVC monolith with a service layer for business logic (`app/Services/`), the strategy pattern for export formats (`app/Services/Export/`), policy classes for authorization (`app/Policies/`), and Eloquent global scopes for cross-cutting query constraints (`app/Models/Scopes/`).
 - **Build/Tooling:** Composer, npm, Vite, Laravel Pint, PHPUnit 11, GitHub Actions, Docker Compose (app, queue, scheduler, nginx, MySQL 8.0, Redis 7).
 - **Frontend reality check:** Bootstrap 5.3 via CDN styled by `public/css/modern-sakip.css` is what actually renders. Tailwind 4 and the Vite pipeline exist in the toolchain but are not loaded by the Bootstrap layouts.
-- **PHP quality commands:** `php artisan test` and `./vendor/bin/pint --test --no-interaction`.
+- **PHP quality commands:** `php artisan test --profile` (the `--profile` flag lists the ten slowest tests beside the totals) and `./vendor/bin/pint --test --no-interaction`. The same gates run on the host without Docker through `make gates-local`, `make test-local`, `make test-unit-local`, `make lint-local`, and `make php-version`: the Makefile resolves the binary itself (`PHP ?= $(shell command -v php 2>/dev/null || echo /opt/homebrew/opt/php@8.3/bin/php)`), because non-interactive shells do not source `~/.zshrc` and may have no `php` on `PATH`.
 - **Frontend commands:** `npm run dev` and `npm run build`. `package.json` defines no JavaScript test, lint, or format script.
 
 ## 3. Data Flow & Layer Dependencies
@@ -89,7 +89,7 @@ flowchart TD
 │   │   ├── Controllers/         # 31 files: Admin/, Auth/, Sakip/, plus top-level utility controllers
 │   │   ├── Middleware/          # SecurityHeadersMiddleware, SecureFileUploadMiddleware
 │   │   └── Requests/            # 11 Form Requests under Admin/ and Sakip/
-│   ├── Models/                  # 18 Eloquent models
+│   ├── Models/                  # 17 Eloquent models
 │   │   └── Scopes/              # InstansiScope, ForYearTrait, RecentScope, SearchScope, WithStatusScope
 │   ├── Policies/                # 15 authorization policies
 │   ├── Providers/               # AppServiceProvider, RateLimitServiceProvider, TelescopeServiceProvider
@@ -104,7 +104,7 @@ flowchart TD
 │   ├── factories/               # 11 model factories
 │   ├── migrations/              # 54 migrations (UUID PKs, soft deletes, index migrations)
 │   └── seeders/                 # DatabaseSeeder, RolesAndPermissions, Instansi, SystemSettings, AdminUser, User
-├── docs/                        # ARCHITECTURE.md, plans/, history/, security/, adr/ (ADRs)
+├── docs/                        # ARCHITECTURE.md + SDLC artifacts (discovery/, prd/, audit/, checklist/, review/, retro/) + the Diátaxis set (tutorials/, how-to/, reference/, explanation/) + plans/, history/, adr/ (ADRs), security/
 ├── public/                      # Web root, css/modern-sakip.css design system, js helpers, js/app bundles
 ├── resources/
 │   ├── css/                     # app.css, sakip-styles.css (Vite inputs)
@@ -117,7 +117,7 @@ flowchart TD
 │   └── console.php              # Artisan command definitions
 ├── tests/
 │   ├── Feature/                 # 14 HTTP/workflow tests (incl. AdminTriageLandingTest, SidebarQueueBadgeTest)
-│   ├── Unit/                    # 9 tests: 4 guards at the root, 3 under Services/, 1 each under Scopes/ and Support/
+│   ├── Unit/                    # 10 tests: 5 guards at the root (incl. FloorGuardTest), 3 under Services/, 1 each under Scopes/ and Support/
 │   │   ├── Scopes/              # ForYearTraitTest (the active-year seam, REQ-014)
 │   │   ├── Services/            # PerformanceCalculationServiceTest, AdminTriageServiceTest, DashboardDateRangeAdapterTest
 │   │   └── Support/             # ReportingPeriodTest (seam S1: pure unit, no DB, HTTP or auth)
@@ -140,7 +140,7 @@ flowchart TD
 | `app/Http/Middleware/` | Cross-cutting HTTP concerns | `SecurityHeadersMiddleware`, `SecureFileUploadMiddleware` | Registered in `bootstrap/app.php`; header middleware is global, the upload middleware is an alias. |
 | `app/Services/` | Domain and workflow logic | 35 services, including `Export/`, `Import/`, `Sakip/`, `Validation/` | Performance-data transitions and calculations belong here. Wrap multi-write operations in `WithDatabaseTransactions`. |
 | `app/Support/` | Period vocabulary and read-model contracts | `ReportingPeriod`, `TriageScope`, `AdminTriageSummary` | One source of truth for "what does this period mean" and for the agency-coverage labels. Keep it pure: no database, HTTP, or auth access, or the seam it exists to specify is hidden. |
-| `app/Models/` | Persistence and relationships | 18 Eloquent models | UUID primary keys, soft deletes on data-tracking models, `instansi_id`-bearing models keep `InstansiScope`. |
+| `app/Models/` | Persistence and relationships | 17 Eloquent models | UUID primary keys, soft deletes on data-tracking models, `instansi_id`-bearing models keep `InstansiScope`. |
 | `app/Models/Scopes/` | Query constraints | Tenancy, year, recent, search, and status scopes | Do not remove `InstansiScope` to make a test pass; bypassing it requires an authorized path plus a test. |
 | `app/Policies/` | Authorization | 15 policies bound in `AppServiceProvider` | Authorization decisions live in policies, not in Blade conditionals alone. |
 | `app/Constants/` | System-wide values | Status, ReportStatus, AssessmentStatus, SystemRoles, ValidationRules, Pagination | Prefer these constants over inline magic strings. |
@@ -153,7 +153,7 @@ flowchart TD
 | `resources/js/` | Frontend assets | Vite entry plus `sakip/` modules | Vite bundles are not loaded by every Bootstrap layout today; verify at runtime before relying on them. |
 | `routes/` | HTTP surface | `web.php`, `web_sakip.php`, `api.php`, `console.php` | `web_sakip.php` is required by `web.php`; SAKIP AJAX endpoints live under `/sakip/api/` with session auth. |
 | `tests/Feature/` | End-to-end HTTP behavior | 14 tests covering auth, dashboards, data collection, isolation, rendering, rate limiting, and the triage landing | Assert HTTP status, redirects, rendered content, and persisted rows. |
-| `tests/Unit/` | Guards and isolated logic | Root: `ArchitectureGuardTest`, `SecurityHeadersTest`, the export-injection guard, `ExampleTest`. `Services/`: `PerformanceCalculationServiceTest`, `AdminTriageServiceTest` (seam S2 — real DB, no `actingAs()`), `DashboardDateRangeAdapterTest`. `Scopes/`: `ForYearTraitTest`. `Support/`: `ReportingPeriodTest` (seam S1) | `ArchitectureGuardTest` prevents duplicate class names and missing route names from recurring. Seams S3 and S4 live in `tests/Feature/AdminTriageLandingTest.php` and `tests/Feature/SidebarQueueBadgeTest.php`. |
+| `tests/Unit/` | Guards and isolated logic | Root: `ArchitectureGuardTest`, `SecurityHeadersTest`, `FloorGuardTest`, the export-injection guard, `ExampleTest`. `Services/`: `PerformanceCalculationServiceTest`, `AdminTriageServiceTest` (seam S2 — real DB, no `actingAs()`), `DashboardDateRangeAdapterTest`. `Scopes/`: `ForYearTraitTest`. `Support/`: `ReportingPeriodTest` (seam S1) | `ArchitectureGuardTest` prevents duplicate class names and missing route names from recurring. `FloorGuardTest` statically forbids suppression tokens, skipped tests, and doc-comment test metadata across `app/`, `config/`, `resources/views/` and `tests/` (it excludes itself, whose string literals name the tokens). Seams S3 and S4 live in `tests/Feature/AdminTriageLandingTest.php` and `tests/Feature/SidebarQueueBadgeTest.php`. |
 | `docs/` | Project documentation | This map, plans, history, security notes, ADRs | ADRs follow `.agents/standards/ADR-FORMAT.md` and live in `docs/adr/`. |
 | `.agents/`, `.claude/` | Agent governance scaffolding | Instructions, rules, 21 skills, standards | Governance artifacts only; never place application code here. |
 
@@ -198,13 +198,17 @@ flowchart TD
 - **Commands:**
 
 ```bash
-php artisan test                         # full suite
+php artisan test --profile               # full suite + the ten slowest tests
 php artisan test --testsuite=Unit        # unit runtime SLA check
 php artisan test --filter=TestName       # focused seam during Red-Green-Refactor
 composer test                            # config:clear + artisan test
 make test                                # same command inside the Docker app container
-php artisan test --coverage --min=75     # coverage gate (requires Xdebug or PCOV)
+make gates-local                         # pint + test --profile on the host (Makefile resolves PHP)
+php artisan test --coverage              # line coverage (PCOV is installed; branch coverage needs Xdebug)
 ```
+
+- **Coverage reality (measured 2026-09-26):** PCOV is installed, so line coverage is measurable — **8.8 %** over `app/` and **91.8–100 %** for the admin-triage slice. `CONSTRAINTS.md` §1 measures it in two scopes: the **changed files** against a >= 80 % target / >= 75 % floor, and the whole-`app/` total as a **ratchet** that may only be raised. Branch coverage requires Xdebug and is reported **unverified**.
+- **Suite size (measured 2026-09-26):** **152 tests** — 89 named `test_*` plus 63 driven by the `#[Test]` attribute (doc-comment test metadata was migrated away, backlog F2) — with **732 assertions**, **0 skips** and **0 PHPUnit deprecations**. Unit: 57 tests in ~1.3 s (SLA < 10 s). Full suite: ~12.2–12.6 s (SLA < 15 s target / < 20 s hard).
 
 - **Existing public test seams** (patterns to reuse when adding tests):
   - Named HTTP routes exercised with `actingAs()` — `tests/Feature/SakipDashboardAccessTest.php`, `tests/Feature/ReportIndexRendersTest.php`, `tests/Feature/RedirectFlowTest.php`.
@@ -212,6 +216,7 @@ php artisan test --coverage --min=75     # coverage gate (requires Xdebug or PCO
   - Tenant isolation — `tests/Feature/TargetTenantIsolationTest.php`, `tests/Feature/EvidenceUpdateIsolationTest.php` assert that cross-instansi access is denied or absent.
   - Service contracts — `tests/Unit/Services/PerformanceCalculationServiceTest.php` and `tests/Feature/PerformanceCalculationServiceTest.php` call services with factory-built models.
   - Architecture guards — `tests/Unit/ArchitectureGuardTest.php` walks `app_path()` to prevent duplicate short class names and missing route names.
+  - Floor-guard scan — `tests/Unit/FloorGuardTest.php` walks `app/`, `config/`, `resources/views/` and `tests/` and fails on any suppression token, any skipped test, or any doc-comment test metadata (backlogs F1 and F2 are closed, so none of the three has an allow-list today).
   - Security invariants — `tests/Unit/SecurityHeadersTest.php`, `tests/Unit/ExportFormulaInjectionTest.php`, `tests/Feature/RateLimitingTest.php`.
   - **Admin triage landing seams S1–S4** (pre-agreed in `spec/spec-admin-triage-landing.md` §6.1):
     - **S1** `app/Support/ReportingPeriod` — pure value object, `tests/Unit/Support/ReportingPeriodTest.php`. No database, no HTTP, no auth: a query or an `actingAs()` here would hide the boundary the seam exists to specify.
@@ -232,4 +237,3 @@ php artisan test --coverage --min=75     # coverage gate (requires Xdebug or PCO
 - **Frontend discipline:** reuse `public/css/modern-sakip.css` components and the incumbent Bootstrap CDN pipeline; verify at runtime whether a Vite bundle is actually loaded on the layout you are touching.
 - **Verification before claiming done:** `php artisan test` (or `make test`) plus `./vendor/bin/pint --test`; report any gate blocked by toolchain, database, or network availability as unverified rather than passed.
 - **Out of bounds:** never edit `vendor/`, `node_modules/`, or generated build output; never run destructive database commands (`migrate:fresh`, `db:wipe`) against a non-testing database.
-
