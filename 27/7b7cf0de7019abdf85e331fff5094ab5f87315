@@ -1,0 +1,14 @@
+.agents/instructions/memory.instructions.md
+  h_00672522f4dbdd 11,23,38-39,366-368,389-390,393
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "277b7cf0de7019abdf85e331fff5094ab5f87315",
+  "prompts": {},
+  "humans": {
+    "h_00672522f4dbdd": {
+      "author": "ragrin <kwanterpepen@gmail.com>"
+    }
+  }
+}
