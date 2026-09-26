@@ -1,0 +1,19 @@
+.agents/instructions/memory.instructions.md
+  s_53886809fad91c::t_889203f2e97f05 11,487-505
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "442631d31386d0527f0d3841960bbe36fd00e1a7",
+  "prompts": {},
+  "sessions": {
+    "s_53886809fad91c": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f279bc765ffegzQ5h314HToVyK",
+        "model": "unknown"
+      },
+      "human_author": "ragrin <kwanterpepen@gmail.com>"
+    }
+  }
+}
