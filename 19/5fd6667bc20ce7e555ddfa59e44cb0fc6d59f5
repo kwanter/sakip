@@ -1,0 +1,18 @@
+public/css/modern-sakip.css
+  h_00672522f4dbdd 931-942
+resources/views/admin/dashboard.blade.php
+  h_00672522f4dbdd 22
+tests/Feature/AdminTriageLandingTest.php
+  h_00672522f4dbdd 266-292
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "195fd6667bc20ce7e555ddfa59e44cb0fc6d59f5",
+  "prompts": {},
+  "humans": {
+    "h_00672522f4dbdd": {
+      "author": "ragrin <kwanterpepen@gmail.com>"
+    }
+  }
+}
