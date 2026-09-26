@@ -4,6 +4,7 @@ namespace Tests\Unit;
 
 use FilesystemIterator;
 use Illuminate\Support\Facades\Route;
+use PHPUnit\Framework\Attributes\Test;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use Tests\TestCase;
@@ -16,7 +17,7 @@ use Tests\TestCase;
  */
 class ArchitectureGuardTest extends TestCase
 {
-    /** @test */
+    #[Test]
     public function no_duplicate_short_class_names_in_app()
     {
         $classes = [];
@@ -43,7 +44,7 @@ class ArchitectureGuardTest extends TestCase
         $this->assertNotEmpty($classes);
     }
 
-    /** @test */
+    #[Test]
     public function every_blade_route_name_exists()
     {
         $routeNames = collect(Route::getRoutes()->getRoutesByName())->keys()->all();

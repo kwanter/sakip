@@ -6,6 +6,7 @@ use App\Models\PerformanceIndicator;
 use App\Models\Target;
 use App\Services\PerformanceCalculationService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class PerformanceCalculationServiceTest extends TestCase
@@ -20,7 +21,7 @@ class PerformanceCalculationServiceTest extends TestCase
         $this->service = new PerformanceCalculationService;
     }
 
-    /** @test */
+    #[Test]
     public function it_calculates_simple_percentage_correctly()
     {
         $indicator = PerformanceIndicator::factory()->create([
@@ -38,7 +39,7 @@ class PerformanceCalculationServiceTest extends TestCase
         $this->assertEquals(80.0, $result);
     }
 
-    /** @test */
+    #[Test]
     public function it_respects_maximum_percentage_cap()
     {
         $result = $this->service->calculatePercentage(300, 100, 'maximize');
@@ -47,7 +48,7 @@ class PerformanceCalculationServiceTest extends TestCase
         $this->assertEquals(200.0, $result);
     }
 
-    /** @test */
+    #[Test]
     public function it_handles_minimize_polarity_correctly()
     {
         // For minimize: lower actual is better
@@ -57,7 +58,7 @@ class PerformanceCalculationServiceTest extends TestCase
         $this->assertGreaterThan(100, $result);
     }
 
-    /** @test */
+    #[Test]
     public function it_handles_zero_target_gracefully()
     {
         $result = $this->service->calculatePercentage(50, 0, 'maximize');
@@ -65,7 +66,7 @@ class PerformanceCalculationServiceTest extends TestCase
         $this->assertEquals(0, $result);
     }
 
-    /** @test */
+    #[Test]
     public function it_calculates_achievement_rating()
     {
         $excellentRating = $this->service->getAchievementRating(100);

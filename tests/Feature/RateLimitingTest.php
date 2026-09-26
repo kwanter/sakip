@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\RateLimiter;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class RateLimitingTest extends TestCase
@@ -21,7 +22,7 @@ class RateLimitingTest extends TestCase
         RateLimiter::clear('api_strict');
     }
 
-    /** @test */
+    #[Test]
     public function login_is_rate_limited_after_five_attempts()
     {
         // First 5 attempts should go through (even if credentials are wrong)
@@ -44,7 +45,7 @@ class RateLimitingTest extends TestCase
         $response->assertStatus(429);
     }
 
-    /** @test */
+    #[Test]
     public function login_rate_limit_includes_retry_after_header()
     {
         // Exceed rate limit
@@ -64,7 +65,7 @@ class RateLimitingTest extends TestCase
         $this->assertNotNull($response->headers->get('Retry-After'));
     }
 
-    /** @test */
+    #[Test]
     public function api_requests_are_rate_limited()
     {
         $user = User::factory()->create();
@@ -87,7 +88,7 @@ class RateLimitingTest extends TestCase
         }
     }
 
-    /** @test */
+    #[Test]
     public function different_users_have_separate_rate_limits()
     {
         $user1 = User::factory()->create(['email' => 'user1@example.com']);
@@ -110,7 +111,7 @@ class RateLimitingTest extends TestCase
         $this->assertNotEquals(429, $response->status());
     }
 
-    /** @test */
+    #[Test]
     public function rate_limit_resets_after_time_window()
     {
         // F1 closed (retro 2026-09-26). The previous version cleared the key `login:email|ip`, but
@@ -141,7 +142,7 @@ class RateLimitingTest extends TestCase
         );
     }
 
-    /** @test */
+    #[Test]
     public function email_verification_resend_is_strictly_rate_limited()
     {
         $user = User::factory()->create([
@@ -161,7 +162,7 @@ class RateLimitingTest extends TestCase
         $response->assertStatus(429);
     }
 
-    /** @test */
+    #[Test]
     public function rate_limit_response_contains_helpful_message()
     {
         // Exceed login rate limit
@@ -188,7 +189,7 @@ class RateLimitingTest extends TestCase
         $this->assertStringContainsString('Too many', $response->json('message'));
     }
 
-    /** @test */
+    #[Test]
     public function guest_requests_to_the_root_route_are_redirected_and_never_throttled()
     {
         // Characterisation pin (F1 closed, retro 2026-09-26). The case's original premise — "guest
@@ -209,7 +210,7 @@ class RateLimitingTest extends TestCase
         }
     }
 
-    /** @test */
+    #[Test]
     public function authenticated_user_can_bypass_guest_rate_limit()
     {
         $user = User::factory()->create();
@@ -225,7 +226,7 @@ class RateLimitingTest extends TestCase
         }
     }
 
-    /** @test */
+    #[Test]
     public function rate_limiter_works_with_different_ip_addresses()
     {
         // Simulate different IP addresses

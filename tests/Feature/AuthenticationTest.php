@@ -5,13 +5,14 @@ namespace Tests\Feature;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class AuthenticationTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test */
+    #[Test]
     public function login_page_can_be_rendered()
     {
         $response = $this->get('/login');
@@ -20,7 +21,7 @@ class AuthenticationTest extends TestCase
         $response->assertViewIs('auth.login');
     }
 
-    /** @test */
+    #[Test]
     public function users_can_authenticate_using_the_login_screen()
     {
         $user = User::factory()->create([
@@ -38,7 +39,7 @@ class AuthenticationTest extends TestCase
         $response->assertRedirect('/sakip');
     }
 
-    /** @test */
+    #[Test]
     public function users_cannot_authenticate_with_invalid_password()
     {
         $user = User::factory()->create([
@@ -55,7 +56,7 @@ class AuthenticationTest extends TestCase
         $response->assertSessionHasErrors('email');
     }
 
-    /** @test */
+    #[Test]
     public function users_cannot_authenticate_with_nonexistent_email()
     {
         $response = $this->post('/login', [
@@ -67,7 +68,7 @@ class AuthenticationTest extends TestCase
         $response->assertSessionHasErrors('email');
     }
 
-    /** @test */
+    #[Test]
     public function email_is_required_for_login()
     {
         $response = $this->post('/login', [
@@ -77,7 +78,7 @@ class AuthenticationTest extends TestCase
         $response->assertSessionHasErrors('email');
     }
 
-    /** @test */
+    #[Test]
     public function password_is_required_for_login()
     {
         $response = $this->post('/login', [
@@ -87,7 +88,7 @@ class AuthenticationTest extends TestCase
         $response->assertSessionHasErrors('password');
     }
 
-    /** @test */
+    #[Test]
     public function email_must_be_valid_format()
     {
         $response = $this->post('/login', [
@@ -98,7 +99,7 @@ class AuthenticationTest extends TestCase
         $response->assertSessionHasErrors('email');
     }
 
-    /** @test */
+    #[Test]
     public function authenticated_users_are_redirected_from_login_page()
     {
         $user = User::factory()->create([
@@ -112,7 +113,7 @@ class AuthenticationTest extends TestCase
         $response->assertRedirect('/sakip');
     }
 
-    /** @test */
+    #[Test]
     public function users_can_logout()
     {
         $user = User::factory()->create([
@@ -127,7 +128,7 @@ class AuthenticationTest extends TestCase
         $response->assertRedirect('/login');
     }
 
-    /** @test */
+    #[Test]
     public function guests_cannot_access_protected_routes()
     {
         $response = $this->get('/sakip');
@@ -135,7 +136,7 @@ class AuthenticationTest extends TestCase
         $response->assertRedirect('/login');
     }
 
-    /** @test */
+    #[Test]
     public function unverified_users_are_redirected_to_verification_notice()
     {
         $user = User::factory()->create([
@@ -149,7 +150,7 @@ class AuthenticationTest extends TestCase
         $response->assertRedirect('/email/verify');
     }
 
-    /** @test */
+    #[Test]
     public function verified_users_can_access_protected_routes()
     {
         $user = User::factory()->create([
@@ -164,7 +165,7 @@ class AuthenticationTest extends TestCase
         $response->assertOk();
     }
 
-    /** @test */
+    #[Test]
     public function remember_me_functionality_works()
     {
         $user = User::factory()->create([
@@ -184,7 +185,7 @@ class AuthenticationTest extends TestCase
         $this->assertNotNull(auth()->user()->getRememberToken());
     }
 
-    /** @test */
+    #[Test]
     public function session_is_regenerated_on_successful_login()
     {
         $user = User::factory()->create([
@@ -205,7 +206,7 @@ class AuthenticationTest extends TestCase
         $this->assertNotEquals($oldSessionId, $newSessionId);
     }
 
-    /** @test */
+    #[Test]
     public function login_attempts_are_throttled()
     {
         $user = User::factory()->create([
@@ -230,7 +231,7 @@ class AuthenticationTest extends TestCase
         $response->assertStatus(429);
     }
 
-    /** @test */
+    #[Test]
     public function email_verification_notice_is_shown_to_unverified_users()
     {
         $user = User::factory()->create([
@@ -245,7 +246,7 @@ class AuthenticationTest extends TestCase
         $response->assertViewIs('auth.verify-email');
     }
 
-    /** @test */
+    #[Test]
     public function verified_users_are_redirected_from_verification_notice()
     {
         $user = User::factory()->create([
@@ -259,7 +260,7 @@ class AuthenticationTest extends TestCase
         $response->assertRedirect('/sakip');
     }
 
-    /** @test */
+    #[Test]
     public function email_can_be_verified_with_valid_link()
     {
         $user = User::factory()->create([
@@ -280,7 +281,7 @@ class AuthenticationTest extends TestCase
         $response->assertRedirect('/sakip');
     }
 
-    /** @test */
+    #[Test]
     public function email_cannot_be_verified_with_invalid_hash()
     {
         $user = User::factory()->create([
@@ -301,7 +302,7 @@ class AuthenticationTest extends TestCase
         $response->assertStatus(403);
     }
 
-    /** @test */
+    #[Test]
     public function email_verification_resend_is_throttled()
     {
         $user = User::factory()->create([
@@ -321,7 +322,7 @@ class AuthenticationTest extends TestCase
         $response->assertStatus(429);
     }
 
-    /** @test */
+    #[Test]
     public function password_field_is_hidden_in_failed_login_response()
     {
         $response = $this->post('/login', [
@@ -333,7 +334,7 @@ class AuthenticationTest extends TestCase
         $this->assertArrayNotHasKey('password', session()->getOldInput());
     }
 
-    /** @test */
+    #[Test]
     public function no_hardcoded_credentials_in_login_view()
     {
         $response = $this->get('/login');
@@ -346,7 +347,7 @@ class AuthenticationTest extends TestCase
         $this->assertStringNotContainsString('test@sakip', $content);
     }
 
-    /** @test */
+    #[Test]
     public function dashboard_redirects_based_on_user_role()
     {
         $adminUser = User::factory()->create([
@@ -361,7 +362,7 @@ class AuthenticationTest extends TestCase
         $response->assertRedirect('/admin');
     }
 
-    /** @test */
+    #[Test]
     public function regular_user_redirects_to_sakip_dashboard()
     {
         $user = User::factory()->create([
@@ -375,7 +376,7 @@ class AuthenticationTest extends TestCase
         $response->assertRedirect('/sakip');
     }
 
-    /** @test */
+    #[Test]
     public function home_route_redirects_unauthenticated_users_to_login()
     {
         $response = $this->get('/');
@@ -383,7 +384,7 @@ class AuthenticationTest extends TestCase
         $response->assertRedirect('/login');
     }
 
-    /** @test */
+    #[Test]
     public function home_route_redirects_authenticated_users_to_sakip()
     {
         $user = User::factory()->create([

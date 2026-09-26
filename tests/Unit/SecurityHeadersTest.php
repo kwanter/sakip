@@ -5,6 +5,7 @@ namespace Tests\Unit;
 use App\Http\Middleware\SecurityHeadersMiddleware;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class SecurityHeadersTest extends TestCase
@@ -17,7 +18,7 @@ class SecurityHeadersTest extends TestCase
         $this->middleware = new SecurityHeadersMiddleware;
     }
 
-    /** @test */
+    #[Test]
     public function it_adds_x_content_type_options_header()
     {
         $request = Request::create('/test', 'GET');
@@ -29,7 +30,7 @@ class SecurityHeadersTest extends TestCase
         $this->assertEquals('nosniff', $response->headers->get('X-Content-Type-Options'));
     }
 
-    /** @test */
+    #[Test]
     public function it_adds_x_frame_options_header()
     {
         $request = Request::create('/test', 'GET');
@@ -41,7 +42,7 @@ class SecurityHeadersTest extends TestCase
         $this->assertEquals('SAMEORIGIN', $response->headers->get('X-Frame-Options'));
     }
 
-    /** @test */
+    #[Test]
     public function it_adds_x_xss_protection_header()
     {
         $request = Request::create('/test', 'GET');
@@ -53,7 +54,7 @@ class SecurityHeadersTest extends TestCase
         $this->assertEquals('1; mode=block', $response->headers->get('X-XSS-Protection'));
     }
 
-    /** @test */
+    #[Test]
     public function it_adds_referrer_policy_header()
     {
         $request = Request::create('/test', 'GET');
@@ -65,7 +66,7 @@ class SecurityHeadersTest extends TestCase
         $this->assertEquals('strict-origin-when-cross-origin', $response->headers->get('Referrer-Policy'));
     }
 
-    /** @test */
+    #[Test]
     public function it_adds_permissions_policy_header()
     {
         $request = Request::create('/test', 'GET');
@@ -78,7 +79,7 @@ class SecurityHeadersTest extends TestCase
         $this->assertStringContainsString('microphone=()', $response->headers->get('Permissions-Policy'));
     }
 
-    /** @test */
+    #[Test]
     public function it_adds_content_security_policy_header()
     {
         $request = Request::create('/test', 'GET');
@@ -94,7 +95,7 @@ class SecurityHeadersTest extends TestCase
         $this->assertStringContainsString("frame-ancestors 'self'", $csp);
     }
 
-    /** @test */
+    #[Test]
     public function it_adds_hsts_header_in_production()
     {
         $this->app->detectEnvironment(function () {
@@ -113,7 +114,7 @@ class SecurityHeadersTest extends TestCase
         $this->assertStringContainsString('includeSubDomains', $hsts);
     }
 
-    /** @test */
+    #[Test]
     public function it_does_not_add_hsts_header_in_development()
     {
         $this->app->detectEnvironment(function () {
@@ -129,7 +130,7 @@ class SecurityHeadersTest extends TestCase
         $this->assertNull($response->headers->get('Strict-Transport-Security'));
     }
 
-    /** @test */
+    #[Test]
     public function it_removes_sensitive_headers()
     {
         $request = Request::create('/test', 'GET');
@@ -146,7 +147,7 @@ class SecurityHeadersTest extends TestCase
         $this->assertNull($response->headers->get('Server'));
     }
 
-    /** @test */
+    #[Test]
     public function it_includes_development_csp_rules_in_local_environment()
     {
         $this->app->detectEnvironment(function () {
@@ -164,7 +165,7 @@ class SecurityHeadersTest extends TestCase
         $this->assertStringContainsString('127.0.0.1', $csp);
     }
 
-    /** @test */
+    #[Test]
     public function it_does_not_include_development_csp_rules_in_production()
     {
         $this->app->detectEnvironment(function () {
@@ -181,7 +182,7 @@ class SecurityHeadersTest extends TestCase
         $this->assertStringNotContainsString('localhost', $csp);
     }
 
-    /** @test */
+    #[Test]
     public function it_allows_all_headers_to_coexist()
     {
         $request = Request::create('/test', 'GET');

@@ -6,6 +6,7 @@ use App\Models\Instansi;
 use App\Models\Permission;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -43,7 +44,7 @@ class DataCollectionControllerTest extends TestCase
         $this->user->givePermissionTo('enter-and-submit-data-records');
     }
 
-    /** @test */
+    #[Test]
     public function index_returns_200()
     {
         $this->actingAs($this->user);
@@ -52,7 +53,7 @@ class DataCollectionControllerTest extends TestCase
         $response->assertOk();
     }
 
-    /** @test */
+    #[Test]
     public function create_returns_200()
     {
         $this->actingAs($this->user);

@@ -21,7 +21,12 @@ use Tests\TestCase;
  */
 class FloorGuardTest extends TestCase
 {
-    /** Suppression tokens that may appear in no scanned file (`CONSTRAINTS.md` §3 rule 1). */
+    /**
+     * Suppression tokens that may appear in no scanned file (`CONSTRAINTS.md` §3 rule 1).
+     *
+     * Skip allow-list: none. Backlog F1 (the two skipped rate-limit cases) is closed as of
+     * 2026-09-26, so `markTestSkipped` is now forbidden in every scanned file as well.
+     */
     private const FORBIDDEN_SUPPRESSIONS = [
         '@phpstan-ignore',
         '@noinspection',
@@ -29,6 +34,21 @@ class FloorGuardTest extends TestCase
         'eslint-disable',
         '@ts-ignore',
         'noqa',
+    ];
+
+    /**
+     * Doc-comment test metadata: deprecated in PHPUnit 11 and removed in PHPUnit 12 (backlog F2).
+     *
+     * The 63 occurrences migrated on 2026-09-26 were all the test marker written inside a doc-comment
+     * block; the wider annotation list below is scanned so none of the family can creep back.
+     */
+    private const DEPRECATED_DOC_METADATA = [
+        '@test',
+        '@dataProvider',
+        '@group',
+        '@depends',
+        '@covers',
+        '@requires',
     ];
 
     /** @var array<string, string>|null */
@@ -89,6 +109,34 @@ class FloorGuardTest extends TestCase
             [],
             $skips,
             'A skipped test appeared. Fix the test instead of skipping it (CONSTRAINTS.md §3 rule 3): backlog F1 is closed, so no allow-list remains.',
+        );
+    }
+
+    /**
+     * F2 — test metadata belongs to PHPUnit attributes, never to doc-comments.
+     *
+     * Doc-comment metadata is deprecated in PHPUnit 11 and removed in PHPUnit 12. The repository
+     * carried 63 such annotation blocks; they were migrated to the `#[Test]` attribute on 2026-09-26,
+     * and this case keeps the count at zero so the deprecation never returns. The annotation names
+     * it forbids are listed in DEPRECATED_DOC_METADATA — deliberately not restated here, because a
+     * doc-comment method block containing one of them is itself the deprecated form.
+     */
+    public function test_no_doc_comment_test_metadata_remains(): void
+    {
+        $offenders = [];
+
+        foreach ($this->scannedFiles() as $relative => $contents) {
+            foreach (self::DEPRECATED_DOC_METADATA as $token) {
+                if (preg_match('/\/\*\*(?:(?!\*\/).)*'.preg_quote($token, '/').'(?:(?!\*\/).)*\*\//s', $contents)) {
+                    $offenders[] = $relative.' -> '.$token;
+                }
+            }
+        }
+
+        $this->assertSame(
+            [],
+            $offenders,
+            'Test metadata must use PHPUnit attributes (#[Test], #[DataProvider], …): doc-comment metadata is removed in PHPUnit 12.',
         );
     }
 

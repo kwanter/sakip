@@ -7,13 +7,14 @@ use App\Models\Permission;
 use App\Models\Report;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class ReportIndexRendersTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test */
+    #[Test]
     public function report_index_page_does_not_500()
     {
         Permission::firstOrCreate(['name' => 'sakip.reports.view']);

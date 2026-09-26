@@ -8,6 +8,7 @@ use App\Models\Target;
 use App\Models\User;
 use App\Services\SakipValidationService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class SakipValidationServiceTest extends TestCase
@@ -25,7 +26,7 @@ class SakipValidationServiceTest extends TestCase
         $this->user = User::factory()->create();
     }
 
-    /** @test */
+    #[Test]
     public function it_validates_performance_data_successfully()
     {
         $indicator = PerformanceIndicator::factory()->create();
@@ -50,7 +51,7 @@ class SakipValidationServiceTest extends TestCase
         $this->assertEmpty($result['errors']);
     }
 
-    /** @test */
+    #[Test]
     public function it_rejects_performance_data_without_target()
     {
         $indicator = PerformanceIndicator::factory()->create();
@@ -68,7 +69,7 @@ class SakipValidationServiceTest extends TestCase
         $this->assertNotEmpty($result['errors']);
     }
 
-    /** @test */
+    #[Test]
     public function it_validates_target_data_successfully()
     {
         $indicator = PerformanceIndicator::factory()->create();
@@ -87,7 +88,7 @@ class SakipValidationServiceTest extends TestCase
         $this->assertEmpty($result['errors']);
     }
 
-    /** @test */
+    #[Test]
     public function it_detects_data_integrity_issues()
     {
         $indicator = PerformanceIndicator::factory()->create();
@@ -103,7 +104,7 @@ class SakipValidationServiceTest extends TestCase
         $this->assertNotEmpty($result['issues']);
     }
 
-    /** @test */
+    #[Test]
     public function it_validates_quarterly_target_consistency()
     {
         $indicator = PerformanceIndicator::factory()->create();
