@@ -141,7 +141,7 @@ F-10 A non-submitted report (1), F-11 B submitted reports (2), F-12 trashed pare
 
 ## 7. Floor-Guard Pre-Flight Checks
 
-- [x] No `.skip`, `@skip`, `markTestSkipped` or `markTestIncomplete` in the four new seam files — CONSTRAINTS §3 rule 3 *(now enforced automatically for the whole repository by TC-070 / `FloorGuardTest`, which pins `markTestSkipped` to the two documented backlog F1 cases in `RateLimitingTest` and forbids `markTestIncomplete` everywhere)*
+- [x] No `.skip`, `@skip`, `markTestSkipped` or `markTestIncomplete` in the four new seam files — CONSTRAINTS §3 rule 3 *(enforced automatically for the whole repository by TC-070 / `FloorGuardTest`; since backlog F1 closed on 2026-09-26 the allow-list is empty, so `markTestSkipped` is forbidden everywhere just as `markTestIncomplete` always was)*
 - [x] No suppression comment (`@phpstan-ignore`, `@noinspection`, `phpcs:ignore`, `@ts-ignore`) in any changed file — rule 1
 - [x] No existing assertion deleted or weakened; the seven regression suites of §5 unchanged where they pass today — rule 2
 - [x] No tautological case: each S1/S2 case is spot-checked by mutating its subject line (mutating the `(int)` cast must break TC-008; reversing the precedence must break TC-010/TC-011) — rule 4

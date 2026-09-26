@@ -113,27 +113,32 @@ class RateLimitingTest extends TestCase
     /** @test */
     public function rate_limit_resets_after_time_window()
     {
-        $this->markTestSkipped('Flaky: relies on real-time rate-limiter state across requests.');
-        // This test demonstrates the concept but may not work in real-time
-        // In production, you'd use Carbon::setTestNow() or similar
+        // F1 closed (retro 2026-09-26). The previous version cleared the key `login:email|ip`, but
+        // ThrottleRequests namespaces and hashes named-limiter keys (`md5($limiterName.$limit->key)`,
+        // vendor/laravel/framework/src/Illuminate/Routing/Middleware/ThrottleRequests.php:134), so
+        // that call never matched the live key and the window never reset — the case was skipped as
+        // "flaky" rather than wrong. Travelling past the decay is key-agnostic and tests the stated
+        // property directly: the limiter must release the account once its window has elapsed.
+        // (The clears in setUp() above are no-ops for the same reason; they are left untouched as
+        // pre-existing code outside this fix.)
+        $payload = ['email' => 'test@example.com', 'password' => 'wrongpassword'];
 
+        // Exhaust the window: 5 attempts per minute per email + IP.
         for ($i = 0; $i < 5; $i++) {
-            $this->post('/login', [
-                'email' => 'test@example.com',
-                'password' => 'wrongpassword',
-            ]);
+            $this->assertNotEquals(429, $this->post('/login', $payload)->status());
         }
 
-        // Clear the rate limiter to simulate time passing
-        RateLimiter::clear('login:'.strtolower('test@example.com').'|'.request()->ip());
+        // While the window is open, the sixth attempt is refused.
+        $this->assertSame(429, $this->post('/login', $payload)->status());
 
-        // Should be able to attempt again
-        $response = $this->post('/login', [
-            'email' => 'test@example.com',
-            'password' => 'wrongpassword',
-        ]);
+        // Once the minute has elapsed the same account may attempt again.
+        $this->travel(2)->minutes();
 
-        $this->assertNotEquals(429, $response->status());
+        $this->assertNotEquals(
+            429,
+            $this->post('/login', $payload)->status(),
+            'the limiter must release the account after its window elapses',
+        );
     }
 
     /** @test */
@@ -184,21 +189,23 @@ class RateLimitingTest extends TestCase
     }
 
     /** @test */
-    public function guest_users_have_separate_rate_limit()
+    public function guest_requests_to_the_root_route_are_redirected_and_never_throttled()
     {
-        $this->markTestSkipped('Flaky: 31 requests hitting / redirect to login (302) instead of 429.');
-        // Guest users are rate limited by IP
-        // Make sure guest limit is lower than authenticated users
-
-        for ($i = 0; $i < 31; $i++) {
+        // Characterisation pin (F1 closed, retro 2026-09-26). The case's original premise — "guest
+        // limit is 30 per minute" — described the `guest` limiter declared in
+        // App\Providers\RateLimitServiceProvider, but no route attaches it: routes/web.php carries
+        // `throttle:login`, `throttle:email_verification` and `throttle:60,1` only. Guests therefore
+        // reach `/` unthrottled and are redirected to the login page. This pin states that reality, so
+        // wiring `throttle:guest` (a product decision) deliberately breaks it and forces an update
+        // here instead of shipping silently. Follow-up: retro action A10.
+        for ($i = 1; $i <= 31; $i++) {
             $response = $this->get('/');
 
-            if ($i < 30) {
-                // Guest limit is 30 per minute
-                $this->assertNotEquals(429, $response->status());
-            } else {
-                $response->assertStatus(429);
-            }
+            $this->assertSame(
+                302,
+                $response->status(),
+                "guest request {$i} must stay a redirect to login, never 429",
+            );
         }
     }
 

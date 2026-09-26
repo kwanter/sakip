@@ -31,9 +31,6 @@ class FloorGuardTest extends TestCase
         'noqa',
     ];
 
-    /** The only file allowed to skip a test, and only for the two cases backlog F1 records. */
-    private const SKIP_ALLOW_LIST = 'tests/Feature/RateLimitingTest.php';
-
     /** @var array<string, string>|null */
     private ?array $scanned = null;
 
@@ -66,7 +63,12 @@ class FloorGuardTest extends TestCase
         );
     }
 
-    /** TC-070 — no test is skipped or marked incomplete outside the documented backlog. */
+    /**
+     * TC-070 — no test is skipped or marked incomplete anywhere.
+     *
+     * The skip allow-list is empty as of 2026-09-26: backlog F1 (the two skipped rate-limit cases)
+     * is closed, so `markTestSkipped` is forbidden in every scanned file, not only in the seam files.
+     */
     public function test_no_test_is_skipped_outside_the_documented_backlog(): void
     {
         $skips = [];
@@ -84,9 +86,9 @@ class FloorGuardTest extends TestCase
 
         $this->assertSame([], $incompletes, 'markTestIncomplete is never acceptable (CONSTRAINTS.md §3 rule 3).');
         $this->assertSame(
-            [self::SKIP_ALLOW_LIST => 2],
+            [],
             $skips,
-            'A skipped test appeared or disappeared. Fix the test, or record the backlog item it belongs to — never silence it.',
+            'A skipped test appeared. Fix the test instead of skipping it (CONSTRAINTS.md §3 rule 3): backlog F1 is closed, so no allow-list remains.',
         );
     }
 

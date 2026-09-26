@@ -1,7 +1,7 @@
 # SAKIP Docker Makefile
 # Convenient commands for Docker operations
 
-.PHONY: help build up down restart logs shell db migrate seed cache clear optimize
+.PHONY: help build up down restart logs shell db migrate seed cache clear optimize test-local test-unit-local lint-local gates-local php-version
 
 # Default target
 help:
@@ -22,6 +22,8 @@ help:
 	@echo "  make optimize     - Optimize for production"
 	@echo "  make test         - Run tests"
 	@echo "  make lint         - Run code style check"
+	@echo "  make gates-local  - Local quality gates without Docker (pint + test --profile)"
+	@echo "  make php-version  - Show the resolved local PHP binary"
 	@echo "  make backup       - Backup database"
 	@echo "  make restore      - Restore database (FILE=backup.sql)"
 	@echo "  make clean        - Remove all containers, volumes, and images"
@@ -150,3 +152,28 @@ queue-monitor:
 telescope:
 	docker-compose exec app php artisan telescope:install
 	docker-compose exec app php artisan migrate
+
+# ---------------------------------------------------------------------------
+# Local toolchain (no Docker) — resolved PHP binary
+# ---------------------------------------------------------------------------
+# Non-interactive shells (agent tooling, CI hooks) do not source ~/.zshrc, so `php`
+# can be missing from PATH even though the interactive shell resolves it. Every local
+# gate below therefore runs through an explicitly resolved binary.
+# Recorded in CONSTRAINTS.md §2 (retro 2026-09-26, action A1).
+PHP ?= $(shell command -v php 2>/dev/null || echo /opt/homebrew/opt/php@8.3/bin/php)
+
+php-version:
+	@$(PHP) -v | head -1
+
+# Local tests (mirrors CONSTRAINTS.md §2); --profile lists the 10 slowest tests (action A3)
+test-local:
+	$(PHP) artisan config:clear
+	$(PHP) artisan test --profile
+
+test-unit-local:
+	$(PHP) artisan test --testsuite=Unit
+
+lint-local:
+	$(PHP) vendor/bin/pint --test --no-interaction
+
+gates-local: lint-local test-local
