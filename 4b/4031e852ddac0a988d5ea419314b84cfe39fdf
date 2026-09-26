@@ -1,0 +1,22 @@
+app/Providers/RateLimitServiceProvider.php
+  h_00672522f4dbdd 189-193
+docs/ARCHITECTURE.md
+  h_00672522f4dbdd 176
+docs/retro/retro-admin-triage-landing-2026-09-26.md
+  h_00672522f4dbdd 154,161
+routes/web.php
+  h_00672522f4dbdd 27,57,63,68
+tests/Feature/RateLimitingTest.php
+  h_00672522f4dbdd 193,195-200,203-220
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "4b4031e852ddac0a988d5ea419314b84cfe39fdf",
+  "prompts": {},
+  "humans": {
+    "h_00672522f4dbdd": {
+      "author": "ragrin <kwanterpepen@gmail.com>"
+    }
+  }
+}
