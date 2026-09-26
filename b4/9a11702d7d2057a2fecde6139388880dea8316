@@ -1,0 +1,14 @@
+docs/checklist/checklist-admin-triage-landing.md
+  h_00672522f4dbdd 5,7,26-39,43-56,60-88,92-94,98-108,143-155,163,171,176-178
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b49a11702d7d2057a2fecde6139388880dea8316",
+  "prompts": {},
+  "humans": {
+    "h_00672522f4dbdd": {
+      "author": "ragrin <kwanterpepen@gmail.com>"
+    }
+  }
+}
