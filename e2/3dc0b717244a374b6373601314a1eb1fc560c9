@@ -1,0 +1,22 @@
+docs/explanation/explanation-triage-landing-decisions.md
+  h_00672522f4dbdd 1-148
+docs/how-to/how-to-add-a-queue-figure-to-the-triage-landing.md
+  h_00672522f4dbdd 1-214
+docs/how-to/how-to-configure-the-active-reporting-year.md
+  h_00672522f4dbdd 1-139
+docs/reference/ref-admin-triage-landing.md
+  h_00672522f4dbdd 1-385
+docs/tutorials/tutorial-observe-the-triage-figures.md
+  h_00672522f4dbdd 1-312
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e23dc0b717244a374b6373601314a1eb1fc560c9",
+  "prompts": {},
+  "humans": {
+    "h_00672522f4dbdd": {
+      "author": "ragrin <kwanterpepen@gmail.com>"
+    }
+  }
+}
