@@ -173,7 +173,7 @@ flowchart TD
 - **App Initialization:** `public/index.php` bootstraps the framework; `bootstrap/app.php` configures routing, middleware, and exception handling.
 - **HTTP Routing:** `routes/web.php` (auth, profile, admin, utility pages) `require`s `routes/web_sakip.php` (all `/sakip/*` resources, workflow routes, and `/sakip/api/*` AJAX endpoints). `routes/api.php` exposes only `/api/health` and `/api/csp-reports`.
 - **Authorization Entry:** `app/Providers/AppServiceProvider.php` binds model policies and registers the CSP nonce singleton.
-- **Rate Limiting Entry:** `app/Providers/RateLimitServiceProvider.php` defines the `login` and `api_strict` limiters used by the throttle aliases.
+- **Rate Limiting Entry:** `app/Providers/RateLimitServiceProvider.php` defines the `login`, `guest`, and `api_strict` limiters. The throttle aliases map `throttle.login` and `throttle.api.strict`; `throttle:guest` (30/min per IP, answering `Limit::none()` for a resolved user) guards the guest-facing routes `/`, `GET /login`, `POST /login` and `POST /logout`.
 - **CLI Entry:** `artisan`, with commands defined in `app/Console/Commands/` and `routes/console.php`.
 - **Navigation Entry:** `/` redirects guests to `login`, unverified users to `verification.notice`, and verified users to `sakip.dashboard`; `/admin/dashboard` is the admin landing surface.
 

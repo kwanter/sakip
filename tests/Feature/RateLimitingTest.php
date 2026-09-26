@@ -190,22 +190,34 @@ class RateLimitingTest extends TestCase
     }
 
     #[Test]
-    public function guest_requests_to_the_root_route_are_redirected_and_never_throttled()
+    public function guest_requests_to_the_root_route_are_rate_limited_per_ip()
     {
-        // Characterisation pin (F1 closed, retro 2026-09-26). The case's original premise — "guest
-        // limit is 30 per minute" — described the `guest` limiter declared in
-        // App\Providers\RateLimitServiceProvider, but no route attaches it: routes/web.php carries
-        // `throttle:login`, `throttle:email_verification` and `throttle:60,1` only. Guests therefore
-        // reach `/` unthrottled and are redirected to the login page. This pin states that reality, so
-        // wiring `throttle:guest` (a product decision) deliberately breaks it and forces an update
-        // here instead of shipping silently. Follow-up: retro action A10.
-        for ($i = 1; $i <= 31; $i++) {
+        // A10 (retro 2026-09-26). This replaces the characterisation pin that documented the gap:
+        // RateLimitServiceProvider has always declared "Global rate limit for unauthenticated users:
+        // 30 per minute", but no route carried `throttle:guest`, so guests were throttled nowhere
+        // except the login and email-verification surfaces. The product owner accepted the trade-off
+        // on 2026-09-26: 30 requests per minute per IP also caps legitimate guests behind a shared NAT.
+        for ($i = 1; $i <= 30; $i++) {
             $response = $this->get('/');
 
-            $this->assertSame(
-                302,
-                $response->status(),
-                "guest request {$i} must stay a redirect to login, never 429",
+            $this->assertSame(302, $response->status(), "guest request {$i} must still reach the login redirect");
+        }
+
+        $this->assertSame(
+            429,
+            $this->get('/')->status(),
+            'the 31st guest request must exhaust the 30-per-minute guest budget',
+        );
+
+        // An authenticated user is not guest traffic: the limiter answers Limit::none() for a
+        // resolved user, so the same IP keeps working on the same route.
+        $user = User::factory()->create(['email_verified_at' => now()]);
+
+        for ($i = 1; $i <= 35; $i++) {
+            $this->assertNotEquals(
+                429,
+                $this->actingAs($user)->get('/')->status(),
+                "authenticated request {$i} must never consume the guest budget",
             );
         }
     }

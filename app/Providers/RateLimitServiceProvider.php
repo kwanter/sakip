@@ -186,6 +186,11 @@ class RateLimitServiceProvider extends ServiceProvider
 
         // Global rate limit for unauthenticated users: 30 per minute
         RateLimiter::for('guest', function (Request $request) {
+            // A resolved user is not guest traffic and must never consume the guest budget (A10).
+            if ($request->user() !== null) {
+                return Limit::none();
+            }
+
             return Limit::perMinute(30)->by($request->ip());
         });
 

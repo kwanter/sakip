@@ -24,7 +24,7 @@ Route::get('/', function () {
 
     // Authenticated and verified: go to SAKIP dashboard
     return redirect()->route('sakip.dashboard'); // Verified → SAKIP
-})->name('home');
+})->middleware('throttle:guest')->name('home');
 
 // Dashboard Route - redirects to appropriate dashboard based on role
 Route::get('/dashboard', function () {
@@ -54,18 +54,18 @@ Route::get('/login', [
     \App\Http\Controllers\Auth\LoginController::class,
     'show',
 ])
-    ->middleware('guest')
+    ->middleware(['guest', 'throttle:guest'])
     ->name('login');
 Route::post('/login', [
     \App\Http\Controllers\Auth\LoginController::class,
     'login',
 ])
-    ->middleware('throttle:login')
+    ->middleware(['throttle:login', 'throttle:guest'])
     ->name('auth.login');
 Route::post('/logout', [
     \App\Http\Controllers\Auth\LogoutController::class,
     'logout',
-])->name('logout');
+])->middleware('throttle:guest')->name('logout');
 
 // Email verification routes
 Route::middleware('auth')->group(function () {
