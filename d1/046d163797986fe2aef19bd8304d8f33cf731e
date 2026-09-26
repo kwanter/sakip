@@ -1,0 +1,14 @@
+plan/plan-refactor-admin-triage-landing-v1.0.md
+  h_00672522f4dbdd 159-167
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d1046d163797986fe2aef19bd8304d8f33cf731e",
+  "prompts": {},
+  "humans": {
+    "h_00672522f4dbdd": {
+      "author": "ragrin <kwanterpepen@gmail.com>"
+    }
+  }
+}
