@@ -1,0 +1,20 @@
+docs/checklist/checklist-admin-triage-landing.md
+  h_00672522f4dbdd 5,7,89,174,177,179
+docs/prd/prd-admin-triage-landing.md
+  h_00672522f4dbdd 220-222,242-246
+docs/review/code-review-admin-triage-landing-2026-09-25.md
+  h_00672522f4dbdd 308,310-313,315-319,325,328-345
+spec/spec-admin-triage-landing.md
+  h_00672522f4dbdd 3,6,53-57,450-453,674,876-878
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "672f42f9fc74af69ec89ce615a1100ee555d9ecf",
+  "prompts": {},
+  "humans": {
+    "h_00672522f4dbdd": {
+      "author": "ragrin <kwanterpepen@gmail.com>"
+    }
+  }
+}
