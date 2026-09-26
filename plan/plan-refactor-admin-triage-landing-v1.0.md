@@ -156,15 +156,15 @@ tags: ["refactor", "clean-code", "architecture", "security", "tdd", "traceabilit
 
 ## 6. Definition of Done
 
-- [ ] `AC-028` is referenced by a passing S3 case, and the Checklist's TC-045 box is ticked.
-- [ ] `data-triage-period-select` renders exactly once inside the triage region and is asserted.
-- [ ] The Spec states the delivered badge ownership, the delivered budget (`5 / 6 / 1`) and the discharged obligations, so no reader can re-derive a stale fact from §4.4, §4.5 or §9.4.
-- [ ] `docs/ARCHITECTURE.md` reports 135 / 9 / 14 with no contradictory duplicate, and §10 lists S1–S4.
-- [ ] `tests/Unit/FloorGuardTest.php` exists and is falsifiable (proven by a reverted mutation).
-- [ ] `SAKIP_ACTIVE_YEAR` values that are non-numeric, zero, negative, fractional or out of range fall back to the clock, each covered by an S1 case.
-- [ ] `ReportingPeriod::isYearScoped()` is either consumed with a documented rationale or absent from both the class and Spec §4.1.
-- [ ] Full suite green with **more** assertions than the 656 baseline, 0 new skips, Pint clean, Unit runtime recorded, coverage reported **unverified**.
-- [ ] Phase-4 decisions (long-name criterion, three manual measurements, inventory reconciliation) are recorded in the PRD, the review artifact and the Checklist.
+- [x] `AC-028` is referenced by a passing S3 case, and the Checklist's TC-045 box is ticked.
+- [x] `data-triage-period-select` renders exactly once inside the triage region and is asserted.
+- [x] The Spec states the delivered badge ownership, the delivered budget (`5 / 6 / 1`) and the discharged obligations, so no reader can re-derive a stale fact from §4.4, §4.5 or §9.4.
+- [x] `docs/ARCHITECTURE.md` reports 135 / 9 / 14 with no contradictory duplicate, and §10 lists S1–S4.
+- [x] `tests/Unit/FloorGuardTest.php` exists and is falsifiable (proven by a reverted mutation).
+- [x] `SAKIP_ACTIVE_YEAR` values that are non-numeric, zero, negative, fractional or out of range fall back to the clock, each covered by an S1 case.
+- [x] `ReportingPeriod::isYearScoped()` is either consumed with a documented rationale or absent from both the class and Spec §4.1.
+- [x] Full suite green with **more** assertions than the 656 baseline, 0 new skips, Pint clean, Unit runtime recorded, coverage reported **unverified**.
+- [x] Phase-4 decisions (long-name criterion, three manual measurements, inventory reconciliation) are recorded in the PRD, the review artifact and the Checklist.
 
 **Handoff:** `/tdd-write-code` executes this plan phase by phase; after the final approval, `/tdd-generate-docs` and `/tdd-retro` close the feature.
 
