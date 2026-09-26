@@ -928,6 +928,18 @@ body {
     color: var(--gray-700);
 }
 
+/* The Cakupan Instansi chip (PRD §5.3 "Long agency names"): a long agency name truncates with an
+   ellipsis instead of wrapping or reflowing. 49ch is the 9-character "Cakupan: " prefix plus the
+   40-character name threshold; `title` on the chip keeps the untruncated name retrievable. */
+.triage-scope-chip {
+    display: inline-block;
+    max-width: 49ch;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: bottom;
+}
+
 /* Status Pills */
 .status-pill {
     display: inline-flex;

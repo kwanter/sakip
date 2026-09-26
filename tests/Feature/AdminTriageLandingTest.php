@@ -263,6 +263,33 @@ class AdminTriageLandingTest extends TestCase
         $this->assertStringContainsString('Cakupan: Semua Instansi', $crossContent);
     }
 
+    /**
+     * TC-072 / PRD §5.3 "Long agency names" + review `SPEC-B-06` — the scope chip is wired to truncate a
+     * long agency name with an ellipsis instead of wrapping, without losing the value.
+     *
+     * The ellipsis itself is CSS and this repository installs no browser harness, so what CI can pin is
+     * the markup contract that makes it true: the chip carries the truncation class and exposes the
+     * untruncated name through `title`. The rendered appearance stays a manual check (review artifact §7).
+     */
+    public function test_long_agency_name_is_wired_for_ellipsis_truncation(): void
+    {
+        $longName = 'Dinas Pengelolaan Kinerja dan Keuangan Daerah Provinsi Sulawesi';
+        $this->assertGreaterThan(40, strlen($longName), 'the fixture must exceed the PRD threshold');
+
+        $agency = Instansi::factory()->create(['nama_instansi' => $longName]);
+
+        $content = $this->actingAs($this->permittedViewerFor($agency))
+            ->get(route('admin.dashboard'))
+            ->getContent();
+
+        preg_match('/<span[^>]*data-triage-scope-label[^>]*>/', $content, $chip);
+        $this->assertNotSame('', $chip[0] ?? '', 'the scope chip must be rendered');
+
+        $this->assertStringContainsString('triage-scope-chip', $chip[0], 'the chip must carry the truncation class');
+        $this->assertStringContainsString('title="'.$longName.'"', $chip[0], 'the untruncated name must stay retrievable');
+        $this->assertStringContainsString('Cakupan: '.$longName, $content, 'the name must not be cut server-side');
+    }
+
     /** TC-034 / AC-014 — an unassigned viewer sees its own handle, three zeros, no `Semua Instansi`. */
     public function test_unassigned_viewer_renders_its_handle_with_zero_figures(): void
     {
