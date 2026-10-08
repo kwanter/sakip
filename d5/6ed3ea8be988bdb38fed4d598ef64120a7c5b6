@@ -1,0 +1,98 @@
+resources/views/layouts/app.blade.php
+  s_be43ca4cd591e8::t_578cfdaad1937d 9,325
+resources/views/sakip/reports/index.blade.php
+  s_be43ca4cd591e8::t_9d4b94c3200a72 184
+  s_be43ca4cd591e8::t_acb68f43dd28b1 5-6
+resources/views/sakip/data-collection/edit.blade.php
+  s_be43ca4cd591e8::t_acb68f43dd28b1 5-6
+  s_be43ca4cd591e8::t_9d4b94c3200a72 243
+resources/views/sakip/indicators/edit.blade.php
+  s_be43ca4cd591e8::t_acb68f43dd28b1 5-6
+  s_be43ca4cd591e8::t_9d4b94c3200a72 409
+resources/views/sakip/program/index.blade.php
+  s_be43ca4cd591e8::t_acb68f43dd28b1 5-6
+app/Http/Middleware/SecurityHeadersMiddleware.php
+  s_be43ca4cd591e8::t_30d3f9e77fa5d7 19-23
+  s_be43ca4cd591e8::t_539aee252a88ee 18,24-25,87-88,109-113,117-118,120
+resources/views/sakip/indicators/show.blade.php
+  s_be43ca4cd591e8::t_9d4b94c3200a72 370
+resources/views/sakip/reports/create.blade.php
+  s_be43ca4cd591e8::t_9d4b94c3200a72 260
+  s_be43ca4cd591e8::t_acb68f43dd28b1 5-6
+resources/views/sakip/instansi/edit.blade.php
+  s_be43ca4cd591e8::t_acb68f43dd28b1 5-6
+resources/views/sakip/program/edit.blade.php
+  s_be43ca4cd591e8::t_9d4b94c3200a72 230
+  s_be43ca4cd591e8::t_acb68f43dd28b1 5-6
+resources/views/sakip/audit/index.blade.php
+  s_be43ca4cd591e8::t_9d4b94c3200a72 271
+  s_be43ca4cd591e8::t_acb68f43dd28b1 5-6
+resources/views/sakip/sasaran-strategis/create.blade.php
+  s_be43ca4cd591e8::t_acb68f43dd28b1 5-6
+resources/views/admin/settings/index.blade.php
+  s_be43ca4cd591e8::t_9d4b94c3200a72 223
+resources/views/sakip/data-collection/import.blade.php
+  s_be43ca4cd591e8::t_9d4b94c3200a72 248
+resources/views/sakip/sasaran-strategis/show.blade.php
+  s_be43ca4cd591e8::t_acb68f43dd28b1 5-6
+resources/views/sakip/sasaran-strategis/index.blade.php
+  s_be43ca4cd591e8::t_acb68f43dd28b1 5-6
+resources/views/sakip/indicators/index.blade.php
+  s_be43ca4cd591e8::t_acb68f43dd28b1 5-6
+  s_be43ca4cd591e8::t_9d4b94c3200a72 180
+resources/views/sakip/data-collection/index.blade.php
+  s_be43ca4cd591e8::t_acb68f43dd28b1 5-6
+  s_be43ca4cd591e8::t_9d4b94c3200a72 168
+resources/views/sakip/program/create.blade.php
+  s_be43ca4cd591e8::t_acb68f43dd28b1 5-6
+  s_be43ca4cd591e8::t_9d4b94c3200a72 228
+resources/views/sakip/assessments/index.blade.php
+  s_be43ca4cd591e8::t_9d4b94c3200a72 185
+  s_be43ca4cd591e8::t_acb68f43dd28b1 5-6
+resources/views/sakip/program/show.blade.php
+  s_be43ca4cd591e8::t_acb68f43dd28b1 5-6
+resources/views/layouts/modern.blade.php
+  s_be43ca4cd591e8::t_3c22dbd2dfbe58 9
+  s_be43ca4cd591e8::t_578cfdaad1937d 329
+resources/views/sakip/assessments/create.blade.php
+  s_be43ca4cd591e8::t_acb68f43dd28b1 5-6
+  s_be43ca4cd591e8::t_9d4b94c3200a72 225
+resources/views/sakip/targets/index.blade.php
+  s_be43ca4cd591e8::t_9d4b94c3200a72 208
+resources/views/sakip/indicators/create.blade.php
+  s_be43ca4cd591e8::t_acb68f43dd28b1 5-6
+  s_be43ca4cd591e8::t_9d4b94c3200a72 486
+resources/views/sakip/dashboard/index.blade.php
+  s_be43ca4cd591e8::t_acb68f43dd28b1 5-6
+resources/views/sakip/instansi/index.blade.php
+  s_be43ca4cd591e8::t_acb68f43dd28b1 5-6
+resources/views/sakip/instansi/show.blade.php
+  s_be43ca4cd591e8::t_acb68f43dd28b1 5-6
+resources/views/sakip/instansi/create.blade.php
+  s_be43ca4cd591e8::t_acb68f43dd28b1 5-6
+resources/views/sakip/sasaran-strategis/edit.blade.php
+  s_be43ca4cd591e8::t_acb68f43dd28b1 5-6
+resources/views/sakip/data-collection/create.blade.php
+  s_be43ca4cd591e8::t_9d4b94c3200a72 304
+  s_be43ca4cd591e8::t_acb68f43dd28b1 5-6
+public/css/modern-sakip.css
+  s_be43ca4cd591e8::t_60f8ec96fdf566 2343-2413
+resources/views/sakip/dashboard/collector.blade.php
+  s_be43ca4cd591e8::t_9d4b94c3200a72 241
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d56ed3ea8be988bdb38fed4d598ef64120a7c5b6",
+  "prompts": {},
+  "sessions": {
+    "s_be43ca4cd591e8": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f51ecae26ffejMAbzhCaK3y0eO",
+        "model": "unknown"
+      },
+      "human_author": "ragrin <kwanterpepen@gmail.com>"
+    }
+  }
+}
