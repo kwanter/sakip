@@ -1,0 +1,27 @@
+resources/views/sakip/legal/privacy-policy.blade.php
+  s_be43ca4cd591e8::t_79412a630ab08c 8
+resources/views/sakip/profile/show.blade.php
+  s_be43ca4cd591e8::t_5a0f1d4eeb2045 13-14
+resources/views/sakip/legal/accessibility.blade.php
+  s_be43ca4cd591e8::t_79412a630ab08c 8
+resources/views/sakip/legal/disclaimer.blade.php
+  s_be43ca4cd591e8::t_79412a630ab08c 8
+resources/views/sakip/legal/terms-of-service.blade.php
+  s_be43ca4cd591e8::t_79412a630ab08c 8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8cb3a0d558a34add61873ec50122476de7b6e880",
+  "prompts": {},
+  "sessions": {
+    "s_be43ca4cd591e8": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f51ecae26ffejMAbzhCaK3y0eO",
+        "model": "unknown"
+      },
+      "human_author": "ragrin <kwanterpepen@gmail.com>"
+    }
+  }
+}
