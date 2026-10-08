@@ -7,17 +7,20 @@
    DESIGN TOKENS
    ======================== */
 :root {
-    /* Primary Colors - Modern Blue Palette */
-    --primary-50: #eff6ff;
-    --primary-100: #dbeafe;
-    --primary-200: #bfdbfe;
-    --primary-300: #93c5fd;
-    --primary-400: #60a5fa;
-    --primary-500: #3b82f6;  /* Main primary */
-    --primary-600: #2563eb;
-    --primary-700: #1d4ed8;
+    /* Primary Colors - Genesis Indigo (design.md: #6366F1 interactive only) */
+    --primary-50: #eef2ff;
+    --primary-100: #e0e7ff;
+    --primary-200: #c7d2fe;
+    --primary-300: #a5b4fc;
+    --primary-400: #818cf8;
+    --primary-500: #6366f1;  /* Genesis Primary */
+    --primary-600: #4f46e5;  /* Genesis Primary Hover */
+    --primary-700: #4338ca;
 
-    /* Semantic Colors */
+    /* Brand accent - Genesis Secondary, reserved for brand highlights only */
+    --brand: #20970b;
+
+    /* Semantic Colors (Genesis) */
     --success: #10b981;
     --success-light: #d1fae5;
     --warning: #f59e0b;
@@ -28,45 +31,48 @@
     --info-light: #cffafe;
 
     /* Neutral Colors */
-    --gray-50: #f9fafb;
+    --gray-50: #fafafa;
     --gray-100: #f3f4f6;
-    --gray-200: #e5e7eb;
+    --gray-200: #e8e8ec;
     --gray-300: #d1d5db;
-    --gray-400: #9ca3af;
-    --gray-500: #6b7280;
+    --gray-400: #9c9c9c;  /* Genesis Neutral: muted text, placeholders, disabled */
+    --gray-500: #6b6b6b;
     --gray-600: #4b5563;
     --gray-700: #374151;
     --gray-800: #1f2937;
-    --gray-900: #111827;
+    --gray-900: #0a0a0a;
 
-    /* Background & Surface */
-    --bg-primary: #f8fafc;
+    /* Background & Surface (Genesis) */
+    --bg-primary: #fafafa;
     --bg-surface: #ffffff;
     --bg-sidebar: #ffffff;
     --bg-card: #ffffff;
 
-    /* Text Colors */
-    --text-primary: #0f172a;
-    --text-secondary: #475569;
-    --text-tertiary: #94a3b8;
+    /* Text Colors (Genesis) */
+    --text-primary: #0a0a0a;
+    --text-secondary: #6b6b6b;
+    --text-tertiary: #9c9c9c;
     --text-inverse: #ffffff;
 
-    /* Border Colors */
-    --border-light: #e2e8f0;
-    --border-medium: #cbd5e1;
+    /* Border Colors (Genesis: subtle and recessive) */
+    --border-light: #e8e8ec;
+    --border-medium: #d4d4d9;
 
-    /* Shadows */
+    /* Shadows (Genesis: minimal; elevation reserved for hover/focus) */
     --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
     --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
     --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
     --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
     --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    --shadow-card-hover: 0 8px 30px rgba(0, 0, 0, 0.08);
+    --shadow-primary-glow: 0 4px 12px rgba(99, 102, 241, 0.35);
+    --focus-ring: 0 0 0 3px rgba(99, 102, 241, 0.12);
 
-    /* Radius */
-    --radius-sm: 0.375rem;
-    --radius-md: 0.5rem;
-    --radius-lg: 0.75rem;
-    --radius-xl: 1rem;
+    /* Radius (Genesis scale: 4 tags, 6 controls, 8 panels, 12 cards) */
+    --radius-sm: 4px;    /* tags, chips, badges, inline code */
+    --radius-md: 6px;    /* buttons, inputs, selects */
+    --radius-lg: 12px;   /* cards and card-like containers */
+    --radius-xl: 8px;    /* metadata cards, dropdowns, panels */
     --radius-full: 9999px;
 
     /* Spacing */
@@ -85,22 +91,29 @@
     /* Layout */
     --sidebar-width: 260px;
     --sidebar-collapsed: 72px;
-    --header-height: 64px;
+    --header-height: 56px; /* Genesis sticky nav height */
 }
 
-/* Dark Mode */
+/* Dark Mode — Genesis-derived dark palette [ASSUMPTION: design.md defines
+   light tokens only; dark values derived by inverting the neutral ramp] */
 [data-theme="dark"] {
-    --bg-primary: #0f172a;
-    --bg-surface: #1e293b;
-    --bg-sidebar: #1e293b;
-    --bg-card: #1e293b;
+    --bg-primary: #0e0e11;
+    --bg-surface: #17171b;
+    --bg-sidebar: #17171b;
+    --bg-card: #17171b;
 
-    --text-primary: #f1f5f9;
-    --text-secondary: #94a3b8;
-    --text-tertiary: #64748b;
+    --gray-50: #1c1c21;
+    --gray-100: #26262c;
+    --gray-800: #26262c;
 
-    --border-light: #334155;
-    --border-medium: #475569;
+    --text-primary: #fafafa;
+    --text-secondary: #9c9c9c;
+    --text-tertiary: #6b6b6b;
+
+    --border-light: #26262c;
+    --border-medium: #3a3a42;
+
+    --shadow-card-hover: 0 8px 30px rgba(0, 0, 0, 0.4);
 }
 
 /* ========================
@@ -111,12 +124,25 @@
 }
 
 body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 15px; /* Genesis body size */
     background-color: var(--bg-primary);
     color: var(--text-primary);
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+}
+
+/* Genesis typography: General Sans for display/headings, tight tracking */
+h1, h2, h3, h4, h5, h6,
+.header-title, .page-title, .card-title, .sidebar-logo-text,
+.stat-card-value, .stat-item-value, .user-dropdown-name {
+    font-family: 'General Sans', 'DM Sans', -apple-system, sans-serif;
+    letter-spacing: -0.03em;
+}
+
+code, pre, kbd, samp, .font-mono {
+    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
 /* ========================
@@ -635,13 +661,14 @@ body {
     background: var(--bg-card);
     border: 1px solid var(--border-light);
     border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-xs);
     overflow: hidden;
-    transition: box-shadow var(--transition-fast);
+    transition: box-shadow var(--transition-base), transform var(--transition-base);
 }
 
+/* Genesis: cards rest flat, lift -2px with soft shadow on hover */
 .modern-card:hover {
-    box-shadow: var(--shadow-md);
+    box-shadow: var(--shadow-card-hover);
+    transform: translateY(-2px);
 }
 
 .card-header {
@@ -1008,8 +1035,18 @@ body {
     border-radius: var(--radius-md);
     border: 1px solid transparent;
     cursor: pointer;
-    transition: all var(--transition-fast);
+    transition: all var(--transition-base);
     text-decoration: none;
+}
+
+/* Genesis: all buttons shift up 1px on hover */
+.btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+}
+
+.btn:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
 }
 
 .btn:disabled {
@@ -1026,6 +1063,7 @@ body {
 .btn-primary:hover:not(:disabled) {
     background: var(--primary-600);
     border-color: var(--primary-600);
+    box-shadow: var(--shadow-primary-glow);
 }
 
 .btn-secondary {
@@ -1429,8 +1467,8 @@ body {
 .form-select:focus,
 .form-textarea:focus {
     outline: none;
-    border-color: var(--primary-400);
-    box-shadow: 0 0 0 3px var(--primary-100);
+    border-color: var(--primary-500);
+    box-shadow: var(--focus-ring);
 }
 
 .form-input::placeholder {
@@ -2177,3 +2215,128 @@ body {
 }
 
 
+
+/* ================================================
+   GENESIS REFINEMENT LAYER (docs/design/GENESIS.md)
+   Final cascade — editorial precision polish
+   ================================================ */
+
+/* Sticky header: backdrop-blur instead of shadow (Genesis navigation) */
+.modern-header {
+    background: color-mix(in srgb, var(--bg-surface) 80%, transparent);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+}
+
+/* Genesis inputs: 10px vertical / 14px horizontal padding, 14px font */
+.form-input,
+.form-select,
+.form-textarea {
+    padding: 10px 14px;
+    font-size: 14px;
+}
+
+/* Genesis error focus: red ring */
+.form-input.error:focus,
+.form-select.error:focus,
+.form-textarea.error:focus,
+.form-input.is-invalid:focus,
+.form-select.is-invalid:focus,
+.form-textarea.is-invalid:focus {
+    border-color: var(--danger);
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12);
+}
+
+/* Genesis chips: pill, 4px vertical / 12px horizontal, 12px font */
+.badge {
+    padding: 4px 12px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+/* Genesis dropdowns: 8px panel radius, shadow-lg */
+.user-dropdown,
+.dropdown-menu {
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--border-light);
+    box-shadow: var(--shadow-lg);
+    background: var(--bg-surface);
+}
+
+[data-theme="dark"] .dropdown-menu {
+    --bs-dropdown-bg: var(--bg-surface);
+    --bs-dropdown-link-color: var(--text-primary);
+    --bs-dropdown-link-hover-bg: var(--gray-100);
+    --bs-dropdown-link-hover-color: var(--text-primary);
+    --bs-dropdown-border-color: var(--border-light);
+}
+
+/* Bootstrap .card normalized to Genesis cards (flat, 12px, lift on hover) */
+.card {
+    --bs-card-bg: var(--bg-card);
+    --bs-card-border-color: var(--border-light);
+    --bs-card-border-radius: var(--radius-lg);
+    --bs-card-cap-bg: transparent;
+    --bs-card-box-shadow: none;
+    box-shadow: none;
+    color: var(--text-primary);
+    transition: box-shadow var(--transition-base), transform var(--transition-base);
+}
+
+.card:hover {
+    box-shadow: var(--shadow-card-hover);
+    transform: translateY(-2px);
+}
+
+.card-header {
+    background: transparent;
+}
+
+/* Genesis focus ring for links and generic interactive elements */
+a:focus-visible,
+button:focus-visible,
+[tabindex]:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+    border-radius: var(--radius-md);
+}
+
+/* Genesis links: indigo, interactive only */
+a {
+    color: var(--primary-500);
+}
+
+a:hover {
+    color: var(--primary-600);
+}
+
+/* Sidebar active link uses Genesis indigo fill */
+.sidebar-link.active {
+    background: var(--primary-500);
+    color: #ffffff;
+}
+
+.sidebar-link.active .sidebar-link-icon {
+    color: #ffffff;
+}
+
+/* Primary buttons inside tables/cards keep single-primary-per-section rule:
+   secondary row actions downgrade to ghost style */
+.table .btn-primary.btn-sm,
+.modern-table .btn-primary.btn-sm {
+    background: transparent;
+    color: var(--primary-500);
+    border-color: var(--border-light);
+    box-shadow: none;
+}
+
+.table .btn-primary.btn-sm:hover,
+.modern-table .btn-primary.btn-sm:hover {
+    background: var(--primary-50);
+    border-color: var(--primary-300);
+}
+
+[data-theme="dark"] .table .btn-primary.btn-sm:hover,
+[data-theme="dark"] .modern-table .btn-primary.btn-sm:hover {
+    background: rgba(99, 102, 241, 0.15);
+}

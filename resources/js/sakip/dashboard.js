@@ -22,7 +22,7 @@
                 refreshInterval: 300000, // 5 minutes
                 autoRefresh: true,
                 chartColors: {
-                    primary: '#3b82f6',
+                    primary: '#6366f1',
                     secondary: '#10b981',
                     success: '#22c55e',
                     warning: '#f59e0b',
