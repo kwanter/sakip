@@ -1,0 +1,59 @@
+resources/views/sakip/instansi/index.blade.php
+  s_0d0d808b2444cc::t_d85fc173604588 79,85,87
+resources/views/sakip/program/show.blade.php
+  s_0d0d808b2444cc::t_d85fc173604588 42,78,80,82,191,197,199,201,277,279
+resources/views/sakip/kegiatan/index.blade.php
+  s_0d0d808b2444cc::t_ee0bc241350183 1,5-6,8-23,30,37
+  s_0d0d808b2444cc::t_d85fc173604588 41,43,52,60,71,81-82,117,119
+  s_0d0d808b2444cc::t_56a7b6537a5761 123-141
+resources/views/sakip/kegiatan/create.blade.php
+  s_0d0d808b2444cc::t_2ba219fb58d4fd 1,5-6,8-22
+  s_0d0d808b2444cc::t_d85fc173604588 27,29,173,175
+resources/views/errors/403.blade.php
+  s_0d0d808b2444cc::t_38472fb08ec92d 5-6,8,11-17,23-26,32
+resources/views/sakip/documentation/index.blade.php
+  s_0d0d808b2444cc::t_e3a347bf59f48a 1,5-6,8-17,19-27,29-38,40-49,51-58
+resources/views/sakip/reports/index.blade.php
+  s_0d0d808b2444cc::t_87ba43d777ba11 130
+  s_0d0d808b2444cc::t_d85fc173604588 25
+resources/views/sakip/kegiatan/show.blade.php
+  s_0d0d808b2444cc::t_cf770ba14108e0 1,5-6,8-27
+  s_0d0d808b2444cc::t_d85fc173604588 34,36,104,106,123,126,135,149,151,160,162,185,187,195
+resources/views/sakip/program/index.blade.php
+  s_0d0d808b2444cc::t_d85fc173604588 114,122,124,126
+resources/views/sakip/settings/account.blade.php
+  s_0d0d808b2444cc::t_aca90d596ff2f6 126
+resources/views/sakip/audit/index.blade.php
+  s_0d0d808b2444cc::t_d85fc173604588 16,22,124,144
+  s_0d0d808b2444cc::t_d1e184bdc859ff 205
+  s_0d0d808b2444cc::t_2951ded2070d62 153
+resources/views/sakip/sasaran-strategis/index.blade.php
+  s_0d0d808b2444cc::t_d85fc173604588 89,94,96
+resources/views/sakip/sasaran-strategis/show.blade.php
+  s_0d0d808b2444cc::t_d85fc173604588 42,61,63,136,142,144,146
+resources/views/sakip/kegiatan/edit.blade.php
+  s_0d0d808b2444cc::t_e20f9f04da1fbe 1,5-6,8-22
+  s_0d0d808b2444cc::t_d85fc173604588 27,29,173,175,185,187,193,195,198,201
+resources/views/sakip/reports/create.blade.php
+  s_0d0d808b2444cc::t_d85fc173604588 142,215,335
+resources/views/sakip/instansi/show.blade.php
+  s_0d0d808b2444cc::t_d85fc173604588 42,80,82,148,152,154,197,202,204,206
+resources/views/sakip/feedback/index.blade.php
+  s_0d0d808b2444cc::t_9b998779338782 1,5-6,9-18
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8b1e0b7744b078563cb83c278d4bad1cb8fcf0ab",
+  "prompts": {},
+  "sessions": {
+    "s_0d0d808b2444cc": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_ee66f17b2ffeyW7y5sbucv02Du",
+        "model": "unknown"
+      },
+      "human_author": "ragrin <kwanterpepen@gmail.com>"
+    }
+  }
+}
