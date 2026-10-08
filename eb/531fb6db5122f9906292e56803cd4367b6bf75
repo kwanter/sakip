@@ -1,0 +1,81 @@
+resources/views/sakip/indicators/edit.blade.php
+  s_be43ca4cd591e8::t_bbe6b72c66622f 274,290,374
+resources/views/admin/roles/index.blade.php
+  s_be43ca4cd591e8::t_bbe6b72c66622f 117
+resources/views/sakip/sasaran-strategis/index.blade.php
+  s_be43ca4cd591e8::t_bbe6b72c66622f 112
+resources/views/sakip/indicators/create.blade.php
+  s_be43ca4cd591e8::t_bbe6b72c66622f 56,380,397
+resources/views/sakip/data-collection/edit.blade.php
+  s_be43ca4cd591e8::t_bbe6b72c66622f 190
+  s_be43ca4cd591e8::t_8129ed89527c11 208,211
+resources/views/sakip/data-collection/index.blade.php
+  s_be43ca4cd591e8::t_bbe6b72c66622f 25
+resources/views/admin/settings/index.blade.php
+  s_be43ca4cd591e8::t_f1781c1e710af7 55
+resources/views/admin/users/show.blade.php
+  s_be43ca4cd591e8::t_bbe6b72c66622f 101
+resources/views/admin/permissions/edit.blade.php
+  s_be43ca4cd591e8::t_3e7faaf6823258 187
+resources/views/sakip/kegiatan/index.blade.php
+  s_be43ca4cd591e8::t_bbe6b72c66622f 133
+resources/views/sakip/assessments/index.blade.php
+  s_be43ca4cd591e8::t_bbe6b72c66622f 23,27
+resources/views/sakip/program/index.blade.php
+  s_be43ca4cd591e8::t_bbe6b72c66622f 142
+resources/views/admin/users/index.blade.php
+  s_be43ca4cd591e8::t_bbe6b72c66622f 103
+resources/views/admin/permissions/index.blade.php
+  s_be43ca4cd591e8::t_bbe6b72c66622f 118
+resources/views/sakip/indicators/index.blade.php
+  s_be43ca4cd591e8::t_bbe6b72c66622f 23,27
+  s_be43ca4cd591e8::t_a61a2c9e0060f4 145,148
+resources/views/admin/users/edit.blade.php
+  s_be43ca4cd591e8::t_bbe6b72c66622f 183
+resources/views/layouts/modern.blade.php
+  s_be43ca4cd591e8::t_7d21cd85545942 189
+tests/Feature/CspNonceGuardTest.php
+  s_be43ca4cd591e8::t_3e32181d4c4597 51-65,68-81
+  s_be43ca4cd591e8::t_cba4547e23bf5d 66-67
+  s_be43ca4cd591e8::t_dd15912b3a2dfe 50
+public/js/custom-scripts.js
+  s_be43ca4cd591e8::t_665e92930ab274 337,342-358
+  s_be43ca4cd591e8::t_41375fca1bfe86 382-383
+  s_be43ca4cd591e8::t_10c47f178c194a 291
+  s_be43ca4cd591e8::t_2fcc93c6170dec 335-336,338-341,359-381
+resources/views/layouts/app.blade.php
+  s_be43ca4cd591e8::t_a3378996aa10a2 211
+resources/views/sakip/kegiatan/show.blade.php
+  s_be43ca4cd591e8::t_bbe6b72c66622f 132
+resources/views/sakip/audit/index.blade.php
+  s_be43ca4cd591e8::t_bbe6b72c66622f 18,221
+resources/views/sakip/targets/index.blade.php
+  s_be43ca4cd591e8::t_bbe6b72c66622f 138
+resources/views/admin/roles/edit.blade.php
+  s_be43ca4cd591e8::t_bbe6b72c66622f 192
+resources/views/sakip/data-collection/create.blade.php
+  s_be43ca4cd591e8::t_77b54743f08212 212,215
+  s_be43ca4cd591e8::t_bbe6b72c66622f 238
+resources/views/sakip/data-collection/show.blade.php
+  s_be43ca4cd591e8::t_bbe6b72c66622f 48
+resources/views/sakip/indicators/show.blade.php
+  s_be43ca4cd591e8::t_bbe6b72c66622f 30,162
+resources/views/sakip/instansi/index.blade.php
+  s_be43ca4cd591e8::t_bbe6b72c66622f 103
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "eb531fb6db5122f9906292e56803cd4367b6bf75",
+  "prompts": {},
+  "sessions": {
+    "s_be43ca4cd591e8": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f51ecae26ffejMAbzhCaK3y0eO",
+        "model": "unknown"
+      },
+      "human_author": "ragrin <kwanterpepen@gmail.com>"
+    }
+  }
+}
