@@ -13,13 +13,13 @@
             </div>
             <div class="page-header-actions">
                 @can('run-compliance-check', App\Models\SakipAudit::class)
-                <button type="button" onclick="runComplianceCheck()" class="btn btn-danger">
+                <button type="button" onclick="runComplianceCheck()" class="btn btn-outline-danger">
                     <i class="fas fa-shield-alt"></i>
                     <span class="ms-1">Run Compliance</span>
                 </button>
                 @endcan
                 @can('generate-audit-report', App\Models\SakipAudit::class)
-                <a href="{{ route('sakip.audit.export-report') }}" class="btn btn-success">
+                <a href="{{ route('sakip.audit.export-report') }}" class="btn btn-secondary">
                     <i class="fas fa-file-export"></i>
                     <span class="ms-1">Export Report</span>
                 </a>
@@ -121,7 +121,7 @@
                 <i class="fas fa-exclamation-circle me-2"></i>
                 Recent Violations
             </h5>
-            <span class="badge bg-{{ count($compliance['violations'] ?? []) > 0 ? 'danger' : 'success' }}">
+            <span class="badge badge-{{ count($compliance['violations'] ?? []) > 0 ? 'danger' : 'success' }}">
                 {{ count($compliance['violations'] ?? []) }} violations
             </span>
         </div>
@@ -141,7 +141,7 @@
                         @forelse($compliance['violations'] ?? [] as $violation)
                         <tr>
                             <td>
-                                <span class="badge bg-danger">
+                                <span class="badge badge-danger">
                                     {{ ucfirst(str_replace('_', ' ', $violation['type'] ?? 'unknown')) }}
                                 </span>
                             </td>
@@ -150,7 +150,7 @@
                                 <small class="text-muted">{{ $violation['recommendation'] ?? '' }}</small>
                             </td>
                             <td>
-                                <span class="badge bg-{{ ($violation['severity'] ?? 'low') === 'high' ? 'danger' : (($violation['severity'] ?? 'low') === 'medium' ? 'warning' : 'info') }}">
+                                <span class="badge badge-{{ ($violation['severity'] ?? 'low') === 'high' ? 'danger' : (($violation['severity'] ?? 'low') === 'medium' ? 'warning' : 'primary')">
                                     {{ ucfirst($violation['severity'] ?? 'low') }}
                                 </span>
                             </td>
@@ -202,7 +202,7 @@
                             <td>{{ $log->created_at->format('M d, Y H:i') }}</td>
                             <td>{{ $log->user->name ?? 'System' }}</td>
                             <td>
-                                <span class="badge bg-{{ $log->event_type === 'delete' ? 'danger' : ($log->event_type === 'update' ? 'warning' : ($log->event_type === 'create' ? 'success' : 'info')) }}">
+                                <span class="badge badge-{{ $log->event_type === 'delete' ? 'danger' : ($log->event_type === 'update' ? 'warning' : ($log->event_type === 'create' ? 'success' : 'primary')) }}">
                                     {{ ucfirst($log->event_type) }}
                                 </span>
                             </td>

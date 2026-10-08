@@ -39,7 +39,7 @@
                 <div class="card-body">
                     <dl class="row detail-list">
                         <dt class="col-sm-4">Kode Instansi</dt>
-                        <dd class="col-sm-8"><span class="badge bg-light text-dark">{{ $instansi->kode_instansi }}</span></dd>
+                        <dd class="col-sm-8"><span class="badge badge-neutral">{{ $instansi->kode_instansi }}</span></dd>
 
                         <dt class="col-sm-4">Nama Instansi</dt>
                         <dd class="col-sm-8">{{ $instansi->nama_instansi }}</dd>
@@ -77,9 +77,9 @@
                         <dt class="col-sm-4">Status</dt>
                         <dd class="col-sm-8">
                             @if($instansi->status == 'aktif')
-                                <span class="badge bg-success">Aktif</span>
+                                <span class="badge badge-success">Aktif</span>
                             @else
-                                <span class="badge bg-secondary">Non-Aktif</span>
+                                <span class="badge badge-neutral">Non-Aktif</span>
                             @endif
                         </dd>
 
@@ -145,13 +145,13 @@
                         @foreach($instansi->sasaranStrategis as $key => $sasaran)
                         <tr>
                             <td>{{ $key + 1 }}</td>
-                            <td><span class="badge bg-light text-dark">{{ $sasaran->kode_sasaran_strategis }}</span></td>
+                            <td><span class="badge badge-neutral">{{ $sasaran->kode_sasaran_strategis }}</span></td>
                             <td>{{ $sasaran->nama_strategis }}</td>
                             <td>
                                 @if($sasaran->status == 'aktif')
-                                    <span class="badge bg-success">Aktif</span>
+                                    <span class="badge badge-success">Aktif</span>
                                 @else
-                                    <span class="badge bg-secondary">Non-Aktif</span>
+                                    <span class="badge badge-neutral">Non-Aktif</span>
                                 @endif
                             </td>
                             <td>
@@ -194,16 +194,16 @@
                         @foreach($instansi->programs as $key => $program)
                         <tr>
                             <td>{{ $key + 1 }}</td>
-                            <td><span class="badge bg-light text-dark">{{ $program->kode_program }}</span></td>
+                            <td><span class="badge badge-neutral">{{ $program->kode_program }}</span></td>
                             <td>{{ $program->nama_program }}</td>
                             <td>{{ $program->tahun }}</td>
                             <td>
                                 @if($program->status == 'aktif')
-                                    <span class="badge bg-success">Aktif</span>
+                                    <span class="badge badge-success">Aktif</span>
                                 @elseif($program->status == 'selesai')
-                                    <span class="badge bg-info">Selesai</span>
+                                    <span class="badge badge-primary">Selesai</span>
                                 @else
-                                    <span class="badge bg-secondary">Draft</span>
+                                    <span class="badge badge-neutral">Draft</span>
                                 @endif
                             </td>
                             <td>

@@ -86,14 +86,14 @@
                         @forelse($sasaranStrategis ?? [] as $key => $sasaran)
                         <tr>
                             <td>{{ $sasaranStrategis->firstItem() + $key }}</td>
-                            <td><span class="badge bg-light text-dark">{{ $sasaran->kode_sasaran_strategis }}</span></td>
+                            <td><span class="badge badge-neutral">{{ $sasaran->kode_sasaran_strategis }}</span></td>
                             <td><strong>{{ $sasaran->nama_strategis }}</strong></td>
                             <td>{{ $sasaran->instansi->nama_instansi ?? '-' }}</td>
                             <td>
                                 @if($sasaran->status == 'aktif')
-                                    <span class="badge bg-success">Aktif</span>
+                                    <span class="badge badge-success">Aktif</span>
                                 @else
-                                    <span class="badge bg-secondary">Non-Aktif</span>
+                                    <span class="badge badge-neutral">Non-Aktif</span>
                                 @endif
                             </td>
                             <td class="text-end">

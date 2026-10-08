@@ -139,7 +139,7 @@
                                     <div class="form-check form-check-card p-2 rounded">
                                         <input type="checkbox" name="indicators[]" value="{{ $indicator->id }}" id="indicator_{{ $indicator->id }}" class="form-check-input">
                                         <label for="indicator_{{ $indicator->id }}" class="form-check-label">
-                                            <span class="badge bg-light text-dark me-1">{{ $indicator->code }}</span>
+                                            <span class="badge badge-neutral me-1">{{ $indicator->code }}</span>
                                             {{ $indicator->name }}
                                         </label>
                                     </div>
@@ -212,7 +212,7 @@
                         <span class="ms-1">Batal</span>
                     </a>
                     <div class="btn-group">
-                        <button type="button" id="preview-btn" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#previewModal">
+                        <button type="button" id="preview-btn" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#previewModal">
                             <i class="fas fa-eye"></i>
                             <span class="ms-1">Pratinjau</span>
                         </button>
@@ -332,7 +332,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             selectedIndicators.forEach(function(ind) {
                 const badge = document.createElement('span');
-                badge.className = 'badge bg-primary';
+                badge.className = 'badge badge-primary';
                 badge.textContent = ind;
                 badgeContainer.appendChild(badge);
             });

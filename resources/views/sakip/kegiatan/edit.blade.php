@@ -1,24 +1,32 @@
-@extends('layouts.app')
+@extends('layouts.modern')
 
 @section('title', 'Edit Kegiatan')
 
+@section('page-title', 'Edit Kegiatan')
+
 @section('content')
-<div class="container-fluid">
-    <!-- Page Heading -->
-    <div class="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 class="h3 mb-0 text-gray-800">
-            <i class="fas fa-edit"></i> Edit Kegiatan
-        </h1>
-        <a href="{{ route('sakip.kegiatan.show', $kegiatan) }}" class="btn btn-secondary btn-sm">
-            <i class="fas fa-arrow-left"></i> Kembali
-        </a>
+<div class="container py-4">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="page-header-layout">
+            <div>
+                <h1 class="page-header-title">Edit Kegiatan</h1>
+                <p class="page-header-subtitle">Perbarui data kegiatan operasional</p>
+            </div>
+            <div class="page-header-actions">
+                <a href="{{ route('sakip.kegiatan.show', $kegiatan) }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i>
+                    <span class="ms-1">Kembali</span>
+                </a>
+            </div>
+        </div>
     </div>
 
     <div class="row">
         <div class="col-lg-8">
-            <div class="card shadow mb-4">
+            <div class="card mb-4">
                 <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Form Edit Kegiatan</h6>
+                    <h6 class="m-0 fw-bold">Form Edit Kegiatan</h6>
                 </div>
                 <div class="card-body">
                     <form action="{{ route('sakip.kegiatan.update', $kegiatan) }}" method="POST">
@@ -162,9 +170,9 @@
 
         <!-- Info Card -->
         <div class="col-lg-4">
-            <div class="card shadow mb-4">
+            <div class="card mb-4">
                 <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Informasi Kegiatan</h6>
+                    <h6 class="m-0 fw-bold">Informasi Kegiatan</h6>
                 </div>
                 <div class="card-body">
                     <p class="mb-2"><strong>Kode:</strong> {{ $kegiatan->kode_kegiatan }}</p>
@@ -174,23 +182,23 @@
                         @if($kegiatan->status == 'aktif')
                             <span class="badge badge-success">Aktif</span>
                         @elseif($kegiatan->status == 'selesai')
-                            <span class="badge badge-info">Selesai</span>
+                            <span class="badge badge-primary">Selesai</span>
                         @else
-                            <span class="badge badge-secondary">Draft</span>
+                            <span class="badge badge-neutral">Draft</span>
                         @endif
                     </p>
                 </div>
             </div>
 
-            <div class="card shadow">
+            <div class="card">
                 <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Aksi</h6>
+                    <h6 class="m-0 fw-bold">Aksi</h6>
                 </div>
                 <div class="card-body">
-                    <a href="{{ route('sakip.kegiatan.show', $kegiatan) }}" class="btn btn-info btn-sm btn-block mb-2">
+                    <a href="{{ route('sakip.kegiatan.show', $kegiatan) }}" class="btn btn-secondary btn-sm w-100 mb-2">
                         <i class="fas fa-eye"></i> Lihat Detail
                     </a>
-                    <a href="{{ route('sakip.kegiatan.index') }}" class="btn btn-secondary btn-sm btn-block">
+                    <a href="{{ route('sakip.kegiatan.index') }}" class="btn btn-secondary btn-sm w-100">
                         <i class="fas fa-list"></i> Daftar Kegiatan
                     </a>
                 </div>

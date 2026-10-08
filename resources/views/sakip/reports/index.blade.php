@@ -22,7 +22,7 @@
                     <i class="fas fa-download"></i>
                     <span class="ms-1">Download</span>
                 </button>
-                <button class="btn btn-info" onclick="showTemplateModal()">
+                <button class="btn btn-secondary" onclick="showTemplateModal()">
                     <i class="fas fa-file-contract"></i>
                     <span class="ms-1">Template</span>
                 </button>
@@ -127,7 +127,7 @@
                             <td>{{ ucfirst($report->period ?? '-') }}</td>
                             <td>{{ $report->year ?? '-' }}</td>
                             <td>
-                                <span class="badge @if($report->status === 'approved') bg-success @elseif($report->status === 'submitted') bg-info @else bg-secondary @endif">
+                                <span class="badge @if($report->status === 'approved') badge-success @elseif($report->status === 'submitted') badge-primary @else badge-neutral @endif">
                                     {{ ucfirst(str_replace('_', ' ', $report->status ?? 'draft')) }}
                                 </span>
                             </td>

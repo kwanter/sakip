@@ -1,32 +1,39 @@
-@extends('layouts.app')
+@extends('layouts.modern')
 
 @section('title', 'Detail Kegiatan')
 
+@section('page-title', 'Detail Kegiatan')
+
 @section('content')
-<div class="container-fluid">
-    <!-- Page Heading -->
-    <div class="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 class="h3 mb-0 text-gray-800">
-            <i class="fas fa-tasks"></i> Detail Kegiatan
-        </h1>
-        <div>
-            @can('update', $kegiatan)
-            <a href="{{ route('sakip.kegiatan.edit', $kegiatan) }}" class="btn btn-warning btn-sm">
-                <i class="fas fa-edit"></i> Edit
-            </a>
-            @endcan
-            <a href="{{ route('sakip.kegiatan.index') }}" class="btn btn-secondary btn-sm">
-                <i class="fas fa-arrow-left"></i> Kembali
-            </a>
+<div class="container py-4">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="page-header-layout">
+            <div>
+                <h1 class="page-header-title">Detail Kegiatan</h1>
+                <p class="page-header-subtitle">{{ $kegiatan->nama_kegiatan }}</p>
+            </div>
+            <div class="page-header-actions">
+                @can('update', $kegiatan)
+                <a href="{{ route('sakip.kegiatan.edit', $kegiatan) }}" class="btn btn-secondary">
+                    <i class="fas fa-edit"></i>
+                    <span class="ms-1">Edit</span>
+                </a>
+                @endcan
+                <a href="{{ route('sakip.kegiatan.index') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i>
+                    <span class="ms-1">Kembali</span>
+                </a>
+            </div>
         </div>
     </div>
 
     <div class="row">
         <!-- Informasi Kegiatan -->
         <div class="col-lg-8">
-            <div class="card shadow mb-4">
+            <div class="card mb-4">
                 <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Informasi Kegiatan</h6>
+                    <h6 class="m-0 fw-bold">Informasi Kegiatan</h6>
                 </div>
                 <div class="card-body">
                     <table class="table table-borderless">
@@ -94,9 +101,9 @@
                                 @if($kegiatan->status == 'aktif')
                                     <span class="badge badge-success">Aktif</span>
                                 @elseif($kegiatan->status == 'selesai')
-                                    <span class="badge badge-info">Selesai</span>
+                                    <span class="badge badge-primary">Selesai</span>
                                 @else
-                                    <span class="badge badge-secondary">Draft</span>
+                                    <span class="badge badge-neutral">Draft</span>
                                 @endif
                             </td>
                         </tr>
@@ -113,10 +120,10 @@
             </div>
 
             <!-- Action Buttons -->
-            <div class="card shadow">
+            <div class="card">
                 <div class="card-body">
                     @can('update', $kegiatan)
-                    <a href="{{ route('sakip.kegiatan.edit', $kegiatan) }}" class="btn btn-warning btn-sm">
+                    <a href="{{ route('sakip.kegiatan.edit', $kegiatan) }}" class="btn btn-secondary btn-sm">
                         <i class="fas fa-edit"></i> Edit Kegiatan
                     </a>
                     @endcan
@@ -125,7 +132,7 @@
                           onsubmit="return confirm('Apakah Anda yakin ingin menghapus kegiatan ini?');">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" class="btn btn-danger btn-sm">
+                        <button type="submit" class="btn btn-outline-danger btn-sm">
                             <i class="fas fa-trash"></i> Hapus Kegiatan
                         </button>
                     </form>
@@ -139,9 +146,9 @@
 
         <!-- Statistik -->
         <div class="col-lg-4">
-            <div class="card shadow mb-4">
+            <div class="card mb-4">
                 <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Statistik</h6>
+                    <h6 class="m-0 fw-bold">Statistik</h6>
                 </div>
                 <div class="card-body">
                     <div class="mb-3">
@@ -150,9 +157,9 @@
                             @if($kegiatan->status == 'aktif')
                                 <span class="badge badge-success">Aktif</span>
                             @elseif($kegiatan->status == 'selesai')
-                                <span class="badge badge-info">Selesai</span>
+                                <span class="badge badge-primary">Selesai</span>
                             @else
-                                <span class="badge badge-secondary">Draft</span>
+                                <span class="badge badge-neutral">Draft</span>
                             @endif
                         </h4>
                     </div>
@@ -175,9 +182,9 @@
 
             <!-- Program Terkait -->
             @if($kegiatan->program)
-            <div class="card shadow">
+            <div class="card">
                 <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Program Terkait</h6>
+                    <h6 class="m-0 fw-bold">Program Terkait</h6>
                 </div>
                 <div class="card-body">
                     <p class="mb-0">
@@ -185,7 +192,7 @@
                     </p>
                     <small class="text-muted">{{ $kegiatan->program->kode_program }}</small>
                     <br><br>
-                    <a href="{{ route('sakip.program.show', $kegiatan->program) }}" class="btn btn-primary btn-sm btn-block">
+                    <a href="{{ route('sakip.program.show', $kegiatan->program) }}" class="btn btn-primary btn-sm w-100">
                         <i class="fas fa-arrow-right"></i> Lihat Program
                     </a>
                 </div>
