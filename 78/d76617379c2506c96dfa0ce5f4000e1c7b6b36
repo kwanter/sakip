@@ -1,0 +1,27 @@
+app/Services/ReportCalculationService.php
+  s_be43ca4cd591e8::t_28517e6ee2f53c 187,189-191,195
+  s_be43ca4cd591e8::t_6d7e0e78750636 68-83,96-98,102
+  s_be43ca4cd591e8::t_c2b2125bb01df5 177,181-183,206-208
+tests/Feature/ReportGenerationServicePeriodTest.php
+  s_be43ca4cd591e8::t_80e0a05ad7e77b 88-133
+  s_be43ca4cd591e8::t_fa807467a42cca 1-87,134-161
+app/Services/ReportGenerationService.php
+  s_be43ca4cd591e8::t_f8caf871264943 445-452
+  s_be43ca4cd591e8::t_3f0b9cf80e6e31 340-368,371
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "78d76617379c2506c96dfa0ce5f4000e1c7b6b36",
+  "prompts": {},
+  "sessions": {
+    "s_be43ca4cd591e8": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f51ecae26ffejMAbzhCaK3y0eO",
+        "model": "unknown"
+      },
+      "human_author": "ragrin <kwanterpepen@gmail.com>"
+    }
+  }
+}
