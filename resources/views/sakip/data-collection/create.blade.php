@@ -209,10 +209,10 @@
                         <div class="upload-area-content">
                             <i class="fas fa-cloud-upload-alt upload-icon"></i>
                             <p class="upload-text">Drag & drop file di sini atau</p>
-                            <button type="button" class="btn btn-outline-primary btn-sm" onclick="document.getElementById('evidence_documents').click()">
+                            <label for="evidence_documents" class="btn btn-outline-primary btn-sm mb-0">
                                 <i class="fas fa-folder-open"></i>
                                 <span class="ms-1">Pilih File</span>
-                            </button>
+                            </label>
                             <p class="upload-hint">PDF, Excel, Word, Gambar (Maks. 5MB per file)</p>
                         </div>
                     </div>
@@ -235,7 +235,7 @@
                                     <a href="{{ route('sakip.evidence.download', $document) }}" target="_blank" class="btn btn-sm btn-outline-primary me-1">
                                         <i class="fas fa-eye"></i>
                                     </a>
-                                    <button type="button" onclick="removeEvidence({{ $document->id }})" class="btn btn-sm btn-outline-danger">
+                                    <button type="button" data-onclick="removeEvidence({{ $document->id }})" class="btn btn-sm btn-outline-danger">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </div>

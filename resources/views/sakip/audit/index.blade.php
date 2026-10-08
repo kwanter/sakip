@@ -15,7 +15,7 @@
             </div>
             <div class="page-header-actions">
                 @can('run-compliance-check', App\Models\SakipAudit::class)
-                <button type="button" onclick="runComplianceCheck()" class="btn btn-outline-danger">
+                <button type="button" data-onclick="runComplianceCheck()" class="btn btn-outline-danger">
                     <i class="fas fa-shield-alt"></i>
                     <span class="ms-1">Jalankan Pemeriksaan</span>
                 </button>
@@ -218,7 +218,7 @@
                             <td>{{ class_basename($log->auditable_type) }} #{{ $log->auditable_id }}</td>
                             <td>
                                 @if($log->old_values || $log->new_values)
-                                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="showChanges({{ $log->id }})">
+                                    <button type="button" class="btn btn-sm btn-outline-primary" data-onclick="showChanges({{ $log->id }})">
                                         <i class="fas fa-eye"></i> Lihat
                                     </button>
                                 @else

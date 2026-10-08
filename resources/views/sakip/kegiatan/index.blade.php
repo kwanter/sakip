@@ -130,7 +130,7 @@
                                     </a>
                                     @endcan
                                     @can('delete', $kegiatan)
-                                    <form action="{{ route('sakip.kegiatan.destroy', $kegiatan) }}" method="POST" class="d-inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus kegiatan ini?');">
+                                    <form action="{{ route('sakip.kegiatan.destroy', $kegiatan) }}" method="POST" class="d-inline" data-confirm="Apakah Anda yakin ingin menghapus kegiatan ini?">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn btn-outline-danger" title="Hapus">

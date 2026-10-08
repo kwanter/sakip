@@ -208,7 +208,7 @@
                             </li>
                             @auth
                             <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" data-onclick="const dd=document.getElementById('navbarDropdownMenu'); dd.classList.toggle('show'); console.log('App dropdown clicked', dd);">
+                                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" data-bs-auto-close="outside">
                                     <i class="fas fa-user-circle"></i>
                                     <span>{{ Auth::user()->name }}</span>
                                     @foreach(Auth::user()->roles as $role)

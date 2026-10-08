@@ -184,7 +184,7 @@
                         <i class="fas fa-warning"></i> Menghapus izin akan mempengaruhi semua role dan pengguna yang memiliki izin ini.
                     </p>
                     <form action="{{ route('admin.permissions.destroy', $permission) }}" method="POST"
-                          onsubmit="return confirm('Apakah Anda yakin ingin menghapus izin ini? Ini akan mempengaruhi ' + {{ $permission->roles()->count() }} + ' role dan ' + {{ $permission->users()->count() }} + ' pengguna.');">
+                          data-confirm="Apakah Anda yakin ingin menghapus izin ini? Ini akan mempengaruhi {{ $permission->roles()->count() }} role dan {{ $permission->users()->count() }} pengguna.">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="btn btn-outline-danger w-100">

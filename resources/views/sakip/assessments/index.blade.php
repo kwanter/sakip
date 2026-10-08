@@ -20,11 +20,11 @@
                     <span class="ms-1">Buat Penilaian</span>
                 </a>
                 @endcan
-                <button class="btn btn-secondary" onclick="batchAssess()">
+                <button class="btn btn-secondary" data-onclick="batchAssess()">
                     <i class="fas fa-tasks"></i>
                     <span class="ms-1">Penilaian Massal</span>
                 </button>
-                <button class="btn btn-secondary" onclick="exportAssessments()">
+                <button class="btn btn-secondary" data-onclick="exportAssessments()">
                     <i class="fas fa-file-export"></i>
                     <span class="ms-1">Export</span>
                 </button>

@@ -114,7 +114,7 @@
                                     @if(!in_array($role->name, ['Super Admin', 'admin', 'super-admin']))
                                         <form action="{{ route('admin.roles.destroy', $role) }}"
                                               method="POST" class="d-inline"
-                                              onsubmit="return confirm('Apakah Anda yakin ingin menghapus role ini?');">
+                                              data-confirm="Apakah Anda yakin ingin menghapus role ini?">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="btn btn-outline-danger" title="Hapus">

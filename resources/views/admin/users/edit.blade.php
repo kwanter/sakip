@@ -180,7 +180,7 @@
                     </div>
                     <div class="card-body">
                         <form action="{{ route('admin.users.destroy', $user) }}" method="POST"
-                              onsubmit="return confirm('Are you sure you want to delete this user? This action cannot be undone.')">
+                              data-confirm="Are you sure you want to delete this user? This action cannot be undone.">
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="btn btn-outline-danger w-100">

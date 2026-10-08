@@ -53,7 +53,7 @@
                                 Instansi <span class="text-danger">*</span>
                             </label>
                             <select class="form-select @error('instansi_id') is-invalid @enderror"
-                                    id="instansi_id" name="instansi_id" required onchange="loadSasaranStrategis(this.value)">
+                                    id="instansi_id" name="instansi_id" required data-onchange="loadSasaranStrategis">
                                 <option value="">-- Pilih Instansi --</option>
                                 @foreach($instansis as $inst)
                                     <option value="{{ $inst->id }}"
@@ -377,7 +377,7 @@
                                         Sasaran Strategis
                                     </label>
                                     <select class="form-select @error('sasaran_strategis_id') is-invalid @enderror"
-                                            id="sasaran_strategis_id" name="sasaran_strategis_id" onchange="loadProgram(this.value)">
+                                            id="sasaran_strategis_id" name="sasaran_strategis_id" data-onchange="loadProgram">
                                         <option value="">-- Pilih Sasaran Strategis --</option>
                                     </select>
                                     @error('sasaran_strategis_id')
@@ -394,7 +394,7 @@
                                         Program Terkait
                                     </label>
                                     <select class="form-select @error('program_id') is-invalid @enderror"
-                                            id="program_id" name="program_id" onchange="loadKegiatan(this.value)">
+                                            id="program_id" name="program_id" data-onchange="loadKegiatan">
                                         <option value="">-- Pilih Program --</option>
                                     </select>
                                     @error('program_id')

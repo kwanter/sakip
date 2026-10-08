@@ -20,11 +20,11 @@
                     <span class="ms-1">Tambah Indikator</span>
                 </a>
                 @endcan
-                <button class="btn btn-secondary" onclick="showImportModal()">
+                <button class="btn btn-secondary" data-onclick="showImportModal()">
                     <i class="fas fa-file-import"></i>
                     <span class="ms-1">Import</span>
                 </button>
-                <button class="btn btn-secondary" onclick="exportIndicators()">
+                <button class="btn btn-secondary" data-onclick="exportIndicators()">
                     <i class="fas fa-file-export"></i>
                     <span class="ms-1">Export</span>
                 </button>
@@ -142,10 +142,10 @@
                                     </a>
                                     @endcan
                                     @can('delete', $indicator)
-                                    <form action="{{ route('sakip.indicators.destroy', $indicator) }}" method="POST" class="d-inline">
+                                    <form action="{{ route('sakip.indicators.destroy', $indicator) }}" method="POST" class="d-inline" data-confirm="Apakah Anda yakin ingin menghapus indikator ini?">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="btn btn-outline-danger" title="Hapus" onclick="return confirm('Apakah Anda yakin ingin menghapus indikator ini?');">
+                                        <button type="submit" class="btn btn-outline-danger" title="Hapus">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </form>

@@ -48,6 +48,38 @@ class CspNonceGuardTest extends TestCase
     }
 
     #[Test]
+    public function no_inline_event_handlers_in_views()
+    {
+        // Inline on* handlers are blocked by the nonce-based CSP
+        // ('unsafe-inline' is ignored when a nonce is present). Use the
+        // data-onclick / data-onchange / data-confirm / data-onsubmit
+        // delegation implemented in public/js/custom-scripts.js.
+        $offenders = [];
+
+        foreach (File::allFiles(resource_path('views')) as $file) {
+            if (! str_ends_with($file->getFilename(), '.blade.php')) {
+                continue;
+            }
+
+            $contents = File::get($file->getPathname());
+
+            // Whitespace before "on…=" excludes data-onclick style attributes
+            // (there the preceding character is "-", not whitespace).
+            if (preg_match_all('/\son(?:click|change|submit|input|keyup|keydown|load|error)\s*=\s*"/i', $contents, $matches)) {
+                foreach ($matches[0] as $match) {
+                    $offenders[] = str_replace(resource_path('views').'/', '', $file->getPathname()).': '.trim($match);
+                }
+            }
+        }
+
+        $this->assertSame(
+            [],
+            $offenders,
+            "Inline event handlers are blocked by the CSP; use data-* delegation:\n".implode("\n", $offenders)
+        );
+    }
+
+    #[Test]
     public function csp_allows_fontshare_and_is_single_valued()
     {
         $response = $this->get('/login');

@@ -45,7 +45,7 @@
         </form>
         @endif
 
-        <form action="{{ route('sakip.data-collection.destroy', $data) }}" method="POST" class="d-inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data ini?')">
+        <form action="{{ route('sakip.data-collection.destroy', $data) }}" method="POST" class="d-inline" data-confirm="Apakah Anda yakin ingin menghapus data ini?">
             @csrf
             @method('DELETE')
             <button type="submit" class="btn btn-outline-danger btn-sm">

@@ -27,7 +27,7 @@
             <span class="ms-1">Edit</span>
         </a>
 
-        <form action="{{ route('sakip.indicators.destroy', $indicator) }}" method="POST" class="d-inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus indikator ini?')">
+        <form action="{{ route('sakip.indicators.destroy', $indicator) }}" method="POST" class="d-inline" data-confirm="Apakah Anda yakin ingin menghapus indikator ini?">
             @csrf
             @method('DELETE')
             <button type="submit" class="btn btn-outline-danger btn-sm">
@@ -159,7 +159,7 @@
                                             {{-- Delete button only for draft or rejected --}}
                                             @if($target->status === 'draft' || $target->status === 'rejected')
                                                 @can('update', $indicator)
-                                                    <form action="{{ route('sakip.targets.destroy', [$indicator, $target]) }}" method="POST" class="d-inline" onsubmit="return confirm('Yakin ingin menghapus target ini?')">
+                                                    <form action="{{ route('sakip.targets.destroy', [$indicator, $target]) }}" method="POST" class="d-inline" data-confirm="Yakin ingin menghapus target ini?">
                                                         @csrf
                                                         @method('DELETE')
                                                         <button type="submit" class="btn btn-outline-danger" title="Hapus">

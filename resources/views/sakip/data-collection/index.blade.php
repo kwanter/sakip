@@ -22,7 +22,7 @@
                     <i class="fas fa-file-excel"></i>
                     <span class="ms-1">Import Excel</span>
                 </a>
-                <button class="btn btn-secondary" onclick="exportData()">
+                <button class="btn btn-secondary" data-onclick="exportData()">
                     <i class="fas fa-file-export"></i>
                     <span class="ms-1">Export</span>
                 </button>

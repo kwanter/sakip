@@ -189,7 +189,7 @@
                             <i class="fas fa-warning"></i> Menghapus role akan mempengaruhi pengguna yang memiliki role ini.
                         </p>
                         <form action="{{ route('admin.roles.destroy', $role) }}" method="POST"
-                              onsubmit="return confirm('Apakah Anda yakin ingin menghapus role ini? Pengguna akan kehilangan akses berdasarkan role ini.');">
+                              data-confirm="Apakah Anda yakin ingin menghapus role ini? Pengguna akan kehilangan akses berdasarkan role ini.">
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="btn btn-outline-danger w-100">

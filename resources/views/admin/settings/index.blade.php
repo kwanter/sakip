@@ -52,7 +52,7 @@
           <small class="text-muted">Basic app configuration</small>
         </div>
         <div class="card-body">
-          <form id="appSettingsForm" onsubmit="return saveAppSettings(event)">
+          <form id="appSettingsForm" data-onsubmit="saveAppSettings">
             <div class="mb-3">
               <label for="app_name" class="form-label">Application Name</label>
               <input type="text" id="app_name" class="form-control" maxlength="150" value="{{ collect($settings)->firstWhere('key','app.name')?->value ?? config('app.name') }}" required>

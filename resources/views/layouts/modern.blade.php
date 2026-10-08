@@ -186,7 +186,7 @@
                             <i class="fas fa-bell"></i>
                             <span class="notification-dot"></span>
                         </button>
-                        <button class="user-menu-trigger" id="userMenuBtn" data-onclick="const dd=document.getElementById('userDropdown'); dd.classList.toggle('show'); console.log('Dropdown clicked via data-onclick', dd);">
+                        <button class="user-menu-trigger" id="userMenuBtn">
                             <div class="user-avatar">{{ substr(Auth::user()->name, 0, 2) }}</div>
                             <div class="user-info">
                                 <div class="user-name">{{ Auth::user()->name }}</div>
