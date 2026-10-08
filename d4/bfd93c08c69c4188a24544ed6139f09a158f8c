@@ -1,0 +1,35 @@
+resources/views/sakip/reports/create.blade.php
+  s_be43ca4cd591e8::t_4a88d896bfcd32 112
+app/Http/Controllers/Sakip/ReportController.php
+  s_be43ca4cd591e8::t_817d11efb4527c 630-638
+  s_be43ca4cd591e8::t_5641ccc9885134 10,148-168
+app/Policies/ReportPolicy.php
+  s_be43ca4cd591e8::t_55b8495f1eb8d8 217-246
+tests/Feature/ReportDownloadTest.php
+  s_be43ca4cd591e8::t_cedb0d6ccd9e8e 1-27,29-76,78-90,94-110
+  s_be43ca4cd591e8::t_962d17afdd4241 28
+  s_be43ca4cd591e8::t_a111ba5288ed1f 77,91-93
+tests/Feature/ReportTemplateRedirectTest.php
+  s_be43ca4cd591e8::t_381411b6fa408e 1-74
+resources/views/sakip/reports/index.blade.php
+  s_be43ca4cd591e8::t_5aa10ae9ab63b5 122
+  s_be43ca4cd591e8::t_74c8a6e62efd14 144
+  s_be43ca4cd591e8::t_4c77cd43014e44 23,27
+  s_be43ca4cd591e8::t_b45ac36f8065c3 183-226,228-261,263-269
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d4bfd93c08c69c4188a24544ed6139f09a158f8c",
+  "prompts": {},
+  "sessions": {
+    "s_be43ca4cd591e8": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f51ecae26ffejMAbzhCaK3y0eO",
+        "model": "unknown"
+      },
+      "human_author": "ragrin <kwanterpepen@gmail.com>"
+    }
+  }
+}
