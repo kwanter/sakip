@@ -2,140 +2,112 @@
 
 @section('title', 'Detail Data Kinerja')
 
+@section('page-title', 'Detail Data Kinerja')
+
 @section('content')
-<div class="py-6">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <!-- Page Header -->
-        <div class="mb-8">
-            <div class="flex items-center">
-                <a href="{{ route('sakip.data-collection.index') }}" class="text-gray-500 hover:text-gray-700">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
-                    </svg>
+<div class="container py-4">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="page-header-layout">
+            <div>
+                <a href="{{ route('sakip.data-collection.index') }}" class="btn btn-outline-secondary btn-sm mb-2">
+                    <i class="fas fa-arrow-left"></i>
+                    <span class="ms-1">Kembali</span>
                 </a>
-                <h1 class="ml-4 text-3xl font-bold text-gray-900">Detail Data Kinerja</h1>
+                <h1 class="page-header-title">Detail Data Kinerja</h1>
+                <p class="page-header-subtitle">Informasi lengkap data kinerja</p>
             </div>
-            <p class="mt-2 text-gray-600">Informasi lengkap data kinerja</p>
         </div>
+    </div>
 
-        <!-- Alert Notifications -->
-        @if(session('success'))
-        <div class="mb-6 bg-green-50 border border-green-200 rounded-md p-4">
-            <div class="flex">
-                <svg class="w-5 h-5 text-green-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-                <div class="ml-3">
-                    <p class="text-sm text-green-700">{{ session('success') }}</p>
-                </div>
-            </div>
-        </div>
+    <!-- Action Buttons -->
+    <div class="d-flex align-items-center gap-2 mb-4">
+        <a href="{{ route('sakip.data-collection.edit', $data) }}" class="btn btn-secondary btn-sm">
+            <i class="fas fa-edit"></i>
+            <span class="ms-1">Edit</span>
+        </a>
+
+        @if($data->status == 'pending')
+        <form action="{{ route('sakip.data-collection.validate', $data) }}" method="POST" class="d-inline">
+            @csrf
+            <button type="submit" class="btn btn-primary btn-sm">
+                <i class="fas fa-check"></i>
+                <span class="ms-1">Validasi</span>
+            </button>
+        </form>
+
+        <form action="{{ route('sakip.data-collection.reject', $data) }}" method="POST" class="d-inline">
+            @csrf
+            <button type="submit" class="btn btn-outline-danger btn-sm">
+                <i class="fas fa-times"></i>
+                <span class="ms-1">Tolak</span>
+            </button>
+        </form>
         @endif
 
-        @if(session('error'))
-        <div class="mb-6 bg-red-50 border border-red-200 rounded-md p-4">
-            <div class="flex">
-                <svg class="w-5 h-5 text-red-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-                <div class="ml-3">
-                    <p class="text-sm text-red-700">{{ session('error') }}</p>
-                </div>
-            </div>
+        <form action="{{ route('sakip.data-collection.destroy', $data) }}" method="POST" class="d-inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data ini?')">
+            @csrf
+            @method('DELETE')
+            <button type="submit" class="btn btn-outline-danger btn-sm">
+                <i class="fas fa-trash"></i>
+                <span class="ms-1">Hapus</span>
+            </button>
+        </form>
+    </div>
+
+    <!-- Basic Information -->
+    <div class="modern-card mb-4">
+        <div class="card-header">
+            <h6 class="card-title mb-0">Informasi Dasar</h6>
         </div>
-        @endif
-
-        <!-- Action Buttons -->
-        <div class="mb-6 flex items-center space-x-3">
-            <a href="{{ route('sakip.data-collection.edit', $data) }}" class="inline-flex items-center px-3 py-2 bg-blue-800 text-white text-sm font-medium rounded-md hover:bg-blue-900 transition-colors">
-                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                </svg>
-                Edit
-            </a>
-
-            @if($data->status == 'pending')
-            <form action="{{ route('sakip.data-collection.validate', $data) }}" method="POST" class="inline">
-                @csrf
-                <button type="submit" class="inline-flex items-center px-3 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 transition-colors">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                    Validasi
-                </button>
-            </form>
-
-            <form action="{{ route('sakip.data-collection.reject', $data) }}" method="POST" class="inline">
-                @csrf
-                <button type="submit" class="inline-flex items-center px-3 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 transition-colors">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                    </svg>
-                    Tolak
-                </button>
-            </form>
-            @endif
-
-            <form action="{{ route('sakip.data-collection.destroy', $data) }}" method="POST" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data ini?')">
-                @csrf
-                @method('DELETE')
-                <button type="submit" class="inline-flex items-center px-3 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 transition-colors">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                    </svg>
-                    Hapus
-                </button>
-            </form>
-        </div>
-
-        <!-- Basic Information -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-            <h3 class="text-lg font-medium text-gray-900 mb-4">Informasi Dasar</h3>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">Indikator Kinerja</label>
-                    <p class="text-lg font-semibold text-gray-900">{{ $data->indicator->name }}</p>
-                    <p class="text-sm text-gray-600">{{ $data->indicator->code }}</p>
+        <div class="card-body">
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <div class="stat-label mb-1">Indikator Kinerja</div>
+                    <p class="fw-bold mb-1">{{ $data->indicator->name }}</p>
+                    <small class="text-muted">{{ $data->indicator->code }}</small>
                 </div>
 
-                <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">Instansi</label>
-                    <p class="text-lg font-semibold text-gray-900">{{ $data->instansi->name }}</p>
+                <div class="col-md-6">
+                    <div class="stat-label mb-1">Instansi</div>
+                    <p class="fw-bold mb-0">{{ $data->instansi->name }}</p>
                 </div>
 
-                <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">Periode</label>
-                    <p class="text-lg font-semibold text-gray-900">{{ $data->period }} {{ $data->year }}</p>
+                <div class="col-md-6">
+                    <div class="stat-label mb-1">Periode</div>
+                    <p class="fw-bold mb-0">{{ $data->period }} {{ $data->year }}</p>
                 </div>
 
-                <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">Status Validasi</label>
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium {{ $data->status == 'validated' ? 'bg-green-100 text-green-800' : ($data->status == 'pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800') }}">
+                <div class="col-md-6">
+                    <div class="stat-label mb-1">Status Validasi</div>
+                    <span class="badge {{ $data->status == 'validated' ? 'badge-success' : ($data->status == 'pending' ? 'badge-warning' : 'badge-danger') }}">
                         {{ ucfirst($data->status) }}
                     </span>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- Performance Data -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-            <h3 class="text-lg font-medium text-gray-900 mb-4">Data Kinerja</h3>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">Nilai Kinerja</label>
-                    <p class="text-2xl font-bold text-blue-600">{{ number_format($data->value, 2) }}</p>
+    <!-- Performance Data -->
+    <div class="modern-card mb-4">
+        <div class="card-header">
+            <h6 class="card-title mb-0">Data Kinerja</h6>
+        </div>
+        <div class="card-body">
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="stat-label mb-1">Nilai Kinerja</div>
+                    <p class="stat-value">{{ number_format($data->value, 2) }}</p>
                 </div>
 
-                <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">Target</label>
-                    <p class="text-2xl font-bold text-gray-900">{{ number_format($data->target, 2) }}</p>
+                <div class="col-md-4">
+                    <div class="stat-label mb-1">Target</div>
+                    <p class="stat-value">{{ number_format($data->target, 2) }}</p>
                 </div>
 
-                <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">Pencapaian</label>
-                    <p class="text-2xl font-bold {{ ($data->target > 0 ? ($data->value / $data->target * 100) : 0) >= 100 ? 'text-green-600' : 'text-red-600' }}">
+                <div class="col-md-4">
+                    <div class="stat-label mb-1">Pencapaian</div>
+                    <p class="stat-value {{ ($data->target > 0 ? ($data->value / $data->target * 100) : 0) >= 100 ? 'text-success' : 'text-danger' }}">
                         @if($data->target > 0)
                             {{ number_format(($data->value / $data->target) * 100, 1) }}%
                         @else
@@ -143,120 +115,122 @@
                         @endif
                     </p>
                 </div>
-            </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-                <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">Sumber Data</label>
-                    <p class="text-gray-900">{{ $data->data_source }}</p>
+                <div class="col-md-6">
+                    <div class="stat-label mb-1">Sumber Data</div>
+                    <p class="mb-0">{{ $data->data_source }}</p>
                 </div>
 
-                <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">Metode Pengumpulan</label>
-                    <p class="text-gray-900">{{ ucfirst(str_replace('_', ' ', $data->collection_method)) }}</p>
+                <div class="col-md-6">
+                    <div class="stat-label mb-1">Metode Pengumpulan</div>
+                    <p class="mb-0">{{ ucfirst(str_replace('_', ' ', $data->collection_method)) }}</p>
                 </div>
             </div>
 
             @if($data->notes)
-            <div class="mt-6">
-                <label class="block text-sm font-medium text-gray-500 mb-1">Catatan</label>
-                <p class="text-gray-900">{{ $data->notes }}</p>
+            <div class="mt-4">
+                <div class="stat-label mb-1">Catatan</div>
+                <p class="mb-0">{{ $data->notes }}</p>
             </div>
             @endif
         </div>
+    </div>
 
-        <!-- Evidence Documents -->
-        @if($data->evidence->count() > 0)
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-            <h3 class="text-lg font-medium text-gray-900 mb-4">Dokumen Bukti</h3>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <!-- Evidence Documents -->
+    @if($data->evidence->count() > 0)
+    <div class="modern-card mb-4">
+        <div class="card-header">
+            <h6 class="card-title mb-0">Dokumen Bukti</h6>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
                 @foreach($data->evidence as $evidence)
-                <div class="border border-gray-200 rounded-md p-4">
-                    <div class="flex items-center mb-3">
-                        <svg class="w-8 h-8 text-gray-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                        </svg>
-                        <div>
-                            <p class="text-sm font-medium text-gray-900">{{ $evidence->filename }}</p>
-                            <p class="text-xs text-gray-500">{{ number_format($evidence->file_size / 1024, 2) }} KB</p>
+                <div class="col-md-6 col-lg-4">
+                    <div class="p-3 rounded border h-100">
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="fas fa-file-alt fa-2x text-muted me-3"></i>
+                            <div>
+                                <p class="mb-0 fw-bold">{{ $evidence->filename }}</p>
+                                <small class="text-muted">{{ number_format($evidence->file_size / 1024, 2) }} KB</small>
+                            </div>
                         </div>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <a href="{{ route('sakip.evidence.download', $evidence) }}" target="_blank" class="inline-flex items-center px-2 py-1 text-xs font-medium text-blue-600 hover:text-blue-900">
-                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                            </svg>
-                            Lihat
-                        </a>
-                        <a href="{{ route('sakip.evidence.download', $evidence) }}" class="inline-flex items-center px-2 py-1 text-xs font-medium text-green-600 hover:text-green-900">
-                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-                            </svg>
-                            Unduh
-                        </a>
+                        <div class="d-flex align-items-center gap-2">
+                            <a href="{{ route('sakip.evidence.download', $evidence) }}" target="_blank" class="btn btn-outline-secondary btn-sm">
+                                <i class="fas fa-eye"></i>
+                                <span class="ms-1">Lihat</span>
+                            </a>
+                            <a href="{{ route('sakip.evidence.download', $evidence) }}" class="btn btn-outline-secondary btn-sm">
+                                <i class="fas fa-download"></i>
+                                <span class="ms-1">Unduh</span>
+                            </a>
+                        </div>
                     </div>
                 </div>
                 @endforeach
             </div>
         </div>
-        @endif
+    </div>
+    @endif
 
-        <!-- Validation Information -->
-        @if($data->validated_at)
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-            <h3 class="text-lg font-medium text-gray-900 mb-4">Informasi Validasi</h3>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">Divalidasi oleh</label>
-                    <p class="text-gray-900">{{ $data->validatedBy->name }}</p>
+    <!-- Validation Information -->
+    @if($data->validated_at)
+    <div class="modern-card mb-4">
+        <div class="card-header">
+            <h6 class="card-title mb-0">Informasi Validasi</h6>
+        </div>
+        <div class="card-body">
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <div class="stat-label mb-1">Divalidasi oleh</div>
+                    <p class="mb-0">{{ $data->validatedBy->name }}</p>
                 </div>
 
-                <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">Tanggal Validasi</label>
-                    <p class="text-gray-900">{{ $data->validated_at->format('d F Y H:i') }}</p>
+                <div class="col-md-6">
+                    <div class="stat-label mb-1">Tanggal Validasi</div>
+                    <p class="mb-0">{{ $data->validated_at->format('d F Y H:i') }}</p>
                 </div>
             </div>
 
             @if($data->validation_notes)
-            <div class="mt-6">
-                <label class="block text-sm font-medium text-gray-500 mb-1">Catatan Validasi</label>
-                <p class="text-gray-900">{{ $data->validation_notes }}</p>
+            <div class="mt-4">
+                <div class="stat-label mb-1">Catatan Validasi</div>
+                <p class="mb-0">{{ $data->validation_notes }}</p>
             </div>
             @endif
         </div>
-        @endif
+    </div>
+    @endif
 
-        <!-- System Information -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 class="text-lg font-medium text-gray-900 mb-4">Informasi Sistem</h3>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">Dibuat oleh</label>
-                    <p class="text-gray-900">{{ $data->createdBy->name }}</p>
+    <!-- System Information -->
+    <div class="modern-card">
+        <div class="card-header">
+            <h6 class="card-title mb-0">Informasi Sistem</h6>
+        </div>
+        <div class="card-body">
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <div class="stat-label mb-1">Dibuat oleh</div>
+                    <p class="mb-0">{{ $data->createdBy->name }}</p>
                 </div>
 
-                <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">Tanggal Dibuat</label>
-                    <p class="text-gray-900">{{ $data->created_at->format('d F Y H:i') }}</p>
+                <div class="col-md-6">
+                    <div class="stat-label mb-1">Tanggal Dibuat</div>
+                    <p class="mb-0">{{ $data->created_at->format('d F Y H:i') }}</p>
                 </div>
 
                 @if($data->updated_at != $data->created_at)
-                <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">Terakhir Diperbarui oleh</label>
-                    <p class="text-gray-900">{{ $data->updatedBy ? $data->updatedBy->name : '-' }}</p>
+                <div class="col-md-6">
+                    <div class="stat-label mb-1">Terakhir Diperbarui oleh</div>
+                    <p class="mb-0">{{ $data->updatedBy ? $data->updatedBy->name : '-' }}</p>
                 </div>
 
-                <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">Tanggal Diperbarui</label>
-                    <p class="text-gray-900">{{ $data->updated_at->format('d F Y H:i') }}</p>
+                <div class="col-md-6">
+                    <div class="stat-label mb-1">Tanggal Diperbarui</div>
+                    <p class="mb-0">{{ $data->updated_at->format('d F Y H:i') }}</p>
                 </div>
                 @endif
             </div>
         </div>
     </div>
 </div>
-@stop
+@endsection

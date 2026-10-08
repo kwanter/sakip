@@ -278,7 +278,7 @@
         sizeSmall.textContent = fileSize + ' MB';
 
         const badge = document.createElement('span');
-        badge.className = 'badge bg-success';
+        badge.className = 'badge badge-success';
         badge.textContent = 'Baru';
 
         contentDiv.appendChild(nameDiv);

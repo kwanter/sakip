@@ -92,7 +92,7 @@
                 <div class="card-body">
                     <div class="d-grid gap-2">
                         @forelse(($quickActions ?? []) as $action)
-                            <a href="{{ $action['link'] ?? '#' }}" class="btn btn-primary btn-sm">{{ $action['label'] ?? 'Aksi' }}</a>
+                            <a href="{{ $action['link'] ?? '#' }}" class="btn btn-secondary btn-sm">{{ $action['label'] ?? 'Aksi' }}</a>
                         @empty
                             <span class="text-muted">Tidak ada aksi cepat tersedia.</span>
                         @endforelse

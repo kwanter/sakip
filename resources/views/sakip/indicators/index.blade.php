@@ -22,7 +22,7 @@
                     <i class="fas fa-file-import"></i>
                     <span class="ms-1">Import</span>
                 </button>
-                <button class="btn btn-info" onclick="exportIndicators()">
+                <button class="btn btn-secondary" onclick="exportIndicators()">
                     <i class="fas fa-file-export"></i>
                     <span class="ms-1">Export</span>
                 </button>
@@ -58,7 +58,7 @@
         <div class="col-md-3">
             <div class="stat-card">
                 <div class="stat-card-header">
-                    <div class="stat-icon info">
+                    <div class="stat-icon primary">
                         <i class="fas fa-bullseye"></i>
                     </div>
                 </div>
@@ -100,8 +100,8 @@
             @endif
 
             <div class="table-responsive">
-                <table class="table table-hover align-middle">
-                    <thead class="table-light">
+                <table class="modern-table">
+                    <thead>
                         <tr>
                             <th>Kode</th>
                             <th>Nama Indikator</th>
@@ -115,14 +115,14 @@
                     <tbody>
                         @forelse($indicators as $indicator)
                         <tr>
-                            <td><span class="badge bg-light text-dark">{{ $indicator->code }}</span></td>
+                            <td><span class="badge badge-neutral">{{ $indicator->code }}</span></td>
                             <td>
                                 <a href="{{ route('sakip.indicators.show', $indicator) }}" class="text-decoration-none fw-bold">
                                     {{ $indicator->name }}
                                 </a>
                             </td>
                             <td>
-                                <span class="badge bg-primary">
+                                <span class="badge badge-primary">
                                     {{ ucfirst($indicator->category) }}
                                 </span>
                             </td>

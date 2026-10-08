@@ -16,11 +16,11 @@
                     <i class="fas fa-plus"></i>
                     <span class="ms-1">Input Data Baru</span>
                 </a>
-                <a href="{{ route('sakip.data-collection.import') }}" class="btn btn-success">
+                <a href="{{ route('sakip.data-collection.import') }}" class="btn btn-secondary">
                     <i class="fas fa-file-excel"></i>
                     <span class="ms-1">Import Excel</span>
                 </a>
-                <button class="btn btn-info" onclick="exportData()">
+                <button class="btn btn-secondary" onclick="exportData()">
                     <i class="fas fa-file-export"></i>
                     <span class="ms-1">Export</span>
                 </button>
@@ -89,8 +89,8 @@
             @endif
 
             <div class="table-responsive">
-                <table class="table table-hover align-middle">
-                    <thead class="table-light">
+                <table class="modern-table">
+                    <thead>
                         <tr>
                             <th>Indikator</th>
                             <th>Periode</th>
@@ -116,13 +116,13 @@
                                 @php
                                     $achievement = ($data->target ?? 0) > 0 ? (($data->actual ?? 0) / $data->target * 100) : 0;
                                 @endphp
-                                <span class="badge @if($achievement >= 100) bg-success @elseif($achievement >= 80) bg-info @elseif($achievement >= 60) bg-warning @else bg-danger @endif">
+                                <span class="badge @if($achievement >= 100) badge-success @elseif($achievement >= 80) badge-primary @elseif($achievement >= 60) badge-warning @else badge-danger @endif">
                                     {{ number_format($achievement, 1) }}%
                                 </span>
                             </td>
                             <td>{{ $data->instansi->nama_instansi ?? '-' }}</td>
                             <td>
-                                <span class="badge @if($data->status === 'approved') bg-success @elseif($data->status === 'validated') bg-info @else bg-warning @endif">
+                                <span class="badge @if($data->status === 'approved') badge-success @elseif($data->status === 'validated') badge-primary @else badge-warning @endif">
                                     {{ ucfirst($data->status ?? 'pending') }}
                                 </span>
                             </td>

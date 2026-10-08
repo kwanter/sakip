@@ -18,11 +18,11 @@
                     <span class="ms-1">Buat Penilaian</span>
                 </a>
                 @endcan
-                <button class="btn btn-success" onclick="batchAssess()">
+                <button class="btn btn-secondary" onclick="batchAssess()">
                     <i class="fas fa-tasks"></i>
                     <span class="ms-1">Penilaian Massal</span>
                 </button>
-                <button class="btn btn-info" onclick="exportAssessments()">
+                <button class="btn btn-secondary" onclick="exportAssessments()">
                     <i class="fas fa-file-export"></i>
                     <span class="ms-1">Export</span>
                 </button>
@@ -69,7 +69,7 @@
         <div class="col-md-3">
             <div class="stat-card">
                 <div class="stat-card-header">
-                    <div class="stat-icon info">
+                    <div class="stat-icon primary">
                         <i class="fas fa-star"></i>
                     </div>
                 </div>
@@ -100,8 +100,8 @@
             @endif
 
             <div class="table-responsive">
-                <table class="table table-hover align-middle">
-                    <thead class="table-light">
+                <table class="modern-table">
+                    <thead>
                         <tr>
                             <th>Instansi</th>
                             <th>Periode</th>
@@ -131,13 +131,13 @@
                                 </div>
                             </td>
                             <td>
-                                <span class="badge @if($assessment->grade === 'A') bg-success @elseif($assessment->grade === 'B') bg-info @elseif($assessment->grade === 'C') bg-warning @else bg-danger @endif fs-6">
+                                <span class="badge @if($assessment->grade === 'A') badge-success @elseif($assessment->grade === 'B') badge-primary @elseif($assessment->grade === 'C') badge-warning @else badge-danger @endif">
                                     {{ $assessment->grade ?? '-' }}
                                 </span>
                             </td>
                             <td>{{ $assessment->assessor->name ?? '-' }}</td>
                             <td>
-                                <span class="badge @if($assessment->status === 'completed') bg-success @elseif($assessment->status === 'in_progress') bg-info @else bg-secondary @endif">
+                                <span class="badge @if($assessment->status === 'completed') badge-success @elseif($assessment->status === 'in_progress') badge-warning @else badge-neutral @endif">
                                     {{ ucfirst(str_replace('_', ' ', $assessment->status ?? 'pending')) }}
                                 </span>
                             </td>

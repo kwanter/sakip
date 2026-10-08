@@ -1,157 +1,133 @@
-@extends('layouts.app')
+@extends('layouts.modern')
 
 @section('title', 'Daftar Target Kinerja')
 
+@section('page-title', 'Daftar Target Kinerja')
+
 @section('content')
-<div class="py-6">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <!-- Page Header -->
-        <div class="mb-8">
-            <div class="flex items-center justify-between">
-                <div>
-                    <div class="flex items-center">
-                        <a href="{{ route('sakip.indicators.show', $indicator) }}" class="text-gray-500 hover:text-gray-700">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
-                            </svg>
-                        </a>
-                        <h1 class="ml-4 text-3xl font-bold text-gray-900">Daftar Target Kinerja</h1>
-                    </div>
-                    <p class="mt-2 text-gray-600">{{ $indicator->code }} - {{ $indicator->name }}</p>
-                </div>
+<div class="container py-4">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="page-header-layout">
+            <div>
+                <a href="{{ route('sakip.indicators.show', $indicator) }}" class="btn btn-outline-secondary btn-sm mb-2">
+                    <i class="fas fa-arrow-left"></i>
+                    <span class="ms-1">Kembali</span>
+                </a>
+                <h1 class="page-header-title">Daftar Target Kinerja</h1>
+                <p class="page-header-subtitle">{{ $indicator->code }} - {{ $indicator->name }}</p>
+            </div>
+            <div class="page-header-actions">
                 @can('update', $indicator)
-                <a href="{{ route('sakip.targets.create', $indicator) }}" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-                    </svg>
-                    Tambah Target
+                <a href="{{ route('sakip.targets.create', $indicator) }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i>
+                    <span class="ms-1">Tambah Target</span>
                 </a>
                 @endcan
             </div>
         </div>
+    </div>
 
-        <!-- Alert Messages -->
-        @if(session('success'))
-        <div class="mb-6 bg-green-50 border border-green-200 rounded-md p-4">
-            <div class="flex">
-                <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-                <p class="ml-3 text-sm font-medium text-green-800">{{ session('success') }}</p>
-            </div>
+    <!-- Info Messages -->
+    @if(session('info'))
+    <div class="alert alert-info alert-dismissible fade show mb-4" role="alert">
+        <i class="fas fa-info-circle alert-icon"></i>
+        <div class="alert-content">
+            <div class="alert-message">{{ session('info') }}</div>
         </div>
-        @endif
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    @endif
 
-        @if(session('error'))
-        <div class="mb-6 bg-red-50 border border-red-200 rounded-md p-4">
-            <div class="flex">
-                <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-                <p class="ml-3 text-sm font-medium text-red-800">{{ session('error') }}</p>
-            </div>
-        </div>
-        @endif
-
-        @if(session('info'))
-        <div class="mb-6 bg-blue-50 border border-blue-200 rounded-md p-4">
-            <div class="flex">
-                <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-                <p class="ml-3 text-sm font-medium text-blue-800">{{ session('info') }}</p>
-            </div>
-        </div>
-        @endif
-
-        <!-- Targets Table -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200">
-            @if($targets->count() > 0)
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
+    <!-- Targets Table -->
+    <div class="modern-table-container">
+        @if($targets->count() > 0)
+            <div class="table-responsive">
+                <table class="modern-table">
+                    <thead>
+                        <tr>
+                            <th scope="col">
+                                Tahun
+                            </th>
+                            <th scope="col">
+                                Nilai Target
+                            </th>
+                            <th scope="col">
+                                Nilai Minimum
+                            </th>
+                            <th scope="col">
+                                Status
+                            </th>
+                            <th scope="col">
+                                Justifikasi
+                            </th>
+                            <th scope="col">
+                                Disetujui Oleh
+                            </th>
+                            <th scope="col" class="text-end">
+                                Aksi
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($targets as $target)
                             <tr>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Tahun
-                                </th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Nilai Target
-                                </th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Nilai Minimum
-                                </th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Status
-                                </th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Justifikasi
-                                </th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Disetujui Oleh
-                                </th>
-                                <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Aksi
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
-                            @foreach($targets as $target)
-                                <tr class="hover:bg-gray-50">
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm font-medium text-gray-900">{{ $target->year }}</div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="flex items-center">
-                                            <span class="text-2xl font-bold text-blue-600">{{ number_format($target->target_value, 2) }}</span>
-                                            <span class="ml-2 text-sm text-gray-500">{{ $indicator->measurement_unit }}</span>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {{ $target->minimum_value ? number_format($target->minimum_value, 2) . ' ' . $indicator->measurement_unit : '-' }}
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        @php
-                                            $statusClasses = [
-                                                'draft' => 'bg-gray-100 text-gray-800',
-                                                'approved' => 'bg-green-100 text-green-800',
-                                                'rejected' => 'bg-red-100 text-red-800',
-                                                'revised' => 'bg-yellow-100 text-yellow-800'
-                                            ];
-                                            $statusLabels = [
-                                                'draft' => 'Draft',
-                                                'approved' => 'Disetujui',
-                                                'rejected' => 'Ditolak',
-                                                'revised' => 'Revisi'
-                                            ];
-                                        @endphp
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $statusClasses[$target->status] ?? 'bg-gray-100 text-gray-800' }}">
-                                            {{ $statusLabels[$target->status] ?? ucfirst($target->status) }}
-                                        </span>
-                                        @if($target->notes)
-                                            <button data-onclick="showNotes('{{ $target->id }}')" class="ml-1 text-yellow-500 hover:text-yellow-700" title="Lihat Catatan">
-                                                <i class="fas fa-comment-dots"></i>
-                                            </button>
-                                        @endif
-                                    </td>
-                                    <td class="px-6 py-4 text-sm text-gray-500">
-                                        <div class="max-w-xs truncate" title="{{ $target->justification }}">
-                                            {{ $target->justification ?? '-' }}
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        @if($target->approved_by)
-                                            {{ $target->approver->name ?? '-' }}
-                                            <div class="text-xs text-gray-400">
+                                <td>
+                                    <span class="fw-bold">{{ $target->year }}</span>
+                                </td>
+                                <td>
+                                    <span class="fw-bold">{{ number_format($target->target_value, 2) }}</span>
+                                    <small class="text-muted">{{ $indicator->measurement_unit }}</small>
+                                </td>
+                                <td>
+                                    {{ $target->minimum_value ? number_format($target->minimum_value, 2) . ' ' . $indicator->measurement_unit : '-' }}
+                                </td>
+                                <td>
+                                    @php
+                                        $statusClasses = [
+                                            'draft' => 'badge-neutral',
+                                            'approved' => 'badge-success',
+                                            'rejected' => 'badge-danger',
+                                            'revised' => 'badge-warning'
+                                        ];
+                                        $statusLabels = [
+                                            'draft' => 'Draft',
+                                            'approved' => 'Disetujui',
+                                            'rejected' => 'Ditolak',
+                                            'revised' => 'Revisi'
+                                        ];
+                                    @endphp
+                                    <span class="badge {{ $statusClasses[$target->status] ?? 'badge-neutral' }}">
+                                        {{ $statusLabels[$target->status] ?? ucfirst($target->status) }}
+                                    </span>
+                                    @if($target->notes)
+                                        <button data-onclick="showNotes('{{ $target->id }}')" class="btn btn-sm btn-outline-warning ms-1" title="Lihat Catatan">
+                                            <i class="fas fa-comment-dots"></i>
+                                        </button>
+                                    @endif
+                                </td>
+                                <td>
+                                    <div class="text-truncate" style="max-width: 220px;" title="{{ $target->justification }}">
+                                        {{ $target->justification ?? '-' }}
+                                    </div>
+                                </td>
+                                <td>
+                                    @if($target->approved_by)
+                                        {{ $target->approver->name ?? '-' }}
+                                        <div>
+                                            <small class="text-muted">
                                                 {{ $target->approved_at ? $target->approved_at->format('d M Y') : '-' }}
-                                            </div>
-                                        @else
-                                            -
-                                        @endif
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                                            </small>
+                                        </div>
+                                    @else
+                                        -
+                                    @endif
+                                </td>
+                                <td class="text-end">
+                                    <div class="btn-group btn-group-sm">
                                         {{-- Edit button available for all statuses --}}
                                         @can('update', $indicator)
-                                            <a href="{{ route('sakip.targets.edit', [$indicator, $target]) }}" class="text-indigo-600 hover:text-indigo-900" title="Edit">
+                                            <a href="{{ route('sakip.targets.edit', [$indicator, $target]) }}" class="btn btn-outline-secondary" title="Edit">
                                                 <i class="fas fa-edit"></i>
                                             </a>
                                         @endcan
@@ -159,10 +135,10 @@
                                         {{-- Delete button only for draft or rejected --}}
                                         @if($target->status === 'draft' || $target->status === 'rejected')
                                             @can('update', $indicator)
-                                                <form action="{{ route('sakip.targets.destroy', [$indicator, $target]) }}" method="POST" class="inline-block" onsubmit="return confirm('Yakin ingin menghapus target ini?')">
+                                                <form action="{{ route('sakip.targets.destroy', [$indicator, $target]) }}" method="POST" class="d-inline" onsubmit="return confirm('Yakin ingin menghapus target ini?')">
                                                     @csrf
                                                     @method('DELETE')
-                                                    <button type="submit" class="text-red-600 hover:text-red-900" title="Hapus">
+                                                    <button type="submit" class="btn btn-outline-danger" title="Hapus">
                                                         <i class="fas fa-trash"></i>
                                                     </button>
                                                 </form>
@@ -172,65 +148,59 @@
                                         {{-- Approval workflow buttons for draft and revised status --}}
                                         @can('approve-targets')
                                             @if($target->status === 'draft' || $target->status === 'revised')
-                                                <button data-onclick="approveTarget({{ $target->id }}, '{{ $indicator->id }}')" class="text-green-600 hover:text-green-900" title="Setujui">
+                                                <button data-onclick="approveTarget({{ $target->id }}, '{{ $indicator->id }}')" class="btn btn-outline-success" title="Setujui">
                                                     <i class="fas fa-check-circle"></i>
                                                 </button>
-                                                <button data-onclick="reviseTarget({{ $target->id }}, '{{ $indicator->id }}')" class="text-yellow-600 hover:text-yellow-900" title="Minta Revisi">
+                                                <button data-onclick="reviseTarget({{ $target->id }}, '{{ $indicator->id }}')" class="btn btn-outline-warning" title="Minta Revisi">
                                                     <i class="fas fa-undo"></i>
                                                 </button>
-                                                <button data-onclick="rejectTarget({{ $target->id }}, '{{ $indicator->id }}')" class="text-red-600 hover:text-red-900" title="Tolak">
+                                                <button data-onclick="rejectTarget({{ $target->id }}, '{{ $indicator->id }}')" class="btn btn-outline-danger" title="Tolak">
                                                     <i class="fas fa-times-circle"></i>
                                                 </button>
                                             @endif
                                         @endcan
-                                    </td>
-                                </tr>
+                                    </div>
+                                </td>
+                            </tr>
 
-                                <!-- Hidden notes row -->
-                                <tr id="notes-{{ $target->id }}" class="hidden bg-yellow-50">
-                                    <td colspan="7" class="px-6 py-4">
-                                        <div class="flex items-start">
-                                            <svg class="w-5 h-5 text-yellow-400 mt-0.5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                            </svg>
-                                            <div>
-                                                <h4 class="text-sm font-medium text-yellow-800">Catatan:</h4>
-                                                <p class="mt-1 text-sm text-yellow-700">{{ $target->notes }}</p>
-                                            </div>
+                            <!-- Hidden notes row -->
+                            <tr id="notes-{{ $target->id }}" class="d-none">
+                                <td colspan="7">
+                                    <div class="alert alert-warning mb-0" role="alert">
+                                        <i class="fas fa-info-circle alert-icon"></i>
+                                        <div class="alert-content">
+                                            <div class="alert-title">Catatan:</div>
+                                            <div class="alert-message">{{ $target->notes }}</div>
                                         </div>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
 
-                <!-- Pagination -->
-                @if($targets->hasPages())
-                <div class="bg-white px-4 py-3 border-t border-gray-200 sm:px-6">
-                    {{ $targets->links() }}
-                </div>
-                @endif
-            @else
-                <div class="text-center py-12">
-                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                    </svg>
-                    <h3 class="mt-2 text-sm font-medium text-gray-900">Belum ada target</h3>
-                    <p class="mt-1 text-sm text-gray-500">Mulai dengan menambahkan target untuk indikator ini.</p>
-                    @can('update', $indicator)
-                    <div class="mt-6">
-                        <a href="{{ route('sakip.targets.create', $indicator) }}" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
-                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-                            </svg>
-                            Tambah Target
-                        </a>
-                    </div>
-                    @endcan
-                </div>
+            <!-- Pagination -->
+            @if($targets->hasPages())
+            <div class="p-3 border-top">
+                {{ $targets->links() }}
+            </div>
             @endif
-        </div>
+        @else
+            <div class="empty-state">
+                <i class="fas fa-bullseye text-muted"></i>
+                <p class="mb-0">Belum ada target</p>
+                <small class="text-muted">Mulai dengan menambahkan target untuk indikator ini.</small>
+                @can('update', $indicator)
+                <div class="mt-3">
+                    <a href="{{ route('sakip.targets.create', $indicator) }}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i>
+                        <span class="ms-1">Tambah Target</span>
+                    </a>
+                </div>
+                @endcan
+            </div>
+        @endif
     </div>
 </div>
 
@@ -238,7 +208,7 @@
 <script>
 function showNotes(targetId) {
     const notesRow = document.getElementById(`notes-${targetId}`);
-    notesRow.classList.toggle('hidden');
+    notesRow.classList.toggle('d-none');
 }
 
 function approveTarget(targetId, indicatorId) {

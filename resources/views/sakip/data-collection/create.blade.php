@@ -283,7 +283,7 @@
                 </div>
                 <div class="col-md-6">
                     <small class="text-muted">Kategori</small>
-                    <p id="previewCategory" class="mb-3"><span class="badge bg-primary"></span></p>
+                    <p id="previewCategory" class="mb-3"><span class="badge badge-primary"></span></p>
                 </div>
                 <div class="col-md-6">
                     <small class="text-muted">Frekuensi</small>
@@ -356,7 +356,7 @@
         sizeSmall.textContent = fileSize + ' MB';
 
         const badge = document.createElement('span');
-        badge.className = 'badge bg-success';
+        badge.className = 'badge badge-success';
         badge.textContent = 'Baru';
 
         contentDiv.appendChild(nameDiv);
