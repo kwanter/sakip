@@ -2,6 +2,8 @@
 
 @section('title', 'Daftar Instansi')
 
+@section('page-title', 'Daftar Instansi')
+
 @section('content')
 <div class="container py-4">
     <!-- Page Header -->
@@ -76,15 +78,15 @@
                         @forelse($instansis ?? [] as $key => $instansi)
                         <tr>
                             <td>{{ $instansis->firstItem() + $key }}</td>
-                            <td><span class="badge bg-light text-dark">{{ $instansi->kode_instansi }}</span></td>
+                            <td><span class="badge badge-neutral">{{ $instansi->kode_instansi }}</span></td>
                             <td><strong>{{ $instansi->nama_instansi }}</strong></td>
                             <td>{{ $instansi->kepala_instansi ?? '-' }}</td>
                             <td>{{ $instansi->telepon ?? '-' }}</td>
                             <td>
                                 @if($instansi->status == 'aktif')
-                                    <span class="badge bg-success">Aktif</span>
+                                    <span class="badge badge-success">Aktif</span>
                                 @else
-                                    <span class="badge bg-secondary">Non-Aktif</span>
+                                    <span class="badge badge-neutral">Non-Aktif</span>
                                 @endif
                             </td>
                             <td class="text-end">
@@ -98,7 +100,7 @@
                                     </a>
                                     @endcan
                                     @can('delete', $instansi)
-                                    <form action="{{ route('sakip.instansi.destroy', $instansi) }}" method="POST" class="d-inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus instansi ini?')">
+                                    <form action="{{ route('sakip.instansi.destroy', $instansi) }}" method="POST" class="d-inline" data-confirm="Apakah Anda yakin ingin menghapus instansi ini?">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn btn-outline-danger" title="Hapus">

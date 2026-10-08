@@ -65,6 +65,22 @@ class ReportCalculationService
      * @param  Report  $report  Report instance with loaded indicators
      * @return array Summary statistics
      */
+    /**
+     * Average achievement across performance rows, computed from targets.
+     *
+     * performance_data has no performance_percentage column; SQL avg()
+     * against it silently returned 0 on SQLite and throws "Unknown column"
+     * on MySQL. Achievement = actual vs the indicator's target for the year.
+     */
+    private function achievementAverage($performanceRows): float
+    {
+        $values = $performanceRows
+            ->map(fn ($row) => $row->calculateAchievement())
+            ->filter(fn ($value) => $value !== null);
+
+        return $values->isNotEmpty() ? round($values->avg(), 2) : 0.0;
+    }
+
     public function calculateReportSummary(Report $report): array
     {
         $indicators = $report->indicators;
@@ -77,13 +93,13 @@ class ReportCalculationService
             })
             ->count();
 
-        $averagePerformance = $indicators->avg(function ($indicator) {
-            return $indicator->performanceData->avg('performance_percentage') ?? 0;
-        });
+        $averagePerformance = $this->achievementAverage(
+            $indicators->flatMap->performanceData,
+        );
 
         $achievedIndicators = $indicators
             ->filter(function ($indicator) {
-                return $indicator->performanceData->avg('performance_percentage') >= 100;
+                return $this->achievementAverage($indicator->performanceData) >= 100;
             })
             ->count();
 
@@ -152,38 +168,31 @@ class ReportCalculationService
     /**
      * Calculate institution's average performance
      *
-     * @param  int  $instansiId  Institution ID
+     * @param  string  $instansiId  Institution UUID
      * @param  int  $year  Year to calculate for
      * @return float Average performance percentage
      */
-    public function calculateInstitutionPerformance(int $instansiId, int $year): float
+    public function calculateInstitutionPerformance(string $instansiId, int $year): float
     {
-        return (float) PerformanceData::whereHas('indicator', function ($q) use ($instansiId) {
+        $rows = PerformanceData::whereHas('indicator', function ($q) use ($instansiId) {
             $q->where('instansi_id', $instansiId);
         })
             ->whereYear('period', $year)
-            ->avg('performance_percentage') ?? 0;
+            ->get();
+
+        return $this->achievementAverage($rows);
     }
 
     /**
-     * Calculate regional average performance
+     * Calculate regional average performance.
      *
-     * @param  int  $instansiId  Institution ID to determine region
-     * @param  int  $year  Year to calculate for
-     * @return float Regional average performance percentage
+     * instansis has no region_id column, so no regional dimension exists in
+     * the schema; return 0.0 instead of querying a non-existent column
+     * (which threw "Unknown column" on MySQL).
      */
-    public function calculateRegionalPerformance(int $instansiId, int $year): float
+    public function calculateRegionalPerformance(string $instansiId, int $year): float
     {
-        return (float) PerformanceData::whereHas('indicator.instansi', function ($q) use ($instansiId) {
-            $q->where('region_id', function ($subQuery) use ($instansiId) {
-                $subQuery
-                    ->select('region_id')
-                    ->from('instansis')
-                    ->where('id', $instansiId);
-            });
-        })
-            ->whereYear('period', $year)
-            ->avg('performance_percentage') ?? 0;
+        return 0.0;
     }
 
     /**
@@ -194,8 +203,9 @@ class ReportCalculationService
      */
     public function calculateNationalPerformance(int $year): float
     {
-        return (float) PerformanceData::whereYear('period', $year)
-            ->avg('performance_percentage') ?? 0;
+        $rows = PerformanceData::whereYear('period', $year)->get();
+
+        return $this->achievementAverage($rows);
     }
 
     /**

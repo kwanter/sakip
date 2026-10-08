@@ -2,6 +2,8 @@
 
 @section('title', 'Buat Penilaian Kinerja')
 
+@section('page-title', 'Buat Penilaian Kinerja')
+
 @section('content')
 <div class="container py-4">
     <!-- Page Header -->
@@ -191,26 +193,26 @@
             </h6>
             <div class="row text-center">
                 <div class="col-md-3 col-6">
-                    <div class="p-3 border rounded bg-success bg-opacity-10">
-                        <span class="badge bg-success fs-6 mb-2">A</span>
+                    <div class="p-3 border rounded">
+                        <span class="badge badge-success mb-2">A</span>
                         <p class="mb-0 small">90 - 100<br><strong>Sangat Baik</strong></p>
                     </div>
                 </div>
                 <div class="col-md-3 col-6">
-                    <div class="p-3 border rounded bg-info bg-opacity-10">
-                        <span class="badge bg-info fs-6 mb-2">B</span>
+                    <div class="p-3 border rounded">
+                        <span class="badge badge-primary mb-2">B</span>
                         <p class="mb-0 small">75 - 89<br><strong>Baik</strong></p>
                     </div>
                 </div>
                 <div class="col-md-3 col-6">
-                    <div class="p-3 border rounded bg-warning bg-opacity-10">
-                        <span class="badge bg-warning fs-6 mb-2">C</span>
+                    <div class="p-3 border rounded">
+                        <span class="badge badge-warning mb-2">C</span>
                         <p class="mb-0 small">60 - 74<br><strong>Cukup</strong></p>
                     </div>
                 </div>
                 <div class="col-md-3 col-6">
-                    <div class="p-3 border rounded bg-danger bg-opacity-10">
-                        <span class="badge bg-danger fs-6 mb-2">D</span>
+                    <div class="p-3 border rounded">
+                        <span class="badge badge-danger mb-2">D</span>
                         <p class="mb-0 small">&lt; 60<br><strong>Kurang</strong></p>
                     </div>
                 </div>
@@ -220,7 +222,7 @@
 </div>
 
 @push('scripts')
-<script>
+<script nonce="{{ app()->bound('csp-nonce') ? app('csp-nonce') : '' }}">
     // Grade calculation based on score - using safe DOM methods
     const scoreInput = document.getElementById('score');
     const gradePreview = document.getElementById('gradePreview');

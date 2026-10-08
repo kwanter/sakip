@@ -6,7 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <!-- Theme: set immediately to prevent flash -->
-    <script>
+    <script nonce="{{ app()->bound('csp-nonce') ? app('csp-nonce') : '' }}">
         (function() {
             const theme = localStorage.getItem('theme') || 'light';
             document.documentElement.setAttribute('data-theme', theme);
@@ -15,9 +15,12 @@
 
     <title>@yield('title', 'SAKIP') - Sistem Akuntabilitas Kinerja Instansi Pemerintah</title>
 
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+    <!-- Fonts: Genesis typography (General Sans display, DM Sans body, JetBrains Mono code) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://api.fontshare.com" crossorigin>
+    <link href="https://api.fontshare.com/v2/css?f[]=general-sans@500,600,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -205,7 +208,7 @@
                             </li>
                             @auth
                             <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" data-onclick="const dd=document.getElementById('navbarDropdownMenu'); dd.classList.toggle('show'); console.log('App dropdown clicked', dd);">
+                                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" data-bs-auto-close="outside">
                                     <i class="fas fa-user-circle"></i>
                                     <span>{{ Auth::user()->name }}</span>
                                     @foreach(Auth::user()->roles as $role)
@@ -319,7 +322,7 @@
     <script src="{{ asset('js/helpers.js') }}"></script>
 
     <!-- Dropdown Fallback Script -->
-    <script>
+    <script nonce="{{ app()->bound('csp-nonce') ? app('csp-nonce') : '' }}">
     (function() {
         'use strict';
 

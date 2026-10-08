@@ -5,44 +5,45 @@
 @section('content')
 <div class="container-fluid">
     <!-- Page Heading -->
-    <div class="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 class="h3 mb-0 text-gray-800">
-            <i class="fas fa-edit"></i> Edit Role: {{ $role->name }}
-        </h1>
-        <a href="{{ route('admin.roles.index') }}" class="btn btn-secondary btn-sm">
-            <i class="fas fa-arrow-left"></i> Kembali
-        </a>
+    <div class="page-header mb-4">
+        <div class="page-header-layout">
+            <div>
+                <h1 class="page-header-title">Edit Role: {{ $role->name }}</h1>
+                <p class="page-header-subtitle">Perbarui nama role dan izin yang menyertainya.</p>
+            </div>
+            <div class="page-header-actions">
+                <a href="{{ route('admin.roles.index') }}" class="btn btn-outline-secondary btn-sm">
+                    <i class="fas fa-arrow-left"></i> Kembali
+                </a>
+            </div>
+        </div>
     </div>
 
     <div class="row">
         <div class="col-lg-8">
-            <div class="card shadow">
-                <div class="card-header py-3 bg-primary text-white">
-                    <h6 class="m-0 font-weight-bold">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title fs-6 m-0">
                         <i class="fas fa-shield-alt"></i> Informasi Role
-                    </h6>
+                    </h2>
                 </div>
                 <div class="card-body">
                     @if(session('success'))
                         <div class="alert alert-success alert-dismissible fade show" role="alert">
                             <i class="fas fa-check-circle"></i> {{ session('success') }}
-                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
                     @endif
 
                     @if($errors->any())
                         <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                            <h6 class="alert-heading"><i class="fas fa-exclamation-circle"></i> Validasi Gagal!</h6>
+                            <h2 class="fs-6"><i class="fas fa-exclamation-circle"></i> Validasi Gagal!</h2>
                             <ul class="mb-0">
                                 @foreach($errors->all() as $error)
                                     <li>{{ $error }}</li>
                                 @endforeach
                             </ul>
-                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
                     @endif
 
@@ -51,8 +52,8 @@
                         @method('PUT')
 
                         <!-- Role Name -->
-                        <div class="form-group mb-3">
-                            <label for="name" class="form-label font-weight-bold">
+                        <div class="mb-3">
+                            <label for="name" class="form-label fw-semibold">
                                 Nama Role <span class="text-danger">*</span>
                             </label>
                             <input type="text"
@@ -67,8 +68,8 @@
                         </div>
 
                         <!-- Guard Name -->
-                        <div class="form-group mb-3">
-                            <label for="guard_name" class="form-label font-weight-bold">
+                        <div class="mb-3">
+                            <label for="guard_name" class="form-label fw-semibold">
                                 Guard Name
                             </label>
                             <input type="text"
@@ -82,23 +83,23 @@
                         </div>
 
                         <!-- Permissions Selection -->
-                        <div class="form-group mb-3">
-                            <label class="form-label font-weight-bold">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">
                                 <i class="fas fa-key"></i> Pilih Izin
                             </label>
-                            <div class="card bg-light border">
+                            <div class="card">
                                 <div class="card-body">
                                     <div class="row">
                                         @forelse($permissions as $permission)
                                             <div class="col-md-6 mb-2">
-                                                <div class="custom-control custom-checkbox">
+                                                <div class="form-check">
                                                     <input type="checkbox"
-                                                           class="custom-control-input"
+                                                           class="form-check-input"
                                                            id="permission_{{ $permission->id }}"
                                                            name="permissions[]"
                                                            value="{{ $permission->id }}"
                                                            {{ $role->hasPermissionTo($permission->name) ? 'checked' : '' }}>
-                                                    <label class="custom-control-label" for="permission_{{ $permission->id }}">
+                                                    <label class="form-check-label" for="permission_{{ $permission->id }}">
                                                         <strong>{{ $permission->name }}</strong>
                                                         @if($permission->description)
                                                             <br>
@@ -121,11 +122,11 @@
                         </div>
 
                         <!-- Submit Buttons -->
-                        <div class="form-group">
-                            <button type="submit" class="btn btn-primary btn-lg">
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-save"></i> Perbarui Role
                             </button>
-                            <a href="{{ route('admin.roles.index') }}" class="btn btn-secondary btn-lg">
+                            <a href="{{ route('admin.roles.index') }}" class="btn btn-outline-secondary">
                                 <i class="fas fa-times"></i> Batal
                             </a>
                         </div>
@@ -136,40 +137,40 @@
 
         <!-- Info and Danger Zone -->
         <div class="col-lg-4">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3 bg-info text-white">
-                    <h6 class="m-0 font-weight-bold">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h2 class="card-title fs-6 m-0">
                         <i class="fas fa-info-circle"></i> Informasi
-                    </h6>
+                    </h2>
                 </div>
                 <div class="card-body small">
                     <table class="table table-borderless table-sm">
                         <tr>
-                            <td class="font-weight-bold">ID:</td>
+                            <td class="fw-semibold">ID:</td>
                             <td>{{ $role->id }}</td>
                         </tr>
                         <tr>
-                            <td class="font-weight-bold">Pengguna:</td>
+                            <td class="fw-semibold">Pengguna:</td>
                             <td>
-                                <span class="badge badge-info">
+                                <span class="badge badge-primary">
                                     {{ $role->users()->count() }}
                                 </span>
                             </td>
                         </tr>
                         <tr>
-                            <td class="font-weight-bold">Izin:</td>
+                            <td class="fw-semibold">Izin:</td>
                             <td>
-                                <span class="badge badge-secondary">
+                                <span class="badge badge-neutral">
                                     {{ $role->permissions()->count() }}
                                 </span>
                             </td>
                         </tr>
                         <tr>
-                            <td class="font-weight-bold">Dibuat:</td>
+                            <td class="fw-semibold">Dibuat:</td>
                             <td>{{ $role->created_at?->format('d M Y') ?? '-' }}</td>
                         </tr>
                         <tr>
-                            <td class="font-weight-bold">Diperbarui:</td>
+                            <td class="fw-semibold">Diperbarui:</td>
                             <td>{{ $role->updated_at?->format('d M Y H:i') ?? '-' }}</td>
                         </tr>
                     </table>
@@ -177,21 +178,21 @@
             </div>
 
             @if(!in_array($role->name, ['Super Admin', 'admin', 'super-admin']))
-                <div class="card shadow border-danger">
-                    <div class="card-header py-3 bg-danger text-white">
-                        <h6 class="m-0 font-weight-bold">
+                <div class="card border-danger">
+                    <div class="card-header">
+                        <h2 class="card-title fs-6 m-0 text-danger">
                             <i class="fas fa-exclamation-triangle"></i> Zona Berbahaya
-                        </h6>
+                        </h2>
                     </div>
                     <div class="card-body">
                         <p class="small mb-3">
                             <i class="fas fa-warning"></i> Menghapus role akan mempengaruhi pengguna yang memiliki role ini.
                         </p>
                         <form action="{{ route('admin.roles.destroy', $role) }}" method="POST"
-                              onsubmit="return confirm('Apakah Anda yakin ingin menghapus role ini? Pengguna akan kehilangan akses berdasarkan role ini.');">
+                              data-confirm="Apakah Anda yakin ingin menghapus role ini? Pengguna akan kehilangan akses berdasarkan role ini.">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" class="btn btn-danger btn-block">
+                            <button type="submit" class="btn btn-outline-danger w-100">
                                 <i class="fas fa-trash"></i> Hapus Role
                             </button>
                         </form>

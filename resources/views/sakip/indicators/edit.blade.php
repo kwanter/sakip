@@ -2,16 +2,24 @@
 
 @section('title', 'Edit Indikator Kinerja')
 
+@section('page-title', 'Edit Indikator Kinerja')
+
 @section('content')
-<div class="container-fluid">
-    <!-- Page Heading -->
-    <div class="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 class="h3 mb-0 text-gray-800">
-            <i class="fas fa-edit"></i> Edit Indikator Kinerja
-        </h1>
-        <a href="{{ route('sakip.indicators.show', $indicator) }}" class="btn btn-secondary btn-sm">
-            <i class="fas fa-arrow-left"></i> Kembali
-        </a>
+<div class="container py-4">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="page-header-layout">
+            <div>
+                <h1 class="page-header-title">Edit Indikator Kinerja</h1>
+                <p class="page-header-subtitle">Perbarui detail indikator kinerja</p>
+            </div>
+            <div class="page-header-actions">
+                <a href="{{ route('sakip.indicators.show', $indicator) }}" class="btn btn-outline-secondary btn-sm">
+                    <i class="fas fa-arrow-left"></i>
+                    <span class="ms-1">Kembali</span>
+                </a>
+            </div>
+        </div>
     </div>
 
     @if ($errors->any())
@@ -22,9 +30,7 @@
                     <li>{{ $error }}</li>
                 @endforeach
             </ul>
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     @endif
 
@@ -35,19 +41,19 @@
                 @method('PUT')
 
                 <!-- Informasi Dasar -->
-                <div class="card shadow mb-4">
-                    <div class="card-header py-3 bg-primary text-white">
-                        <h6 class="m-0 font-weight-bold">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h6 class="card-title mb-0">
                             <i class="fas fa-info-circle"></i> Informasi Dasar Indikator
                         </h6>
                     </div>
                     <div class="card-body">
                         <!-- Instansi -->
                         <div class="form-group mb-3">
-                            <label for="instansi_id" class="form-label font-weight-bold">
+                            <label for="instansi_id" class="form-label fw-bold">
                                 Instansi <span class="text-danger">*</span>
                             </label>
-                            <select class="form-control form-control-lg @error('instansi_id') is-invalid @enderror"
+                            <select class="form-select @error('instansi_id') is-invalid @enderror"
                                     id="instansi_id" name="instansi_id" required>
                                 <option value="">-- Pilih Instansi --</option>
                                 @foreach($instansis as $inst)
@@ -58,7 +64,7 @@
                                 @endforeach
                             </select>
                             @error('instansi_id')
-                                <small class="form-text text-danger">{{ $message }}</small>
+                                <div class="form-error">{{ $message }}</div>
                             @enderror
                         </div>
 
@@ -66,23 +72,23 @@
                             <div class="col-md-6">
                                 <!-- Kode Indikator -->
                                 <div class="form-group mb-3">
-                                    <label for="code" class="form-label font-weight-bold">
+                                    <label for="code" class="form-label fw-bold">
                                         Kode Indikator <span class="text-danger">*</span>
                                     </label>
                                     <input type="text" class="form-control @error('code') is-invalid @enderror"
                                            id="code" name="code" value="{{ old('code', $indicator->code) }}" required
                                            placeholder="Contoh: IK-001" maxlength="50">
                                     @error('code')
-                                        <small class="form-text text-danger">{{ $message }}</small>
+                                        <div class="form-error">{{ $message }}</div>
                                     @enderror
                                 </div>
 
                                 <!-- Kategori -->
                                 <div class="form-group mb-3">
-                                    <label for="category" class="form-label font-weight-bold">
+                                    <label for="category" class="form-label fw-bold">
                                         Kategori <span class="text-danger">*</span>
                                     </label>
-                                    <select class="form-control @error('category') is-invalid @enderror"
+                                    <select class="form-select @error('category') is-invalid @enderror"
                                             id="category" name="category" required>
                                         <option value="">-- Pilih Kategori --</option>
                                         <option value="input" {{ old('category', $indicator->category) == 'input' ? 'selected' : '' }}>Input</option>
@@ -91,7 +97,7 @@
                                         <option value="impact" {{ old('category', $indicator->category) == 'impact' ? 'selected' : '' }}>Impact</option>
                                     </select>
                                     @error('category')
-                                        <small class="form-text text-danger">{{ $message }}</small>
+                                        <div class="form-error">{{ $message }}</div>
                                     @enderror
                                 </div>
                             </div>
@@ -99,23 +105,23 @@
                             <div class="col-md-6">
                                 <!-- Nama Indikator -->
                                 <div class="form-group mb-3">
-                                    <label for="name" class="form-label font-weight-bold">
+                                    <label for="name" class="form-label fw-bold">
                                         Nama Indikator <span class="text-danger">*</span>
                                     </label>
                                     <input type="text" class="form-control @error('name') is-invalid @enderror"
                                            id="name" name="name" value="{{ old('name', $indicator->name) }}" required
                                            placeholder="Masukkan nama indikator" maxlength="255">
                                     @error('name')
-                                        <small class="form-text text-danger">{{ $message }}</small>
+                                        <div class="form-error">{{ $message }}</div>
                                     @enderror
                                 </div>
 
                                 <!-- Frekuensi -->
                                 <div class="form-group mb-3">
-                                    <label for="frequency" class="form-label font-weight-bold">
+                                    <label for="frequency" class="form-label fw-bold">
                                         Frekuensi <span class="text-danger">*</span>
                                     </label>
-                                    <select class="form-control @error('frequency') is-invalid @enderror"
+                                    <select class="form-select @error('frequency') is-invalid @enderror"
                                             id="frequency" name="frequency" required>
                                         <option value="">-- Pilih Frekuensi --</option>
                                         <option value="monthly" {{ old('frequency', $indicator->frequency) == 'monthly' ? 'selected' : '' }}>Bulanan</option>
@@ -124,7 +130,7 @@
                                         <option value="annual" {{ old('frequency', $indicator->frequency) == 'annual' ? 'selected' : '' }}>Tahunan</option>
                                     </select>
                                     @error('frequency')
-                                        <small class="form-text text-danger">{{ $message }}</small>
+                                        <div class="form-error">{{ $message }}</div>
                                     @enderror
                                 </div>
                             </div>
@@ -132,21 +138,21 @@
 
                         <!-- Deskripsi -->
                         <div class="form-group mb-3">
-                            <label for="description" class="form-label font-weight-bold">Deskripsi</label>
+                            <label for="description" class="form-label fw-bold">Deskripsi</label>
                             <textarea class="form-control @error('description') is-invalid @enderror"
                                       id="description" name="description" rows="3"
                                       placeholder="Jelaskan secara detail tentang indikator ini" maxlength="500">{{ old('description', $indicator->description) }}</textarea>
                             @error('description')
-                                <small class="form-text text-danger">{{ $message }}</small>
+                                <div class="form-error">{{ $message }}</div>
                             @enderror
                         </div>
                     </div>
                 </div>
 
                 <!-- Target & Pengukuran -->
-                <div class="card shadow mb-4">
-                    <div class="card-header py-3 bg-info text-white">
-                        <h6 class="m-0 font-weight-bold">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h6 class="card-title mb-0">
                             <i class="fas fa-bullseye"></i> Target & Pengukuran
                         </h6>
                     </div>
@@ -155,24 +161,24 @@
                             <div class="col-md-6">
                                 <!-- Satuan Pengukuran -->
                                 <div class="form-group mb-3">
-                                    <label for="measurement_unit" class="form-label font-weight-bold">
+                                    <label for="measurement_unit" class="form-label fw-bold">
                                         Satuan Pengukuran <span class="text-danger">*</span>
                                     </label>
                                     <input type="text" class="form-control @error('measurement_unit') is-invalid @enderror"
                                            id="measurement_unit" name="measurement_unit" value="{{ old('measurement_unit', $indicator->measurement_unit) }}"
                                            placeholder="Contoh: %, Orang, Kg, Unit" maxlength="100" required>
                                     @error('measurement_unit')
-                                        <small class="form-text text-danger">{{ $message }}</small>
+                                        <div class="form-error">{{ $message }}</div>
                                     @enderror
                                     <small class="form-text text-muted">Satuan untuk mengukur indikator ini</small>
                                 </div>
 
                                 <!-- Tipe Pengukuran -->
                                 <div class="form-group mb-3">
-                                    <label for="measurement_type" class="form-label font-weight-bold">
+                                    <label for="measurement_type" class="form-label fw-bold">
                                         Tipe Pengukuran
                                     </label>
-                                    <select class="form-control @error('measurement_type') is-invalid @enderror"
+                                    <select class="form-select @error('measurement_type') is-invalid @enderror"
                                             id="measurement_type" name="measurement_type">
                                         <option value="">-- Pilih Tipe Pengukuran --</option>
                                         <option value="percentage" {{ old('measurement_type', $indicator->measurement_type) == 'percentage' ? 'selected' : '' }}>Persentase (%)</option>
@@ -181,7 +187,7 @@
                                         <option value="index" {{ old('measurement_type', $indicator->measurement_type) == 'index' ? 'selected' : '' }}>Indeks</option>
                                     </select>
                                     @error('measurement_type')
-                                        <small class="form-text text-danger">{{ $message }}</small>
+                                        <div class="form-error">{{ $message }}</div>
                                     @enderror
                                     <small class="form-text text-muted">Jenis pengukuran untuk indikator</small>
                                 </div>
@@ -190,23 +196,23 @@
                             <div class="col-md-6">
                                 <!-- Sumber Data -->
                                 <div class="form-group mb-3">
-                                    <label for="data_source" class="form-label font-weight-bold">
+                                    <label for="data_source" class="form-label fw-bold">
                                         Sumber Data <span class="text-danger">*</span>
                                     </label>
                                     <input type="text" class="form-control @error('data_source') is-invalid @enderror"
                                            id="data_source" name="data_source" value="{{ old('data_source', $indicator->data_source) }}"
                                            placeholder="Contoh: Sistem Informasi, Laporan Bulanan" maxlength="255" required>
                                     @error('data_source')
-                                        <small class="form-text text-danger">{{ $message }}</small>
+                                        <div class="form-error">{{ $message }}</div>
                                     @enderror
                                 </div>
 
                                 <!-- Metode Pengumpulan -->
                                 <div class="form-group mb-3">
-                                    <label for="collection_method" class="form-label font-weight-bold">
+                                    <label for="collection_method" class="form-label fw-bold">
                                         Metode Pengumpulan <span class="text-danger">*</span>
                                     </label>
-                                    <select class="form-control @error('collection_method') is-invalid @enderror"
+                                    <select class="form-select @error('collection_method') is-invalid @enderror"
                                             id="collection_method" name="collection_method" required>
                                         <option value="">-- Pilih Metode --</option>
                                         <option value="manual" {{ old('collection_method', $indicator->collection_method) == 'manual' ? 'selected' : '' }}>Manual</option>
@@ -217,7 +223,7 @@
                                         <option value="document_review" {{ old('collection_method', $indicator->collection_method) == 'document_review' ? 'selected' : '' }}>Telaah Dokumen</option>
                                     </select>
                                     @error('collection_method')
-                                        <small class="form-text text-danger">{{ $message }}</small>
+                                        <div class="form-error">{{ $message }}</div>
                                     @enderror
                                 </div>
                             </div>
@@ -225,14 +231,14 @@
 
                         <!-- Formula Perhitungan -->
                         <div class="form-group mb-3">
-                            <label for="calculation_formula" class="form-label font-weight-bold">
+                            <label for="calculation_formula" class="form-label fw-bold">
                                 Formula Perhitungan
                             </label>
                             <textarea class="form-control @error('calculation_formula') is-invalid @enderror"
                                       id="calculation_formula" name="calculation_formula" rows="2"
                                       placeholder="Contoh: (Keluaran / Target) * 100">{{ old('calculation_formula', $indicator->calculation_formula) }}</textarea>
                             @error('calculation_formula')
-                                <small class="form-text text-danger">{{ $message }}</small>
+                                <div class="form-error">{{ $message }}</div>
                             @enderror
                         </div>
 
@@ -250,9 +256,9 @@
                 </div>
 
                 <!-- Keterkaitan Strategis & Kegiatan -->
-                <div class="card shadow mb-4">
-                    <div class="card-header py-3 bg-success text-white">
-                        <h6 class="m-0 font-weight-bold">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h6 class="card-title mb-0">
                             <i class="fas fa-link"></i> Keterkaitan Strategis & Kegiatan
                         </h6>
                     </div>
@@ -261,15 +267,15 @@
                             <div class="col-md-4">
                                 <!-- Sasaran Strategis -->
                                 <div class="form-group mb-3">
-                                    <label for="sasaran_strategis_id" class="form-label font-weight-bold">
+                                    <label for="sasaran_strategis_id" class="form-label fw-bold">
                                         Sasaran Strategis
                                     </label>
-                                    <select class="form-control @error('sasaran_strategis_id') is-invalid @enderror"
-                                            id="sasaran_strategis_id" name="sasaran_strategis_id" onchange="loadProgram(this.value)">
+                                    <select class="form-select @error('sasaran_strategis_id') is-invalid @enderror"
+                                            id="sasaran_strategis_id" name="sasaran_strategis_id" data-onchange="loadProgram">
                                         <option value="">-- Pilih Sasaran Strategis --</option>
                                     </select>
                                     @error('sasaran_strategis_id')
-                                        <small class="form-text text-danger">{{ $message }}</small>
+                                        <div class="form-error">{{ $message }}</div>
                                     @enderror
                                 </div>
                             </div>
@@ -277,15 +283,15 @@
                             <div class="col-md-4">
                                 <!-- Program -->
                                 <div class="form-group mb-3">
-                                    <label for="program_id" class="form-label font-weight-bold">
+                                    <label for="program_id" class="form-label fw-bold">
                                         Program Terkait
                                     </label>
-                                    <select class="form-control @error('program_id') is-invalid @enderror"
-                                            id="program_id" name="program_id" onchange="loadKegiatan(this.value)">
+                                    <select class="form-select @error('program_id') is-invalid @enderror"
+                                            id="program_id" name="program_id" data-onchange="loadKegiatan">
                                         <option value="">-- Pilih Program --</option>
                                     </select>
                                     @error('program_id')
-                                        <small class="form-text text-danger">{{ $message }}</small>
+                                        <div class="form-error">{{ $message }}</div>
                                     @enderror
                                 </div>
                             </div>
@@ -293,15 +299,15 @@
                             <div class="col-md-4">
                                 <!-- Kegiatan -->
                                 <div class="form-group mb-3">
-                                    <label for="kegiatan_id" class="form-label font-weight-bold">
+                                    <label for="kegiatan_id" class="form-label fw-bold">
                                         Kegiatan Terkait
                                     </label>
-                                    <select class="form-control @error('kegiatan_id') is-invalid @enderror"
+                                    <select class="form-select @error('kegiatan_id') is-invalid @enderror"
                                             id="kegiatan_id" name="kegiatan_id">
                                         <option value="">-- Pilih Kegiatan --</option>
                                     </select>
                                     @error('kegiatan_id')
-                                        <small class="form-text text-danger">{{ $message }}</small>
+                                        <div class="form-error">{{ $message }}</div>
                                     @enderror
                                 </div>
                             </div>
@@ -310,7 +316,7 @@
                 </div>
 
                 <!-- Submit Buttons -->
-                <div class="card shadow mb-4">
+                <div class="card mb-4">
                     <div class="card-body">
                         <button type="submit" class="btn btn-primary btn-lg">
                             <i class="fas fa-save"></i> Simpan Perubahan
@@ -325,9 +331,9 @@
 
         <!-- Info Panel & Delete -->
         <div class="col-lg-4">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3 bg-dark text-white">
-                    <h6 class="m-0 font-weight-bold">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">
                         <i class="fas fa-info"></i> Detail Indikator
                     </h6>
                 </div>
@@ -352,9 +358,9 @@
                 </div>
             </div>
 
-            <div class="card shadow mb-4">
-                <div class="card-header py-3 bg-danger text-white">
-                    <h6 class="m-0 font-weight-bold">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">
                         <i class="fas fa-trash"></i> Zona Berbahaya
                     </h6>
                 </div>
@@ -365,10 +371,10 @@
 
                     @can('delete', $indicator)
                     <form action="{{ route('sakip.indicators.destroy', $indicator) }}" method="POST"
-                          onsubmit="return confirm('Anda yakin ingin menghapus indikator ini? Aksi ini tidak dapat dibatalkan!');">
+                          data-confirm="Anda yakin ingin menghapus indikator ini? Aksi ini tidak dapat dibatalkan!">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" class="btn btn-danger btn-block">
+                        <button type="submit" class="btn btn-outline-danger w-100">
                             <i class="fas fa-trash"></i> Hapus Indikator
                         </button>
                     </form>
@@ -376,9 +382,9 @@
                 </div>
             </div>
 
-            <div class="card shadow">
-                <div class="card-header py-3 bg-info text-white">
-                    <h6 class="m-0 font-weight-bold">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">
                         <i class="fas fa-history"></i> Audit Trail
                     </h6>
                 </div>
@@ -400,7 +406,7 @@
     </div>
 </div>
 
-<script>
+<script nonce="{{ app()->bound('csp-nonce') ? app('csp-nonce') : '' }}">
 // Load Sasaran Strategis ketika Instansi berubah
 document.getElementById('instansi_id').addEventListener('change', function() {
     loadSasaranStrategis(this.value);
@@ -521,29 +527,4 @@ window.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
-<style>
-.form-label {
-    margin-bottom: 0.5rem;
-}
-
-.text-danger {
-    color: #dc3545;
-}
-
-.invalid-feedback {
-    display: block;
-    margin-top: 0.25rem;
-    font-size: 0.875rem;
-}
-
-.btn-lg {
-    padding: 0.75rem 2rem;
-    font-size: 1rem;
-    margin-right: 10px;
-}
-
-.badge {
-    padding: 0.5rem 0.75rem;
-}
-</style>
 @endsection

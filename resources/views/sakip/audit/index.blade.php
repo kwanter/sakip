@@ -2,6 +2,8 @@
 
 @section('title', 'Audit & Compliance')
 
+@section('page-title', 'Audit & Compliance')
+
 @section('content')
 <div class="container py-4">
     <!-- Page Header -->
@@ -13,15 +15,15 @@
             </div>
             <div class="page-header-actions">
                 @can('run-compliance-check', App\Models\SakipAudit::class)
-                <button type="button" onclick="runComplianceCheck()" class="btn btn-danger">
+                <button type="button" data-onclick="runComplianceCheck()" class="btn btn-outline-danger">
                     <i class="fas fa-shield-alt"></i>
-                    <span class="ms-1">Run Compliance</span>
+                    <span class="ms-1">Jalankan Pemeriksaan</span>
                 </button>
                 @endcan
                 @can('generate-audit-report', App\Models\SakipAudit::class)
-                <a href="{{ route('sakip.audit.export-report') }}" class="btn btn-success">
+                <a href="{{ route('sakip.audit.export-report') }}" class="btn btn-secondary">
                     <i class="fas fa-file-export"></i>
-                    <span class="ms-1">Export Report</span>
+                    <span class="ms-1">Ekspor Laporan</span>
                 </a>
                 @endcan
             </div>
@@ -53,7 +55,7 @@
                     <i class="fas fa-check-circle"></i>
                 </div>
                 <div class="stat-card-content">
-                    <div class="stat-card-label">Overall Compliance</div>
+                    <div class="stat-card-label">Kepatuhan Keseluruhan</div>
                     <div class="stat-card-value">{{ $compliance['overall_score'] ?? 0 }}%</div>
                 </div>
             </div>
@@ -64,7 +66,7 @@
                     <i class="fas fa-exclamation-triangle"></i>
                 </div>
                 <div class="stat-card-content">
-                    <div class="stat-card-label">Violations</div>
+                    <div class="stat-card-label">Pelanggaran</div>
                     <div class="stat-card-value">{{ $compliance['violations_count'] ?? 0 }}</div>
                 </div>
             </div>
@@ -75,9 +77,9 @@
                     <i class="fas fa-clock"></i>
                 </div>
                 <div class="stat-card-content">
-                    <div class="stat-card-label">Last Check</div>
+                    <div class="stat-card-label">Pemeriksaan Terakhir</div>
                     <div class="stat-card-value small">
-                        {{ $compliance['last_check'] ? $compliance['last_check']->diffForHumans() : 'Never' }}
+                        {{ $compliance['last_check'] ? $compliance['last_check']->locale('id')->diffForHumans() : 'Belum pernah' }}
                     </div>
                 </div>
             </div>
@@ -89,7 +91,7 @@
         <div class="card-header">
             <h5 class="card-title mb-0">
                 <i class="fas fa-clipboard-list me-2"></i>
-                Compliance Details
+                Detail Kepatuhan
             </h5>
         </div>
         <div class="card-body">
@@ -119,10 +121,10 @@
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="card-title mb-0">
                 <i class="fas fa-exclamation-circle me-2"></i>
-                Recent Violations
+                Pelanggaran Terbaru
             </h5>
-            <span class="badge bg-{{ count($compliance['violations'] ?? []) > 0 ? 'danger' : 'success' }}">
-                {{ count($compliance['violations'] ?? []) }} violations
+            <span class="badge badge-{{ count($compliance['violations'] ?? []) > 0 ? 'danger' : 'success' }}">
+                {{ count($compliance['violations'] ?? []) }} pelanggaran
             </span>
         </div>
         <div class="card-body p-0">
@@ -130,33 +132,40 @@
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th>Type</th>
-                            <th>Description</th>
-                            <th>Severity</th>
-                            <th>Date</th>
-                            <th>Actions</th>
+                            <th>Jenis</th>
+                            <th>Deskripsi</th>
+                            <th>Tingkat</th>
+                            <th>Indikator</th>
+                            <th>Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($compliance['violations'] ?? [] as $violation)
                         <tr>
                             <td>
-                                <span class="badge bg-danger">
+                                <span class="badge badge-danger">
                                     {{ ucfirst(str_replace('_', ' ', $violation['type'] ?? 'unknown')) }}
                                 </span>
                             </td>
                             <td>
-                                <div class="fw-bold">{{ $violation['message'] ?? 'No description' }}</div>
+                                <div class="fw-bold">{{ $violation['message'] ?? 'Tanpa deskripsi' }}</div>
                                 <small class="text-muted">{{ $violation['recommendation'] ?? '' }}</small>
                             </td>
                             <td>
-                                <span class="badge bg-{{ ($violation['severity'] ?? 'low') === 'high' ? 'danger' : (($violation['severity'] ?? 'low') === 'medium' ? 'warning' : 'info') }}">
+                                <span class="badge badge-{{ ($violation['severity'] ?? 'low') === 'high' ? 'danger' : (($violation['severity'] ?? 'low') === 'medium' ? 'warning' : 'primary') }}">
                                     {{ ucfirst($violation['severity'] ?? 'low') }}
                                 </span>
                             </td>
-                            <td>{{ now()->format('M d, Y') }}</td>
                             <td>
-                                <span class="text-muted">-</span>
+                                @if(!empty($violation['indicator_code']) || !empty($violation['indicator_name']))
+                                <span class="badge badge-neutral">{{ $violation['indicator_code'] ?? '' }}</span>
+                                <small class="text-muted d-block">{{ $violation['indicator_name'] ?? '' }}</small>
+                                @else
+                                <span class="text-muted">—</span>
+                                @endif
+                            </td>
+                            <td>
+                                <span class="text-muted">—</span>
                             </td>
                         </tr>
                         @empty
@@ -164,7 +173,7 @@
                             <td colspan="5" class="text-center py-4">
                                 <div class="empty-state">
                                     <i class="fas fa-check-circle text-success"></i>
-                                    <p class="mb-0">No violations found</p>
+                                    <p class="mb-0">Tidak ada pelanggaran ditemukan</p>
                                 </div>
                             </td>
                         </tr>
@@ -180,40 +189,40 @@
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="card-title mb-0">
                 <i class="fas fa-history me-2"></i>
-                Recent Audit Logs
+                Log Audit Terbaru
             </h5>
-            <span class="text-muted small">Showing latest activities</span>
+            <span class="text-muted small">Menampilkan aktivitas terbaru</span>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th>Timestamp</th>
-                            <th>User</th>
-                            <th>Action</th>
-                            <th>Resource</th>
-                            <th>Changes</th>
+                            <th>Waktu</th>
+                            <th>Pengguna</th>
+                            <th>Aksi</th>
+                            <th>Sumber Daya</th>
+                            <th>Perubahan</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($auditLogs ?? [] as $log)
                         <tr>
-                            <td>{{ $log->created_at->format('M d, Y H:i') }}</td>
-                            <td>{{ $log->user->name ?? 'System' }}</td>
+                            <td>{{ $log->created_at->translatedFormat('d M Y H:i') }}</td>
+                            <td>{{ $log->user->name ?? 'Sistem' }}</td>
                             <td>
-                                <span class="badge bg-{{ $log->event_type === 'delete' ? 'danger' : ($log->event_type === 'update' ? 'warning' : ($log->event_type === 'create' ? 'success' : 'info')) }}">
+                                <span class="badge badge-{{ $log->event_type === 'delete' ? 'danger' : ($log->event_type === 'update' ? 'warning' : ($log->event_type === 'create' ? 'success' : 'primary')) }}">
                                     {{ ucfirst($log->event_type) }}
                                 </span>
                             </td>
                             <td>{{ class_basename($log->auditable_type) }} #{{ $log->auditable_id }}</td>
                             <td>
                                 @if($log->old_values || $log->new_values)
-                                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="showChanges({{ $log->id }})">
-                                        <i class="fas fa-eye"></i> View
+                                    <button type="button" class="btn btn-sm btn-outline-primary" data-onclick="showChanges({{ $log->id }})">
+                                        <i class="fas fa-eye"></i> Lihat
                                     </button>
                                 @else
-                                    <span class="text-muted">No changes</span>
+                                    <span class="text-muted">Tidak ada perubahan</span>
                                 @endif
                             </td>
                         </tr>
@@ -222,7 +231,7 @@
                             <td colspan="5" class="text-center py-4">
                                 <div class="empty-state">
                                     <i class="fas fa-clipboard-list text-muted"></i>
-                                    <p class="mb-0">No audit logs found</p>
+                                    <p class="mb-0">Tidak ada log audit ditemukan</p>
                                 </div>
                             </td>
                         </tr>
@@ -247,7 +256,7 @@
             <div class="modal-header">
                 <h5 class="modal-title">
                     <i class="fas fa-exchange-alt me-2"></i>
-                    Changes Details
+                    Detail Perubahan
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
@@ -257,7 +266,7 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                     <i class="fas fa-times"></i>
-                    <span class="ms-1">Close</span>
+                    <span class="ms-1">Tutup</span>
                 </button>
             </div>
         </div>
@@ -266,9 +275,9 @@
 @endsection
 
 @push('scripts')
-<script>
+<script nonce="{{ app()->bound('csp-nonce') ? app('csp-nonce') : '' }}">
 function runComplianceCheck() {
-    if (confirm('This will run a comprehensive compliance check. Continue?')) {
+    if (confirm('Ini akan menjalankan pemeriksaan kepatuhan menyeluruh. Lanjutkan?')) {
         fetch('{{ route('sakip.audit.run-compliance-check') }}', {
             method: 'POST',
             headers: {
@@ -279,14 +288,14 @@ function runComplianceCheck() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                showNotification('Compliance check completed. Found ' + data.violations_count + ' violations.', 'success');
+                showNotification('Pemeriksaan kepatuhan selesai. Ditemukan ' + data.violations_count + ' pelanggaran.', 'success');
                 setTimeout(() => location.reload(), 1500);
             } else {
-                showNotification('Compliance check failed: ' + data.message, 'danger');
+                showNotification('Pemeriksaan kepatuhan gagal: ' + data.message, 'danger');
             }
         })
         .catch(error => {
-            showNotification('An error occurred during compliance check', 'danger');
+            showNotification('Terjadi kesalahan saat menjalankan pemeriksaan kepatuhan', 'danger');
         });
     }
 }
@@ -310,7 +319,7 @@ function showChanges(logId) {
             }
         })
         .catch(error => {
-            showNotification('Failed to load changes', 'danger');
+            showNotification('Gagal memuat detail perubahan', 'danger');
         });
 }
 </script>

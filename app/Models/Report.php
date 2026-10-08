@@ -36,8 +36,13 @@ class Report extends Model
         'approver_id',
         'template_id',
         'report_type',
+        'title',
+        'description',
+        'category',
         'period',
         'file_path',
+        'file_format',
+        'content',
         'parameters',
         'status',
         'generated_at',
@@ -58,6 +63,7 @@ class Report extends Model
         'created_by' => 'string',
         'updated_by' => 'string',
         'parameters' => 'array',
+        'content' => 'array',
         'generated_at' => 'datetime',
         'submitted_at' => 'datetime',
         'metadata' => 'array',
@@ -124,7 +130,7 @@ class Report extends Model
             'indicator_report',
             'report_id',
             'indicator_id',
-        )->withTimestamps();
+        )->using(IndicatorReport::class)->withTimestamps();
     }
 
     /**

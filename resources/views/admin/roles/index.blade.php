@@ -5,47 +5,48 @@
 @section('content')
 <div class="container-fluid">
     <!-- Page Heading -->
-    <div class="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 class="h3 mb-0 text-gray-800">
-            <i class="fas fa-shield-alt"></i> Manajemen Role
-        </h1>
-        <a href="{{ route('admin.roles.create') }}" class="btn btn-primary btn-sm">
-            <i class="fas fa-plus"></i> Tambah Role
-        </a>
+    <div class="page-header mb-4">
+        <div class="page-header-layout">
+            <div>
+                <h1 class="page-header-title">Manajemen Role</h1>
+                <p class="page-header-subtitle">Kelola kelompok izin yang diberikan kepada pengguna.</p>
+            </div>
+            <div class="page-header-actions">
+                <a href="{{ route('admin.roles.create') }}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-plus"></i> Tambah Role
+                </a>
+            </div>
+        </div>
     </div>
 
     @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show" role="alert">
             <i class="fas fa-check-circle"></i> {{ session('success') }}
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     @endif
 
     @if(session('error'))
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
             <i class="fas fa-exclamation-circle"></i> {{ session('error') }}
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     @endif
 
     <!-- Search and Filter Card -->
-    <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <form method="GET" action="{{ route('admin.roles.index') }}" class="form-inline">
-                <div class="form-group mr-3 mb-2 flex-grow-1">
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" action="{{ route('admin.roles.index') }}" class="d-flex flex-wrap gap-2 align-items-center">
+                <div class="flex-grow-1">
                     <input type="text" name="search" class="form-control w-100"
                            placeholder="Cari role..."
                            value="{{ request('search') }}">
                 </div>
-                <button type="submit" class="btn btn-primary mb-2">
+                <button type="submit" class="btn btn-outline-secondary">
                     <i class="fas fa-search"></i> Cari
                 </button>
                 @if(request('search'))
-                    <a href="{{ route('admin.roles.index') }}" class="btn btn-secondary mb-2 ml-2">
+                    <a href="{{ route('admin.roles.index') }}" class="btn btn-outline-secondary">
                         <i class="fas fa-times"></i> Reset
                     </a>
                 @endif
@@ -54,27 +55,27 @@
     </div>
 
     <!-- Roles Table Card -->
-    <div class="card shadow">
-        <div class="card-header py-3 bg-light">
-            <h6 class="m-0 font-weight-bold text-primary">
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title fs-6 m-0">
                 Daftar Role ({{ $roles->total() }} Total)
-            </h6>
+            </h2>
         </div>
         <div class="table-responsive">
-            <table class="table table-hover mb-0">
-                <thead class="bg-light">
+            <table class="table table-hover modern-table mb-0">
+                <thead>
                     <tr>
-                        <th class="border-bottom">
-                            <strong>Nama Role</strong>
+                        <th>
+                            Nama Role
                         </th>
-                        <th class="border-bottom text-center" style="width: 120px;">
-                            <strong>Pengguna</strong>
+                        <th class="text-center" style="width: 120px;">
+                            Pengguna
                         </th>
-                        <th class="border-bottom text-center" style="width: 120px;">
-                            <strong>Izin</strong>
+                        <th class="text-center" style="width: 120px;">
+                            Izin
                         </th>
-                        <th class="border-bottom text-center" style="width: 150px;">
-                            <strong>Aksi</strong>
+                        <th class="text-center" style="width: 150px;">
+                            Aksi
                         </th>
                     </tr>
                 </thead>
@@ -91,32 +92,32 @@
                                 </div>
                             </td>
                             <td class="align-middle text-center">
-                                <span class="badge badge-info">
+                                <span class="badge badge-primary">
                                     {{ $role->users_count ?? 0 }}
                                 </span>
                             </td>
                             <td class="align-middle text-center">
-                                <span class="badge badge-secondary">
+                                <span class="badge badge-neutral">
                                     {{ $role->permissions_count ?? 0 }}
                                 </span>
                             </td>
                             <td class="align-middle text-center">
                                 <div class="btn-group btn-group-sm" role="group">
                                     <a href="{{ route('admin.roles.show', $role) }}"
-                                       class="btn btn-info" title="Lihat Detail">
+                                       class="btn btn-outline-secondary" title="Lihat Detail">
                                         <i class="fas fa-eye"></i>
                                     </a>
                                     <a href="{{ route('admin.roles.edit', $role) }}"
-                                       class="btn btn-warning" title="Edit">
+                                       class="btn btn-outline-secondary" title="Edit">
                                         <i class="fas fa-edit"></i>
                                     </a>
                                     @if(!in_array($role->name, ['Super Admin', 'admin', 'super-admin']))
                                         <form action="{{ route('admin.roles.destroy', $role) }}"
                                               method="POST" class="d-inline"
-                                              onsubmit="return confirm('Apakah Anda yakin ingin menghapus role ini?');">
+                                              data-confirm="Apakah Anda yakin ingin menghapus role ini?">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="btn btn-danger" title="Hapus">
+                                            <button type="submit" class="btn btn-outline-danger" title="Hapus">
                                                 <i class="fas fa-trash"></i>
                                             </button>
                                         </form>
@@ -135,7 +136,7 @@
                 </tbody>
             </table>
         </div>
-        <div class="card-footer bg-light">
+        <div class="card-footer">
             <div class="d-flex justify-content-center">
                 {{ $roles->links() }}
             </div>
@@ -145,11 +146,11 @@
     <!-- Info Panel -->
     <div class="row mt-4">
         <div class="col-lg-6">
-            <div class="card shadow">
-                <div class="card-header py-3 bg-info text-white">
-                    <h6 class="m-0 font-weight-bold">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title fs-6 m-0">
                         <i class="fas fa-info-circle"></i> Informasi Role
-                    </h6>
+                    </h2>
                 </div>
                 <div class="card-body small">
                     <p>
@@ -166,11 +167,11 @@
             </div>
         </div>
         <div class="col-lg-6">
-            <div class="card shadow">
-                <div class="card-header py-3 bg-success text-white">
-                    <h6 class="m-0 font-weight-bold">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title fs-6 m-0">
                         <i class="fas fa-question-circle"></i> Pertanyaan Umum
-                    </h6>
+                    </h2>
                 </div>
                 <div class="card-body small">
                     <p class="mb-2">

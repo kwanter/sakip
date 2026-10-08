@@ -4,23 +4,30 @@
 
 @section('content')
 <div class="container-fluid">
-    <div class="row mb-4">
-        <div class="col-12">
-            <h1 class="h3 mb-0 text-gray-800">User Management</h1>
-            <p class="text-muted">Manage system users and their roles</p>
+    <div class="page-header mb-4">
+        <div class="page-header-layout">
+            <div>
+                <h1 class="page-header-title">User Management</h1>
+                <p class="page-header-subtitle">Manage system users and their roles</p>
+            </div>
+            <div class="page-header-actions">
+                <a href="{{ route('admin.users.create') }}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-plus"></i> Create User
+                </a>
+            </div>
         </div>
     </div>
 
     <!-- Search and Filter -->
-    <div class="card shadow mb-4">
+    <div class="card mb-4">
         <div class="card-body">
-            <form method="GET" action="{{ route('admin.users.index') }}" class="form-inline">
-                <div class="form-group mr-3">
-                    <input type="text" name="search" class="form-control" placeholder="Search users..." 
+            <form method="GET" action="{{ route('admin.users.index') }}" class="d-flex flex-wrap gap-2 align-items-center">
+                <div>
+                    <input type="text" name="search" class="form-control" placeholder="Search users..."
                            value="{{ request('search') }}">
                 </div>
-                <div class="form-group mr-3">
-                    <select name="role" class="form-control">
+                <div>
+                    <select name="role" class="form-select">
                         <option value="">All Roles</option>
                         @foreach($roles as $role)
                             <option value="{{ $role->name }}" {{ request('role') == $role->name ? 'selected' : '' }}>
@@ -29,10 +36,10 @@
                         @endforeach
                     </select>
                 </div>
-                <button type="submit" class="btn btn-primary mr-2">
+                <button type="submit" class="btn btn-outline-secondary">
                     <i class="fas fa-search"></i> Search
                 </button>
-                <a href="{{ route('admin.users.index') }}" class="btn btn-secondary">
+                <a href="{{ route('admin.users.index') }}" class="btn btn-outline-secondary">
                     <i class="fas fa-times"></i> Clear
                 </a>
             </form>
@@ -40,16 +47,13 @@
     </div>
 
     <!-- Users Table -->
-    <div class="card shadow mb-4">
-        <div class="card-header py-3 d-flex justify-content-between align-items-center">
-            <h6 class="m-0 font-weight-bold text-primary">Users</h6>
-            <a href="{{ route('admin.users.create') }}" class="btn btn-primary btn-sm">
-                <i class="fas fa-plus"></i> Create User
-            </a>
+    <div class="card mb-4">
+        <div class="card-header">
+            <h2 class="card-title fs-6 m-0">Users</h2>
         </div>
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-hover">
+                <table class="table table-hover modern-table">
                     <thead>
                         <tr>
                             <th>Name</th>
@@ -66,13 +70,13 @@
                             <td>
                                 <strong>{{ $user->name }}</strong>
                                 @if($user->id === auth()->id())
-                                    <span class="badge badge-info">You</span>
+                                    <span class="badge badge-primary">You</span>
                                 @endif
                             </td>
                             <td>{{ $user->email }}</td>
                             <td>
                                 @foreach($user->roles as $role)
-                                    <span class="badge badge-secondary">{{ ucfirst($role->name) }}</span>
+                                    <span class="badge badge-neutral">{{ ucfirst($role->name) }}</span>
                                 @endforeach
                                 @if($user->roles->isEmpty())
                                     <span class="text-muted">No roles</span>
@@ -88,18 +92,18 @@
                             <td>{{ $user->created_at->format('Y-m-d') }}</td>
                             <td>
                                 <div class="btn-group btn-group-sm" role="group">
-                                    <a href="{{ route('admin.users.show', $user) }}" class="btn btn-info" title="View">
+                                    <a href="{{ route('admin.users.show', $user) }}" class="btn btn-outline-secondary" title="View">
                                         <i class="fas fa-eye"></i>
                                     </a>
-                                    <a href="{{ route('admin.users.edit', $user) }}" class="btn btn-warning" title="Edit">
+                                    <a href="{{ route('admin.users.edit', $user) }}" class="btn btn-outline-secondary" title="Edit">
                                         <i class="fas fa-edit"></i>
                                     </a>
                                     @if($user->id !== auth()->id())
-                                        <form action="{{ route('admin.users.destroy', $user) }}" method="POST" class="d-inline" 
-                                              onsubmit="return confirm('Are you sure you want to delete this user?')">
+                                        <form action="{{ route('admin.users.destroy', $user) }}" method="POST" class="d-inline"
+                                              data-confirm="Are you sure you want to delete this user?">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="btn btn-danger" title="Delete">
+                                            <button type="submit" class="btn btn-outline-danger" title="Delete">
                                                 <i class="fas fa-trash"></i>
                                             </button>
                                         </form>

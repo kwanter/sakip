@@ -2,6 +2,8 @@
 
 @section('title', 'Input Data Kinerja')
 
+@section('page-title', 'Input Data Kinerja')
+
 @section('content')
 <div class="container py-4">
     <!-- Page Header -->
@@ -207,10 +209,10 @@
                         <div class="upload-area-content">
                             <i class="fas fa-cloud-upload-alt upload-icon"></i>
                             <p class="upload-text">Drag & drop file di sini atau</p>
-                            <button type="button" class="btn btn-outline-primary btn-sm" onclick="document.getElementById('evidence_documents').click()">
+                            <label for="evidence_documents" class="btn btn-outline-primary btn-sm mb-0">
                                 <i class="fas fa-folder-open"></i>
                                 <span class="ms-1">Pilih File</span>
-                            </button>
+                            </label>
                             <p class="upload-hint">PDF, Excel, Word, Gambar (Maks. 5MB per file)</p>
                         </div>
                     </div>
@@ -233,7 +235,7 @@
                                     <a href="{{ route('sakip.evidence.download', $document) }}" target="_blank" class="btn btn-sm btn-outline-primary me-1">
                                         <i class="fas fa-eye"></i>
                                     </a>
-                                    <button type="button" onclick="removeEvidence({{ $document->id }})" class="btn btn-sm btn-outline-danger">
+                                    <button type="button" data-onclick="removeEvidence({{ $document->id }})" class="btn btn-sm btn-outline-danger">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </div>
@@ -283,7 +285,7 @@
                 </div>
                 <div class="col-md-6">
                     <small class="text-muted">Kategori</small>
-                    <p id="previewCategory" class="mb-3"><span class="badge bg-primary"></span></p>
+                    <p id="previewCategory" class="mb-3"><span class="badge badge-primary"></span></p>
                 </div>
                 <div class="col-md-6">
                     <small class="text-muted">Frekuensi</small>
@@ -299,7 +301,7 @@
 </div>
 
 @push('scripts')
-<script>
+<script nonce="{{ app()->bound('csp-nonce') ? app('csp-nonce') : '' }}">
     // Indicator preview functionality
     document.getElementById('indicator_id').addEventListener('change', function() {
         const selectedOption = this.options[this.selectedIndex];
@@ -356,7 +358,7 @@
         sizeSmall.textContent = fileSize + ' MB';
 
         const badge = document.createElement('span');
-        badge.className = 'badge bg-success';
+        badge.className = 'badge badge-success';
         badge.textContent = 'Baru';
 
         contentDiv.appendChild(nameDiv);

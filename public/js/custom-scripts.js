@@ -288,6 +288,7 @@
                             .split(",")
                             .map(function (s) {
                                 s = s.trim();
+                                if (s === "this") return target;
                                 if (
                                     (s.startsWith("'") && s.endsWith("'")) ||
                                     (s.startsWith('"') && s.endsWith('"'))
@@ -328,6 +329,55 @@
         // Close app layout dropdown
         if (navbarDropdown && navbarDropdownBtn && !navbarDropdown.contains(e.target) && !navbarDropdownBtn.contains(e.target)) {
             navbarDropdown.classList.remove('show');
+        }
+    });
+
+    // CSP-safe confirmations: forms with data-confirm ask before submitting.
+    // (Inline onsubmit="return confirm(...)" is blocked by the CSP.)
+    // data-onsubmit="fnName" calls window.fnName(event, form) instead.
+    document.addEventListener(
+        "submit",
+        function (e) {
+            const form = e.target;
+            if (!form || !form.hasAttribute) {
+                return;
+            }
+
+            if (form.hasAttribute("data-onsubmit")) {
+                const name = form.getAttribute("data-onsubmit");
+                if (name && typeof window[name] === "function") {
+                    if (window[name](e, form) === false) {
+                        e.preventDefault();
+                    }
+                } else {
+                    console.warn("Blocked unknown data-onsubmit handler:", name);
+                }
+                return;
+            }
+
+            if (!form.hasAttribute("data-confirm")) {
+                return;
+            }
+            if (!window.confirm(form.getAttribute("data-confirm"))) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        },
+        true,
+    );
+
+    // CSP-safe change handlers: <select data-onchange="fnName"> calls
+    // window.fnName(value) with the element as `this`.
+    document.addEventListener("change", function (e) {
+        const target = e.target.closest("[data-onchange]");
+        if (!target) {
+            return;
+        }
+        const name = target.getAttribute("data-onchange");
+        if (name && typeof window[name] === "function") {
+            window[name].call(target, target.value);
+        } else {
+            console.warn("Blocked unknown data-onchange handler:", name);
         }
     });
 

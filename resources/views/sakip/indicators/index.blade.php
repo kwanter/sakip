@@ -2,6 +2,8 @@
 
 @section('title', 'Indikator Kinerja')
 
+@section('page-title', 'Indikator Kinerja')
+
 @section('content')
 <div class="container py-4">
     <!-- Page Header -->
@@ -18,11 +20,11 @@
                     <span class="ms-1">Tambah Indikator</span>
                 </a>
                 @endcan
-                <button class="btn btn-secondary" onclick="showImportModal()">
+                <button class="btn btn-secondary" data-onclick="showImportModal()">
                     <i class="fas fa-file-import"></i>
                     <span class="ms-1">Import</span>
                 </button>
-                <button class="btn btn-info" onclick="exportIndicators()">
+                <button class="btn btn-secondary" data-onclick="exportIndicators()">
                     <i class="fas fa-file-export"></i>
                     <span class="ms-1">Export</span>
                 </button>
@@ -58,7 +60,7 @@
         <div class="col-md-3">
             <div class="stat-card">
                 <div class="stat-card-header">
-                    <div class="stat-icon info">
+                    <div class="stat-icon primary">
                         <i class="fas fa-bullseye"></i>
                     </div>
                 </div>
@@ -100,8 +102,8 @@
             @endif
 
             <div class="table-responsive">
-                <table class="table table-hover align-middle">
-                    <thead class="table-light">
+                <table class="modern-table">
+                    <thead>
                         <tr>
                             <th>Kode</th>
                             <th>Nama Indikator</th>
@@ -115,14 +117,14 @@
                     <tbody>
                         @forelse($indicators as $indicator)
                         <tr>
-                            <td><span class="badge bg-light text-dark">{{ $indicator->code }}</span></td>
+                            <td><span class="badge badge-neutral">{{ $indicator->code }}</span></td>
                             <td>
                                 <a href="{{ route('sakip.indicators.show', $indicator) }}" class="text-decoration-none fw-bold">
                                     {{ $indicator->name }}
                                 </a>
                             </td>
                             <td>
-                                <span class="badge bg-primary">
+                                <span class="badge badge-primary">
                                     {{ ucfirst($indicator->category) }}
                                 </span>
                             </td>
@@ -140,10 +142,10 @@
                                     </a>
                                     @endcan
                                     @can('delete', $indicator)
-                                    <form action="{{ route('sakip.indicators.destroy', $indicator) }}" method="POST" class="d-inline">
+                                    <form action="{{ route('sakip.indicators.destroy', $indicator) }}" method="POST" class="d-inline" data-confirm="Apakah Anda yakin ingin menghapus indikator ini?">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="btn btn-outline-danger" title="Hapus" onclick="return confirm('Apakah Anda yakin ingin menghapus indikator ini?');">
+                                        <button type="submit" class="btn btn-outline-danger" title="Hapus">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </form>
@@ -175,7 +177,7 @@
     </div>
 </div>
 
-<script>
+<script nonce="{{ app()->bound('csp-nonce') ? app('csp-nonce') : '' }}">
 function showImportModal() {
     alert('Fitur import akan ditambahkan segera');
 }

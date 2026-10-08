@@ -2,6 +2,8 @@
 
 @section('title', 'Detail Sasaran Strategis')
 
+@section('page-title', 'Detail Sasaran Strategis')
+
 @section('content')
 <div class="container py-4">
     <!-- Page Header -->
@@ -39,7 +41,7 @@
                 <div class="card-body">
                     <dl class="row detail-list">
                         <dt class="col-sm-4">Kode Sasaran</dt>
-                        <dd class="col-sm-8"><span class="badge bg-light text-dark">{{ $sasaranStrategis->kode_sasaran_strategis }}</span></dd>
+                        <dd class="col-sm-8"><span class="badge badge-neutral">{{ $sasaranStrategis->kode_sasaran_strategis }}</span></dd>
 
                         <dt class="col-sm-4">Nama Sasaran</dt>
                         <dd class="col-sm-8">{{ $sasaranStrategis->nama_strategis }}</dd>
@@ -58,9 +60,9 @@
                         <dt class="col-sm-4">Status</dt>
                         <dd class="col-sm-8">
                             @if($sasaranStrategis->status == 'aktif')
-                                <span class="badge bg-success">Aktif</span>
+                                <span class="badge badge-success">Aktif</span>
                             @else
-                                <span class="badge bg-secondary">Non-Aktif</span>
+                                <span class="badge badge-neutral">Non-Aktif</span>
                             @endif
                         </dd>
 
@@ -133,17 +135,17 @@
                         @foreach($sasaranStrategis->programs as $key => $program)
                         <tr>
                             <td>{{ $key + 1 }}</td>
-                            <td><span class="badge bg-light text-dark">{{ $program->kode_program }}</span></td>
+                            <td><span class="badge badge-neutral">{{ $program->kode_program }}</span></td>
                             <td>{{ $program->nama_program }}</td>
                             <td>{{ $program->tahun }}</td>
                             <td>Rp {{ number_format($program->anggaran ?? 0, 0, ',', '.') }}</td>
                             <td>
                                 @if($program->status == 'aktif')
-                                    <span class="badge bg-success">Aktif</span>
+                                    <span class="badge badge-success">Aktif</span>
                                 @elseif($program->status == 'selesai')
-                                    <span class="badge bg-info">Selesai</span>
+                                    <span class="badge badge-primary">Selesai</span>
                                 @else
-                                    <span class="badge bg-secondary">Draft</span>
+                                    <span class="badge badge-neutral">Draft</span>
                                 @endif
                             </td>
                             <td>

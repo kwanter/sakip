@@ -6,10 +6,186 @@ use App\Models\Assessment;
 use App\Models\Instansi;
 use App\Models\PerformanceData;
 use App\Models\PerformanceIndicator;
+use App\Models\Report;
 use Carbon\Carbon;
+use Dompdf\Dompdf;
+use Illuminate\Support\Facades\Storage;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx as XlsxWriter;
 
 class ReportGenerationService
 {
+    /**
+     * Output path for a generated report file. Deterministic per report so
+     * regeneration overwrites instead of leaking orphan files.
+     */
+    public function reportFilePath(Report $report, string $extension): string
+    {
+        return 'reports/'.$report->instansi_id.'/'.$report->id.'.'.$extension;
+    }
+
+    /**
+     * Render the report as a PDF via Dompdf and store it on the default disk.
+     *
+     * @return string Stored file path
+     */
+    public function generatePDFFile(Report $report, array $reportData): string
+    {
+        $html = view('sakip.reports.export.pdf', [
+            'report' => $report,
+            'data' => $reportData,
+        ])->render();
+
+        $dompdf = new Dompdf(['isRemoteEnabled' => false]);
+        $dompdf->loadHtml($html, 'UTF-8');
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+
+        $path = $this->reportFilePath($report, 'pdf');
+        Storage::put($path, $dompdf->output());
+
+        return $path;
+    }
+
+    /**
+     * Render the report as an XLSX workbook and store it on the default disk.
+     *
+     * @return string Stored file path
+     */
+    public function generateExcelFile(Report $report, array $reportData): string
+    {
+        $spreadsheet = new Spreadsheet;
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Laporan');
+
+        $summary = $reportData['summary'] ?? [];
+
+        $sheet->setCellValue('A1', $report->title ?: 'Laporan Kinerja');
+        $sheet->setCellValue('A2', 'Periode: '.$report->period);
+        $sheet->setCellValue('A3', 'Dibuat: '.Carbon::now()->translatedFormat('d F Y H:i'));
+
+        // Summary block
+        $sheet->setCellValue('A5', 'Ringkasan');
+        $sheet->setCellValue('A6', 'Total Indikator');
+        $sheet->setCellValue('B6', $summary['total_indicators'] ?? 0);
+        $sheet->setCellValue('A7', 'Indikator dengan Data');
+        $sheet->setCellValue('B7', $summary['indicators_with_data'] ?? 0);
+        $sheet->setCellValue('A8', 'Rata-rata Capaian (%)');
+        $sheet->setCellValue('B8', $summary['average_performance'] ?? 0);
+        $sheet->setCellValue('A9', 'Capaian Tercapai');
+        $sheet->setCellValue('B9', $summary['achieved_indicators'] ?? 0);
+
+        // Indicator table
+        $headerRow = 11;
+        $columns = ['Kode', 'Indikator', 'Satuan', 'Target', 'Realisasi', 'Capaian (%)'];
+        foreach ($columns as $index => $label) {
+            $sheet->setCellValue(chr(65 + $index).$headerRow, $label);
+        }
+
+        $year = Carbon::parse($report->period)->year;
+        $row = $headerRow + 1;
+
+        foreach ($report->indicators as $indicator) {
+            $target = $indicator->targets->firstWhere('year', $year);
+            $performance = $indicator->performanceData
+                ->filter(fn ($data) => str_starts_with((string) $data->period, (string) $year))
+                ->sortByDesc('period')
+                ->first();
+
+            $sheet->setCellValue('A'.$row, $indicator->code);
+            $sheet->setCellValue('B'.$row, $indicator->name);
+            $sheet->setCellValue('C'.$row, $indicator->unit);
+            $sheet->setCellValue('D'.$row, $target->target_value ?? null);
+            $sheet->setCellValue('E'.$row, $performance->actual_value ?? null);
+            $sheet->setCellValue('F'.$row, $performance?->calculateAchievement());
+            $row++;
+        }
+
+        foreach (range('A', 'F') as $column) {
+            $sheet->getColumnDimension($column)->setAutoSize(true);
+        }
+
+        $temporaryFile = tempnam(sys_get_temp_dir(), 'report_xlsx_');
+        (new XlsxWriter($spreadsheet))->save($temporaryFile);
+
+        $path = $this->reportFilePath($report, 'xlsx');
+        Storage::put($path, file_get_contents($temporaryFile));
+        unlink($temporaryFile);
+        $spreadsheet->disconnectWorksheets();
+
+        return $path;
+    }
+
+    /**
+     * Render the report as a Word-compatible HTML document (.doc) and store
+     * it on the default disk.
+     *
+     * No PHPWord dependency is installed; Word opens HTML files with the
+     * mso application header natively, which keeps the export dependency-free.
+     *
+     * @return string Stored file path
+     */
+    public function generateWordFile(Report $report, array $reportData): string
+    {
+        $html = view('sakip.reports.export.word', [
+            'report' => $report,
+            'data' => $reportData,
+        ])->render();
+
+        $path = $this->reportFilePath($report, 'doc');
+        Storage::put($path, $html);
+
+        return $path;
+    }
+
+    /**
+     * Build the report content payload stored on the report record.
+     *
+     * The controller has always called this method on store(); it did not
+     * exist, so creating a report from the form died with a 500.
+     *
+     * @param  \Illuminate\Support\Collection  $indicators
+     * @param  \Illuminate\Support\Collection|null  $assessments
+     * @return array Structured content snapshot
+     */
+    public function generateReportContent(
+        Report $report,
+        $indicators,
+        $assessments,
+        array $options = [],
+    ): array {
+        return [
+            'generated_at' => Carbon::now()->toIso8601String(),
+            'report' => [
+                'title' => $report->title,
+                'report_type' => $report->report_type,
+                'period' => $report->period,
+            ],
+            'options' => [
+                'include_assessments' => (bool) ($options['include_assessments'] ?? false),
+                'include_benchmarks' => (bool) ($options['include_benchmarks'] ?? false),
+                'include_recommendations' => (bool) ($options['include_recommendations'] ?? false),
+            ],
+            'indicators' => collect($indicators)
+                ->map(fn ($indicator) => [
+                    'id' => $indicator->id,
+                    'code' => $indicator->code,
+                    'name' => $indicator->name,
+                    'unit' => $indicator->unit,
+                ])
+                ->values()
+                ->all(),
+            'assessments' => collect($assessments ?? [])
+                ->map(fn ($assessment) => [
+                    'id' => $assessment->id,
+                    'score' => $assessment->assessment_score,
+                    'status' => $assessment->status,
+                ])
+                ->values()
+                ->all(),
+        ];
+    }
+
     public function generateReportData(
         $institutionId,
         $reportType,
@@ -161,9 +337,38 @@ class ReportGenerationService
             ->toArray();
     }
 
+    /**
+     * Resolve the start date of a report period string.
+     *
+     * reports.period stores several formats in practice: 'YYYY', 'YYYY-MM',
+     * 'YYYY-MM-DD' and 'YYYY-Qn'. createFromFormat('Y-m', ...) threw for
+     * most of them.
+     */
+    private function periodStart(string $period): Carbon
+    {
+        if (preg_match('/^(\d{4})-Q([1-4])$/', $period, $match)) {
+            return Carbon::create((int) $match[1], (((int) $match[2]) - 1) * 3 + 1, 1)->startOfDay();
+        }
+
+        if (preg_match('/^(\d{4})$/', $period, $match)) {
+            return Carbon::create((int) $match[1], 1, 1)->startOfDay();
+        }
+
+        try {
+            return Carbon::parse($period)->startOfMonth();
+        } catch (\Exception $e) {
+            // Unknown format: fall back to the embedded year, else now.
+            if (preg_match('/(\d{4})/', $period, $match)) {
+                return Carbon::create((int) $match[1], 1, 1)->startOfDay();
+            }
+
+            return Carbon::now()->startOfMonth();
+        }
+    }
+
     private function generateTrendAnalysis($institutionId, $currentPeriod)
     {
-        $currentDate = Carbon::createFromFormat('Y-m', $currentPeriod);
+        $currentDate = $this->periodStart($currentPeriod);
         $previousPeriods = [];
 
         for ($i = 1; $i <= 5; $i++) {
@@ -237,9 +442,14 @@ class ReportGenerationService
     private function generateBenchmarkAnalysis($institutionId, $period)
     {
         $currentInstitution = Instansi::find($institutionId);
-        $peerInstitutions = Instansi::where('id', '!=', $institutionId)
-            ->where('type', $currentInstitution->type)
-            ->pluck('id');
+
+        if (! $currentInstitution) {
+            return [];
+        }
+
+        // instansis has no 'type' column; benchmark against all other
+        // institutions instead of filtering by a non-existent peer group.
+        $peerInstitutions = Instansi::where('id', '!=', $institutionId)->pluck('id');
 
         return PerformanceIndicator::where('instansi_id', $institutionId)
             ->where('is_active', true)

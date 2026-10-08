@@ -2,6 +2,8 @@
 
 @section('title', 'Edit Data Kinerja')
 
+@section('page-title', 'Edit Data Kinerja')
+
 @section('content')
 <div class="container py-4">
     <!-- Page Header -->
@@ -185,7 +187,7 @@
                                                 <small class="text-muted">{{ number_format($evidence->file_size / 1024, 2) }} KB</small>
                                             </div>
                                         </div>
-                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeEvidence({{ $evidence->id }}, this)">
+                                        <button type="button" class="btn btn-sm btn-outline-danger" data-onclick="removeEvidence({{ $evidence->id }}, this)">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </div>
@@ -203,10 +205,10 @@
                         <div class="upload-area-content">
                             <i class="fas fa-cloud-upload-alt upload-icon"></i>
                             <p class="upload-text">Drag & drop file di sini atau</p>
-                            <button type="button" class="btn btn-outline-primary btn-sm" onclick="document.getElementById('evidence_files').click()">
+                            <label for="evidence_files" class="btn btn-outline-primary btn-sm mb-0">
                                 <i class="fas fa-folder-open"></i>
                                 <span class="ms-1">Pilih File</span>
-                            </button>
+                            </label>
                             <p class="upload-hint">PDF, Excel, Word, Gambar (Maks. 5MB per file)</p>
                         </div>
                     </div>
@@ -238,7 +240,7 @@
 </div>
 
 @push('scripts')
-<script>
+<script nonce="{{ app()->bound('csp-nonce') ? app('csp-nonce') : '' }}">
     // Get file icon based on extension
     function getFileIcon(filename) {
         const ext = filename.split('.').pop().toLowerCase();
@@ -278,7 +280,7 @@
         sizeSmall.textContent = fileSize + ' MB';
 
         const badge = document.createElement('span');
-        badge.className = 'badge bg-success';
+        badge.className = 'badge badge-success';
         badge.textContent = 'Baru';
 
         contentDiv.appendChild(nameDiv);

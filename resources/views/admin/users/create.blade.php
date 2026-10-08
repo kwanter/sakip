@@ -4,25 +4,27 @@
 
 @section('content')
 <div class="container-fluid">
-    <div class="row mb-4">
-        <div class="col-12">
-            <h1 class="h3 mb-0 text-gray-800">Create User</h1>
-            <p class="text-muted">Add a new user to the system</p>
+    <div class="page-header mb-4">
+        <div class="page-header-layout">
+            <div>
+                <h1 class="page-header-title">Create User</h1>
+                <p class="page-header-subtitle">Add a new user to the system</p>
+            </div>
         </div>
     </div>
 
     <div class="row">
         <div class="col-lg-8">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">User Information</h6>
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h2 class="card-title fs-6 m-0">User Information</h2>
                 </div>
                 <div class="card-body">
                     <form method="POST" action="{{ route('admin.users.store') }}">
                         @csrf
 
-                        <div class="form-group row">
-                            <label for="name" class="col-md-3 col-form-label text-md-right">Name</label>
+                        <div class="row mb-3">
+                            <label for="name" class="col-md-3 col-form-label text-md-end">Name</label>
                             <div class="col-md-9">
                                 <input id="name" type="text" class="form-control @error('name') is-invalid @enderror"
                                        name="name" value="{{ old('name') }}" required autofocus>
@@ -34,8 +36,8 @@
                             </div>
                         </div>
 
-                        <div class="form-group row">
-                            <label for="email" class="col-md-3 col-form-label text-md-right">Email Address</label>
+                        <div class="row mb-3">
+                            <label for="email" class="col-md-3 col-form-label text-md-end">Email Address</label>
                             <div class="col-md-9">
                                 <input id="email" type="email" class="form-control @error('email') is-invalid @enderror"
                                        name="email" value="{{ old('email') }}" required>
@@ -47,10 +49,10 @@
                             </div>
                         </div>
 
-                        <div class="form-group row">
-                            <label for="instansi_id" class="col-md-3 col-form-label text-md-right">Instansi</label>
+                        <div class="row mb-3">
+                            <label for="instansi_id" class="col-md-3 col-form-label text-md-end">Instansi</label>
                             <div class="col-md-9">
-                                <select id="instansi_id" class="form-control @error('instansi_id') is-invalid @enderror"
+                                <select id="instansi_id" class="form-select @error('instansi_id') is-invalid @enderror"
                                         name="instansi_id">
                                     <option value="">-- Select Instansi (Optional) --</option>
                                     @foreach($instansis as $instansi)
@@ -70,8 +72,8 @@
                             </div>
                         </div>
 
-                        <div class="form-group row">
-                            <label for="password" class="col-md-3 col-form-label text-md-right">Password</label>
+                        <div class="row mb-3">
+                            <label for="password" class="col-md-3 col-form-label text-md-end">Password</label>
                             <div class="col-md-9">
                                 <input id="password" type="password" class="form-control @error('password') is-invalid @enderror"
                                        name="password" required>
@@ -83,16 +85,16 @@
                             </div>
                         </div>
 
-                        <div class="form-group row">
-                            <label for="password-confirm" class="col-md-3 col-form-label text-md-right">Confirm Password</label>
+                        <div class="row mb-3">
+                            <label for="password-confirm" class="col-md-3 col-form-label text-md-end">Confirm Password</label>
                             <div class="col-md-9">
                                 <input id="password-confirm" type="password" class="form-control"
                                        name="password_confirmation" required>
                             </div>
                         </div>
 
-                        <div class="form-group row">
-                            <label for="roles" class="col-md-3 col-form-label text-md-right">Roles</label>
+                        <div class="row mb-3">
+                            <label for="roles" class="col-md-3 col-form-label text-md-end">Roles</label>
                             <div class="col-md-9">
                                 @foreach($roles as $role)
                                 <div class="form-check">
@@ -115,12 +117,12 @@
                             </div>
                         </div>
 
-                        <div class="form-group row mb-0">
-                            <div class="col-md-9 offset-md-3">
+                        <div class="row mb-0">
+                            <div class="col-md-9 offset-md-3 d-flex gap-2">
                                 <button type="submit" class="btn btn-primary">
                                     <i class="fas fa-save"></i> Create User
                                 </button>
-                                <a href="{{ route('admin.users.index') }}" class="btn btn-secondary">
+                                <a href="{{ route('admin.users.index') }}" class="btn btn-outline-secondary">
                                     Cancel
                                 </a>
                             </div>
@@ -131,12 +133,12 @@
         </div>
 
         <div class="col-lg-4">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Help</h6>
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h2 class="card-title fs-6 m-0">Help</h2>
                 </div>
                 <div class="card-body">
-                    <h6>Password Requirements</h6>
+                    <h3 class="fs-6 fw-semibold">Password Requirements</h3>
                     <ul class="small">
                         <li>Minimum 8 characters</li>
                         <li>Should include uppercase and lowercase letters</li>
@@ -144,7 +146,7 @@
                         <li>Should include special characters</li>
                     </ul>
 
-                    <h6>Role Assignment</h6>
+                    <h3 class="fs-6 fw-semibold">Role Assignment</h3>
                     <p class="small">
                         Select one or more roles for the user. Roles determine what permissions the user will have.
                         You can change roles later from the user edit page.

@@ -5,35 +5,38 @@
 @section('content')
 <div class="container-fluid">
     <!-- Page Heading -->
-    <div class="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 class="h3 mb-0 text-gray-800">
-            <i class="fas fa-plus-circle"></i> Tambah Role Baru
-        </h1>
-        <a href="{{ route('admin.roles.index') }}" class="btn btn-secondary btn-sm">
-            <i class="fas fa-arrow-left"></i> Kembali
-        </a>
+    <div class="page-header mb-4">
+        <div class="page-header-layout">
+            <div>
+                <h1 class="page-header-title">Tambah Role Baru</h1>
+                <p class="page-header-subtitle">Buat kelompok izin baru untuk pengguna.</p>
+            </div>
+            <div class="page-header-actions">
+                <a href="{{ route('admin.roles.index') }}" class="btn btn-outline-secondary btn-sm">
+                    <i class="fas fa-arrow-left"></i> Kembali
+                </a>
+            </div>
+        </div>
     </div>
 
     <div class="row">
         <div class="col-lg-8">
-            <div class="card shadow">
-                <div class="card-header py-3 bg-primary text-white">
-                    <h6 class="m-0 font-weight-bold">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title fs-6 m-0">
                         <i class="fas fa-shield-alt"></i> Informasi Role
-                    </h6>
+                    </h2>
                 </div>
                 <div class="card-body">
                     @if($errors->any())
                         <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                            <h6 class="alert-heading"><i class="fas fa-exclamation-circle"></i> Validasi Gagal!</h6>
+                            <h2 class="fs-6"><i class="fas fa-exclamation-circle"></i> Validasi Gagal!</h2>
                             <ul class="mb-0">
                                 @foreach($errors->all() as $error)
                                     <li>{{ $error }}</li>
                                 @endforeach
                             </ul>
-                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
                     @endif
 
@@ -41,8 +44,8 @@
                         @csrf
 
                         <!-- Role Name -->
-                        <div class="form-group mb-3">
-                            <label for="name" class="form-label font-weight-bold">
+                        <div class="mb-3">
+                            <label for="name" class="form-label fw-semibold">
                                 Nama Role <span class="text-danger">*</span>
                             </label>
                             <input type="text"
@@ -59,8 +62,8 @@
                         </div>
 
                         <!-- Guard Name -->
-                        <div class="form-group mb-3">
-                            <label for="guard_name" class="form-label font-weight-bold">
+                        <div class="mb-3">
+                            <label for="guard_name" class="form-label fw-semibold">
                                 Guard Name
                             </label>
                             <input type="text"
@@ -76,23 +79,23 @@
                         </div>
 
                         <!-- Permissions Selection -->
-                        <div class="form-group mb-3">
-                            <label class="form-label font-weight-bold">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">
                                 <i class="fas fa-key"></i> Pilih Izin
                             </label>
-                            <div class="card bg-light border">
+                            <div class="card">
                                 <div class="card-body">
                                     <div class="row">
                                         @forelse($permissions as $permission)
                                             <div class="col-md-6 mb-2">
-                                                <div class="custom-control custom-checkbox">
+                                                <div class="form-check">
                                                     <input type="checkbox"
-                                                           class="custom-control-input"
+                                                           class="form-check-input"
                                                            id="permission_{{ $permission->id }}"
                                                            name="permissions[]"
                                                            value="{{ $permission->id }}"
                                                            {{ in_array($permission->id, old('permissions', [])) ? 'checked' : '' }}>
-                                                    <label class="custom-control-label" for="permission_{{ $permission->id }}">
+                                                    <label class="form-check-label" for="permission_{{ $permission->id }}">
                                                         <strong>{{ $permission->name }}</strong>
                                                         @if($permission->description)
                                                             <br>
@@ -116,11 +119,11 @@
                         </div>
 
                         <!-- Submit Buttons -->
-                        <div class="form-group">
-                            <button type="submit" class="btn btn-primary btn-lg">
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-save"></i> Simpan Role
                             </button>
-                            <a href="{{ route('admin.roles.index') }}" class="btn btn-secondary btn-lg">
+                            <a href="{{ route('admin.roles.index') }}" class="btn btn-outline-secondary">
                                 <i class="fas fa-times"></i> Batal
                             </a>
                         </div>
@@ -131,15 +134,15 @@
 
         <!-- Info Panel -->
         <div class="col-lg-4">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3 bg-info text-white">
-                    <h6 class="m-0 font-weight-bold">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h2 class="card-title fs-6 m-0">
                         <i class="fas fa-info-circle"></i> Panduan
-                    </h6>
+                    </h2>
                 </div>
                 <div class="card-body small">
-                    <h6 class="font-weight-bold">Cara Membuat Role:</h6>
-                    <ol class="pl-3">
+                    <h3 class="fs-6 fw-semibold">Cara Membuat Role:</h3>
+                    <ol class="ps-3">
                         <li>Masukkan nama role yang deskriptif</li>
                         <li>Pilih izin-izin yang dibutuhkan</li>
                         <li>Klik "Simpan Role"</li>
@@ -147,8 +150,8 @@
 
                     <hr>
 
-                    <h6 class="font-weight-bold">Tips:</h6>
-                    <ul class="pl-3 mb-0">
+                    <h3 class="fs-6 fw-semibold">Tips:</h3>
+                    <ul class="ps-3 mb-0">
                         <li>Gunakan nama yang jelas dan deskriptif</li>
                         <li>Pilih izin minimal yang dibutuhkan</li>
                         <li>Anda dapat mengubah izin nanti</li>
@@ -156,11 +159,11 @@
                 </div>
             </div>
 
-            <div class="card shadow">
-                <div class="card-header py-3 bg-warning text-dark">
-                    <h6 class="m-0 font-weight-bold">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title fs-6 m-0">
                         <i class="fas fa-lightbulb"></i> Contoh Role
-                    </h6>
+                    </h2>
                 </div>
                 <div class="card-body small">
                     <p><strong>Editor:</strong> Dapat membuat dan mengedit konten</p>

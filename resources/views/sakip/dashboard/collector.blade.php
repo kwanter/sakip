@@ -1,270 +1,247 @@
-@extends('layouts.app')
+@extends('layouts.modern')
 
 @section('title', 'Dashboard Pengumpul Data - SAKIP')
 
+@section('page-title', 'Dashboard Pengumpul Data')
+
 @section('content')
-<div class="py-6">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <!-- Page Header -->
-        <div class="mb-8">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h1 class="text-3xl font-bold text-gray-900">Dashboard Pengumpul Data</h1>
-                    <p class="mt-2 text-gray-600">Kelola dan input data kinerja anda</p>
-                </div>
-                <div class="flex items-center space-x-3">
-                    <a href="{{ route('sakip.data-collection.create') }}" class="inline-flex items-center px-4 py-2 bg-blue-800 text-white text-sm font-medium rounded-md hover:bg-blue-900 transition-colors">
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-                        </svg>
-                        Tambah Data
-                    </a>
-                </div>
+<div class="container py-4">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="page-header-layout">
+            <div>
+                <h1 class="page-header-title">Dashboard Pengumpul Data</h1>
+                <p class="page-header-subtitle">Kelola dan input data kinerja anda</p>
             </div>
-        </div>
-
-        <!-- Alert Notifications -->
-        <div class="mb-6">
-            <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-md">
-                <div class="flex">
-                    <div class="flex-shrink-0">
-                        <svg class="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
-                        </svg>
-                    </div>
-                    <div class="ml-3">
-                        <h3 class="text-sm font-medium text-blue-800">Informasi</h3>
-                        <div class="mt-1 text-sm text-blue-700">
-                            <p>Anda memiliki 5 indikator yang belum diisi data untuk periode ini.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Quick Stats -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <div class="w-8 h-8 bg-blue-100 rounded-md flex items-center justify-center">
-                            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-500">Total Data</p>
-                        <p class="text-2xl font-semibold text-gray-900">24</p>
-                        <p class="text-sm text-gray-600">Data terinput</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <div class="w-8 h-8 bg-green-100 rounded-md flex items-center justify-center">
-                            <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-500">Tervalidasi</p>
-                        <p class="text-2xl font-semibold text-gray-900">18</p>
-                        <p class="text-sm text-green-600">75% dari total</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <div class="w-8 h-8 bg-yellow-100 rounded-md flex items-center justify-center">
-                            <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-500">Menunggu</p>
-                        <p class="text-2xl font-semibold text-gray-900">4</p>
-                        <p class="text-sm text-yellow-600">Perlu validasi</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <div class="w-8 h-8 bg-red-100 rounded-md flex items-center justify-center">
-                            <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-500">Perlu Revisi</p>
-                        <p class="text-2xl font-semibold text-gray-900">2</p>
-                        <p class="text-sm text-red-600">Butuh perbaikan</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Pending Data Collection -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-medium text-gray-900">Indikator Belum Diisi</h3>
-                <span class="px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded-full">5 perlu diisi</span>
-            </div>
-            <div class="space-y-3">
-                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-md">
-                    <div class="flex items-center">
-                        <div class="w-2 h-2 bg-red-500 rounded-full mr-3"></div>
-                        <div>
-                            <p class="text-sm font-medium text-gray-900">IK.01 - Persentase pelayanan publik tervalidasi</p>
-                            <p class="text-xs text-gray-500">Periode: Triwulan IV 2024 | Tenggat: 30 Des 2024</p>
-                        </div>
-                    </div>
-                    <a href="{{ route('sakip.data-collection.create') }}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">Input Data</a>
-                </div>
-
-                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-md">
-                    <div class="flex items-center">
-                        <div class="w-2 h-2 bg-red-500 rounded-full mr-3"></div>
-                        <div>
-                            <p class="text-sm font-medium text-gray-900">IK.02 - Jumlah program unggulan terlaksana</p>
-                            <p class="text-xs text-gray-500">Periode: Triwulan IV 2024 | Tenggat: 30 Des 2024</p>
-                        </div>
-                    </div>
-                    <a href="{{ route('sakip.data-collection.create') }}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">Input Data</a>
-                </div>
-
-                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-md">
-                    <div class="flex items-center">
-                        <div class="w-2 h-2 bg-red-500 rounded-full mr-3"></div>
-                        <div>
-                            <p class="text-sm font-medium text-gray-900">IK.03 - Tingkat kepuasan masyarakat</p>
-                            <p class="text-xs text-gray-500">Periode: Triwulan IV 2024 | Tenggat: 30 Des 2024</p>
-                        </div>
-                    </div>
-                    <a href="{{ route('sakip.data-collection.create') }}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">Input Data</a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Recent Data Collection -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-medium text-gray-900">Data Terakhir Diinput</h3>
-                <a href="{{ route('sakip.data-collection.index') }}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">Lihat Semua</a>
-            </div>
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kode</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Indikator</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nilai</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        <tr>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">IK.15</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Persentase kehadiran pegawai</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">95.2%</td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Tervalidasi</span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2 jam lalu</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <a href="#" class="text-blue-600 hover:text-blue-800">Detail</a>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">IK.14</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Jumlah kegiatan yang dilaksanakan</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">24</td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">Menunggu</span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">1 hari lalu</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <a href="#" class="text-blue-600 hover:text-blue-800">Detail</a>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">IK.13</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Angka kepuasan masyarakat</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">4.2</td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Perlu Revisi</span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">3 hari lalu</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <a href="#" class="text-blue-600 hover:text-blue-800">Revisi</a>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Quick Actions -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 class="text-lg font-medium text-gray-900 mb-4">Aksi Cepat</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <a href="{{ route('sakip.data-collection.create') }}" class="flex items-center p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
-                    <div class="flex-shrink-0">
-                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-                        </svg>
-                    </div>
-                    <div class="ml-3">
-                        <p class="text-sm font-medium text-blue-900">Input Data Baru</p>
-                        <p class="text-xs text-blue-600">Tambah data kinerja</p>
-                    </div>
-                </a>
-
-                <a href="#" class="flex items-center p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors">
-                    <div class="flex-shrink-0">
-                        <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"/>
-                        </svg>
-                    </div>
-                    <div class="ml-3">
-                        <p class="text-sm font-medium text-green-900">Impor Excel</p>
-                        <p class="text-xs text-green-600">Upload data massal</p>
-                    </div>
-                </a>
-
-                <a href="#" class="flex items-center p-4 bg-orange-50 rounded-lg hover:bg-orange-100 transition-colors">
-                    <div class="flex-shrink-0">
-                        <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-                        </svg>
-                    </div>
-                    <div class="ml-3">
-                        <p class="text-sm font-medium text-orange-900">Ekspor Data</p>
-                        <p class="text-xs text-orange-600">Unduh laporan</p>
-                    </div>
+            <div class="page-header-actions">
+                <a href="{{ route('sakip.data-collection.create') }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i>
+                    <span class="ms-1">Tambah Data</span>
                 </a>
             </div>
         </div>
     </div>
-</div>
-@stop
 
-@section('scripts')
-<script>
+    <!-- Alert Notifications -->
+    <div class="alert alert-info mb-4" role="alert">
+        <i class="fas fa-info-circle alert-icon"></i>
+        <div class="alert-content">
+            <div class="alert-title">Informasi</div>
+            <div class="alert-message">Anda memiliki 5 indikator yang belum diisi data untuk periode ini.</div>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-card-header">
+                    <div class="stat-icon primary">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                </div>
+                <div class="stat-value">24</div>
+                <div class="stat-label">Total Data terinput</div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-card-header">
+                    <div class="stat-icon success">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                </div>
+                <div class="stat-value">18</div>
+                <div class="stat-label">Tervalidasi (75% dari total)</div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-card-header">
+                    <div class="stat-icon warning">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                </div>
+                <div class="stat-value">4</div>
+                <div class="stat-label">Menunggu validasi</div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-card-header">
+                    <div class="stat-icon danger">
+                        <i class="fas fa-exclamation-circle"></i>
+                    </div>
+                </div>
+                <div class="stat-value">2</div>
+                <div class="stat-label">Perlu revisi</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Data Collection -->
+    <div class="modern-card mb-4">
+        <div class="card-header">
+            <h6 class="card-title mb-0">Indikator Belum Diisi</h6>
+            <span class="badge badge-danger">5 perlu diisi</span>
+        </div>
+        <div class="card-body">
+            <div class="d-grid gap-2">
+                <div class="d-flex align-items-center justify-content-between p-3 rounded border">
+                    <div class="d-flex align-items-center">
+                        <span class="d-inline-block rounded-circle bg-danger me-3" style="width: 8px; height: 8px;"></span>
+                        <div>
+                            <p class="mb-0 fw-bold">IK.01 - Persentase pelayanan publik tervalidasi</p>
+                            <small class="text-muted">Periode: Triwulan IV 2024 | Tenggat: 30 Des 2024</small>
+                        </div>
+                    </div>
+                    <a href="{{ route('sakip.data-collection.create') }}">Input Data</a>
+                </div>
+
+                <div class="d-flex align-items-center justify-content-between p-3 rounded border">
+                    <div class="d-flex align-items-center">
+                        <span class="d-inline-block rounded-circle bg-danger me-3" style="width: 8px; height: 8px;"></span>
+                        <div>
+                            <p class="mb-0 fw-bold">IK.02 - Jumlah program unggulan terlaksana</p>
+                            <small class="text-muted">Periode: Triwulan IV 2024 | Tenggat: 30 Des 2024</small>
+                        </div>
+                    </div>
+                    <a href="{{ route('sakip.data-collection.create') }}">Input Data</a>
+                </div>
+
+                <div class="d-flex align-items-center justify-content-between p-3 rounded border">
+                    <div class="d-flex align-items-center">
+                        <span class="d-inline-block rounded-circle bg-danger me-3" style="width: 8px; height: 8px;"></span>
+                        <div>
+                            <p class="mb-0 fw-bold">IK.03 - Tingkat kepuasan masyarakat</p>
+                            <small class="text-muted">Periode: Triwulan IV 2024 | Tenggat: 30 Des 2024</small>
+                        </div>
+                    </div>
+                    <a href="{{ route('sakip.data-collection.create') }}">Input Data</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Data Collection -->
+    <div class="modern-table-container mb-4">
+        <div class="table-toolbar">
+            <h6 class="card-title mb-0">Data Terakhir Diinput</h6>
+            <div class="table-actions">
+                <a href="{{ route('sakip.data-collection.index') }}">Lihat Semua</a>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="modern-table">
+                <thead>
+                    <tr>
+                        <th>Kode</th>
+                        <th>Indikator</th>
+                        <th>Nilai</th>
+                        <th>Status</th>
+                        <th>Tanggal</th>
+                        <th class="text-end">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="fw-bold">IK.15</td>
+                        <td>Persentase kehadiran pegawai</td>
+                        <td>95.2%</td>
+                        <td>
+                            <span class="badge badge-success">Tervalidasi</span>
+                        </td>
+                        <td>2 jam lalu</td>
+                        <td class="text-end">
+                            <a href="#">Detail</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="fw-bold">IK.14</td>
+                        <td>Jumlah kegiatan yang dilaksanakan</td>
+                        <td>24</td>
+                        <td>
+                            <span class="badge badge-warning">Menunggu</span>
+                        </td>
+                        <td>1 hari lalu</td>
+                        <td class="text-end">
+                            <a href="#">Detail</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="fw-bold">IK.13</td>
+                        <td>Angka kepuasan masyarakat</td>
+                        <td>4.2</td>
+                        <td>
+                            <span class="badge badge-danger">Perlu Revisi</span>
+                        </td>
+                        <td>3 hari lalu</td>
+                        <td class="text-end">
+                            <a href="#">Revisi</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="modern-card">
+        <div class="card-header">
+            <h6 class="card-title mb-0">Aksi Cepat</h6>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <a href="{{ route('sakip.data-collection.create') }}" class="text-decoration-none">
+                        <div class="d-flex align-items-center p-3 rounded border h-100">
+                            <div class="stat-icon primary me-3">
+                                <i class="fas fa-plus"></i>
+                            </div>
+                            <div>
+                                <p class="mb-0 fw-bold">Input Data Baru</p>
+                                <small class="text-muted">Tambah data kinerja</small>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-4">
+                    <a href="#" class="text-decoration-none">
+                        <div class="d-flex align-items-center p-3 rounded border h-100">
+                            <div class="stat-icon success me-3">
+                                <i class="fas fa-file-import"></i>
+                            </div>
+                            <div>
+                                <p class="mb-0 fw-bold">Impor Excel</p>
+                                <small class="text-muted">Upload data massal</small>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-4">
+                    <a href="#" class="text-decoration-none">
+                        <div class="d-flex align-items-center p-3 rounded border h-100">
+                            <div class="stat-icon warning me-3">
+                                <i class="fas fa-file-export"></i>
+                            </div>
+                            <div>
+                                <p class="mb-0 fw-bold">Ekspor Data</p>
+                                <small class="text-muted">Unduh laporan</small>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+
+@push('scripts')
+<script nonce="{{ app()->bound('csp-nonce') ? app('csp-nonce') : '' }}">
 document.addEventListener('DOMContentLoaded', function() {
     // Add any specific data collector dashboard functionality here
     console.log('Data collector dashboard loaded');
 });
 </script>
-@stop
+@endpush

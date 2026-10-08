@@ -52,7 +52,7 @@
                 <div class="d-flex align-items-center gap-2" data-triage-signal="{{ $signal['handle'] }}">
                     <i class="fas fa-clock text-warning" aria-hidden="true"></i>
                     <span><strong>{{ number_format($signal['count']) }}</strong> {{ $signal['subject'] }} menunggu tindakan</span>
-                    <a href="{{ $signal['url'] }}" class="btn btn-sm btn-warning">{{ $signal['action'] }}</a>
+                    <a href="{{ $signal['url'] }}" class="btn btn-sm btn-outline-warning">{{ $signal['action'] }}</a>
                 </div>
                 @endif
                 @endforeach
@@ -94,7 +94,7 @@
         <div class="col-lg-8">
             <div class="card mb-4">
                 <div class="card-header">
-                    <h6 class="m-0 fw-bold text-primary">Aktivitas Terbaru</h6>
+                    <h2 class="card-title fs-6 m-0">Aktivitas Terbaru</h2>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
@@ -119,7 +119,7 @@
                                         @endif
                                     </td>
                                     <td>
-                                        <span class="badge rounded-pill text-bg-secondary">{{ $log->action }}</span>
+                                        <span class="badge badge-neutral">{{ $log->action }}</span>
                                     </td>
                                     <td>
                                         <small title="{{ $log->created_at->locale('id')->translatedFormat('d F Y H:i') }}">{{ $log->created_at->locale('id')->diffForHumans() }}</small>
@@ -143,7 +143,7 @@
                         </table>
                     </div>
                     <div class="text-center mt-3">
-                        <a href="{{ route('admin.audit-logs') }}" class="btn btn-sm btn-primary">
+                        <a href="{{ route('admin.audit-logs') }}" class="btn btn-sm btn-outline-secondary">
                             Lihat Semua Aktivitas
                         </a>
                     </div>
@@ -155,10 +155,10 @@
         <div class="col-lg-4">
             <div class="card mb-4">
                 <div class="card-header">
-                    <h6 class="m-0 fw-bold text-primary">Aksi Cepat</h6>
+                    <h2 class="card-title fs-6 m-0">Aksi Cepat</h2>
                 </div>
                 <div class="card-body">
-                    <div class="list-group">
+                    <div class="list-group list-group-flush">
                         <a href="{{ route('admin.users.create') }}" class="list-group-item list-group-item-action">
                             <i class="fas fa-user-plus fa-fw me-2"></i>
                             Buat Pengguna Baru

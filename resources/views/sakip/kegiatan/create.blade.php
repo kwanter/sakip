@@ -1,24 +1,32 @@
-@extends('layouts.app')
+@extends('layouts.modern')
 
 @section('title', 'Tambah Kegiatan')
 
+@section('page-title', 'Tambah Kegiatan')
+
 @section('content')
-<div class="container-fluid">
-    <!-- Page Heading -->
-    <div class="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 class="h3 mb-0 text-gray-800">
-            <i class="fas fa-plus-circle"></i> Tambah Kegiatan
-        </h1>
-        <a href="{{ route('sakip.kegiatan.index') }}" class="btn btn-secondary btn-sm">
-            <i class="fas fa-arrow-left"></i> Kembali
-        </a>
+<div class="container py-4">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="page-header-layout">
+            <div>
+                <h1 class="page-header-title">Tambah Kegiatan</h1>
+                <p class="page-header-subtitle">Tambah kegiatan operasional baru ke dalam program</p>
+            </div>
+            <div class="page-header-actions">
+                <a href="{{ route('sakip.kegiatan.index') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i>
+                    <span class="ms-1">Kembali</span>
+                </a>
+            </div>
+        </div>
     </div>
 
     <div class="row">
         <div class="col-lg-8">
-            <div class="card shadow mb-4">
+            <div class="card mb-4">
                 <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Form Tambah Kegiatan</h6>
+                    <h6 class="m-0 fw-bold">Form Tambah Kegiatan</h6>
                 </div>
                 <div class="card-body">
                     <form action="{{ route('sakip.kegiatan.store') }}" method="POST">
@@ -162,9 +170,9 @@
 
         <!-- Info Card -->
         <div class="col-lg-4">
-            <div class="card shadow mb-4">
+            <div class="card mb-4">
                 <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Informasi</h6>
+                    <h6 class="m-0 fw-bold">Informasi</h6>
                 </div>
                 <div class="card-body">
                     <p class="mb-2"><strong>Apa itu Kegiatan?</strong></p>

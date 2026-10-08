@@ -2,6 +2,8 @@
 
 @section('title', 'Detail Program')
 
+@section('page-title', 'Detail Program')
+
 @section('content')
 <div class="container py-4">
     <!-- Page Header -->
@@ -39,7 +41,7 @@
                 <div class="card-body">
                     <dl class="row detail-list">
                         <dt class="col-sm-4">Kode Program</dt>
-                        <dd class="col-sm-8"><span class="badge bg-light text-dark">{{ $program->kode_program }}</span></dd>
+                        <dd class="col-sm-8"><span class="badge badge-neutral">{{ $program->kode_program }}</span></dd>
 
                         <dt class="col-sm-4">Nama Program</dt>
                         <dd class="col-sm-8">{{ $program->nama_program }}</dd>
@@ -75,11 +77,11 @@
                         <dt class="col-sm-4">Status</dt>
                         <dd class="col-sm-8">
                             @if($program->status == 'aktif')
-                                <span class="badge bg-success">Aktif</span>
+                                <span class="badge badge-success">Aktif</span>
                             @elseif($program->status == 'selesai')
-                                <span class="badge bg-info">Selesai</span>
+                                <span class="badge badge-primary">Selesai</span>
                             @else
-                                <span class="badge bg-secondary">Draft</span>
+                                <span class="badge badge-neutral">Draft</span>
                             @endif
                         </dd>
 
@@ -188,17 +190,17 @@
                         @foreach($program->kegiatans as $key => $kegiatan)
                         <tr>
                             <td>{{ $key + 1 }}</td>
-                            <td><span class="badge bg-light text-dark">{{ $kegiatan->kode_kegiatan }}</span></td>
+                            <td><span class="badge badge-neutral">{{ $kegiatan->kode_kegiatan }}</span></td>
                             <td>{{ $kegiatan->nama_kegiatan }}</td>
                             <td>Rp {{ number_format($kegiatan->anggaran, 0, ',', '.') }}</td>
                             <td>Rp {{ number_format($kegiatan->anggaran_realisasi ?? 0, 0, ',', '.') }}</td>
                             <td>
                                 @if($kegiatan->status == 'aktif')
-                                    <span class="badge bg-success">Aktif</span>
+                                    <span class="badge badge-success">Aktif</span>
                                 @elseif($kegiatan->status == 'selesai')
-                                    <span class="badge bg-info">Selesai</span>
+                                    <span class="badge badge-primary">Selesai</span>
                                 @else
-                                    <span class="badge bg-secondary">Draft</span>
+                                    <span class="badge badge-neutral">Draft</span>
                                 @endif
                             </td>
                             <td>
@@ -274,9 +276,9 @@
                             <td>{{ $indicator->targets->first()->target ?? '-' }}</td>
                             <td>
                                 @if($indicator->status == 'aktif')
-                                    <span class="badge bg-success">Aktif</span>
+                                    <span class="badge badge-success">Aktif</span>
                                 @else
-                                    <span class="badge bg-secondary">Non-Aktif</span>
+                                    <span class="badge badge-neutral">Non-Aktif</span>
                                 @endif
                             </td>
                             <td>

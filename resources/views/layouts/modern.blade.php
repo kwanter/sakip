@@ -6,7 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <!-- Theme: set immediately to prevent flash -->
-    <script>
+    <script nonce="{{ app()->bound('csp-nonce') ? app('csp-nonce') : '' }}">
         (function() {
             const theme = localStorage.getItem('theme') || 'light';
             document.documentElement.setAttribute('data-theme', theme);
@@ -15,10 +15,12 @@
 
     <title>@yield('title', 'SAKIP') - Sistem Akuntabilitas Kinerja</title>
 
-    <!-- Fonts -->
+    <!-- Fonts: Genesis typography (General Sans display, DM Sans body, JetBrains Mono code) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://api.fontshare.com" crossorigin>
+    <link href="https://api.fontshare.com/v2/css?f[]=general-sans@500,600,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -184,7 +186,7 @@
                             <i class="fas fa-bell"></i>
                             <span class="notification-dot"></span>
                         </button>
-                        <button class="user-menu-trigger" id="userMenuBtn" data-onclick="const dd=document.getElementById('userDropdown'); dd.classList.toggle('show'); console.log('Dropdown clicked via data-onclick', dd);">
+                        <button class="user-menu-trigger" id="userMenuBtn">
                             <div class="user-avatar">{{ substr(Auth::user()->name, 0, 2) }}</div>
                             <div class="user-info">
                                 <div class="user-name">{{ Auth::user()->name }}</div>
@@ -324,7 +326,7 @@
     <script src="{{ asset('js/custom-scripts.js') }}"></script>
 
     <!-- Modern Layout UI Script -->
-    <script>
+    <script nonce="{{ app()->bound('csp-nonce') ? app('csp-nonce') : '' }}">
     (function() {
         'use strict';
 

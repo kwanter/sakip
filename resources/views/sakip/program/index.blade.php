@@ -2,6 +2,8 @@
 
 @section('title', 'Daftar Program')
 
+@section('page-title', 'Daftar Program')
+
 @section('content')
 <div class="container py-4">
     <!-- Page Header -->
@@ -111,7 +113,7 @@
                         @forelse($programs ?? [] as $key => $program)
                         <tr>
                             <td>{{ $programs->firstItem() + $key }}</td>
-                            <td><span class="badge bg-light text-dark">{{ $program->kode_program }}</span></td>
+                            <td><span class="badge badge-neutral">{{ $program->kode_program }}</span></td>
                             <td><strong>{{ $program->nama_program }}</strong></td>
                             <td>{{ $program->instansi->nama_instansi ?? '-' }}</td>
                             <td>{{ $program->sasaranStrategis->nama_strategis ?? '-' }}</td>
@@ -119,11 +121,11 @@
                             <td>Rp {{ number_format($program->anggaran ?? 0, 0, ',', '.') }}</td>
                             <td>
                                 @if($program->status == 'aktif')
-                                    <span class="badge bg-success">Aktif</span>
+                                    <span class="badge badge-success">Aktif</span>
                                 @elseif($program->status == 'selesai')
-                                    <span class="badge bg-info">Selesai</span>
+                                    <span class="badge badge-primary">Selesai</span>
                                 @else
-                                    <span class="badge bg-secondary">Draft</span>
+                                    <span class="badge badge-neutral">Draft</span>
                                 @endif
                             </td>
                             <td class="text-end">
@@ -137,7 +139,7 @@
                                     </a>
                                     @endcan
                                     @can('delete', $program)
-                                    <form action="{{ route('sakip.program.destroy', $program) }}" method="POST" class="d-inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus program ini?')">
+                                    <form action="{{ route('sakip.program.destroy', $program) }}" method="POST" class="d-inline" data-confirm="Apakah Anda yakin ingin menghapus program ini?">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn btn-outline-danger" title="Hapus">

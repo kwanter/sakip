@@ -123,7 +123,7 @@
     <div class="modern-card" style="margin-bottom: var(--space-lg);">
         <div class="card-body">
             <div style="display: flex; align-items: center; gap: var(--space-lg);">
-                <div style="width: 56px; height: 56px; border-radius: var(--radius-full); background: linear-gradient(135deg, var(--primary-400), var(--primary-600)); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem;">
+                <div style="width: 56px; height: 56px; border-radius: var(--radius-full); background: var(--primary-500); display: flex; align-items: center; justify-content: center; color: var(--text-inverse); font-size: 1.5rem;">
                     <i class="fas fa-user"></i>
                 </div>
                 <div style="flex: 1;">

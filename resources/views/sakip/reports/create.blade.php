@@ -2,6 +2,8 @@
 
 @section('title', 'Buat Laporan SAKIP')
 
+@section('page-title', 'Buat Laporan SAKIP')
+
 @section('content')
 <div class="container py-4">
     <!-- Page Header -->
@@ -107,7 +109,7 @@
                                 <select name="template_id" id="template_id" class="form-select @error('template_id') is-invalid @enderror">
                                     <option value="">Pilih Template (Opsional)</option>
                                     @foreach($templates ?? [] as $template)
-                                        <option value="{{ $template->id }}">{{ $template->name }}</option>
+                                        <option value="{{ $template->id }}" {{ (string) old('template_id', request('template_id')) === (string) $template->id ? 'selected' : '' }}>{{ $template->name }}</option>
                                     @endforeach
                                 </select>
                                 @error('template_id')
@@ -139,7 +141,7 @@
                                     <div class="form-check form-check-card p-2 rounded">
                                         <input type="checkbox" name="indicators[]" value="{{ $indicator->id }}" id="indicator_{{ $indicator->id }}" class="form-check-input">
                                         <label for="indicator_{{ $indicator->id }}" class="form-check-label">
-                                            <span class="badge bg-light text-dark me-1">{{ $indicator->code }}</span>
+                                            <span class="badge badge-neutral me-1">{{ $indicator->code }}</span>
                                             {{ $indicator->name }}
                                         </label>
                                     </div>
@@ -212,7 +214,7 @@
                         <span class="ms-1">Batal</span>
                     </a>
                     <div class="btn-group">
-                        <button type="button" id="preview-btn" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#previewModal">
+                        <button type="button" id="preview-btn" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#previewModal">
                             <i class="fas fa-eye"></i>
                             <span class="ms-1">Pratinjau</span>
                         </button>
@@ -255,7 +257,7 @@
 </div>
 
 @push('scripts')
-<script>
+<script nonce="{{ app()->bound('csp-nonce') ? app('csp-nonce') : '' }}">
 document.addEventListener('DOMContentLoaded', function() {
     const previewBtn = document.getElementById('preview-btn');
     const previewContent = document.getElementById('preview-content');
@@ -332,7 +334,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             selectedIndicators.forEach(function(ind) {
                 const badge = document.createElement('span');
-                badge.className = 'badge bg-primary';
+                badge.className = 'badge badge-primary';
                 badge.textContent = ind;
                 badgeContainer.appendChild(badge);
             });

@@ -1,9 +1,21 @@
-@extends('layouts.app')
+@extends('layouts.modern')
 
 @section('title', 'Kirim Masukan')
 
+@section('page-title', 'Kirim Masukan')
+
 @section('content')
 <div class="container py-4">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="page-header-layout">
+            <div>
+                <h1 class="page-header-title">Kirim Masukan</h1>
+                <p class="page-header-subtitle">Sampaikan laporan bug, saran fitur, atau saran perbaikan</p>
+            </div>
+        </div>
+    </div>
+
     <div class="row justify-content-center">
         <div class="col-md-8">
             <div class="card">

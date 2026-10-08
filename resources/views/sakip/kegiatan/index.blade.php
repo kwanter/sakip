@@ -1,44 +1,46 @@
-@extends('layouts.app')
+@extends('layouts.modern')
 
 @section('title', 'Daftar Kegiatan')
 
+@section('page-title', 'Daftar Kegiatan')
+
 @section('content')
-<div class="container-fluid">
-    <!-- Page Heading -->
-    <div class="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 class="h3 mb-0 text-gray-800">
-            <i class="fas fa-tasks"></i> Daftar Kegiatan
-        </h1>
-        <div>
-            @can('create', App\Models\Kegiatan::class)
-            <a href="{{ route('sakip.kegiatan.create') }}" class="btn btn-primary btn-sm">
-                <i class="fas fa-plus"></i> Tambah Kegiatan
-            </a>
-            @endcan
+<div class="container py-4">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="page-header-layout">
+            <div>
+                <h1 class="page-header-title">Daftar Kegiatan</h1>
+                <p class="page-header-subtitle">Kelola data kegiatan operasional program</p>
+            </div>
+            <div class="page-header-actions">
+                @can('create', App\Models\Kegiatan::class)
+                <a href="{{ route('sakip.kegiatan.create') }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i>
+                    <span class="ms-1">Tambah Kegiatan</span>
+                </a>
+                @endcan
+            </div>
         </div>
     </div>
 
     @if($message = Session::get('success'))
     <div class="alert alert-success alert-dismissible fade show" role="alert">
         <i class="fas fa-check-circle"></i> {{ $message }}
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-        </button>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
     @endif
 
     @if($message = Session::get('error'))
     <div class="alert alert-danger alert-dismissible fade show" role="alert">
         <i class="fas fa-exclamation-circle"></i> {{ $message }}
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-        </button>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
     @endif
 
-    <div class="card shadow mb-4">
+    <div class="card mb-4">
         <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Data Kegiatan</h6>
+            <h6 class="m-0 fw-bold">Data Kegiatan</h6>
         </div>
         <div class="card-body">
             <!-- Filter Section -->
@@ -47,7 +49,7 @@
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="search">Cari Kegiatan</label>
-                            <input type="text" id="search" name="search" class="form-control form-control-sm"
+                            <input type="text" id="search" name="search" class="form-control"
                                    placeholder="Cari berdasarkan nama atau kode kegiatan"
                                    value="{{ request('search') }}">
                         </div>
@@ -55,7 +57,7 @@
                     <div class="col-md-3">
                         <div class="form-group">
                             <label for="status">Status</label>
-                            <select id="status" name="status" class="form-control form-control-sm">
+                            <select id="status" name="status" class="form-control">
                                 <option value="">Semua Status</option>
                                 <option value="draft" {{ request('status') == 'draft' ? 'selected' : '' }}>Draft</option>
                                 <option value="aktif" {{ request('status') == 'aktif' ? 'selected' : '' }}>Aktif</option>
@@ -66,7 +68,7 @@
                     <div class="col-md-3">
                         <div class="form-group">
                             <label>&nbsp;</label>
-                            <button type="submit" class="btn btn-primary btn-sm btn-block">
+                            <button type="submit" class="btn btn-primary btn-sm w-100">
                                 <i class="fas fa-search"></i> Filter
                             </button>
                         </div>
@@ -76,8 +78,8 @@
 
             <!-- Data Table -->
             <div class="table-responsive">
-                <table class="table table-hover table-bordered">
-                    <thead class="thead-light">
+                <table class="table table-hover">
+                    <thead class="table-light">
                         <tr>
                             <th width="50">No</th>
                             <th>Kode Kegiatan</th>
@@ -112,29 +114,31 @@
                                 @if($kegiatan->status == 'aktif')
                                     <span class="badge badge-success">Aktif</span>
                                 @elseif($kegiatan->status == 'selesai')
-                                    <span class="badge badge-info">Selesai</span>
+                                    <span class="badge badge-primary">Selesai</span>
                                 @else
-                                    <span class="badge badge-secondary">Draft</span>
+                                    <span class="badge badge-neutral">Draft</span>
                                 @endif
                             </td>
                             <td>
-                                <a href="{{ route('sakip.kegiatan.show', $kegiatan) }}" class="btn btn-info btn-sm" title="Lihat Detail">
-                                    <i class="fas fa-eye"></i>
-                                </a>
-                                @can('update', $kegiatan)
-                                <a href="{{ route('sakip.kegiatan.edit', $kegiatan) }}" class="btn btn-warning btn-sm" title="Edit">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                                @endcan
-                                @can('delete', $kegiatan)
-                                <form action="{{ route('sakip.kegiatan.destroy', $kegiatan) }}" method="POST" style="display: inline;" onsubmit="return confirm('Apakah Anda yakin ingin menghapus kegiatan ini?');">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-danger btn-sm" title="Hapus">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </form>
-                                @endcan
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{{ route('sakip.kegiatan.show', $kegiatan) }}" class="btn btn-outline-primary" title="Lihat Detail">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    @can('update', $kegiatan)
+                                    <a href="{{ route('sakip.kegiatan.edit', $kegiatan) }}" class="btn btn-outline-secondary" title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    @endcan
+                                    @can('delete', $kegiatan)
+                                    <form action="{{ route('sakip.kegiatan.destroy', $kegiatan) }}" method="POST" class="d-inline" data-confirm="Apakah Anda yakin ingin menghapus kegiatan ini?">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-outline-danger" title="Hapus">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                    @endcan
+                                </div>
                             </td>
                         </tr>
                         @empty
