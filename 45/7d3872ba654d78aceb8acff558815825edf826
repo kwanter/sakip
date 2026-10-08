@@ -1,0 +1,19 @@
+resources/css/app.css
+  s_be43ca4cd591e8::t_d0f1093f9cffd3 31-52
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "457d3872ba654d78aceb8acff558815825edf826",
+  "prompts": {},
+  "sessions": {
+    "s_be43ca4cd591e8": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f51ecae26ffejMAbzhCaK3y0eO",
+        "model": "unknown"
+      },
+      "human_author": "ragrin <kwanterpepen@gmail.com>"
+    }
+  }
+}
