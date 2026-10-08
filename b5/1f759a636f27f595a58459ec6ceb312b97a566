@@ -1,0 +1,47 @@
+docs/design/GENESIS.md
+  s_be43ca4cd591e8::t_dd2d5c10076b73 1-68
+resources/views/layouts/app.blade.php
+  s_be43ca4cd591e8::t_189dcffb1295b2 18-23
+public/css/modern-sakip.css
+  s_be43ca4cd591e8::t_545a0c43fca57c 10-23,34,36,38-39,43,45-46,51-54,57-59,61,67-75
+  s_be43ca4cd591e8::t_64ca33ecc4252a 146,2218-2342
+  s_be43ca4cd591e8::t_ab57e5c16fdb29 94,97-98,100-111,113-114,116,127-128,136-145
+  s_be43ca4cd591e8::t_6f412da14e3868 665,668,670-671,1038,1042-1051,1066
+  s_be43ca4cd591e8::t_36c1bbe4d41a1c 1470-1471
+  s_be43ca4cd591e8::t_1526a6a3b6b2ed 147
+public/css/custom-styles.css
+  s_be43ca4cd591e8::t_87bb1c7e073be1 6-15,17-18,20-23,25,28,30-37,42,50,58-67
+  s_b3d215630b2dfd::t_03c108b932ced6 68
+resources/js/sakip/dashboard.js
+  s_be43ca4cd591e8::t_a498dc6ea672ba 25
+resources/views/layouts/modern.blade.php
+  s_be43ca4cd591e8::t_6c5a5ad572dcd1 18,21-23
+resources/css/app.css
+  s_be43ca4cd591e8::t_ddfc6bcb5ad897 9-10,12-30
+resources/js/sakip/notification.js
+  s_be43ca4cd591e8::t_a498dc6ea672ba 89
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b51f759a636f27f595a58459ec6ceb312b97a566",
+  "prompts": {},
+  "sessions": {
+    "s_b3d215630b2dfd": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a11542-b973-7132-8e7e-40a81d3ef95d",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "ragrin <kwanterpepen@gmail.com>"
+    },
+    "s_be43ca4cd591e8": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f51ecae26ffejMAbzhCaK3y0eO",
+        "model": "unknown"
+      },
+      "human_author": "ragrin <kwanterpepen@gmail.com>"
+    }
+  }
+}
