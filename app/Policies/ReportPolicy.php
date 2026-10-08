@@ -48,7 +48,7 @@ class ReportPolicy
         }
 
         // Check report type permissions
-        if (! $this->hasReportTypePermission($user, $report->type)) {
+        if (! $this->hasReportTypePermission($user, (string) ($report->report_type ?? ''))) {
             return false;
         }
 
@@ -257,7 +257,7 @@ class ReportPolicy
         }
 
         // Check report type permissions
-        if (! $this->hasReportTypePermission($user, $report->type)) {
+        if (! $this->hasReportTypePermission($user, (string) ($report->report_type ?? ''))) {
             return false;
         }
 
@@ -457,6 +457,16 @@ class ReportPolicy
      * Check if user has permission for specific report type.
      * Helper method for report type permission checking.
      */
+    /**
+     * Check report-type-level permissions.
+     *
+     * The reports.report_type vocabulary (monthly/quarterly/semester/
+     * annual/custom, plus legacy factory values like quarterly_report) does
+     * not map to the permission families below, so unmapped types are not
+     * restricted here — callers still enforce instansi isolation and the
+     * base report permission afterwards. (This method previously received
+     * a non-existent $report->type attribute and rejected non-admins.)
+     */
     private function hasReportTypePermission(User $user, string $reportType): bool
     {
         // Admin has access to all report types
@@ -485,7 +495,9 @@ class ReportPolicy
                 return $user->hasAnyPermission(['sakip.reports.trend', 'sakip.pimpinan', 'sakip.assessor', 'sakip.auditor']);
 
             default:
-                return false;
+                // Unmapped report types carry no type-level restriction;
+                // callers still enforce instansi isolation + base permission.
+                return true;
         }
     }
 }

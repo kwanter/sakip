@@ -278,6 +278,7 @@ class ReportController extends Controller
                 'description' => $request->get('description'),
                 'template_id' => $request->get('template_id'),
                 'instansi_id' => $user->instansi_id,
+                'generated_by' => $user->id,
                 'status' => 'draft',
                 'created_by' => $user->id,
                 'updated_by' => $user->id,
@@ -336,6 +337,57 @@ class ReportController extends Controller
                     'message' => 'Terjadi kesalahan saat membuat laporan.',
                 ],
                 500,
+            );
+        }
+    }
+
+    /**
+     * Export a report in the requested format: generate the file when
+     * needed, record it on the report, then stream it as a download.
+     * (Route sakip.reports.export previously pointed at a method that did
+     * not exist, producing a 500 for every export attempt.)
+     */
+    public function export(Report $report, string $format)
+    {
+        $this->authorize('export', $report);
+
+        if (! in_array($format, ['pdf', 'excel', 'word'], true)) {
+            abort(404, 'Format laporan tidak didukung.');
+        }
+
+        try {
+            $filePath = $this->generateReportFile($report, $format);
+
+            $report->update([
+                'file_path' => $filePath,
+                'file_format' => $format,
+                'status' => 'completed',
+                'generated_at' => Carbon::now(),
+                'updated_by' => Auth::id(),
+            ]);
+
+            AuditLog::create([
+                'user_id' => Auth::id(),
+                'instansi_id' => Auth::user()->instansi_id,
+                'action' => 'EXPORT',
+                'module' => 'SAKIP',
+                'description' => "Menghasilkan file laporan: {$report->title} (Format: {$format})",
+                'old_values' => null,
+                'new_values' => ['file_path' => $filePath, 'format' => $format],
+            ]);
+
+            $extension = $format === 'excel' ? 'xlsx' : ($format === 'word' ? 'doc' : 'pdf');
+            $downloadFilename = $this->sanitizeFilename(
+                $report->title ?? $report->report_type ?? 'laporan',
+            ).'.'.$extension;
+
+            return Storage::download($filePath, $downloadFilename);
+        } catch (\Exception $e) {
+            Log::error('Export report error: '.$e->getMessage());
+
+            return back()->with(
+                'error',
+                'Terjadi kesalahan saat menghasilkan file laporan.',
             );
         }
     }

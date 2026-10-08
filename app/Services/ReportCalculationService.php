@@ -152,11 +152,11 @@ class ReportCalculationService
     /**
      * Calculate institution's average performance
      *
-     * @param  int  $instansiId  Institution ID
+     * @param  string  $instansiId  Institution UUID
      * @param  int  $year  Year to calculate for
      * @return float Average performance percentage
      */
-    public function calculateInstitutionPerformance(int $instansiId, int $year): float
+    public function calculateInstitutionPerformance(string $instansiId, int $year): float
     {
         return (float) PerformanceData::whereHas('indicator', function ($q) use ($instansiId) {
             $q->where('instansi_id', $instansiId);
@@ -168,11 +168,11 @@ class ReportCalculationService
     /**
      * Calculate regional average performance
      *
-     * @param  int  $instansiId  Institution ID to determine region
+     * @param  string  $instansiId  Institution UUID to determine region
      * @param  int  $year  Year to calculate for
      * @return float Regional average performance percentage
      */
-    public function calculateRegionalPerformance(int $instansiId, int $year): float
+    public function calculateRegionalPerformance(string $instansiId, int $year): float
     {
         return (float) PerformanceData::whereHas('indicator.instansi', function ($q) use ($instansiId) {
             $q->where('region_id', function ($subQuery) use ($instansiId) {

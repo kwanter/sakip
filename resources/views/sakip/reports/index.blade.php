@@ -146,9 +146,9 @@
                                     </a>
                                     @if($report->status !== 'approved')
                                     @can('approve', $report)
-                                    <form action="{{ route('sakip.reports.approve', $report) }}" method="POST" class="d-inline">
+                                    <form action="{{ route('sakip.reports.approve', $report) }}" method="POST" class="d-inline" data-confirm="Setujui laporan ini?">
                                         @csrf
-                                        <button type="submit" class="btn btn-outline-success" title="Setujui" onclick="return confirm('Setujui laporan ini?')">
+                                        <button type="submit" class="btn btn-outline-success" title="Setujui">
                                             <i class="fas fa-check"></i>
                                         </button>
                                     </form>
@@ -189,33 +189,40 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
                 </div>
                 <div class="modal-body">
-                    @php($downloadableReports = ($reports ?? collect())->whereNotNull('file_path'))
-                    @if($downloadableReports->isEmpty())
+                    @if(($reports ?? collect())->isEmpty())
                     <div class="empty-state">
                         <i class="fas fa-file-download text-muted"></i>
-                        <p class="mb-0">Belum ada file laporan yang tersedia</p>
-                        <small class="text-muted">File akan tersedia setelah proses pembuatan laporan selesai</small>
+                        <p class="mb-0">Belum ada laporan yang bisa diunduh</p>
+                        <small class="text-muted">Silakan buat laporan terlebih dahulu</small>
                     </div>
                     @else
                     <div class="mb-3">
                         <label for="exportReportSelect" class="form-label">Pilih Laporan</label>
                         <select id="exportReportSelect" class="form-select">
-                            @foreach($downloadableReports as $report)
+                            @foreach(($reports ?? collect()) as $report)
                             <option value="{{ $report->id }}">
-                                {{ $report->title ?? $report->report_type }} — {{ $report->period }}
+                                {{ $report->title ?? Str::headline($report->report_type) }} — {{ $report->period }}
                             </option>
                             @endforeach
                         </select>
                     </div>
+                    <div class="mb-3">
+                        <label for="exportFormatSelect" class="form-label">Format</label>
+                        <select id="exportFormatSelect" class="form-select">
+                            <option value="pdf">PDF</option>
+                            <option value="excel">Excel (.xlsx)</option>
+                            <option value="word">Word (.doc)</option>
+                        </select>
+                    </div>
                     <p class="text-muted mb-0">
-                        <small><i class="fas fa-info-circle me-1"></i>File akan diunduh dalam format yang tersimpan.</small>
+                        <small><i class="fas fa-info-circle me-1"></i>File akan dibuat otomatis jika belum tersedia.</small>
                     </p>
                     @endif
                 </div>
-                @if($downloadableReports->isNotEmpty())
+                @if(($reports ?? collect())->isNotEmpty())
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="button" class="btn btn-primary" onclick="downloadSelectedReport()">
+                    <button type="button" class="btn btn-primary" data-onclick="downloadSelectedReport()">
                         <i class="fas fa-download"></i>
                         <span class="ms-1">Unduh</span>
                     </button>
@@ -262,11 +269,14 @@
 
 <script nonce="{{ app()->bound('csp-nonce') ? app('csp-nonce') : '' }}">
 function downloadSelectedReport() {
-    var select = document.getElementById('exportReportSelect');
-    if (!select || !select.value) {
+    var reportSelect = document.getElementById('exportReportSelect');
+    var formatSelect = document.getElementById('exportFormatSelect');
+    if (!reportSelect || !reportSelect.value) {
         return;
     }
-    window.location.href = '/sakip/reports/' + encodeURIComponent(select.value) + '/download';
+    var format = formatSelect ? formatSelect.value : 'pdf';
+    window.location.href = '/sakip/reports/' + encodeURIComponent(reportSelect.value)
+        + '/export/' + encodeURIComponent(format);
 }
 </script>
 @endsection
