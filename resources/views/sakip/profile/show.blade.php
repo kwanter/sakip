@@ -10,8 +10,8 @@
     .profile-avatar {
         width: 80px;
         height: 80px;
-        border-radius: var(--radius-xl);
-        background: linear-gradient(135deg, var(--primary-400), var(--primary-600));
+        border-radius: var(--radius-full); /* Genesis: avatars are pill-shaped */
+        background: var(--primary-500); /* Genesis: no decorative gradients */
         display: flex;
         align-items: center;
         justify-content: center;
