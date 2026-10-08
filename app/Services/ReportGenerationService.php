@@ -337,9 +337,38 @@ class ReportGenerationService
             ->toArray();
     }
 
+    /**
+     * Resolve the start date of a report period string.
+     *
+     * reports.period stores several formats in practice: 'YYYY', 'YYYY-MM',
+     * 'YYYY-MM-DD' and 'YYYY-Qn'. createFromFormat('Y-m', ...) threw for
+     * most of them.
+     */
+    private function periodStart(string $period): Carbon
+    {
+        if (preg_match('/^(\d{4})-Q([1-4])$/', $period, $match)) {
+            return Carbon::create((int) $match[1], (((int) $match[2]) - 1) * 3 + 1, 1)->startOfDay();
+        }
+
+        if (preg_match('/^(\d{4})$/', $period, $match)) {
+            return Carbon::create((int) $match[1], 1, 1)->startOfDay();
+        }
+
+        try {
+            return Carbon::parse($period)->startOfMonth();
+        } catch (\Exception $e) {
+            // Unknown format: fall back to the embedded year, else now.
+            if (preg_match('/(\d{4})/', $period, $match)) {
+                return Carbon::create((int) $match[1], 1, 1)->startOfDay();
+            }
+
+            return Carbon::now()->startOfMonth();
+        }
+    }
+
     private function generateTrendAnalysis($institutionId, $currentPeriod)
     {
-        $currentDate = Carbon::createFromFormat('Y-m', $currentPeriod);
+        $currentDate = $this->periodStart($currentPeriod);
         $previousPeriods = [];
 
         for ($i = 1; $i <= 5; $i++) {
@@ -413,9 +442,14 @@ class ReportGenerationService
     private function generateBenchmarkAnalysis($institutionId, $period)
     {
         $currentInstitution = Instansi::find($institutionId);
-        $peerInstitutions = Instansi::where('id', '!=', $institutionId)
-            ->where('type', $currentInstitution->type)
-            ->pluck('id');
+
+        if (! $currentInstitution) {
+            return [];
+        }
+
+        // instansis has no 'type' column; benchmark against all other
+        // institutions instead of filtering by a non-existent peer group.
+        $peerInstitutions = Instansi::where('id', '!=', $institutionId)->pluck('id');
 
         return PerformanceIndicator::where('instansi_id', $institutionId)
             ->where('is_active', true)
