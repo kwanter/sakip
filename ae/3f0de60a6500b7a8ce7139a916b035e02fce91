@@ -1,0 +1,51 @@
+resources/views/admin/settings/index.blade.php
+  s_2e7b9c6f0fc0a3::t_cd89b0b0cd7152 10-18,20-25,51,79,92,156-158,161,182,193-195,198,202,206,210
+resources/views/admin/roles/show.blade.php
+  s_2e7b9c6f0fc0a3::t_4505a785c0eba2 8-21,28,35-37,39,44,48,52,54,58,60,64,68,79-81,83,86-87,89-90,97,116-118,120,123-124,126-128,138
+resources/views/auth/login.blade.php
+  s_2e7b9c6f0fc0a3::t_cfdfc69985ca8f 6-55,57-82
+resources/views/admin/users/index.blade.php
+  s_2e7b9c6f0fc0a3::t_0f71356786d3de 7-17,22,24-26,29-30,39,42,50-52,56,73,79,95,98,102,106,130
+resources/views/admin/permissions/create.blade.php
+  s_2e7b9c6f0fc0a3::t_b681aa248c6f78 8-19,24-26,28,33,39,47-48,52,67-68,84-85,88,99-101,103,108-109,118-119,130-132,134,137
+resources/views/admin/users/show.blade.php
+  s_2e7b9c6f0fc0a3::t_04d7a012aa77d3 6-38,40-45,52-54,58-59,73,75,95-96,104,116-118,136-138,143,154-156,163,165,185-187,191,204
+resources/views/admin/roles/index.blade.php
+  s_2e7b9c6f0fc0a3::t_7dfd73dd0f807c 8-19,25,32,37-40,45,49,58-60,62,65-66,68-69,71-72,74-75,77-78,95,100,107,111,120,139,149-151,153,170-172,174
+resources/views/admin/users/edit.blade.php
+  s_2e7b9c6f0fc0a3::t_fa43099e9858da 7-12,18-20,28-29,38-39,48-50,69-70,82-83,88-90,92,99,113-115,121-123,126,136,144-146,153-155,158,168,177-179,186
+resources/views/admin/permissions/index.blade.php
+  s_2e7b9c6f0fc0a3::t_fef3fab68566e0 8-19,25,32,37-40,45,49,58-60,62,65-66,68-69,71-72,74-75,77-78,80-81,102,109,113,121,139,149-151,153,172-174,176,179
+resources/views/admin/permissions/show.blade.php
+  s_2e7b9c6f0fc0a3::t_e86bbc2778a752 8-21,28,35-37,39,44,52,56,60,68,70,76,80,91-93,95,98-99,101-103,110,113,117,135-137,139,142-143,145-148,157,163
+resources/views/admin/users/create.blade.php
+  s_2e7b9c6f0fc0a3::t_a991fc1c9ed40c 7-12,18-20,26-27,39-40,52-53,55,75-76,88-89,96-97,120-121,125,136-138,141,149
+resources/views/admin/audit-logs.blade.php
+  s_2e7b9c6f0fc0a3::t_6829952a0f3a8a 7-12,19-21,25-27,30-31,34-35,38-39,43-44,47,56-59,63-64,85,96
+resources/views/admin/roles/create.blade.php
+  s_2e7b9c6f0fc0a3::t_9fe826ec3b8398 8-19,24-26,28,33,39,47-48,65-66,82-83,86,91,93,98,122-123,126,137-139,141,144-145,153-154,162-164,166
+resources/views/auth/verify-email.blade.php
+  s_2e7b9c6f0fc0a3::t_ad9847f87b5987 6-25,27-30,32-34,36-44,48
+resources/views/admin/roles/edit.blade.php
+  s_2e7b9c6f0fc0a3::t_374b358cc3ee26 8-19,24-26,28,34,40,46,55-56,71-72,86-87,90,95,97,102,125-126,129,140-142,144,149,153,155,161,163,169,173,181-183,185,195
+resources/views/admin/dashboard.blade.php
+  s_2e7b9c6f0fc0a3::t_675bf7d2b4425d 55,97,122,146,158,161
+resources/views/admin/permissions/edit.blade.php
+  s_2e7b9c6f0fc0a3::t_d7256b13f5e14a 8-19,24-26,28,34,40,46,55-56,60,74-75,89-90,93,104-106,108,113,117,121,129,131,137,141,148-150,152,155,158,165,176-178,180,190
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ae3f0de60a6500b7a8ce7139a916b035e02fce91",
+  "prompts": {},
+  "sessions": {
+    "s_2e7b9c6f0fc0a3": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_ee66f17baffegJkgcXcFpAp7Zn",
+        "model": "unknown"
+      },
+      "human_author": "ragrin <kwanterpepen@gmail.com>"
+    }
+  }
+}
