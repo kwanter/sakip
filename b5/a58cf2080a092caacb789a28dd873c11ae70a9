@@ -1,0 +1,33 @@
+tests/Feature/BladeCompileGuardTest.php
+  s_be43ca4cd591e8::t_91aade1dd7705a 1-25
+tests/Feature/CspNonceGuardTest.php
+  s_be43ca4cd591e8::t_6d5d48e9b8dd88 1-64
+resources/views/sakip/audit/index.blade.php
+  s_be43ca4cd591e8::t_44273e3c21634d 155
+  s_be43ca4cd591e8::t_e4ff6108319b1f 259,269
+  s_be43ca4cd591e8::t_b84b0ce1200a8c 322
+  s_be43ca4cd591e8::t_4106b75ea1d505 82
+  s_be43ca4cd591e8::t_0086ffd5fda953 280,291,294,298
+  s_be43ca4cd591e8::t_eddc8557af139d 151,160-168
+  s_be43ca4cd591e8::t_913a4c90657299 176,192,194,222,225,234
+  s_be43ca4cd591e8::t_c43eaeac6e1ea3 20,26
+  s_be43ca4cd591e8::t_ad60471bc84ad5 94,124,127,135-139
+  s_be43ca4cd591e8::t_1124ef8d5c04cb 201-205,211-212
+  s_be43ca4cd591e8::t_b9bb1eea4b6e77 58,69,80
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b5a58cf2080a092caacb789a28dd873c11ae70a9",
+  "prompts": {},
+  "sessions": {
+    "s_be43ca4cd591e8": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f51ecae26ffejMAbzhCaK3y0eO",
+        "model": "unknown"
+      },
+      "human_author": "ragrin <kwanterpepen@gmail.com>"
+    }
+  }
+}
