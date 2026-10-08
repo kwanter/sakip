@@ -7,6 +7,7 @@ use App\Models\Assessment;
 use App\Models\AuditLog;
 use App\Models\PerformanceIndicator;
 use App\Models\Report;
+use App\Models\ReportTemplate;
 use App\Services\DropdownCacheService;
 use App\Services\ReportCalculationService;
 use App\Services\ReportGenerationService;
@@ -143,6 +144,27 @@ class ReportController extends Controller
 
     /**
      * Show report creation form
+     */
+    /**
+     * Use a report template: send the user to the create form with the
+     * template preselected. (Route sakip.reports.template previously pointed
+     * at a method that did not exist, producing a 500 for every click.)
+     */
+    public function template(ReportTemplate $template)
+    {
+        $this->authorize('create', Report::class);
+
+        if (! $template->is_active) {
+            abort(404, 'Template tidak tersedia.');
+        }
+
+        return redirect()->route('sakip.reports.create', [
+            'template_id' => $template->id,
+        ]);
+    }
+
+    /**
+     * Display report dashboard
      */
     public function create(Request $request)
     {
@@ -605,9 +627,15 @@ class ReportController extends Controller
                 'new_values' => ['file_path' => $report->file_path],
             ]);
 
-            // Sanitize filename to prevent path traversal and injection
-            $sanitizedFilename = $this->sanitizeFilename($report->title);
-            $downloadFilename = $sanitizedFilename.'.'.$report->file_format;
+            // Sanitize filename to prevent path traversal and injection.
+            // reports has no title/file_format columns; fall back to
+            // report_type and the stored file extension.
+            $sanitizedFilename = $this->sanitizeFilename(
+                $report->title ?? $report->report_type ?? 'laporan',
+            );
+            $extension = $report->file_format
+                ?? pathinfo($report->file_path, PATHINFO_EXTENSION);
+            $downloadFilename = $sanitizedFilename.'.'.($extension ?: 'pdf');
 
             return Storage::download(
                 $report->file_path,

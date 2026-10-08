@@ -214,6 +214,36 @@ class ReportPolicy
      * Determine whether the user can export reports.
      * Available to pimpinan, admins, assessors, and auditors.
      */
+    /**
+     * Determine whether the user can download the report file.
+     *
+     * SECURITY: ReportController::download() authorizes with 'download',
+     * but this method did not exist, so every download was a 403. Mirrors
+     * the approve() pattern: admin, or same-instansi with the download
+     * permission.
+     */
+    public function download(User $user, Report $report): bool
+    {
+        if ($user->hasPermission('sakip.admin')) {
+            return true;
+        }
+
+        if ($user->instansi_id !== $report->instansi_id) {
+            return false;
+        }
+
+        return $user->hasAnyPermission([
+            'sakip.reports.download',
+            'sakip.pimpinan',
+            'sakip.assessor',
+            'sakip.auditor',
+        ]);
+    }
+
+    /**
+     * Determine whether the user can export the report.
+     * Users can only export reports from their own institution (unless admin).
+     */
     public function export(User $user, Report $report): bool
     {
         // Admin can export any report

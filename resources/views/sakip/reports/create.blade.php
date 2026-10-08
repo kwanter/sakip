@@ -109,7 +109,7 @@
                                 <select name="template_id" id="template_id" class="form-select @error('template_id') is-invalid @enderror">
                                     <option value="">Pilih Template (Opsional)</option>
                                     @foreach($templates ?? [] as $template)
-                                        <option value="{{ $template->id }}">{{ $template->name }}</option>
+                                        <option value="{{ $template->id }}" {{ (string) old('template_id', request('template_id')) === (string) $template->id ? 'selected' : '' }}>{{ $template->name }}</option>
                                     @endforeach
                                 </select>
                                 @error('template_id')

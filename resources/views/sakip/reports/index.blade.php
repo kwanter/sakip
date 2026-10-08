@@ -20,11 +20,11 @@
                     <span class="ms-1">Buat Laporan</span>
                 </a>
                 @endcan
-                <button class="btn btn-secondary" onclick="showExportModal()">
+                <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#exportModal">
                     <i class="fas fa-download"></i>
                     <span class="ms-1">Download</span>
                 </button>
-                <button class="btn btn-secondary" onclick="showTemplateModal()">
+                <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#templateModal">
                     <i class="fas fa-file-contract"></i>
                     <span class="ms-1">Template</span>
                 </button>
@@ -119,7 +119,7 @@
                         <tr>
                             <td>
                                 <div>
-                                    <strong>{{ $report->title }}</strong>
+                                    <strong>{{ $report->title ?? Str::headline($report->report_type) }}</strong>
                                     @if($report->description)
                                     <br><small class="text-muted">{{ Str::limit($report->description, 50) }}</small>
                                     @endif
@@ -141,7 +141,7 @@
                                     <a href="{{ route('sakip.reports.show', $report) }}" class="btn btn-outline-primary" title="Lihat">
                                         <i class="fas fa-eye"></i>
                                     </a>
-                                    <a href="{{ route('sakip.reports.download', $report) }}" class="btn btn-outline-info" title="Download" onclick="event.preventDefault(); downloadReport({{ $report->id }})">
+                                    <a href="{{ route('sakip.reports.download', $report) }}" class="btn btn-outline-primary" title="Unduh">
                                         <i class="fas fa-download"></i>
                                     </a>
                                     @if($report->status !== 'approved')
@@ -179,19 +179,94 @@
             @endif
         </div>
     </div>
+
+    <!-- Download Modal -->
+    <div class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exportModalLabel">Unduh Laporan</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                </div>
+                <div class="modal-body">
+                    @php($downloadableReports = ($reports ?? collect())->whereNotNull('file_path'))
+                    @if($downloadableReports->isEmpty())
+                    <div class="empty-state">
+                        <i class="fas fa-file-download text-muted"></i>
+                        <p class="mb-0">Belum ada file laporan yang tersedia</p>
+                        <small class="text-muted">File akan tersedia setelah proses pembuatan laporan selesai</small>
+                    </div>
+                    @else
+                    <div class="mb-3">
+                        <label for="exportReportSelect" class="form-label">Pilih Laporan</label>
+                        <select id="exportReportSelect" class="form-select">
+                            @foreach($downloadableReports as $report)
+                            <option value="{{ $report->id }}">
+                                {{ $report->title ?? $report->report_type }} — {{ $report->period }}
+                            </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <p class="text-muted mb-0">
+                        <small><i class="fas fa-info-circle me-1"></i>File akan diunduh dalam format yang tersimpan.</small>
+                    </p>
+                    @endif
+                </div>
+                @if($downloadableReports->isNotEmpty())
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-primary" onclick="downloadSelectedReport()">
+                        <i class="fas fa-download"></i>
+                        <span class="ms-1">Unduh</span>
+                    </button>
+                </div>
+                @endif
+            </div>
+        </div>
+    </div>
+
+    <!-- Template Modal -->
+    <div class="modal fade" id="templateModal" tabindex="-1" aria-labelledby="templateModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="templateModalLabel">Template Laporan</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                </div>
+                <div class="modal-body">
+                    @forelse(($templates ?? collect()) as $template)
+                    <div class="d-flex justify-content-between align-items-center py-3 {{ !$loop->last ? 'border-bottom' : '' }}">
+                        <div>
+                            <div class="fw-semibold">{{ $template->name }}</div>
+                            @if($template->description)
+                            <small class="text-muted">{{ $template->description }}</small>
+                            @endif
+                        </div>
+                        <a href="{{ route('sakip.reports.template', $template) }}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-plus"></i>
+                            <span class="ms-1">Gunakan</span>
+                        </a>
+                    </div>
+                    @empty
+                    <div class="empty-state">
+                        <i class="fas fa-file-contract text-muted"></i>
+                        <p class="mb-0">Belum ada template tersedia</p>
+                        <small class="text-muted">Template dapat ditambahkan oleh administrator</small>
+                    </div>
+                    @endforelse
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script nonce="{{ app()->bound('csp-nonce') ? app('csp-nonce') : '' }}">
-function showExportModal() {
-    alert('Modal export akan ditambahkan segera');
-}
-
-function showTemplateModal() {
-    alert('Modal template akan ditambahkan segera');
-}
-
-function downloadReport(id) {
-    window.location.href = `/sakip/reports/${id}/download`;
+function downloadSelectedReport() {
+    var select = document.getElementById('exportReportSelect');
+    if (!select || !select.value) {
+        return;
+    }
+    window.location.href = '/sakip/reports/' + encodeURIComponent(select.value) + '/download';
 }
 </script>
 @endsection
