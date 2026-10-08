@@ -1,0 +1,51 @@
+resources/views/sakip/reports/index.blade.php
+  s_be43ca4cd591e8::t_994912926bad1d 149,151
+  s_be43ca4cd591e8::t_c6ba0ee69b515f 192,195-196,202,204,209-216,218,222,272-274,277-279
+  s_be43ca4cd591e8::t_bbe6b72c66622f 225
+database/migrations/2026_10_08_000001_align_reports_table_with_feature_code.php
+  s_be43ca4cd591e8::t_5466b73e1a403d 12-14,21-44
+  s_be43ca4cd591e8::t_c23f8d352373f9 1-11,15-20,45-60
+app/Http/Controllers/Sakip/ReportController.php
+  s_be43ca4cd591e8::t_106911c8aff479 281
+  s_be43ca4cd591e8::t_b55d3b7417e023 345-394
+  s_be43ca4cd591e8::t_fe57abb738ce2d 344
+tests/Feature/ReportStoreFlowTest.php
+  s_be43ca4cd591e8::t_4c1b460917d955 1-67
+tests/Feature/ReportExportGenerationTest.php
+  s_be43ca4cd591e8::t_301bfeacb5ece7 1-164
+app/Models/Report.php
+  s_be43ca4cd591e8::t_c8c3e4e318af02 66
+  s_be43ca4cd591e8::t_b48c9919af3835 133
+  s_be43ca4cd591e8::t_ed26a2b513a303 39-41,44-45
+resources/views/sakip/reports/export/pdf.blade.php
+  s_be43ca4cd591e8::t_8d763087a2caba 1-156
+app/Services/ReportGenerationService.php
+  s_be43ca4cd591e8::t_cdd6f9234f64ad 141-188
+  s_be43ca4cd591e8::t_a645f4e012be20 9,11-14,18-140
+app/Models/IndicatorReport.php
+  s_be43ca4cd591e8::t_6559c48bd2810a 1-22
+resources/views/sakip/reports/export/word.blade.php
+  s_be43ca4cd591e8::t_b5f9e6b19e6802 1-110
+app/Policies/ReportPolicy.php
+  s_be43ca4cd591e8::t_2127858967695d 460-469
+  s_be43ca4cd591e8::t_baf59f32fe536b 498-500
+  s_be43ca4cd591e8::t_57ab0b2b1e4926 51,260
+app/Services/ReportCalculationService.php
+  s_be43ca4cd591e8::t_dcf15c70bc18a0 155,159,171,175
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a013d958a7b882430b960deee4a40d3e82fd97a0",
+  "prompts": {},
+  "sessions": {
+    "s_be43ca4cd591e8": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f51ecae26ffejMAbzhCaK3y0eO",
+        "model": "unknown"
+      },
+      "human_author": "ragrin <kwanterpepen@gmail.com>"
+    }
+  }
+}
