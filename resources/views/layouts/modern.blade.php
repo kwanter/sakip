@@ -6,7 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <!-- Theme: set immediately to prevent flash -->
-    <script>
+    <script nonce="{{ app()->bound('csp-nonce') ? app('csp-nonce') : '' }}">
         (function() {
             const theme = localStorage.getItem('theme') || 'light';
             document.documentElement.setAttribute('data-theme', theme);
@@ -326,7 +326,7 @@
     <script src="{{ asset('js/custom-scripts.js') }}"></script>
 
     <!-- Modern Layout UI Script -->
-    <script>
+    <script nonce="{{ app()->bound('csp-nonce') ? app('csp-nonce') : '' }}">
     (function() {
         'use strict';
 

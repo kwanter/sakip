@@ -2,6 +2,8 @@
 
 @section('title', 'Edit Data Kinerja')
 
+@section('page-title', 'Edit Data Kinerja')
+
 @section('content')
 <div class="container py-4">
     <!-- Page Header -->
@@ -238,7 +240,7 @@
 </div>
 
 @push('scripts')
-<script>
+<script nonce="{{ app()->bound('csp-nonce') ? app('csp-nonce') : '' }}">
     // Get file icon based on extension
     function getFileIcon(filename) {
         const ext = filename.split('.').pop().toLowerCase();

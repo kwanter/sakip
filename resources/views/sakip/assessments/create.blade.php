@@ -2,6 +2,8 @@
 
 @section('title', 'Buat Penilaian Kinerja')
 
+@section('page-title', 'Buat Penilaian Kinerja')
+
 @section('content')
 <div class="container py-4">
     <!-- Page Header -->
@@ -220,7 +222,7 @@
 </div>
 
 @push('scripts')
-<script>
+<script nonce="{{ app()->bound('csp-nonce') ? app('csp-nonce') : '' }}">
     // Grade calculation based on score - using safe DOM methods
     const scoreInput = document.getElementById('score');
     const gradePreview = document.getElementById('gradePreview');

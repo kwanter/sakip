@@ -2,6 +2,8 @@
 
 @section('title', 'Buat Laporan SAKIP')
 
+@section('page-title', 'Buat Laporan SAKIP')
+
 @section('content')
 <div class="container py-4">
     <!-- Page Header -->
@@ -255,7 +257,7 @@
 </div>
 
 @push('scripts')
-<script>
+<script nonce="{{ app()->bound('csp-nonce') ? app('csp-nonce') : '' }}">
 document.addEventListener('DOMContentLoaded', function() {
     const previewBtn = document.getElementById('preview-btn');
     const previewContent = document.getElementById('preview-content');

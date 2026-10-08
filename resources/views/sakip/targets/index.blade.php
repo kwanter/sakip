@@ -205,7 +205,7 @@
 </div>
 
 @push('scripts')
-<script>
+<script nonce="{{ app()->bound('csp-nonce') ? app('csp-nonce') : '' }}">
 function showNotes(targetId) {
     const notesRow = document.getElementById(`notes-${targetId}`);
     notesRow.classList.toggle('d-none');

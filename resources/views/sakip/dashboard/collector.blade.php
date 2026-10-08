@@ -238,7 +238,7 @@
 @endsection
 
 @push('scripts')
-<script>
+<script nonce="{{ app()->bound('csp-nonce') ? app('csp-nonce') : '' }}">
 document.addEventListener('DOMContentLoaded', function() {
     // Add any specific data collector dashboard functionality here
     console.log('Data collector dashboard loaded');

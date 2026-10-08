@@ -367,7 +367,7 @@
 </div>
 
 @push('scripts')
-<script>
+<script nonce="{{ app()->bound('csp-nonce') ? app('csp-nonce') : '' }}">
 function approveTarget(targetId, indicatorId) {
     if (!confirm('Apakah Anda yakin ingin menyetujui target ini?')) return;
 

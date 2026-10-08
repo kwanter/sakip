@@ -245,7 +245,7 @@
 @endsection
 
 @push('scripts')
-<script>
+<script nonce="{{ app()->bound('csp-nonce') ? app('csp-nonce') : '' }}">
 document.addEventListener('DOMContentLoaded', function() {
     const fileInput = document.getElementById('file');
     const dropZone = document.getElementById('drop-zone');

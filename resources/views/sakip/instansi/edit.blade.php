@@ -2,6 +2,8 @@
 
 @section('title', 'Edit Instansi')
 
+@section('page-title', 'Edit Instansi')
+
 @section('content')
 <div class="container py-4">
     <!-- Page Header -->

@@ -2,6 +2,8 @@
 
 @section('title', 'Audit & Compliance')
 
+@section('page-title', 'Audit & Compliance')
+
 @section('content')
 <div class="container py-4">
     <!-- Page Header -->
@@ -266,7 +268,7 @@
 @endsection
 
 @push('scripts')
-<script>
+<script nonce="{{ app()->bound('csp-nonce') ? app('csp-nonce') : '' }}">
 function runComplianceCheck() {
     if (confirm('This will run a comprehensive compliance check. Continue?')) {
         fetch('{{ route('sakip.audit.run-compliance-check') }}', {

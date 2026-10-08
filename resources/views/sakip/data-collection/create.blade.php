@@ -2,6 +2,8 @@
 
 @section('title', 'Input Data Kinerja')
 
+@section('page-title', 'Input Data Kinerja')
+
 @section('content')
 <div class="container py-4">
     <!-- Page Header -->
@@ -299,7 +301,7 @@
 </div>
 
 @push('scripts')
-<script>
+<script nonce="{{ app()->bound('csp-nonce') ? app('csp-nonce') : '' }}">
     // Indicator preview functionality
     document.getElementById('indicator_id').addEventListener('change', function() {
         const selectedOption = this.options[this.selectedIndex];

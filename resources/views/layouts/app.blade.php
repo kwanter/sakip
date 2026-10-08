@@ -6,7 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <!-- Theme: set immediately to prevent flash -->
-    <script>
+    <script nonce="{{ app()->bound('csp-nonce') ? app('csp-nonce') : '' }}">
         (function() {
             const theme = localStorage.getItem('theme') || 'light';
             document.documentElement.setAttribute('data-theme', theme);
@@ -322,7 +322,7 @@
     <script src="{{ asset('js/helpers.js') }}"></script>
 
     <!-- Dropdown Fallback Script -->
-    <script>
+    <script nonce="{{ app()->bound('csp-nonce') ? app('csp-nonce') : '' }}">
     (function() {
         'use strict';
 

@@ -220,7 +220,7 @@
 @endsection
 
 @push('scripts')
-<script>
+<script nonce="{{ app()->bound('csp-nonce') ? app('csp-nonce') : '' }}">
   // Define routes for admin settings
   window.adminRoutes = {
     clearCache: '{{ route("admin.settings.clear-cache") }}',

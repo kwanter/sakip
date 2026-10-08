@@ -2,6 +2,8 @@
 
 @section('title', 'Pengumpulan Data Kinerja')
 
+@section('page-title', 'Pengumpulan Data Kinerja')
+
 @section('content')
 <div class="container py-4">
     <!-- Page Header -->
@@ -163,7 +165,7 @@
     </div>
 </div>
 
-<script>
+<script nonce="{{ app()->bound('csp-nonce') ? app('csp-nonce') : '' }}">
 function exportData() {
     alert('Fitur export akan ditambahkan segera');
 }

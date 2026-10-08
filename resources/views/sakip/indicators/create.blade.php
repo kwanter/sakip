@@ -2,6 +2,8 @@
 
 @section('title', 'Tambah Indikator Kinerja')
 
+@section('page-title', 'Tambah Indikator Kinerja')
+
 @section('content')
 <div class="container py-4">
     <!-- Page Header -->
@@ -481,7 +483,7 @@
     </div>
 </div>
 
-<script>
+<script nonce="{{ app()->bound('csp-nonce') ? app('csp-nonce') : '' }}">
 // Initialize year dropdowns on page load
 document.addEventListener('DOMContentLoaded', function() {
     populateYearOptions();

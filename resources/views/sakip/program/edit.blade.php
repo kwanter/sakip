@@ -2,6 +2,8 @@
 
 @section('title', 'Edit Program')
 
+@section('page-title', 'Edit Program')
+
 @section('content')
 <div class="container py-4">
     <!-- Page Header -->
@@ -225,7 +227,7 @@
 </div>
 
 @push('scripts')
-<script>
+<script nonce="{{ app()->bound('csp-nonce') ? app('csp-nonce') : '' }}">
 document.addEventListener('DOMContentLoaded', function() {
     const instansiSelect = document.getElementById('instansi_id');
     const sasaranSelect = document.getElementById('sasaran_strategis_id');

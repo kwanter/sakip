@@ -2340,3 +2340,74 @@ a:hover {
 [data-theme="dark"] .modern-table .btn-primary.btn-sm:hover {
     background: rgba(99, 102, 241, 0.15);
 }
+
+/* ================================================
+   GENESIS DARK-MODE REMAPS (Bootstrap components)
+   Bootstrap defaults ship light-only colors; remap them to Genesis dark.
+   ================================================ */
+[data-theme="dark"] .list-group-item {
+    background: var(--bg-card);
+    color: var(--text-primary);
+    border-color: var(--border-light);
+}
+
+[data-theme="dark"] .list-group-item-action:hover,
+[data-theme="dark"] .list-group-item-action:focus {
+    background: var(--gray-100);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .form-control,
+[data-theme="dark"] .form-select {
+    background: var(--gray-50);
+    color: var(--text-primary);
+    border-color: var(--border-light);
+}
+
+[data-theme="dark"] .form-control::placeholder {
+    color: var(--muted-color, var(--text-tertiary));
+}
+
+[data-theme="dark"] .modal-content {
+    background: var(--bg-card);
+    color: var(--text-primary);
+    border-color: var(--border-light);
+}
+
+[data-theme="dark"] .table {
+    --bs-table-bg: transparent;
+    --bs-table-color: var(--text-primary);
+    --bs-table-border-color: var(--border-light);
+    --bs-table-striped-bg: var(--gray-50);
+    --bs-table-striped-color: var(--text-primary);
+    --bs-table-hover-bg: var(--gray-100);
+    --bs-table-hover-color: var(--text-primary);
+}
+
+[data-theme="dark"] .btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+[data-theme="dark"] .alert-success {
+    --bs-alert-bg: rgba(16, 185, 129, 0.12);
+    --bs-alert-color: #6ee7b7;
+    --bs-alert-border-color: rgba(16, 185, 129, 0.3);
+}
+
+[data-theme="dark"] .alert-warning {
+    --bs-alert-bg: rgba(245, 158, 11, 0.12);
+    --bs-alert-color: #fcd34d;
+    --bs-alert-border-color: rgba(245, 158, 11, 0.3);
+}
+
+[data-theme="dark"] .alert-danger {
+    --bs-alert-bg: rgba(239, 68, 68, 0.12);
+    --bs-alert-color: #fca5a5;
+    --bs-alert-border-color: rgba(239, 68, 68, 0.3);
+}
+
+[data-theme="dark"] .alert-info {
+    --bs-alert-bg: rgba(6, 182, 212, 0.12);
+    --bs-alert-color: #67e8f9;
+    --bs-alert-border-color: rgba(6, 182, 212, 0.3);
+}

@@ -2,6 +2,8 @@
 
 @section('title', 'Indikator Kinerja')
 
+@section('page-title', 'Indikator Kinerja')
+
 @section('content')
 <div class="container py-4">
     <!-- Page Header -->
@@ -175,7 +177,7 @@
     </div>
 </div>
 
-<script>
+<script nonce="{{ app()->bound('csp-nonce') ? app('csp-nonce') : '' }}">
 function showImportModal() {
     alert('Fitur import akan ditambahkan segera');
 }

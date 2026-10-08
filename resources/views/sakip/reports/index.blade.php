@@ -2,6 +2,8 @@
 
 @section('title', 'Laporan SAKIP')
 
+@section('page-title', 'Laporan SAKIP')
+
 @section('content')
 <div class="container py-4">
     <!-- Page Header -->
@@ -179,7 +181,7 @@
     </div>
 </div>
 
-<script>
+<script nonce="{{ app()->bound('csp-nonce') ? app('csp-nonce') : '' }}">
 function showExportModal() {
     alert('Modal export akan ditambahkan segera');
 }

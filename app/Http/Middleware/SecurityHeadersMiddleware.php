@@ -15,6 +15,14 @@ class SecurityHeadersMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
+        // Generate CSP nonce BEFORE rendering so Blade templates can attach it
+        // to inline scripts. Nonce is per-request for maximum security;
+        // deterministic under tests so page renders stay reproducible.
+        $nonce = app()->runningUnitTests()
+            ? 'test-nonce'
+            : base64_encode(random_bytes(16));
+        app()->singleton('csp-nonce', fn () => $nonce);
+
         $response = $next($request);
 
         // X-Content-Type-Options: Prevents MIME type sniffing
@@ -76,12 +84,8 @@ class SecurityHeadersMiddleware
      */
     protected function getContentSecurityPolicy(): string
     {
-        // Generate a nonce for inline scripts (only when needed)
-        // Nonce is generated per-request for maximum security
-        $nonce = base64_encode(random_bytes(16));
-
-        // Store nonce in request for use in Blade templates
-        app()->singleton('csp-nonce', fn () => $nonce);
+        // Nonce is generated in handle() before rendering; reuse it here.
+        $nonce = app()->bound('csp-nonce') ? app('csp-nonce') : base64_encode(random_bytes(16));
 
         // Check if we're in production (must be BOTH production env AND debug off)
         // For development: allow unsafe-inline for easier debugging
@@ -102,13 +106,18 @@ class SecurityHeadersMiddleware
             ? "script-src 'self' 'unsafe-inline' 'nonce-{$nonce}' https://cdn.jsdelivr.net https://code.jquery.com https://cdn.datatables.net https://cdnjs.cloudflare.com"
             : "script-src 'self' 'nonce-{$nonce}' https://cdn.jsdelivr.net https://code.jquery.com https://cdn.datatables.net https://cdnjs.cloudflare.com";
 
+        // Single connect-src directive (duplicates are ignored by browsers).
+        $connectSrc = $isLocal
+            ? "connect-src 'self' ws: wss: http://localhost:* http://127.0.0.1:*"
+            : "connect-src 'self'";
+
         $directives = [
             "default-src 'self'",
             $scriptSrc,
-            "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com https://fonts.bunny.net https://cdn.datatables.net https://cdnjs.cloudflare.com",
-            "font-src 'self' data: https://fonts.gstatic.com https://fonts.bunny.net https://cdn.jsdelivr.net https://cdnjs.cloudflare.com",
+            "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com https://fonts.bunny.net https://api.fontshare.com https://cdn.datatables.net https://cdnjs.cloudflare.com",
+            "font-src 'self' data: https://fonts.gstatic.com https://fonts.bunny.net https://cdn.fontshare.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com",
             "img-src 'self' data: https: blob:",
-            "connect-src 'self'",
+            $connectSrc,
             "frame-ancestors 'self'",
             "form-action 'self'",
             "base-uri 'self'",
@@ -118,12 +127,6 @@ class SecurityHeadersMiddleware
             "worker-src 'self' blob:",
             'report-uri /api/csp-reports',
         ];
-
-        // In development, allow more permissive policies for hot reload
-        if ($isLocal) {
-            $directives[] =
-                "connect-src 'self' ws: wss: http://localhost:* http://127.0.0.1:*";
-        }
 
         return implode('; ', $directives);
     }

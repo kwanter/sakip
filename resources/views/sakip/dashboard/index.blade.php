@@ -2,6 +2,8 @@
 
 @section('title', 'Dashboard SAKIP')
 
+@section('page-title', 'Dashboard SAKIP')
+
 @section('content')
 <div class="container py-4" data-sakip-dashboard>
     <div class="row mb-4">
