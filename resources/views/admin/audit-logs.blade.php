@@ -4,45 +4,47 @@
 
 @section('content')
 <div class="container-fluid">
-    <div class="row mb-4">
-        <div class="col-12">
-            <h1 class="h3 mb-0 text-gray-800">Audit Logs</h1>
-            <p class="text-muted">Review system activities, user actions, and changes over time.</p>
+    <div class="page-header mb-4">
+        <div class="page-header-layout">
+            <div>
+                <h1 class="page-header-title">Audit Logs</h1>
+                <p class="page-header-subtitle">Review system activities, user actions, and changes over time.</p>
+            </div>
         </div>
     </div>
 
     <div class="row">
         <div class="col-lg-12">
             <!-- Filters -->
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Search & Filters</h6>
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h2 class="card-title fs-6 m-0">Search &amp; Filters</h2>
                 </div>
                 <div class="card-body">
                     <form method="GET" action="{{ route('admin.audit-logs') }}">
-                        <div class="form-row">
-                            <div class="form-group col-md-4">
-                                <label for="action">Action</label>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label for="action" class="form-label">Action</label>
                                 <input type="text" class="form-control" id="action" name="action" value="{{ request('action') }}" placeholder="e.g. user.updated, settings.updated">
                             </div>
-                            <div class="form-group col-md-4">
-                                <label for="user">User</label>
+                            <div class="col-md-4">
+                                <label for="user" class="form-label">User</label>
                                 <input type="text" class="form-control" id="user" name="user" value="{{ request('user') }}" placeholder="name or email">
                             </div>
-                            <div class="form-group col-md-2">
-                                <label for="date_from">Date From</label>
+                            <div class="col-md-2">
+                                <label for="date_from" class="form-label">Date From</label>
                                 <input type="date" class="form-control" id="date_from" name="date_from" value="{{ request('date_from') }}">
                             </div>
-                            <div class="form-group col-md-2">
-                                <label for="date_to">Date To</label>
+                            <div class="col-md-2">
+                                <label for="date_to" class="form-label">Date To</label>
                                 <input type="date" class="form-control" id="date_to" name="date_to" value="{{ request('date_to') }}">
                             </div>
                         </div>
-                        <div class="d-flex">
-                            <button type="submit" class="btn btn-primary mr-2">
+                        <div class="d-flex gap-2 mt-3">
+                            <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-search"></i> Filter
                             </button>
-                            <a href="{{ route('admin.audit-logs') }}" class="btn btn-secondary">
+                            <a href="{{ route('admin.audit-logs') }}" class="btn btn-outline-secondary">
                                 Clear
                             </a>
                         </div>
@@ -51,15 +53,15 @@
             </div>
 
             <!-- Logs Table -->
-            <div class="card shadow">
-                <div class="card-header py-3 d-flex align-items-center justify-content-between">
-                    <h6 class="m-0 font-weight-bold text-primary">Logs</h6>
-                    <span class="badge badge-light">Total: {{ $logs->total() }}</span>
+            <div class="card">
+                <div class="card-header d-flex align-items-center justify-content-between">
+                    <h2 class="card-title fs-6 m-0">Logs</h2>
+                    <span class="badge badge-neutral">Total: {{ $logs->total() }}</span>
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead class="thead-light">
+                        <table class="table table-hover modern-table mb-0">
+                            <thead>
                                 <tr>
                                     <th style="width: 22%">User</th>
                                     <th style="width: 14%">Action</th>
@@ -80,7 +82,7 @@
                                         @endif
                                     </td>
                                     <td>
-                                        <span class="badge badge-info">{{ $log->action }}</span>
+                                        <span class="badge badge-primary">{{ $log->action }}</span>
                                     </td>
                                     <td>
                                         @php
@@ -91,7 +93,7 @@
                                             <span class="text-muted">(no details)</span>
                                         @else
                                             <div class="small">
-                                                <ul class="mb-0 pl-3">
+                                                <ul class="mb-0 ps-3">
                                                     @foreach($details as $key => $value)
                                                         <li>
                                                             <strong>{{ $key }}</strong>:

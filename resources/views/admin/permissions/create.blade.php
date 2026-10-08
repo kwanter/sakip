@@ -5,35 +5,38 @@
 @section('content')
 <div class="container-fluid">
     <!-- Page Heading -->
-    <div class="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 class="h3 mb-0 text-gray-800">
-            <i class="fas fa-plus-circle"></i> Tambah Izin Baru
-        </h1>
-        <a href="{{ route('admin.permissions.index') }}" class="btn btn-secondary btn-sm">
-            <i class="fas fa-arrow-left"></i> Kembali
-        </a>
+    <div class="page-header mb-4">
+        <div class="page-header-layout">
+            <div>
+                <h1 class="page-header-title">Tambah Izin Baru</h1>
+                <p class="page-header-subtitle">Buat aksi spesifik baru dengan format penamaan yang konsisten.</p>
+            </div>
+            <div class="page-header-actions">
+                <a href="{{ route('admin.permissions.index') }}" class="btn btn-outline-secondary btn-sm">
+                    <i class="fas fa-arrow-left"></i> Kembali
+                </a>
+            </div>
+        </div>
     </div>
 
     <div class="row">
         <div class="col-lg-8">
-            <div class="card shadow">
-                <div class="card-header py-3 bg-primary text-white">
-                    <h6 class="m-0 font-weight-bold">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title fs-6 m-0">
                         <i class="fas fa-key"></i> Informasi Izin
-                    </h6>
+                    </h2>
                 </div>
                 <div class="card-body">
                     @if($errors->any())
                         <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                            <h6 class="alert-heading"><i class="fas fa-exclamation-circle"></i> Validasi Gagal!</h6>
+                            <h2 class="fs-6"><i class="fas fa-exclamation-circle"></i> Validasi Gagal!</h2>
                             <ul class="mb-0">
                                 @foreach($errors->all() as $error)
                                     <li>{{ $error }}</li>
                                 @endforeach
                             </ul>
-                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
                     @endif
 
@@ -41,12 +44,12 @@
                         @csrf
 
                         <!-- Permission Name -->
-                        <div class="form-group mb-3">
-                            <label for="name" class="form-label font-weight-bold">
+                        <div class="mb-3">
+                            <label for="name" class="form-label fw-semibold">
                                 Nama Izin <span class="text-danger">*</span>
                             </label>
                             <input type="text"
-                                   class="form-control form-control-lg @error('name') is-invalid @enderror"
+                                   class="form-control @error('name') is-invalid @enderror"
                                    id="name"
                                    name="name"
                                    value="{{ old('name') }}"
@@ -61,8 +64,8 @@
                         </div>
 
                         <!-- Guard Name -->
-                        <div class="form-group mb-3">
-                            <label for="guard_name" class="form-label font-weight-bold">
+                        <div class="mb-3">
+                            <label for="guard_name" class="form-label fw-semibold">
                                 Guard Name
                             </label>
                             <input type="text"
@@ -78,11 +81,11 @@
                         </div>
 
                         <!-- Submit Buttons -->
-                        <div class="form-group">
-                            <button type="submit" class="btn btn-primary btn-lg">
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-save"></i> Simpan Izin
                             </button>
-                            <a href="{{ route('admin.permissions.index') }}" class="btn btn-secondary btn-lg">
+                            <a href="{{ route('admin.permissions.index') }}" class="btn btn-outline-secondary">
                                 <i class="fas fa-times"></i> Batal
                             </a>
                         </div>
@@ -93,17 +96,17 @@
 
         <!-- Info Panel -->
         <div class="col-lg-4">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3 bg-info text-white">
-                    <h6 class="m-0 font-weight-bold">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h2 class="card-title fs-6 m-0">
                         <i class="fas fa-info-circle"></i> Panduan Penamaan
-                    </h6>
+                    </h2>
                 </div>
                 <div class="card-body small">
                     <p><strong>Gunakan format konsisten:</strong> <code>action-resource</code></p>
 
-                    <h6 class="font-weight-bold mt-3">Action yang Umum:</h6>
-                    <ul class="pl-3 mb-2">
+                    <h3 class="fs-6 fw-semibold mt-3">Action yang Umum:</h3>
+                    <ul class="ps-3 mb-2">
                         <li><strong>view</strong> - Melihat/menampilkan</li>
                         <li><strong>create</strong> - Membuat baru</li>
                         <li><strong>edit</strong> - Mengedit</li>
@@ -112,8 +115,8 @@
                         <li><strong>export</strong> - Mengekspor</li>
                     </ul>
 
-                    <h6 class="font-weight-bold mt-3">Resource yang Umum:</h6>
-                    <ul class="pl-3">
+                    <h3 class="fs-6 fw-semibold mt-3">Resource yang Umum:</h3>
+                    <ul class="ps-3">
                         <li>indicator</li>
                         <li>target</li>
                         <li>data</li>
@@ -124,14 +127,14 @@
                 </div>
             </div>
 
-            <div class="card shadow mb-4">
-                <div class="card-header py-3 bg-success text-white">
-                    <h6 class="m-0 font-weight-bold">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h2 class="card-title fs-6 m-0">
                         <i class="fas fa-check-circle"></i> Contoh Izin
-                    </h6>
+                    </h2>
                 </div>
                 <div class="card-body small">
-                    <ul class="pl-3 mb-0">
+                    <ul class="ps-3 mb-0">
                         <li><code>view-dashboard</code></li>
                         <li><code>create-indicator</code></li>
                         <li><code>edit-indicator</code></li>

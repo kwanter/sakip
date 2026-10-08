@@ -7,11 +7,22 @@
 @endpush
 
 @section('content')
+{{-- Page-scoped styles (Genesis tokens only) --}}
+<style>
+    .setting-item {
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius-lg);
+        padding: 16px;
+    }
+</style>
+
 <div class="container-fluid">
-  <div class="row mb-3">
-    <div class="col">
-      <h1 class="h3">System Settings</h1>
-      <p class="text-muted">Manage application-wide settings. Update values and types, then save.</p>
+  <div class="page-header mb-4">
+    <div class="page-header-layout">
+      <div>
+        <h1 class="page-header-title">System Settings</h1>
+        <p class="page-header-subtitle">Manage application-wide settings. Update values and types, then save.</p>
+      </div>
     </div>
   </div>
 
@@ -37,7 +48,7 @@
       <!-- Application Settings -->
       <div class="card mb-4">
         <div class="card-header d-flex align-items-center justify-content-between">
-          <span>Application Settings</span>
+          <span class="fw-semibold">Application Settings</span>
           <small class="text-muted">Basic app configuration</small>
         </div>
         <div class="card-body">
@@ -65,7 +76,7 @@
       <!-- Dynamic Settings -->
       <div class="card">
         <div class="card-header d-flex align-items-center justify-content-between">
-          <span>Settings</span>
+          <span class="fw-semibold">Settings</span>
           <small class="text-muted">Edit and save changes</small>
         </div>
         <div class="card-body">
@@ -78,7 +89,7 @@
               @forelse($settings as $setting)
                 @continue(in_array($setting->key, $skipKeys))
                 <div class="col-12">
-                  <div class="border rounded p-3 mb-2">
+                  <div class="setting-item mb-2">
                     <div class="row g-3 align-items-start">
                       <div class="col-md-4">
                         <label class="form-label">Key</label>
@@ -142,12 +153,12 @@
     </div>
 
     <div class="col-lg-4">
-      <div class="card shadow mb-4">
-        <div class="card-header py-3">
-          <h6 class="m-0 font-weight-bold text-primary">
+      <div class="card mb-4">
+        <div class="card-header">
+          <h2 class="card-title fs-6 m-0">
             <i class="fas fa-info-circle me-2"></i>
             System Info
-          </h6>
+          </h2>
         </div>
         <div class="card-body">
           <div class="mb-3">
@@ -168,7 +179,7 @@
           </div>
           <div class="mb-3">
             <strong>Environment:</strong><br>
-            <span class="badge {{ app()->environment('production') ? 'bg-success' : 'bg-warning' }}">
+            <span class="badge {{ app()->environment('production') ? 'badge-success' : 'badge-warning' }}">
               {{ strtoupper(app()->environment()) }}
             </span>
           </div>
@@ -179,24 +190,24 @@
         </div>
       </div>
 
-      <div class="card shadow mb-4">
-        <div class="card-header py-3">
-          <h6 class="m-0 font-weight-bold text-primary">
+      <div class="card mb-4">
+        <div class="card-header">
+          <h2 class="card-title fs-6 m-0">
             <i class="fas fa-tools me-2"></i>
             Maintenance
-          </h6>
+          </h2>
         </div>
         <div class="card-body">
           <div class="d-grid gap-2">
-            <button type="button" class="btn btn-outline-primary btn-sm" data-onclick="clearCache()">
+            <button type="button" class="btn btn-outline-secondary btn-sm" data-onclick="clearCache()">
               <i class="fas fa-broom me-2"></i>
               Clear Cache
             </button>
-            <button type="button" class="btn btn-outline-info btn-sm" data-onclick="optimizeApp()">
+            <button type="button" class="btn btn-outline-secondary btn-sm" data-onclick="optimizeApp()">
               <i class="fas fa-rocket me-2"></i>
               Optimize App
             </button>
-            <button type="button" class="btn btn-outline-warning btn-sm" data-onclick="backupDatabase()">
+            <button type="button" class="btn btn-outline-secondary btn-sm" data-onclick="backupDatabase()">
               <i class="fas fa-database me-2"></i>
               Backup Database
             </button>
