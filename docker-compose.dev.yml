@@ -1,0 +1,22 @@
+# Local development overlay: binds the host source tree into the containers.
+#
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+#
+# The default render (docker-compose.yml alone) runs the built image only,
+# never the live host tree, so production cannot accidentally execute the
+# developer's working directory.
+version: '3.9'
+
+services:
+  app:
+    volumes:
+      - ./:/var/www/html
+
+  queue:
+    volumes:
+      - ./:/var/www/html
+
+  scheduler:
+    volumes:
+      - ./:/var/www/html
