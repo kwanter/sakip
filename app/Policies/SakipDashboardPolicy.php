@@ -31,7 +31,9 @@ class SakipDashboardPolicy
      */
     public function viewExecutiveDashboard(User $user)
     {
-        return $user->hasPermissionTo('view-executive-dashboard');
+        // Fail closed (no exception) when the permission was never registered;
+        // this ability runs on every dashboard request via the branch gate.
+        return $user->getAllPermissions()->pluck('name')->contains('view-executive-dashboard');
     }
 
     /**
@@ -41,7 +43,7 @@ class SakipDashboardPolicy
      */
     public function viewDataCollectorDashboard(User $user)
     {
-        return $user->hasPermissionTo('view-data-entry-dashboard');
+        return $user->getAllPermissions()->pluck('name')->contains('view-data-entry-dashboard');
     }
 
     /**

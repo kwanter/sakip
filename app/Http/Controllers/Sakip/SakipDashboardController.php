@@ -99,9 +99,12 @@ class SakipDashboardController extends Controller
      */
     private function getDashboardMetrics($user, $instansiId, $year)
     {
-        if ($user->can('viewExecutiveDashboard', $user)) {
+        // Branch selectors use the registered gate names (no model argument)
+        // so SakipDashboardPolicy abilities resolve instead of Spatie's
+        // raw permission-name matching.
+        if ($user->can('sakip.dashboard.executive')) {
             return $this->getSystemWideMetrics($year);
-        } elseif ($user->can('view-data-entry-dashboard', $user)) {
+        } elseif ($user->can('sakip.dashboard.data_collector')) {
             return $this->getInstitutionalMetrics($instansiId, $year);
         }
 
@@ -146,7 +149,11 @@ class SakipDashboardController extends Controller
                 'instansi_id',
                 $instansiId,
             )->count(),
-            'total_targets' => Target::where('year', $year)->count(),
+            'total_targets' => Target::where('year', $year)
+                ->whereHas('performanceIndicator', function ($q) use ($instansiId) {
+                    $q->where('instansi_id', $instansiId);
+                })
+                ->count(),
             'total_performance_data' => PerformanceData::whereHas(
                 'performanceIndicator',
                 function ($q) use ($instansiId) {
@@ -158,7 +165,11 @@ class SakipDashboardController extends Controller
             'total_assessments' => Assessment::whereYear(
                 'created_at',
                 $year,
-            )->count(),
+            )
+                ->whereHas('performanceData.performanceIndicator', function ($q) use ($instansiId) {
+                    $q->where('instansi_id', $instansiId);
+                })
+                ->count(),
             'total_reports' => Report::where(
                 'period',
                 'like',

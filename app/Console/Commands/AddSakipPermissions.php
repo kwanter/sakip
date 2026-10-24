@@ -204,15 +204,9 @@ class AddSakipPermissions extends Command
             $this->warn('Superadmin role not found');
         }
 
-        // Ensure all users have basic dashboard access
-        $basicPermission = Permission::where('name', 'sakip.dashboard.view')->first();
-        if ($basicPermission) {
-            $this->info('Ensuring all users have basic dashboard access');
-            $users = User::all();
-            foreach ($users as $user) {
-                $user->permissions()->syncWithoutDetaching([$basicPermission->id]);
-            }
-        }
+        // Note: mass-attaching 'sakip.dashboard.view' to every user was removed:
+        // it turned the dashboard gate into a no-op for all users (run-2 audit
+        // hardening). Grant the permission through roles instead.
 
         $this->info('Permission fixes applied successfully');
     }
