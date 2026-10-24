@@ -9,12 +9,24 @@ class KegiatanPolicy
 {
     public function viewAny(User $user): bool
     {
-        return true; // any authenticated user
+        if ($user->isAdmin()) {
+            return true; // Super Admin keeps cross-instansi access
+        }
+
+        // Tenant-bound viewers only; a viewer without an instansi is default-denied.
+        return $user->instansi_id !== null;
     }
 
     public function view(User $user, Kegiatan $kegiatan): bool
     {
-        return true; // any authenticated user
+        if ($user->isAdmin()) {
+            return true;
+        }
+
+        // Kegiatan has no instansi_id of its own: bind through the program relation.
+        return $user->instansi_id !== null
+            && $kegiatan->program !== null
+            && $kegiatan->program->instansi_id === $user->instansi_id;
     }
 
     public function create(User $user): bool

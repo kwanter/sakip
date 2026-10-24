@@ -29,6 +29,16 @@ class KegiatanController extends Controller
 
         $query = Kegiatan::with(['program', 'program.instansi']);
 
+        // Tenant predicate: non-super-admin viewers only see kegiatan of their
+        // own instansi through the program relation (viewAny already denies
+        // viewers without an instansi, so instansi_id is non-null here).
+        $user = $request->user();
+        if (! $user->isAdmin()) {
+            $query->whereHas('program', function ($q) use ($user) {
+                $q->where('instansi_id', $user->instansi_id);
+            });
+        }
+
         // Search functionality
         if ($request->filled('search')) {
             $search = $request->get('search');
