@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Instansi;
 use App\Models\SasaranStrategis;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class SasaranStrategisController extends Controller
 {
@@ -72,8 +73,13 @@ class SasaranStrategisController extends Controller
     {
         $this->authorize('create', SasaranStrategis::class);
 
+        $user = $request->user();
         $validated = $request->validate([
-            'instansi_id' => 'required|exists:instansis,id',
+            // Tenant binding: ordinary actors may only target their own instansi;
+            // Super Admin keeps explicit cross-instansi authority.
+            'instansi_id' => $user->isAdmin()
+                ? ['required', 'exists:instansis,id']
+                : ['required', 'exists:instansis,id', Rule::in([$user->instansi_id])],
             'kode_sasaran_strategis' => 'required|string|max:255|unique:sasaran_strategis,kode_sasaran_strategis',
             'nama_strategis' => 'required|string|max:255',
             'deskripsi' => 'nullable|string',
@@ -126,8 +132,11 @@ class SasaranStrategisController extends Controller
     {
         $this->authorize('update', $sasaranStrategis);
 
+        $user = $request->user();
         $validated = $request->validate([
-            'instansi_id' => 'required|exists:instansis,id',
+            'instansi_id' => $user->isAdmin()
+                ? ['required', 'exists:instansis,id']
+                : ['required', 'exists:instansis,id', Rule::in([$user->instansi_id])],
             'kode_sasaran_strategis' => 'required|string|max:255|unique:sasaran_strategis,kode_sasaran_strategis,'.$sasaranStrategis->id,
             'nama_strategis' => 'required|string|max:255',
             'deskripsi' => 'nullable|string',

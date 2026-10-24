@@ -19,7 +19,9 @@ class SasaranStrategisPolicy
 
     public function create(User $user): bool
     {
-        return $user->hasAnyRole(['Executive', 'Government Official']);
+        // Ordinary actors need an instansi binding; Super Admin bypasses via Gate::before.
+        return $user->instansi_id !== null
+            && $user->hasAnyRole(['Executive', 'Government Official']);
     }
 
     public function update(User $user, SasaranStrategis $sasaranStrategis): bool

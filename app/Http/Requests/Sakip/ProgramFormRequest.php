@@ -33,17 +33,20 @@ class ProgramFormRequest extends FormRequest
     {
         $programId = $this->route('program')?->id;
         $instansiId = $this->input('instansi_id');
+        $user = $this->user();
 
         return [
-            'instansi_id' => [
-                'required',
-                'string',
-                'exists:instansis,id',
-            ],
+            // Tenant binding: ordinary actors may only target their own instansi;
+            // Super Admin keeps explicit cross-instansi authority.
+            'instansi_id' => $user !== null && $user->isAdmin()
+                ? ['required', 'string', 'exists:instansis,id']
+                : ['required', 'string', 'exists:instansis,id', Rule::in([$user?->instansi_id])],
+            // The strategic parent must belong to the destination instansi
+            // (applies to Super Admin as well).
             'sasaran_strategis_id' => [
                 'nullable',
                 'string',
-                'exists:sasaran_strategis,id',
+                Rule::exists('sasaran_strategis', 'id')->where('instansi_id', $instansiId),
             ],
             'kode_program' => [
                 'required',
@@ -109,6 +112,7 @@ class ProgramFormRequest extends FormRequest
         return [
             'instansi_id.required' => 'Instansi wajib dipilih.',
             'instansi_id.exists' => 'Instansi yang dipilih tidak valid.',
+            'instansi_id.in' => 'Instansi tujuan harus sesuai dengan instansi Anda.',
             'sasaran_strategis_id.exists' => 'Sasaran strategis yang dipilih tidak valid.',
             'kode_program.required' => 'Kode program wajib diisi.',
             'kode_program.unique' => 'Kode program sudah digunakan di instansi ini.',
