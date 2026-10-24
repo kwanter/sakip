@@ -7,6 +7,7 @@ use App\Models\Instansi;
 use App\Models\PerformanceData;
 use App\Models\PerformanceIndicator;
 use App\Models\Report;
+use App\Services\Export\CellSanitizer;
 use Carbon\Carbon;
 use Dompdf\Dompdf;
 use Illuminate\Support\Facades\Storage;
@@ -60,7 +61,7 @@ class ReportGenerationService
 
         $summary = $reportData['summary'] ?? [];
 
-        $sheet->setCellValue('A1', $report->title ?: 'Laporan Kinerja');
+        $sheet->setCellValue('A1', CellSanitizer::neutralize($report->title ?: 'Laporan Kinerja'));
         $sheet->setCellValue('A2', 'Periode: '.$report->period);
         $sheet->setCellValue('A3', 'Dibuat: '.Carbon::now()->translatedFormat('d F Y H:i'));
 
@@ -92,8 +93,8 @@ class ReportGenerationService
                 ->sortByDesc('period')
                 ->first();
 
-            $sheet->setCellValue('A'.$row, $indicator->code);
-            $sheet->setCellValue('B'.$row, $indicator->name);
+            $sheet->setCellValue('A'.$row, CellSanitizer::neutralize($indicator->code));
+            $sheet->setCellValue('B'.$row, CellSanitizer::neutralize($indicator->name));
             $sheet->setCellValue('C'.$row, $indicator->unit);
             $sheet->setCellValue('D'.$row, $target->target_value ?? null);
             $sheet->setCellValue('E'.$row, $performance->actual_value ?? null);

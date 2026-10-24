@@ -2,8 +2,15 @@
 
 namespace Tests\Unit;
 
+use App\Models\PerformanceIndicator;
+use App\Models\Report;
 use App\Services\Export\ExcelExportService;
-use PHPUnit\Framework\TestCase;
+use App\Services\ReportGenerationService;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use Tests\TestCase;
 
 /**
  * SECURITY: spreadsheet export must neutralize formula injection
@@ -11,6 +18,10 @@ use PHPUnit\Framework\TestCase;
  */
 class ExportFormulaInjectionTest extends TestCase
 {
+    use RefreshDatabase;
+
+    protected $seed = false;
+
     private function sanitize(array $rows): array
     {
         // Both services implement the same protected sanitizeCells(array): array.
@@ -39,5 +50,48 @@ class ExportFormulaInjectionTest extends TestCase
         $rows = $this->sanitize([['name' => 'achievement', 'value' => '50%']]);
         $this->assertSame('achievement', $rows[0]['name']);
         $this->assertSame('50%', $rows[0]['value']);
+    }
+
+    /**
+     * SECURITY (audit run-2, ReportGenerationService formula cells): the
+     * report Excel export writes the user-controlled report title and
+     * indicator code/name; they must be stored as literal strings, never
+     * as active formulas in the generated workbook.
+     */
+    public function test_report_generation_neutralizes_user_controlled_cells()
+    {
+        Storage::fake('local');
+
+        // Minimal manual rows: ReportFactory/PerformanceIndicatorFactory carry
+        // drifted columns absent from the current schema.
+        $report = Report::create([
+            'instansi_id' => \App\Models\Instansi::factory()->create()->id,
+            'generated_by' => \App\Models\User::factory()->create()->id,
+            'report_type' => 'annual',
+            'period' => '2026',
+            'status' => 'completed',
+            'title' => '=1+1',
+        ]);
+        $indicator = PerformanceIndicator::create([
+            'instansi_id' => $report->instansi_id,
+            'code' => '=SUM(A1:A9)',
+            'name' => '=HYPERLINK("http://audit.invalid")',
+            'measurement_unit' => 'unit',
+            'frequency' => 'annual',
+            'category' => 'output',
+            'created_by' => null,
+            'updated_by' => null,
+        ]);
+        $report->indicators()->attach($indicator->id);
+
+        $path = app(ReportGenerationService::class)
+            ->generateExcelFile($report->fresh(), ['summary' => []]);
+
+        $reloaded = IOFactory::load(Storage::path($path));
+        $sheet = $reloaded->getActiveSheet();
+
+        $this->assertSame(DataType::TYPE_STRING, $sheet->getCell('A1')->getDataType(), 'report title must be literal text');
+        $this->assertSame(DataType::TYPE_STRING, $sheet->getCell('A12')->getDataType(), 'indicator code must be literal text');
+        $this->assertSame(DataType::TYPE_STRING, $sheet->getCell('B12')->getDataType(), 'indicator name must be literal text');
     }
 }
