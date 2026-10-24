@@ -16,7 +16,8 @@ class UpdatePermissionsRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return $this->user()->can('assignPermissions', \App\Models\User::class);
+        return $this->user()->can('assignPermissions', \App\Models\User::class)
+            && $this->user()->can('manageProtectedAccount', $this->route('user'));
     }
 
     /**

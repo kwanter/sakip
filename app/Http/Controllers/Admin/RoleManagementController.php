@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Constants\SystemRoles;
 use App\Http\Controllers\Controller;
 use App\Models\Permission;
 use App\Models\Role;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -47,12 +49,20 @@ class RoleManagementController extends Controller
      */
     public function store(Request $request)
     {
+        abort_if(
+            $request->input('name') === SystemRoles::SUPER_ADMIN
+                && ! $request->user()->hasRole(SystemRoles::SUPER_ADMIN),
+            403,
+        );
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255', 'unique:roles,name'],
             'guard_name' => ['nullable', 'string', 'max:255'],
             'permissions' => ['nullable', 'array'],
             'permissions.*' => ['exists:permissions,id'],
         ]);
+
+        $this->authorize('grantPermissions', [User::class, $validated['permissions'] ?? []]);
 
         $role = Role::create([
             'name' => $validated['name'],
@@ -94,6 +104,12 @@ class RoleManagementController extends Controller
      */
     public function update(Request $request, Role $role)
     {
+        abort_if(
+            ($role->name === SystemRoles::SUPER_ADMIN || $request->input('name') === SystemRoles::SUPER_ADMIN)
+                && ! $request->user()->hasRole(SystemRoles::SUPER_ADMIN),
+            403,
+        );
+
         $validated = $request->validate([
             'name' => [
                 'required',
@@ -103,6 +119,9 @@ class RoleManagementController extends Controller
             ],
             'guard_name' => ['nullable', 'string', 'max:255'],
         ]);
+
+        // The reserved name must survive the Super Admin Gate bypass.
+        abort_if($role->name === SystemRoles::SUPER_ADMIN && $validated['name'] !== SystemRoles::SUPER_ADMIN, 403);
 
         $role->update([
             'name' => $validated['name'],
@@ -135,10 +154,18 @@ class RoleManagementController extends Controller
      */
     public function updatePermissions(Request $request, Role $role)
     {
+        abort_if(
+            $role->name === SystemRoles::SUPER_ADMIN
+                && ! $request->user()->hasRole(SystemRoles::SUPER_ADMIN),
+            403,
+        );
+
         $validated = $request->validate([
             'permissions' => ['nullable', 'array'],
             'permissions.*' => ['exists:permissions,id'],
         ]);
+
+        $this->authorize('grantPermissions', [User::class, $validated['permissions'] ?? []]);
 
         $role->syncPermissions($validated['permissions'] ?? []);
 

@@ -8,6 +8,7 @@ use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Hash;
 
 class AdminService
@@ -39,6 +40,8 @@ class AdminService
 
     public function updateUser(User $user, array $data): User
     {
+        Gate::authorize('manageProtectedAccount', $user);
+
         return DB::transaction(function () use ($user, $data) {
             $oldData = $user->toArray();
 
@@ -92,6 +95,9 @@ class AdminService
 
     public function assignRoles(User $user, array $roleIds): void
     {
+        Gate::authorize('manageProtectedAccount', $user);
+        Gate::authorize('assignRoles', User::class);
+
         // SECURITY: Only a Super Admin may grant the Super Admin role.
         // A caller with can:manage-users (e.g. Admin) must never escalate
         // themselves or others to full-system privileges.
@@ -110,7 +116,11 @@ class AdminService
             }
         }
 
-        $roles = Role::whereIn('id', $roleIds)->get();
+        $roles = Role::with('permissions')->whereIn('id', $roleIds)->get();
+        Gate::authorize('grantPermissions', [
+            User::class,
+            $roles->flatMap(fn (Role $role) => $role->permissions->modelKeys())->unique()->all(),
+        ]);
         $user->roles()->sync($roles);
 
         $this->logAction('user.roles.updated', [
@@ -121,6 +131,10 @@ class AdminService
 
     public function assignPermissions(User $user, array $permissionIds): void
     {
+        Gate::authorize('manageProtectedAccount', $user);
+        Gate::authorize('assignPermissions', User::class);
+        Gate::authorize('grantPermissions', [User::class, $permissionIds]);
+
         $permissions = Permission::whereIn('id', $permissionIds)->get();
         $user->permissions()->sync($permissions);
 
@@ -132,6 +146,8 @@ class AdminService
 
     public function deleteUser(User $user): bool
     {
+        Gate::authorize('manageProtectedAccount', $user);
+
         return DB::transaction(function () use ($user) {
             $userId = $user->id;
             $userData = $user->toArray();

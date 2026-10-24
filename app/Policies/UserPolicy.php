@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Constants\SystemRoles;
 use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
@@ -38,7 +39,17 @@ class UserPolicy
      */
     public function update(User $user, User $model): bool
     {
-        return $user->can('manage-users') || $user->id === $model->id;
+        return $this->manageProtectedAccount($user, $model)
+            && ($user->can('manage-users') || $user->id === $model->id);
+    }
+
+    /**
+     * Only Super Admin actors may mutate an existing Super Admin account.
+     */
+    public function manageProtectedAccount(User $user, User $model): bool
+    {
+        return ! $model->hasRole(SystemRoles::SUPER_ADMIN)
+            || $user->hasRole(SystemRoles::SUPER_ADMIN);
     }
 
     /**
@@ -51,7 +62,7 @@ class UserPolicy
             return false;
         }
 
-        return $user->can('manage-users');
+        return $this->manageProtectedAccount($user, $model) && $user->can('manage-users');
     }
 
     /**
@@ -89,6 +100,15 @@ class UserPolicy
     public function assignPermissions(User $user): bool
     {
         return $user->can('manage-roles');
+    }
+
+    /**
+     * Delegated grants cannot exceed the actor's effective permissions.
+     */
+    public function grantPermissions(User $user, array $permissionIds): bool
+    {
+        return $this->assignPermissions($user)
+            && collect($permissionIds)->diff($user->getAllPermissions()->modelKeys())->isEmpty();
     }
 
     /**

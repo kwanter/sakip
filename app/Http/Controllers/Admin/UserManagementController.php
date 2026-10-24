@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\UpdatePermissionsRequest;
+use App\Http\Requests\Admin\UpdateRolesRequest;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
@@ -108,6 +110,8 @@ class UserManagementController extends Controller
      */
     public function update(Request $request, User $user)
     {
+        $this->authorize('update', $user);
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => [
@@ -132,12 +136,11 @@ class UserManagementController extends Controller
     /**
      * Update user roles
      */
-    public function updateRoles(Request $request, User $user)
+    public function updateRoles(UpdateRolesRequest $request, User $user)
     {
-        $validated = $request->validate([
-            'roles' => 'array',
-            'roles.*' => 'exists:roles,id',
-        ]);
+        $this->authorize('manageProtectedAccount', $user);
+
+        $validated = $request->validated();
 
         $this->adminService->assignRoles($user, $validated['roles'] ?? []);
 
@@ -149,12 +152,11 @@ class UserManagementController extends Controller
     /**
      * Update user permissions
      */
-    public function updatePermissions(Request $request, User $user)
+    public function updatePermissions(UpdatePermissionsRequest $request, User $user)
     {
-        $validated = $request->validate([
-            'permissions' => 'array',
-            'permissions.*' => 'exists:permissions,id',
-        ]);
+        $this->authorize('manageProtectedAccount', $user);
+
+        $validated = $request->validated();
 
         $this->adminService->assignPermissions($user, $validated['permissions'] ?? []);
 
@@ -171,6 +173,8 @@ class UserManagementController extends Controller
         if ($user->id === auth()->id()) {
             return back()->with('error', 'You cannot delete your own account.');
         }
+
+        $this->authorize('delete', $user);
 
         $this->adminService->deleteUser($user);
 

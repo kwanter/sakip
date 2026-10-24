@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Constants\SystemRoles;
+use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
 use App\Services\AdminService;
@@ -29,6 +30,8 @@ class AdminRoleEscalationTest extends TestCase
     public function test_admin_cannot_grant_super_admin_to_another_user()
     {
         $admin = $this->makeUserWithRole('Admin');
+        Permission::findOrCreate('manage-roles', 'web');
+        $admin->givePermissionTo('manage-roles');
         $target = User::factory()->create(['email_verified_at' => now()]);
         $superAdminRole = Role::firstOrCreate(['name' => SystemRoles::SUPER_ADMIN], ['guard_name' => 'web']);
 
