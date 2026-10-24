@@ -9,15 +9,14 @@ use Illuminate\Database\Seeder;
 class RolesAndPermissionsSeeder extends Seeder
 {
     /**
-     * Run the database seeds.
-     *
-     * Idempotent: never truncates role/permission tables (production-safe).
+     * Seeded permission vocabulary. Single source of truth: the permission
+     * lifecycle guards treat these names as reserved (Spatie resolves gate
+     * abilities by permission name, so they cannot be renamed into or away
+     * from safely).
      */
-    public function run()
+    public static function permissionNames(): array
     {
-        app()['cache']->forget('spatie.permission.cache');
-
-        $permissions = [
+        return [
             'view-dashboard',
             'view-sakip-dashboard',
             'view-performance-indicators',
@@ -66,8 +65,18 @@ class RolesAndPermissionsSeeder extends Seeder
             'view-audit-statistics',
             'view-compliance-reports',
         ];
+    }
 
-        foreach ($permissions as $permission) {
+    /**
+     * Run the database seeds.
+     *
+     * Idempotent: never truncates role/permission tables (production-safe).
+     */
+    public function run()
+    {
+        app()['cache']->forget('spatie.permission.cache');
+
+        foreach (self::permissionNames() as $permission) {
             Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'web']);
         }
 
