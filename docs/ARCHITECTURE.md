@@ -165,7 +165,7 @@ flowchart TD
 - `config/permission.php`: Spatie permission tables, guards, and cache configuration.
 - `phpunit.xml`: Unit and Feature suites, coverage source directory (`app`), and the testing environment (SQLite `:memory:`, array cache/mail/session, sync queue).
 - `vite.config.js`: Vite inputs for `resources/css` and `resources/js`, including Tailwind and Chart.js.
-- `docker-compose.yml` / `Dockerfile` / `Makefile`: container topology (app, queue, scheduler, nginx, MySQL 8.0, Redis 7) and operator shortcuts (`make test`, `make lint`, `make migrate`, `make fresh`).
+- `docker-compose.yml` / `docker-compose.dev.yml` / `Dockerfile` / `Makefile`: container topology (app, queue, scheduler, MySQL 8.0, Redis 7) and operator shortcuts (`make test`, `make lint`, `make migrate`, `make fresh`). The default compose render is image-only and loopback-bound with explicit session hardening; host source bind mounts live in the `docker-compose.dev.yml` overlay (`docker compose -f docker-compose.yml -f docker-compose.dev.yml up`). The removed `with-nginx` profile was non-functional (see plan v2.0 DEC-108); `docker/nginx/*` is retained as reference for a future TLS design.
 - `.github/workflows/ci.yml`: the authoritative quality gate — see section 9.
 
 ## 8. Entry Points
@@ -211,6 +211,42 @@ php artisan test --coverage              # line coverage (PCOV is installed; bra
 - **Suite size (measured 2026-09-26):** **152 tests** — 89 named `test_*` plus 63 driven by the `#[Test]` attribute (doc-comment test metadata was migrated away, backlog F2) — with **732 assertions**, **0 skips** and **0 PHPUnit deprecations**. Unit: 57 tests in ~1.3 s (SLA < 10 s). Full suite: ~12.2–12.6 s (SLA < 15 s target / < 20 s hard).
 
 - **Existing public test seams** (patterns to reuse when adding tests):
+  - Protected administrative User mutations (Slice 1, 2026-10-11):
+    `UserPolicy::manageProtectedAccount()` supplies the target-only restriction
+    shared by active update, deletion, role-assignment and permission-assignment
+    endpoints and all four corresponding `AdminService` mutators. It rejects
+    non-Super-Admin actors targeting existing Super Admin accounts before
+    validation or persistence. This does not replace route permissions or the
+    separate delegation-authority contract. `AdminProtectedAccountTest` uses
+    HTTP requests, real login, disposable SQLite fixtures, persisted outcomes,
+    positive controls, and direct service checks. Its permission and role
+    fixtures tolerate both seeded and unseeded suite baselines.
+  - Administrative access delegation (Slice 2, 2026-10-11): active User role
+    and permission endpoints use `UpdateRolesRequest` / `UpdatePermissionsRequest`
+    and their `assignRoles` / `assignPermissions` UserPolicy abilities, plus
+    the protected-target check. `UserPolicy::grantPermissions()` owns the
+    effective permission ceiling, entered through Gate so the existing
+    Super Admin bypass remains intact. `AdminService` checks it for direct
+    permissions and the union of permissions conveyed by requested roles;
+    role creation and role-permission edits use the same ability before writes.
+    User creation and scalar/access updates retain their transaction boundary.
+    `AdminAccessDelegationTest` checks authority, inherited permissions, atomic
+    rejection, real HTTP access before/after grants, direct service calls,
+    rollback, permitted lifecycle operations and validation responses. Ordinary
+    account creation with a role requires an authorized role assigner; account
+    creation without roles remains available to a user manager.
+  - Reserved role identity (Slice 3, 2026-10-11):
+    `RoleManagementController` uses `SystemRoles::SUPER_ADMIN` to block ordinary
+    actors from reserved-name creation/claims and reserved-role mutations before
+    validation. A direct invariant after authorized input validation forbids
+    renaming the existing reserved role away even for Super Admin; it does not
+    pass through the globally bypassed Gate. Existing reserved-role deletion
+    refusal and authorized Super Admin permission edits remain supported.
+    `AdminReservedRoleTest` drives the two-request release/reclaim attack and
+    fresh HTTP Gate/tenant probes through the indicator performance-data JSON
+    endpoint, asserting unchanged names, role IDs and explicit permission IDs.
+    Gate and InstansiScope continue consuming the existing role name; no role-ID
+    migration or consumer rewrite is introduced.
   - Named HTTP routes exercised with `actingAs()` — `tests/Feature/SakipDashboardAccessTest.php`, `tests/Feature/ReportIndexRendersTest.php`, `tests/Feature/RedirectFlowTest.php`.
   - Role/permission-gated endpoints — `tests/Feature/AdminRoleEscalationTest.php`, `tests/Feature/DataCollectionControllerTest.php`.
   - Tenant isolation — `tests/Feature/TargetTenantIsolationTest.php`, `tests/Feature/EvidenceUpdateIsolationTest.php` assert that cross-instansi access is denied or absent.
@@ -218,6 +254,13 @@ php artisan test --coverage              # line coverage (PCOV is installed; bra
   - Architecture guards — `tests/Unit/ArchitectureGuardTest.php` walks `app_path()` to prevent duplicate short class names and missing route names.
   - Floor-guard scan — `tests/Unit/FloorGuardTest.php` walks `app/`, `config/`, `resources/views/` and `tests/` and fails on any suppression token, any skipped test, or any doc-comment test metadata (backlogs F1 and F2 are closed, so none of the three has an allow-list today).
   - Security invariants — `tests/Unit/SecurityHeadersTest.php`, `tests/Unit/ExportFormulaInjectionTest.php`, `tests/Feature/RateLimitingTest.php`.
+  - **Security-audit remediation seams (plan v2.0, audit run-2, 2026-10-24):**
+    - **Instansi tenant isolation** — `tests/Feature/KegiatanInstitutionIsolationTest.php` (Kegiatan reads bind through the program relation; no direct-column scope) and `tests/Feature/MasterDataInstitutionIsolationTest.php` (SasaranStrategis create/update and Program update reject foreign `instansi_id`; the Program strategic parent must belong to the destination instansi).
+    - **Permission lifecycle** — `tests/Feature/AdminPermissionLifecycleTest.php`: reserved permission names come from `RolesAndPermissionsSeeder::permissionNames()` plus the route gate names (`view-audit-logs`, `debug`, `manage-system-maintenance`); reserved rows cannot be created into/renamed away from/deleted, in-use rows cannot be deleted, and a delegated manager can only mutate rows it holds (Spatie resolves gates by permission NAME while the delegation ceiling compares IDs).
+    - **Evidence serving** — `tests/Feature/EvidenceDownloadLocalOnlyTest.php`: the routed download serves the private local disk only; a missing private file is a 404, never a public-disk fallback.
+    - **Formula-cell neutralization** — `app/Services/Export/CellSanitizer::neutralize()` is the single owner of the `=+-@` literal-text invariant; both exporters and `ReportGenerationService::generateExcelFile` delegate to it, and `ExportFormulaInjectionTest` reloads the generated workbook to assert `TYPE_STRING` cells.
+    - **Template catalogs** — `tests/Feature/ReportTemplateInstitutionIsolationTest.php`: `getAvailableTemplates` receives the authenticated instansi (index/create) and report store validates `template_id` via `isAvailableFor`.
+    - **Dashboard gates** — `tests/Feature/SakipDashboardMetricsIsolationTest.php`: branch selectors use the registered gates `sakip.dashboard.executive`/`sakip.dashboard.data_collector` (no model argument), institutional metrics are instansi-bound (including Target/Assessment counts), and `AddSakipPermissions --fix-all` no longer mass-attaches `sakip.dashboard.view`.
   - **Admin triage landing seams S1–S4** (pre-agreed in `spec/spec-admin-triage-landing.md` §6.1):
     - **S1** `app/Support/ReportingPeriod` — pure value object, `tests/Unit/Support/ReportingPeriodTest.php`. No database, no HTTP, no auth: a query or an `actingAs()` here would hide the boundary the seam exists to specify.
     - **S2** `app/Services/AdminTriageService::summaryFor()` / `verificationCountFor()` — `tests/Unit/Services/AdminTriageServiceTest.php`, real database and factories but **no `actingAs()`**, because the service applies agency coverage explicitly. The ambient `InstansiScope` is a documented no-op without an authenticated user, so this seam can prove nothing about ambient auth; S3 owns that invariant.
