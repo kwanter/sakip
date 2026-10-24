@@ -47,17 +47,17 @@ class DataCollectionController extends Controller
     }
 
     /**
-     * Authorized download for evidence documents (private disk preferred).
+     * Authorized download for evidence documents (private disk only).
      */
     public function downloadEvidence(EvidenceDocument $evidence)
     {
         $this->authorize('download', $evidence);
 
         $path = $evidence->file_path;
-        // local = storage/app/private (default); public = legacy web-exposed paths
-        $disk = Storage::disk('local')->exists($path) ? 'local' : 'public';
-
-        if (! Storage::disk($disk)->exists($path)) {
+        // SECURITY: serve from the private local disk only. The public disk is
+        // web-exposed at /storage; a missing local file must be a 404, never a
+        // legacy public-disk fallback.
+        if (! Storage::disk('local')->exists($path)) {
             abort(404, 'File not found.');
         }
 
@@ -71,7 +71,7 @@ class DataCollectionController extends Controller
             'user_agent' => request()->userAgent(),
         ]);
 
-        return Storage::disk($disk)->download(
+        return Storage::disk('local')->download(
             $path,
             $evidence->file_name ?? basename($path),
         );
