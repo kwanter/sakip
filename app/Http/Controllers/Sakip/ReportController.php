@@ -105,7 +105,10 @@ class ReportController extends Controller
             );
 
             // Get available templates
-            $templates = $this->templateService->getAvailableTemplates('sakip');
+            $templates = $this->templateService->getAvailableTemplates(
+                'sakip',
+                $instansiId,
+            );
 
             // Get recent reports
             $recentReports = Report::with(['creator', 'approver'])
@@ -174,8 +177,11 @@ class ReportController extends Controller
             $user = Auth::user();
             $currentYear = Carbon::now()->year;
 
-            // Get available templates
-            $templates = $this->templateService->getAvailableTemplates('sakip');
+            // Get available templates (global or own instansi only)
+            $templates = $this->templateService->getAvailableTemplates(
+                'sakip',
+                $user->instansi_id,
+            );
 
             // Get all institutions for dropdown (cached)
             $instansis = $this->dropdownCache->getActiveInstansi();
@@ -263,6 +269,21 @@ class ReportController extends Controller
                 ],
                 422,
             );
+        }
+
+        // Template availability: global or own-instansi, active templates only.
+        if ($request->filled('template_id')) {
+            $template = ReportTemplate::find($request->get('template_id'));
+            if ($template === null || ! $template->isAvailableFor(Auth::user()?->instansi_id)) {
+                return response()->json(
+                    [
+                        'success' => false,
+                        'message' => 'Validasi gagal.',
+                        'errors' => ['template_id' => ['Template tidak tersedia untuk instansi Anda.']],
+                    ],
+                    422,
+                );
+            }
         }
 
         DB::beginTransaction();
