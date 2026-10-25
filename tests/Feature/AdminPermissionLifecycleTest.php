@@ -7,6 +7,7 @@ use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\PermissionRegistrar;
 use Tests\TestCase;
@@ -122,6 +123,52 @@ class AdminPermissionLifecycleTest extends TestCase
             ->assertForbidden();
 
         $this->assertDatabaseMissing('permissions', ['name' => 'view-audit-logs']);
+    }
+
+    /**
+     * SECURITY (review STD-01/SEC-101): policies consume authority-bearing
+     * permission names that RolesAndPermissionsSeeder never seeds (dashboard
+     * branch names, the sakip.* policy family, the space-name indicator
+     * family). A delegated manager must not be able to mint any of them via
+     * the unguarded store endpoint.
+     */
+    public static function authorityBearingPermissionNameProvider(): array
+    {
+        return [
+            'dashboard executive branch' => ['view-executive-dashboard'],
+            'dashboard data-entry branch' => ['view-data-entry-dashboard'],
+            'dashboard assessor branch' => ['view-assessor-dashboard'],
+            'dashboard audit branch' => ['view-audit-dashboard'],
+            'evidence admin family' => ['sakip.admin'],
+            'evidence download family' => ['sakip.evidence.download'],
+            'indicator view family' => ['view performance indicators'],
+            'indicator create family' => ['create performance indicators'],
+        ];
+    }
+
+    #[Test]
+    #[DataProvider('authorityBearingPermissionNameProvider')]
+    public function manager_cannot_mint_an_authority_bearing_permission_name(string $name): void
+    {
+        $this->actingAs($this->manager)
+            ->post(route('admin.permissions.store'), [
+                'name' => $name,
+            ])
+            ->assertForbidden();
+
+        $this->assertDatabaseMissing('permissions', ['name' => $name]);
+    }
+
+    #[Test]
+    public function super_admin_can_create_an_authority_bearing_permission_name(): void
+    {
+        $this->actingAs($this->superAdmin)
+            ->post(route('admin.permissions.store'), [
+                'name' => 'view-executive-dashboard',
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('permissions', ['name' => 'view-executive-dashboard']);
     }
 
     #[Test]

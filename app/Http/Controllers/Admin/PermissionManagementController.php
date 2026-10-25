@@ -21,6 +21,92 @@ class PermissionManagementController extends Controller
         'manage-system-maintenance',
     ];
 
+    /**
+     * Authority-bearing permission names consumed by policies but never seeded
+     * (review STD-01). Each literal below is read from its consuming policy:
+     * SakipDashboardPolicy (branch gates), EvidenceDocumentPolicy (sakip.evidence.*),
+     * ReportPolicy/PerformanceMeasurementController (sakip.reports.*),
+     * TargetPolicy (sakip.targets.*), EvidenceDocument/Target admin roles
+     * (sakip.admin, sakip.pimpinan, sakip.assessor, sakip.auditor,
+     * sakip.data_collector), PerformanceIndicatorPolicy (space-name family),
+     * UserManagementController (admin.users.*), AdminSettingsController
+     * (admin.settings.manage). Minting any of them via the store endpoint
+     * would hand the creator unsupervised authority.
+     */
+    private const RESERVED_POLICY_PERMISSION_NAMES = [
+        // SakipDashboardPolicy branch gates
+        'view-executive-dashboard',
+        'view-data-entry-dashboard',
+        'view-assessor-dashboard',
+        'view-audit-dashboard',
+        // EvidenceDocumentPolicy role-family names
+        'sakip.admin',
+        'sakip.pimpinan',
+        'sakip.assessor',
+        'sakip.auditor',
+        'sakip.data_collector',
+        // EvidenceDocumentPolicy capability family
+        'sakip.evidence.attach',
+        'sakip.evidence.audit',
+        'sakip.evidence.audit_trail',
+        'sakip.evidence.bulk_upload',
+        'sakip.evidence.bulk_validate',
+        'sakip.evidence.compliance',
+        'sakip.evidence.create',
+        'sakip.evidence.download',
+        'sakip.evidence.metadata',
+        'sakip.evidence.reject',
+        'sakip.evidence.upload',
+        'sakip.evidence.validate',
+        'sakip.evidence.validation_history',
+        'sakip.evidence.view',
+        // ReportPolicy capability family
+        'sakip.reports.analytics',
+        'sakip.reports.approve',
+        'sakip.reports.audit',
+        'sakip.reports.bulk_export',
+        'sakip.reports.bulk_generate',
+        'sakip.reports.compliance',
+        'sakip.reports.create',
+        'sakip.reports.customize_template',
+        'sakip.reports.download',
+        'sakip.reports.executive',
+        'sakip.reports.export',
+        'sakip.reports.generate',
+        'sakip.reports.history',
+        'sakip.reports.operational',
+        'sakip.reports.performance',
+        'sakip.reports.schedule',
+        'sakip.reports.trend',
+        'sakip.reports.view',
+        // TargetPolicy capability family
+        'sakip.targets.analytics',
+        'sakip.targets.audit',
+        'sakip.targets.bulk_approve',
+        'sakip.targets.bulk_set',
+        'sakip.targets.compare',
+        'sakip.targets.compliance',
+        'sakip.targets.create',
+        'sakip.targets.export',
+        'sakip.targets.history',
+        'sakip.targets.view',
+        // PerformanceIndicatorPolicy space-name family
+        'view any performance indicators',
+        'view performance indicators',
+        'create performance indicators',
+        'update performance indicators',
+        'delete performance indicators',
+        'restore performance indicators',
+        'force delete performance indicators',
+        // Admin user/settings capability family (UserManagementController,
+        // AdminSettingsController)
+        'admin.settings.manage',
+        'admin.users.export',
+        'admin.users.impersonate',
+        'admin.users.import',
+        'admin.users.sessions',
+    ];
+
     public function __construct()
     {
         $this->middleware('can:manage-permissions');
@@ -34,6 +120,7 @@ class PermissionManagementController extends Controller
         return array_values(array_unique(array_merge(
             RolesAndPermissionsSeeder::permissionNames(),
             self::RESERVED_GATE_PERMISSION_NAMES,
+            self::RESERVED_POLICY_PERMISSION_NAMES,
         )));
     }
 
@@ -86,6 +173,13 @@ class PermissionManagementController extends Controller
 
         if (! $request->user()->isAdmin()) {
             $this->abortIfReservedName($validated['name'], 'dibuat');
+
+            // Delegation ceiling (DEC-103(d)): a non-super-admin may only
+            // (re)create a name it already holds; minting never-held names
+            // would hand out unsupervised authority.
+            if (! in_array($validated['name'], $request->user()->getAllPermissions()->pluck('name')->all(), true)) {
+                abort(403, 'Anda hanya dapat membuat permission yang Anda pegang.');
+            }
         }
 
         Permission::create([
