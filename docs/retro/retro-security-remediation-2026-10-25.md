@@ -52,7 +52,7 @@
 | 4 | `general-purpose` subagent for delegated review | provider rejects the model/reasoning selection on this account | `explore` agent type (read-only, sufficient for review) |
 
 ## 4. 🎯 Action Items for Next SDLC Cycle
-- [ ] **A-101 (product owner):** recalibrate the full-suite runtime SLA against the 313-test baseline (proposal: target < 25 s / hard < 30 s) **or** sanction an optimization slice for `RateLimitingTest` (KB-P3 remedy pays ≈ 7 s). Do not silently lower the number.
+- [x] **A-101 (DECIDED 2026-10-25, delegated by product owner):** full-suite runtime SLA recalibrated to **< 25.0 s target / < 30.0 s hard floor** against the 313-test baseline (`CONSTRAINTS.md` §1 updated). **A-101b (open):** `RateLimitingTest` seam optimization (KB-P3, ≈ 7 s recoverable) — re-measure after; the row may be tightened back only on a re-measure.
 - [ ] **A-102:** execute `plan/plan-refactor-security-remediation-v1.1.md` via `/tdd-write-code` (closes R2-STD-01/02 + review-record hygiene).
 - [ ] **A-103:** before deploying past `6ded457`, run the RBCK-103 read-only inventory of tenantless Executive accounts (R2-SPEC-07).
 - [ ] **A-104 (carried):** v1.0 `REQ-006` (evidence edit locking) and `REQ-007` (journal symlink containment) remain open backlog.
