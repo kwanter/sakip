@@ -13,7 +13,10 @@ final class CellSanitizer
 {
     public static function neutralize(mixed $value): mixed
     {
-        if (is_string($value) && $value !== '' && str_contains('=+-@', $value[0])) {
+        // OWASP CSV-injection guidance: spreadsheet parsers strip leading
+        // whitespace before formula evaluation, so a tab/CR prefix must be
+        // treated like a bare formula trigger.
+        if (is_string($value) && $value !== '' && str_contains("=+-@\t\r", $value[0])) {
             return "'".$value;
         }
 

@@ -246,9 +246,10 @@ class PerformanceIndicator extends Model
     }
 
     /**
-     * Scope to get indicators for a specific instansi.
+     * Scope to get indicators for a specific instansi. Instansi keys are
+     * UUIDs; null yields the default-deny empty set.
      */
-    public function scopeForInstansi($query, int $instansiId)
+    public function scopeForInstansi($query, ?string $instansiId)
     {
         return $query->where('instansi_id', $instansiId);
     }

@@ -53,6 +53,21 @@ class ExportFormulaInjectionTest extends TestCase
     }
 
     /**
+     * SECURITY (review STD-11, OWASP CSV-injection guidance): spreadsheet
+     * parsers strip leading whitespace before formula evaluation, so a
+     * tab/CR-prefixed payload must be neutralized like a bare formula.
+     */
+    public function test_tab_and_carriage_return_prefixes_are_neutralized()
+    {
+        $rows = $this->sanitize([
+            ['name' => "\t=HYPERLINK(\"http://evil\")", 'value' => "\r=1+1"],
+        ]);
+
+        $this->assertSame(chr(39)."\t=HYPERLINK(\"http://evil\")", $rows[0]['name']);
+        $this->assertSame(chr(39)."\r=1+1", $rows[0]['value']);
+    }
+
+    /**
      * SECURITY (audit run-2, ReportGenerationService formula cells): the
      * report Excel export writes the user-controlled report title and
      * indicator code/name; they must be stored as literal strings, never

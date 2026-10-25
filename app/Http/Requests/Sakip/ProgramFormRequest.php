@@ -4,6 +4,7 @@ namespace App\Http\Requests\Sakip;
 
 use App\Constants\Status;
 use App\Constants\ValidationRules;
+use App\Rules\TenantRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -38,9 +39,7 @@ class ProgramFormRequest extends FormRequest
         return [
             // Tenant binding: ordinary actors may only target their own instansi;
             // Super Admin keeps explicit cross-instansi authority.
-            'instansi_id' => $user !== null && $user->isAdmin()
-                ? ['required', 'string', 'exists:instansis,id']
-                : ['required', 'string', 'exists:instansis,id', Rule::in([$user?->instansi_id])],
+            'instansi_id' => TenantRule::ownInstansi($user),
             // The strategic parent must belong to the destination instansi
             // (applies to Super Admin as well).
             'sasaran_strategis_id' => [

@@ -161,6 +161,21 @@ class PermissionManagementController extends Controller
      */
     public function store(Request $request)
     {
+        // Guards precede validation: a reserved-name or out-of-ceiling mint
+        // attempt is 403 even when the row already exists (unique would
+        // otherwise mask the denial as a 422).
+        if (! $request->user()->isAdmin()) {
+            $requestedName = (string) $request->input('name');
+            $this->abortIfReservedName($requestedName, 'dibuat');
+
+            // Delegation ceiling (DEC-103(d)): a non-super-admin may only
+            // (re)create a name it already holds; minting never-held names
+            // would hand out unsupervised authority.
+            if ($requestedName !== '' && ! in_array($requestedName, $request->user()->getAllPermissions()->pluck('name')->all(), true)) {
+                abort(403, 'Anda hanya dapat membuat permission yang Anda pegang.');
+            }
+        }
+
         $validated = $request->validate([
             'name' => [
                 'required',
@@ -171,20 +186,13 @@ class PermissionManagementController extends Controller
             'guard_name' => ['nullable', 'string', 'max:255'],
         ]);
 
-        if (! $request->user()->isAdmin()) {
-            $this->abortIfReservedName($validated['name'], 'dibuat');
-
-            // Delegation ceiling (DEC-103(d)): a non-super-admin may only
-            // (re)create a name it already holds; minting never-held names
-            // would hand out unsupervised authority.
-            if (! in_array($validated['name'], $request->user()->getAllPermissions()->pluck('name')->all(), true)) {
-                abort(403, 'Anda hanya dapat membuat permission yang Anda pegang.');
-            }
-        }
+        // The application configures only the 'web' guard; a row on any other
+        // guard would vanish from every web-guard authorization check.
+        $validated['guard_name'] = 'web';
 
         Permission::create([
             'name' => $validated['name'],
-            'guard_name' => $validated['guard_name'] ?? 'web',
+            'guard_name' => $validated['guard_name'],
         ]);
 
         return redirect()
@@ -243,7 +251,8 @@ class PermissionManagementController extends Controller
 
         $permission->update([
             'name' => $validated['name'],
-            'guard_name' => $validated['guard_name'] ?? 'web',
+            // Guard identity is server-owned (see store); renames stay on 'web'.
+            'guard_name' => 'web',
         ]);
 
         return redirect()

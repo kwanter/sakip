@@ -6,8 +6,6 @@
 # The default render (docker-compose.yml alone) runs the built image only,
 # never the live host tree, so production cannot accidentally execute the
 # developer's working directory.
-version: '3.9'
-
 services:
   app:
     volumes:

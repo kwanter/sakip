@@ -151,20 +151,13 @@ class SakipDashboardController extends Controller
     private function getInstitutionalMetrics($instansiId, $year)
     {
         return [
-            'total_indicators' => PerformanceIndicator::where(
-                'instansi_id',
-                $instansiId,
-            )->count(),
+            'total_indicators' => PerformanceIndicator::forInstansi($instansiId)->count(),
             'total_targets' => Target::where('year', $year)
-                ->whereHas('performanceIndicator', function ($q) use ($instansiId) {
-                    $q->where('instansi_id', $instansiId);
-                })
+                ->whereHas('performanceIndicator', fn ($q) => $q->forInstansi($instansiId))
                 ->count(),
             'total_performance_data' => PerformanceData::whereHas(
                 'performanceIndicator',
-                function ($q) use ($instansiId) {
-                    $q->where('instansi_id', $instansiId);
-                },
+                fn ($q) => $q->forInstansi($instansiId),
             )
                 ->whereYear('period', $year)
                 ->count(),
@@ -172,9 +165,7 @@ class SakipDashboardController extends Controller
                 'created_at',
                 $year,
             )
-                ->whereHas('performanceData.performanceIndicator', function ($q) use ($instansiId) {
-                    $q->where('instansi_id', $instansiId);
-                })
+                ->whereHas('performanceData.performanceIndicator', fn ($q) => $q->forInstansi($instansiId))
                 ->count(),
             'total_reports' => Report::where(
                 'period',

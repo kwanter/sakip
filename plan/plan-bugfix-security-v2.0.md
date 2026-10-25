@@ -2,14 +2,14 @@
 goal: Resolve all eight run-2 security audit findings with TDD (2 confirmed, 6 needs-validation)
 version: 2.0
 date_created: 2026-10-24
-last_updated: 2026-10-24
-status: "Planned - Awaiting Approval"
+last_updated: 2026-10-25
+status: "Implemented (slices 1-8; commits 13625c9..ba21dec)"
 tags: ["bug-fix", "security", "remediation", "tdd", "tenant-isolation"]
 ---
 
 ## Introduction
 
-![Status: Planned](https://img.shields.io/badge/status-planned-yellow)
+![Status: Implemented](https://img.shields.io/badge/status-implemented-green)
 
 This plan resolves the eight findings of security audit **run-2** (standard profile,
 completed 2026-10-24, source `c4c091969aef6692237561e50e8ba7a32368fc21` + the
@@ -279,16 +279,23 @@ checks; no container start. No new analyzer is introduced.
 
 ### Approval and handoff
 
-Approve this document (scope + DEC-101…DEC-108) before execution. Then, per
-slice, in a fresh session:
+**EXECUTED 2026-10-24** (commits `13625c9` Slice 1, `2370934` Slice 2, `5f7dc37`
+Slice 3, `e0af39a` Slice 4, `478c8a2` Slice 5, `6386464` Slice 6, `9e9e1c3`
+Slice 7, `d2c0efc` Slice 8, `ba21dec` docs; suite 310 passing). Review follow-ups
+continue in `plan/plan-refactor-security-remediation-v1.0.md`.
 
-```text
-/tdd-write-code Execute @plan/plan-bugfix-security-v2.0.md, Slice 1 RED only.
-Use @app/Policies/KegiatanPolicy.php and
-@app/Http/Controllers/Sakip/KegiatanController.php. Reference
-@tests/Feature/KegiatanInstitutionIsolationTest.php as the target seam.
-Record the failing security assertion and stop at the RED approval checkpoint.
-```
+### Implementation addendum (sanctioned deviations, review SPEC-03/04/06)
 
-After each phase checkpoint, optionally persist progress via `memory-manager`.
-Mark v1.0 as superseded-for-slices-4/5/8 in its frontmatter when Slice 1 lands.
+- **DEC-102 (SPEC-06):** store implements the server-side binding as a payload
+  `Rule::in([own-instansi])` constraint instead of silently overwriting
+  `instansi_id`; the tenant guarantee is equivalent (foreign values are
+  rejected, own values equal the derived one).
+- **DEC-102/RISK-806 (SPEC-03):** `ProgramFormRequest::rules()` is shared by
+  store and update, so the instansi binding and same-institution parent rule
+  also gate Program **create**. Tightening-only; create still fails first on
+  the unrelated `programs.tahun` prerequisite.
+- **REQ-107 (SPEC-04):** `SakipDashboardPolicy::viewExecutiveDashboard` and
+  `viewDataCollectorDashboard` now resolve via `getAllPermissions()` (fail
+  closed, no exception) instead of `hasPermissionTo`, because the registered
+  branch gates fire on every dashboard request and the permission names were
+  unregistered at the time; they are seeded as of the review follow-up.

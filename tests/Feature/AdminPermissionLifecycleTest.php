@@ -216,4 +216,41 @@ class AdminPermissionLifecycleTest extends TestCase
 
         $this->assertDatabaseMissing('permissions', ['name' => 'custom.superadmin-created']);
     }
+
+    /**
+     * SECURITY (review STD-10): guard_name is forced server-side to 'web' —
+     * the only guard the application configures. A free-text guard would
+     * hide a row from every web-guard check while it still exists.
+     */
+    #[Test]
+    public function store_forces_the_web_guard(): void
+    {
+        $this->actingAs($this->superAdmin)
+            ->post(route('admin.permissions.store'), [
+                'name' => 'custom.guard-forced-create',
+                'guard_name' => 'api',
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('permissions', [
+            'name' => 'custom.guard-forced-create',
+            'guard_name' => 'web',
+        ]);
+    }
+
+    #[Test]
+    public function update_forces_the_web_guard(): void
+    {
+        $this->actingAs($this->superAdmin)
+            ->put(route('admin.permissions.update', Permission::where('name', 'custom.free-row')->first()), [
+                'name' => 'custom.free-row',
+                'guard_name' => 'api',
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('permissions', [
+            'name' => 'custom.free-row',
+            'guard_name' => 'web',
+        ]);
+    }
 }
