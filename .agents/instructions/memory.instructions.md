@@ -18,12 +18,21 @@ description: "Project memory file for tracking progress, active artifacts, and c
 - Per-session artifact status lives in the **Active Artifacts** list of the latest checkpoint below; this section is only the top-level index.
 
 ## 3. Session Progress Log
+- **Session 2026-10-25 (security remediation reviews + refactor closeout):** two two-axis review rounds over commits `13625c9..97d1f41`. Round 1: 15 findings (1 CRITICAL mint-path STD-01, 8 REQUIRED) → `plan-refactor-security-remediation-v1.0.md` executed in 3 phases (`9894947` v1.0 baseline landing, `b4e16db` reserved policy-vocabulary + store ceiling, `6ded457` AJAX cascade scoping + dashboard branch seeding/reachability + tenantless-Executive removal + foreign-indicator rejection, `97d1f41` hygiene: guard_name force, CellSanitizer tab/CR, TenantRule::ownInstansi, scopeForInstansi int→?string UUID fix, compose version drop, plan metadata honesty). Round 2: 0 CRITICAL, 4 REQUIRED (drift-guard for reserved set, system-wide helper scope consistency, review-record commits, render-diff evidence) → `plan-refactor-security-remediation-v1.1.md` **planned, not executed** (handoff to /tdd-write-code). Retrospective at `docs/retro/retro-security-remediation-2026-10-25.md`: **full-suite SLA BREACHED** (313 tests, 21.7–23.4 s vs <15 s/<20 s; volume effect, per-test cost held) → action A-101 product-owner decision; CONSTRAINTS.md carries the breach warning. Suite at close: **313 passed / 0 failed**.
+- **Session 2026-10-24 (security-audit run-2 remediation):** executed `plan/plan-bugfix-security-v2.0.md` end to end (8 slices, strict RED→GREEN→VERIFY→COMMIT). Commits: `13625c9` Kegiatan read isolation (REQ-101), `2370934` planning-write instansi binding (REQ-102), `5f7dc37` permission lifecycle guards + `RolesAndPermissionsSeeder::permissionNames()` single source (REQ-103), `e0af39a` evidence download local-only (REQ-104), `478c8a2` `CellSanitizer` + report Excel neutralization with byte-level TYPE_STRING pin (REQ-105), `6386464` template catalog tenancy + store availability check (REQ-106), `9e9e1c3` dashboard registered-gate selectors + instansi-bound Target/Assessment counts + fail-closed policy abilities + `--fix-all` mass-attach removal (REQ-107), `d2c0efc` compose hardening with `docker-compose.dev.yml` overlay (REQ-108), `ba21dec` ARCHITECTURE.md seams. Final suite **289 passed / 0 failed (2384 assertions)**, Pint clean. Slice 1 commit also fixed Mimosa-flagged hardcoded fixture passwords in the v1.0 admin tests (generated per-run). **Outstanding:** the v1.0 production remediation files (`UserPolicy`, `AdminService`, `UserManagementController`, `RoleManagementController`, `UpdatePermissions/UpdateRoles` requests, `AdminRoleEscalationTest`) are still UNCOMMITTED in the worktree — the committed `AdminAccessDelegationTest` depends on them; commit them separately next. Program *create* tenant binding deferred behind the `programs.tahun` schema/request bug (RISK-806). Every RED was classified (fixture errors never accepted as RED); the Slice 7 counts pin was mutation-verified (fleet 5 vs instansi 2).
 - Initialized TDD-Spec SDLC Architecture.
 - Session 8: implemented the Admin Triage Landing Phases 1 + 2 (11/11 tickets) under strict Red-Green-Refactor; 144 passed / 2 skipped, Pint clean, coverage `unverified`.
 - Session 9: reviewed that delivery on two axes (**17 findings, none critical** — 9 Standards, 8 Spec), wrote the four-phase remediation plan, and executed **Phase 1** of it (AC-028 pinned with a mutation RED-proof, `data-triage-period-select` rendered and asserted, Spec amended to **v1.4**), then **Phase 2** (architecture-map fidelity plus the static floor-guard test TC-070), then **Phase 3** (the active-year seam hardened against a non-numeric value, `isYearScoped()` removed with its Spec line, and the triage seam tests collapsed onto one shared markup boundary), then **Phase 4** (the checklist reconciled to 72 cases / 68 measured methods, decision 1A delivering the long-agency-name truncation with TC-072, and decision 2B re-scoping the three manual metrics to `[Assumed / Backlog]`); **149 passed / 2 skipped, 693 assertions**, Pint clean on 253 files, Unit 57 in ~1.6 s, coverage `unverified`.
 
 ## 4. Permanent Knowledge Base & Architecture Decisions
 - Strict Test-First & Pre-Agreed Seams Mandate enforced across all phases.
+- **Authorization guards precede validation** (retro 2026-10-25, P-01): a guard placed after `$request->validate()` is masked when the target row already exists — unique validation answers 422/302 before the guard's 403. Order: identity/tenancy guard → validate. Live example: `PermissionManagementController::store` (round-1 review caught the masking).
+- **Dual-denial 403/404 is the contract for foreign selectors** (P-02): `InstansiScope`-filtered route-model binding answers 404 before any controller guard runs; explicit guards answer 403. Tests accept both (CON-002), but at least one explicit-403 branch must be pinned so a guard cannot be deleted silently (open: plan v1.1 TASK-405).
+- **Authority-bearing permission names need a mechanical drift guard** (P-03): the hand-maintained `RESERVED_POLICY_PERMISSION_NAMES` constant missed 10 `Gate::define` literals on its first cut (round-2 review). The ALT-101 scan test (plan v1.1 TASK-401) pins the union at CI time; never extend the list by memory.
+- **InstansiScope lifts are explicit decisions** (P-04): `getSystemWideMetrics` lifts the scope because the executive gate grants Semua Instansi authority — and *every* aggregate inside that branch must be lifted consistently, or the dashboard mixes fleet and tenant numbers (R2-STD-02: `calculateAveragePerformance`/`getPendingActions` still scoped). Helpers called from both branches stay scoped.
+- **The shared `:memory:` connection persists rows across test files** (P-05): `assertDatabaseMissing` for a name another suite may have created is unsound; assert the denial instead, and keep fixture names per-suite-unique. This also means guard-before-validation ordering is observable in the suite (see P-01).
+- **`scopeForInstansi` on PerformanceIndicator takes a UUID string** (`?string`, fixed from `int` in 97d1f41 — the old `int` typehint was a latent 500 for every UUID caller). Null yields `IS NULL`, which is default-deny only because no row has a NULL instansi_id; a schema change making instansi_id nullable would silently broaden it (open NIT R2-STD-03).
+- **Test tooling on this machine:** `general-purpose` subagent type fails (provider reasoning-level error) — use `explore` for delegated read-only review agents. The Mimosa pre-commit hook rejects (a) hardcoded credential-looking strings in tests (use `Str::password(16)` generated fixtures) and (b) any code file written via Bash heredoc/perl (use Write/Edit). `php` resolves to `/Users/macbook/.local/bin/php` (8.3.35) and is on PATH here, unlike the September sessions.
 - **Memory fast path is already configured:** the `## Memory Configuration` section of `AGENTS.md` (lines 439–443) records `Active Memory Path: .agents/instructions/memory.instructions.md`, which matches this file. The `memory-manager` Workflow 1 Step 0 fast path therefore works; checkpoints in Sessions 1–2 that listed this as "pending" are **superseded** and no `AGENTS.md` edit is required.
 - **`InstansiScope` is default-deny and marked immutable** (`app/Models/Scopes/InstansiScope.php:11-18`): a viewer whose `instansi_id` is null sees **nothing**. No requirement, PRD, or spec may therefore promise an unscoped viewer a cross-agency view. A PRD that promised "viewers without an agency see all agencies" had to be corrected on this ground (Session 7, finding F-03).
 - **Period vocabulary is not uniform across tables:** `performance_data.period` is a `string(7)` `YYYY-MM`, `targets.year` is an integer, and `reports.period` is a free-form `string(20)` seeded in the test suite as `YYYY-Qn` (`tests/Feature/ReportIndexRendersTest.php:34`). Never map one period vocabulary onto another without verifying the stored format first (Session 7, finding F-02).
@@ -520,5 +529,194 @@ description: "Project memory file for tracking progress, active artifacts, and c
 - **Next Action / Pending:** **A9** — open a **new chat session** and run `/tdd-explore-ideas` or `/tdd-prd` for the next milestone; the working tree is clean and every artifact is committed.
 
 <!-- checkpoint-tail: A10 done - throttle:guest now guards /, GET /login, POST /login and /logout with Limit::none() for resolved users, pinned by guest_requests_to_the_root_route_are_rate_limited_per_ip; all ten retro actions A1-A10 are executed; suite is OK (152 tests, 767 assertions) with zero skips and zero deprecations; only A9 remains: a new session for /tdd-explore-ideas or /tdd-prd. -->
+
+---
+
+## Session Checkpoint: 2026-10-11 - Security Slice 1 GREEN
+
+- **Active Memory Path:** `.agents/instructions/memory.instructions.md`
+- **Current SDLC Phase:** Code; Slice 1 security regressions GREEN, dependency
+  gate failed, next-slice approval pending. This checkpoint supersedes older
+  active-context summaries for the current security work.
+- **Active Artifacts:**
+  - `plan/plan-bugfix-security-v1.0.md` - approved remediation contract.
+  - `docs/review/slice-1-red-2026-10-11.md` - credential takeover RED evidence.
+  - `docs/review/slice-1-green-2026-10-11.md` - implementation and gate evidence.
+- **Achieved Milestones:**
+  - User approved GREEN after RED and authorized the memory checkpoint.
+  - Non-Super-Admin actors cannot mutate existing Super Admin credentials,
+    identity, institution, membership, direct permissions, or deletion through
+    active User endpoints or the corresponding service mutators.
+  - `UserPolicy::manageProtectedAccount` owns the shared target restriction;
+    existing ordinary-account and Super Admin controls pass.
+  - Final full suite: 196 passed, 1,149 assertions, 13.74 s. Focused: 25 passed,
+    333 assertions. Unit: 58 passed, 286 assertions, 1.71 s.
+  - PCOV run: 195 passed, 1,133 assertions; all three changed production files
+    have 100% line coverage, whole application 13.0%. The final additional
+    ordinary-access HTTP control passed later; production code was identical.
+  - Pint passed 263 files; Composer validation, npm production audit, Vite
+    production build, new-report Markdown lint and diff checks passed.
+- **Dead-Ends (Do NOT Repeat):**
+  - `$seed = false` does not erase an existing in-memory suite baseline.
+    Explicit permission creation passed alone but failed after seeded classes.
+    Use `findOrCreate` for shared permission/role fixtures; never disable guards.
+- **Updated Files:**
+  - `app/Policies/UserPolicy.php` - shared protected-target rule.
+  - `app/Services/AdminService.php` - pre-mutation target authorization.
+  - `app/Http/Controllers/Admin/UserManagementController.php` - endpoint guards.
+  - `tests/Feature/AdminProtectedAccountTest.php` - HTTP and service regressions.
+  - `docs/ARCHITECTURE.md` - shared authorization and regression seams.
+  - Both Slice 1 evidence reports and this appended checkpoint.
+- **Decisions Made:**
+  - Keep assignment authority and permission ceilings for Slice 2; the Slice 1
+    ability restricts targets and does not replace route permissions.
+  - Preserve pre-existing `.zcodeignore` and the original approved plan.
+  - Do not upgrade dependencies under this bounded authorization slice.
+- **Next Action / Pending:**
+  - Composer locked audit failed: four existing advisories across CommonMark,
+    Laravel and Flysystem, including high `GHSA-3q6v-r5mr-hxv8` in CommonMark.
+    Lockfiles are unchanged. The zero-known-high target remains unmet.
+  - Branch coverage is unverified (PCOV present, Xdebug absent); no strict type
+    analyzer is configured. No production validation or deployment occurred.
+  - Obtain explicit approval before Slice 2 RED. Accepted-slice atomic commit
+    remains pending; no staging, commit, push, or deployment was performed.
+  - Canonical work-state tools were unavailable; evidence reports track state.
+
+<!-- checkpoint-tail: Security Slice 1 GREEN; 196 tests pass; changed files have
+100% line coverage; existing Composer high advisory blocks the all-gates claim;
+Slice 2 and commit await approval. -->
+
+---
+
+## Session Checkpoint: 2026-10-11 - Security Slice 2 GREEN
+
+- **Active Memory Path:** `.agents/instructions/memory.instructions.md`
+- **Current SDLC Phase:** Code; Slices 1 and 2 security regressions GREEN,
+  full-suite runtime target missed, dependency gate failed, Slice 3 pending.
+- **Active Artifacts:**
+  - `plan/plan-bugfix-security-v1.0.md` - approved remediation contract.
+  - `docs/review/slice-2-red-2026-10-11.md` - 17 HTTP security RED cases.
+  - `docs/review/slice-2-green-2026-10-11.md` - implementation and gate evidence.
+  - Both Slice 1 reports remain valid historical checkpoints.
+- **Achieved Milestones:**
+  - User approved Slice 2 GREEN and checkpoint persistence after RED.
+  - Six additional direct-service/rollback regressions failed before the patch:
+    the pre-GREEN focused set had 23 expected failures and 36 passes.
+  - User assignment endpoints use the existing assignment Form Requests and
+    require `manage-roles` plus the protected-target restriction.
+  - `UserPolicy::grantPermissions`, entered through Gate, owns the effective
+    permission ceiling shared by direct/role grants and role creation/edits.
+  - Service assignment abilities prevent direct calls and user creation from
+    bypassing delegation authority; failed grants roll back scalar/account data.
+  - Existing reserved-role filtering and the Super Admin Gate bypass remain.
+  - Final focused: 64 passed, 1,082 assertions, 2.53 s. Full: 235 passed,
+    1,898 assertions, 17.40 s. Unit: 58 passed, 286 assertions, 1.49 s.
+  - PCOV: 235 passed, 1,898 assertions, 23.77 s; all six changed production
+    files have 100% line coverage; whole application 13.6%.
+  - Pint passed 264 files; Composer validation, npm production audit, Vite
+    production build, new-report Markdown lint and diff checks passed.
+- **Dead-Ends (Do NOT Repeat):**
+  - Assignment-authority and ceiling controls are independent: tests with wholly
+    owned grants still require rejection when the actor lacks `manage-roles`.
+  - Positive role-assignment fixtures must have legitimate assignment authority.
+    Two existing fixtures now receive `manage-roles`; all assertions remain.
+  - Characterization must follow the original response contract: role rename
+    redirects to the index, not the detail page. No redirect behavior changed.
+- **Updated Files:**
+  - User/Role management controllers, both assignment Form Requests, UserPolicy,
+    AdminService, both security feature tests, and AdminRoleEscalationTest.
+  - `docs/ARCHITECTURE.md`, both Slice 2 evidence reports, and this checkpoint.
+- **Decisions Made:**
+  - Check effective direct/inherited permission IDs and the union conveyed by
+    requested roles; reject ordinary mixed grants wholly before synchronization.
+  - Keep empty access removal and ordinary account creation without roles valid.
+  - Preserve existing transactions, target protection, audit behavior and routes.
+  - Reserved-role naming/mutation remediation belongs to Slice 3; no broad RBAC
+    redesign or dependency upgrade was introduced.
+- **Next Action / Pending:**
+  - Full-suite target 15 s is missed at 17.40 s; the 20 s hard floor is met.
+    Profiling shows 39 new delegation cases total about 3.22 displayed seconds,
+    explaining most of the 3.34 s increase from the 196-case baseline.
+  - Fresh Composer audit failed with four unchanged advisories, including high
+    CommonMark `GHSA-3q6v-r5mr-hxv8`; dependency lockfiles have empty diffs.
+  - Branch coverage is unverified (PCOV present, no Xdebug); no strict analyzer
+    is configured. The entire quality-gate set is not fully passed.
+  - Obtain explicit approval before Slice 3 RED. Accepted-slice atomic commits
+    remain pending; no staging, commit, push or deployment occurred.
+  - Preserve `.zcodeignore`, the original plan, and all existing worktree edits.
+    Work-state tools are unavailable; execution reports track current state.
+
+<!-- checkpoint-tail: Slices 1 and 2 GREEN; 235 tests pass; six changed production
+files have 100% line coverage; runtime target and existing Composer advisory
+remain open; Slice 3 and commits require the next checkpoint. -->
+
+---
+
+## Session Checkpoint: 2026-10-11 - Security Slice 3 GREEN
+
+- **Active Memory Path:** `.agents/instructions/memory.instructions.md`
+- **Current SDLC Phase:** Code; Slices 1 through 3 security regressions GREEN,
+  full-suite runtime target and dependency gate open, Slice 4 pending.
+- **Active Artifacts:**
+  - `plan/plan-bugfix-security-v1.0.md` - approved remediation contract.
+  - `docs/review/slice-3-red-2026-10-11.md` - reserved identity takeover evidence.
+  - `docs/review/slice-3-green-2026-10-11.md` - implementation and gate results.
+  - Earlier Slice 1/2 reports remain valid historical checkpoints.
+- **Achieved Milestones:**
+  - User approved Slice 3 GREEN and checkpoint persistence after RED.
+  - Pre-patch rerun confirmed eight expected failures and seven passing controls.
+  - Only RoleManagementController changed production behavior in this slice:
+    non-Super-Admin actors cannot create/claim the reserved name or mutate the
+    reserved role/guard/permissions. Checks precede their input validation.
+  - A direct post-validation invariant prevents renaming the reserved role away
+    even by Super Admin; it remains effective outside the global Gate bypass.
+  - Existing deletion refusal, ordinary role lifecycle and authorized Super Admin
+    permission edits are preserved; Gate and InstansiScope consumers are intact.
+  - The two-request exploit now leaves names, membership and permissions intact;
+    the manager remains non-Super-Admin, with sensitive access 403 and foreign
+    indicator metadata access 404.
+  - Seven supplementary controls cover validation ordering, valid unchanged
+    Super Admin identity updates, and preserved 422 responses for authorized
+    invalid/duplicate input. The reserved-role class now contains 22 cases.
+  - Focused: 86 passed, 1,485 assertions, 3.00 s. Full: 257 passed,
+    2,301 assertions, 18.78 s. Unit: 58 passed, 286 assertions, 1.31 s.
+  - PCOV: 257 passed, 2,301 assertions, 25.89 s; Role controller and all six
+    cumulative changed production files have 100% line coverage; total 13.8%.
+  - Pint passed 265 files; Composer validation, npm production audit, Vite
+    production build, new-report Markdown lint and diff checks passed.
+- **Dead-Ends (Do NOT Repeat):**
+  - Gate policies alone cannot prohibit a Super Admin from renaming its reserved
+    role: the global before callback allows every ability. Keep the name
+    invariant outside that bypass, while preserving authorized operations.
+  - Unique-name validation is not reserved-name authorization. The RED fixture
+    and full two-request HTTP chain prove why a temporarily available name must
+    still be protected; invalid ordinary/authorized input must retain 422.
+- **Updated Files:**
+  - `app/Http/Controllers/Admin/RoleManagementController.php` - identity guards.
+  - `tests/Feature/AdminReservedRoleTest.php` - regression and control cases.
+  - `docs/ARCHITECTURE.md`, both Slice 3 evidence reports, and this checkpoint.
+- **Decisions Made:**
+  - Use the existing `SystemRoles::SUPER_ADMIN` constant and existing UUIDs.
+    No role-ID migration, new Role policy or consumer rewrite was introduced.
+  - Preserve Slice 2 ceilings, legitimate global access and the existing
+    reserved deletion redirect-with-error contract.
+- **Next Action / Pending:**
+  - Full runtime 18.78 s exceeds the 15 s target but meets the 20 s hard floor;
+    the 22 new cases sum to about 1.38 displayed seconds. No threshold changed.
+  - Fresh Composer audit still has four unchanged advisories, including high
+    CommonMark `GHSA-3q6v-r5mr-hxv8`. Dependency lockfiles have empty diffs.
+  - Branch coverage is unverified (PCOV present, no Xdebug); no strict analyzer
+    is configured. Do not describe the entire quality-gate set as passed.
+  - Obtain explicit approval before Slice 4 RED for institution ownership and
+    strategic-goal binding. Accepted-slice commits remain pending.
+  - No staging, commit, push, live production validation or deployment occurred.
+    The original plan, `.zcodeignore` and all prior worktree changes are preserved.
+  - Work-state tools remain unavailable; reports and approved checkpoints track
+    execution state. Dependency/runtime remediation remains separately scoped.
+
+<!-- checkpoint-tail: Slices 1 through 3 GREEN; 257 tests pass; Role controller
+and cumulative changed production files have 100% line coverage; runtime target
+and Composer advisory remain open; Slice 4 and commits await the next
+checkpoint. -->
 
 ---
