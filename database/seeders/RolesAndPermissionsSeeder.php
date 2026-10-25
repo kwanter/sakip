@@ -64,6 +64,12 @@ class RolesAndPermissionsSeeder extends Seeder
             'export-audit-data',
             'view-audit-statistics',
             'view-compliance-reports',
+            // Dashboard branch gates (SakipDashboardPolicy); see the grants
+            // below for which role enters which branch.
+            'view-executive-dashboard',
+            'view-data-entry-dashboard',
+            'view-assessor-dashboard',
+            'view-audit-dashboard',
         ];
     }
 
@@ -93,6 +99,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'Data Collector' => [
                 'view-dashboard',
                 'view-sakip-dashboard',
+                'view-data-entry-dashboard',
                 'view-performance-data',
                 'enter-and-submit-data-records',
                 'edit-own-data-submissions',
@@ -118,6 +125,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'Collector' => [
                 'view-dashboard',
                 'view-sakip-dashboard',
+                'view-data-entry-dashboard',
                 'view-performance-data',
                 'gather-and-input-field-data',
                 'update-collection-records',
@@ -127,6 +135,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'Executive' => [
                 'view-dashboard',
                 'view-sakip-dashboard',
+                'view-executive-dashboard',
                 'view-performance-indicators',
                 'view-performance-data',
                 'view-assessments',

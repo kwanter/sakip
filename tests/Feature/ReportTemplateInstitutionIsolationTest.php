@@ -120,6 +120,32 @@ class ReportTemplateInstitutionIsolationTest extends TestCase
     }
 
     #[Test]
+    public function store_rejects_foreign_instansi_indicators(): void
+    {
+        // Review SEC-107: the indicators.* exists rule carries no instansi
+        // predicate; a viewer must not reference another instansi's indicators.
+        $foreignIndicator = PerformanceIndicator::create([
+            'instansi_id' => $this->instansiB->id,
+            'code' => 'PI-FOREIGN-'.str()->random(6),
+            'name' => 'Foreign indicator',
+            'measurement_unit' => 'unit',
+            'frequency' => 'annual',
+            'category' => 'output',
+            'created_by' => null,
+            'updated_by' => null,
+        ]);
+
+        $payload = $this->storePayload($this->globalTemplate);
+        $payload['indicators'] = [$foreignIndicator->id];
+
+        $this->actingAs($this->viewerA)
+            ->postJson(route('sakip.reports.store'), $payload)
+            ->assertJsonValidationErrors('indicators.0');
+
+        $this->assertDatabaseMissing('reports', ['title' => 'Laporan Uji Template']);
+    }
+
+    #[Test]
     public function store_rejects_a_foreign_instansi_template(): void
     {
         $this->actingAs($this->viewerA)

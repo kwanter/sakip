@@ -191,6 +191,13 @@ class KegiatanController extends Controller
      */
     public function byProgram(Program $program)
     {
+        // Tenant guard mirroring the read paths: only the program's own
+        // instansi (or Super Admin) may enumerate its kegiatan.
+        $user = auth()->user();
+        if (! $user->isAdmin() && $program->instansi_id !== $user->instansi_id) {
+            abort(403);
+        }
+
         try {
             $kegiatans = Kegiatan::where('program_id', $program->id)
                 ->where('status', '!=', 'tunda')

@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 /**
  * Report Controller
@@ -245,6 +246,16 @@ class ReportController extends Controller
     {
         $this->authorize('create', Report::class);
 
+        // Tenant binding: ordinary actors may only reference their own
+        // instansi's indicators; Super Admin keeps cross-instansi authority.
+        $currentUser = auth()->user();
+        $indicatorRule = $currentUser !== null && $currentUser->isAdmin()
+            ? 'exists:performance_indicators,id'
+            : Rule::exists('performance_indicators', 'id')->where(
+                'instansi_id',
+                $currentUser?->instansi_id,
+            );
+
         $validator = Validator::make($request->all(), [
             'report_type' => 'required|in:monthly,quarterly,semester,annual,custom',
             'period' => 'required|string|max:20',
@@ -253,7 +264,7 @@ class ReportController extends Controller
             'description' => 'nullable|string|max:1000',
             'template_id' => 'nullable|exists:report_templates,id',
             'indicators' => 'required|array|min:1',
-            'indicators.*' => 'exists:performance_indicators,id',
+            'indicators.*' => [$indicatorRule],
             'include_assessments' => 'nullable|boolean',
             'include_benchmarks' => 'nullable|boolean',
             'include_recommendations' => 'nullable|boolean',

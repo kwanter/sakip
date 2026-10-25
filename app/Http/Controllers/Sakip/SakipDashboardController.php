@@ -9,6 +9,7 @@ use App\Models\Instansi;
 use App\Models\PerformanceData;
 use App\Models\PerformanceIndicator;
 use App\Models\Report;
+use App\Models\Scopes\InstansiScope;
 use App\Models\Target;
 use App\Services\AssessmentService;
 use App\Services\DataValidationService;
@@ -118,8 +119,13 @@ class SakipDashboardController extends Controller
      */
     private function getSystemWideMetrics($year)
     {
+        // This branch is entered by the registered executive gate, whose
+        // holders are granted Semua Instansi authority explicitly. The
+        // InstansiScope global scope would otherwise filter these aggregates
+        // to the caller's instansi, so it is lifted here on purpose.
+
         // Get counts using single aggregated query
-        $performanceDataStats = PerformanceData::selectRaw(
+        $performanceDataStats = PerformanceData::withoutGlobalScope(InstansiScope::class)->selectRaw(
             'COUNT(*) as total,
             SUM(CASE WHEN actual_value IS NOT NULL THEN 1 ELSE 0 END) as with_value,
             SUM(CASE WHEN actual_value IS NULL THEN 1 ELSE 0 END) as missing_value'
@@ -128,11 +134,11 @@ class SakipDashboardController extends Controller
             ->first();
 
         return [
-            'total_indicators' => PerformanceIndicator::count(),
-            'total_targets' => Target::where('year', $year)->count(),
+            'total_indicators' => PerformanceIndicator::withoutGlobalScope(InstansiScope::class)->count(),
+            'total_targets' => Target::withoutGlobalScope(InstansiScope::class)->where('year', $year)->count(),
             'total_performance_data' => $performanceDataStats->total ?? 0,
-            'total_assessments' => Assessment::whereYear('created_at', $year)->count(),
-            'total_reports' => Report::whereYear('period', $year)->count(),
+            'total_assessments' => Assessment::withoutGlobalScope(InstansiScope::class)->whereYear('created_at', $year)->count(),
+            'total_reports' => Report::withoutGlobalScope(InstansiScope::class)->whereYear('period', $year)->count(),
             'average_performance' => $this->calculateAveragePerformance($year),
             'compliance_rate' => $this->calculateComplianceRate(),
             'pending_actions' => $this->getPendingActions(),
@@ -174,7 +180,9 @@ class SakipDashboardController extends Controller
                 'period',
                 'like',
                 $year.'%',
-            )->count(),
+            )
+                ->where('instansi_id', $instansiId)
+                ->count(),
             'average_performance' => $this->calculateInstitutionalPerformance(
                 $instansiId,
                 $year,

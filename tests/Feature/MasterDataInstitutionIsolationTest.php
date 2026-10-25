@@ -150,6 +150,41 @@ class MasterDataInstitutionIsolationTest extends TestCase
     }
 
     #[Test]
+    public function tenantless_executive_is_denied_foreign_strategic_objectives(): void
+    {
+        // Review SEC-105: the tenantless-Executive bypass in sameTenant grants
+        // cross-tenant access, contradicting default-deny for Instansi Belum
+        // Ditetapkan.
+        $executiveNoInstansi = User::factory()->create([
+            'email_verified_at' => now(),
+            'instansi_id' => null,
+        ]);
+        $executiveNoInstansi->assignRole(Role::firstOrCreate(['name' => 'Executive'], ['guard_name' => 'web']));
+
+        $foreign = $this->makeSasaran($this->instansiB, '-TENANTLESS');
+
+        // Binding resolves under InstansiScope (404) or the policy denies
+        // explicitly (403); both are denials per the project contract.
+        $show = $this->actingAs($executiveNoInstansi)
+            ->get(route('sakip.sasaran-strategis.show', $foreign));
+        $this->assertContains($show->status(), [403, 404]);
+
+        $update = $this->actingAs($executiveNoInstansi)
+            ->put(route('sakip.sasaran-strategis.update', $foreign), [
+                'instansi_id' => $this->instansiB->id,
+                'kode_sasaran_strategis' => $foreign->kode_sasaran_strategis,
+                'nama_strategis' => $foreign->nama_strategis,
+                'status' => 'aktif',
+            ]);
+        $this->assertContains($update->status(), [403, 404]);
+
+        $this->actingAs($executiveNoInstansi)
+            ->get(route('sakip.sasaran-strategis.index'))
+            ->assertOk()
+            ->assertDontSee($foreign->nama_strategis, false);
+    }
+
+    #[Test]
     public function program_update_cannot_reassign_a_foreign_instansi(): void
     {
         $program = $this->makeProgram($this->instansiA, $this->makeSasaran($this->instansiA, '-PROG'));

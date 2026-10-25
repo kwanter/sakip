@@ -238,9 +238,16 @@ class ProgramController extends Controller
      *
      * REFACTORED: Use constant for status filter
      */
-    public function bySasaranStrategis($sasaranStrategisId)
+    public function bySasaranStrategis(SasaranStrategis $sasaranStrategis)
     {
-        $programs = Program::where('sasaran_strategis_id', $sasaranStrategisId)
+        // Tenant guard mirroring the read paths: only the parent's own
+        // instansi (or Super Admin) may enumerate its programs.
+        $user = auth()->user();
+        if (! $user->isAdmin() && $sasaranStrategis->instansi_id !== $user->instansi_id) {
+            abort(403);
+        }
+
+        $programs = Program::where('sasaran_strategis_id', $sasaranStrategis->id)
             ->where('status', Status::ACTIVE)
             ->orderBy('nama_program')
             ->get(['id', 'kode_program', 'nama_program', 'tahun']);

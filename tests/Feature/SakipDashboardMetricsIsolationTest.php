@@ -67,19 +67,24 @@ class SakipDashboardMetricsIsolationTest extends TestCase
         $this->superAdmin->assignRole($role);
     }
 
+    private function makeIndicator(Instansi $instansi): PerformanceIndicator
+    {
+        return PerformanceIndicator::create([
+            'instansi_id' => $instansi->id,
+            'code' => 'PI-'.str()->random(8),
+            'name' => 'Indikator '.$instansi->nama_instansi,
+            'measurement_unit' => 'unit',
+            'frequency' => 'annual',
+            'category' => 'output',
+            'created_by' => null,
+            'updated_by' => null,
+        ]);
+    }
+
     private function makeTargetsFor(Instansi $instansi, int $count, int $year): void
     {
         for ($i = 0; $i < $count; $i++) {
-            $indicator = PerformanceIndicator::create([
-                'instansi_id' => $instansi->id,
-                'code' => 'PI-'.str()->random(8),
-                'name' => 'Indikator '.$instansi->nama_instansi,
-                'measurement_unit' => 'unit',
-                'frequency' => 'annual',
-                'category' => 'output',
-                'created_by' => null,
-                'updated_by' => null,
-            ]);
+            $indicator = $this->makeIndicator($instansi);
 
             Target::create([
                 'performance_indicator_id' => $indicator->id,
@@ -88,6 +93,18 @@ class SakipDashboardMetricsIsolationTest extends TestCase
                 'status' => 'draft',
             ]);
         }
+    }
+
+    private function makeReport(Instansi $instansi, string $marker): void
+    {
+        \App\Models\Report::create([
+            'instansi_id' => $instansi->id,
+            'generated_by' => $this->collectorA->id,
+            'report_type' => 'annual',
+            'period' => now()->year.'-Q1',
+            'status' => 'completed',
+            'title' => $marker,
+        ]);
     }
 
     private function makeAssessmentsFor(Instansi $instansi, int $count, int $year): void
@@ -130,6 +147,10 @@ class SakipDashboardMetricsIsolationTest extends TestCase
         $this->makeTargetsFor($this->instansiB, 3, $year);
         $this->makeAssessmentsFor($this->instansiA, 1, $year);
         $this->makeAssessmentsFor($this->instansiB, 2, $year);
+        // Review SEC-104: report counts must be instansi-bound too.
+        $this->makeReport($this->instansiA, 'REPORT-A-MARKER');
+        $this->makeReport($this->instansiB, 'REPORT-B-MARKER-ONE');
+        $this->makeReport($this->instansiB, 'REPORT-B-MARKER-TWO');
 
         $response = $this->actingAs($this->collectorA)
             ->getJson(route('sakip.api.dashboard-data', ['year' => $year]))
@@ -138,6 +159,53 @@ class SakipDashboardMetricsIsolationTest extends TestCase
 
         $this->assertSame(2, $response->json('data.total_targets'), 'targets must be instansi-bound');
         $this->assertSame(1, $response->json('data.total_assessments'), 'assessments must be instansi-bound');
+        $this->assertSame(1, $response->json('data.total_reports'), 'reports must be instansi-bound');
+    }
+
+    #[Test]
+    public function executive_branch_holder_reaches_the_system_wide_metrics(): void
+    {
+        $this->makeIndicator($this->instansiA);
+        $this->makeIndicator($this->instansiB);
+        $this->makeIndicator($this->instansiB);
+
+        $executive = User::factory()->create([
+            'email_verified_at' => now(),
+            'instansi_id' => $this->instansiA->id,
+        ]);
+        $executive->givePermissionTo(['view-sakip-dashboard', 'view-executive-dashboard']);
+
+        $this->actingAs($executive)
+            ->getJson(route('sakip.api.dashboard-data'))
+            ->assertOk()
+            ->assertJson(['success' => true])
+            // System-wide branch: fleet-wide indicator count (3), not the
+            // caller's instansi count (1).
+            ->assertJsonPath('data.total_indicators', 3);
+    }
+
+    #[Test]
+    public function a_seeded_data_collector_reaches_the_institutional_branch(): void
+    {
+        $this->artisan('db:seed', ['--class' => 'RolesAndPermissionsSeeder']);
+
+        $this->makeIndicator($this->instansiA);
+        $this->makeIndicator($this->instansiB);
+        $this->makeIndicator($this->instansiB);
+
+        $collector = User::factory()->create([
+            'email_verified_at' => now(),
+            'instansi_id' => $this->instansiA->id,
+        ]);
+        $collector->assignRole('Data Collector');
+
+        $this->actingAs($collector)
+            ->getJson(route('sakip.api.dashboard-data'))
+            ->assertOk()
+            ->assertJson(['success' => true])
+            // Institutional branch is reachable for its intended seeded role:
+            // instansi-bound count (1), not the fleet count (3).
+            ->assertJsonPath('data.total_indicators', 1);
     }
 
     #[Test]

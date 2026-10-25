@@ -19,6 +19,14 @@ class SasaranStrategisController extends Controller
 
         $query = SasaranStrategis::with('instansi');
 
+        // Tenant predicate: non-super-admin viewers only see their own
+        // instansi's objectives (a tenantless viewer's empty predicate is a
+        // safe default-deny).
+        $user = $request->user();
+        if (! $user->isAdmin()) {
+            $query->where('instansi_id', $user->instansi_id);
+        }
+
         // Search functionality
         if ($request->filled('search')) {
             $search = $request->get('search');
@@ -188,9 +196,16 @@ class SasaranStrategisController extends Controller
     /**
      * Get sasaran strategis by instansi (for AJAX)
      */
-    public function byInstansi($instansiId)
+    public function byInstansi(Instansi $instansi)
     {
-        $sasaranStrategis = SasaranStrategis::where('instansi_id', $instansiId)
+        // Tenant guard mirroring the read paths: only the owning instansi
+        // (or Super Admin) may enumerate its strategic objectives.
+        $user = auth()->user();
+        if (! $user->isAdmin() && $instansi->id !== $user->instansi_id) {
+            abort(403);
+        }
+
+        $sasaranStrategis = SasaranStrategis::where('instansi_id', $instansi->id)
             ->where('status', 'aktif')
             ->orderBy('nama_strategis')
             ->get(['id', 'kode_sasaran_strategis', 'nama_strategis']);

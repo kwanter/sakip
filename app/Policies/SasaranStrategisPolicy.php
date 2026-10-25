@@ -38,10 +38,9 @@ class SasaranStrategisPolicy
 
     private function sameTenant(User $user, ?string $instansiId): bool
     {
-        if ($user->instansi_id === null && $user->hasRole('Executive')) {
-            return true;
-        }
-
+        // No tenantless-Executive bypass: default-deny for Instansi Belum
+        // Ditetapkan, matching InstansiScope semantics. Super Admin bypasses
+        // via Gate::before.
         return $user->instansi_id !== null && $user->instansi_id === $instansiId;
     }
 }
