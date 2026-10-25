@@ -141,6 +141,18 @@ class AjaxCascadeIsolationTest extends TestCase
     }
 
     #[Test]
+    public function by_instansi_foreign_is_rejected_by_the_explicit_guard(): void
+    {
+        // Instansi is NOT InstansiScope-filtered, so the route-model binding
+        // resolves and this 403 comes from the controller guard itself —
+        // deleting the guard flips this assertion to 200 (plan v1.1
+        // TASK-405 pins the guard so it cannot be removed silently).
+        $this->actingAs($this->viewerA)
+            ->getJson(route('sakip.api.sasaran-strategis.by-instansi', ['instansi' => $this->instansiB->id]))
+            ->assertForbidden();
+    }
+
+    #[Test]
     public function by_instansi_serves_the_own_instansi(): void
     {
         $this->actingAs($this->viewerA)

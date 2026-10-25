@@ -105,6 +105,41 @@ class PermissionManagementController extends Controller
         'admin.users.impersonate',
         'admin.users.import',
         'admin.users.sessions',
+        // AppServiceProvider SAKIP main gates (SakipPolicy)
+        'sakip.view.dashboard',
+        'sakip.view.performance-indicators',
+        'sakip.view.performance-data',
+        'sakip.view.assessments',
+        'sakip.view.reports',
+        'sakip.export.data',
+        // AppServiceProvider dashboard view gate (SakipDashboardPolicy)
+        'sakip.dashboard.view',
+        // Remaining SakipDashboardPolicy branch gates
+        'sakip.dashboard.assessor',
+        'sakip.dashboard.audit',
+        'sakip.dashboard.executive',
+        'sakip.dashboard.data_collector',
+        // AppServiceProvider isSuperAdmin gate — holding this name turns the
+        // Spatie name-match into a full Super Admin bypass
+        'isSuperAdmin',
+        // UserPolicy admin gate (viewAuditLogs/manageSettings)
+        'manage-settings',
+        // TelescopeServiceProvider gate
+        'viewTelescope',
+        // Policy ability names checked via ->can(..., Model) — a held
+        // permission with any of these names satisfies the Spatie name-match
+        // Gate::before for EVERY model, universal-bypassing the policies
+        // (ReservedPermissionVocabularyTest keeps this list mechanically
+        // complete; extend it when the scan reports a new literal).
+        'assignRoles',
+        'assignPermissions',
+        'manageProtectedAccount',
+        'viewAny',
+        'create',
+        'update',
+        'delete',
+        'restore',
+        'forceDelete',
     ];
 
     public function __construct()
@@ -242,9 +277,9 @@ class PermissionManagementController extends Controller
         if (! $user->isAdmin()) {
             $this->abortIfReservedName($validated['name'], 'dibuat');
 
-            // Delegation ceiling: renaming a row the actor does not hold would
+            // Delegation ceiling (DEC-103(d)): renaming a row the actor does not hold would
             // re-label authority the actor never had (Spatie resolves by name).
-            if (! in_array($permission->id, $user->getAllPermissions()->modelKeys(), true)) {
+            if (! in_array($permission->name, $user->getAllPermissions()->pluck('name')->all(), true)) {
                 abort(403, 'Anda hanya dapat mengubah permission yang Anda pegang.');
             }
         }
@@ -276,7 +311,7 @@ class PermissionManagementController extends Controller
             abort(403, 'Permission masih terpasang pada peran atau pengguna dan tidak dapat dihapus.');
         }
 
-        if (! $user->isAdmin() && ! in_array($permission->id, $user->getAllPermissions()->modelKeys(), true)) {
+        if (! $user->isAdmin() && ! in_array($permission->name, $user->getAllPermissions()->pluck('name')->all(), true)) {
             abort(403, 'Anda hanya dapat menghapus permission yang Anda pegang.');
         }
 

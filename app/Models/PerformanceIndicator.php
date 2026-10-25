@@ -247,7 +247,9 @@ class PerformanceIndicator extends Model
 
     /**
      * Scope to get indicators for a specific instansi. Instansi keys are
-     * UUIDs; null yields the default-deny empty set.
+     * UUIDs. A null argument compiles to `instansi_id IS NULL` — effectively
+     * an empty set only because no row has a NULL instansi_id; revisit if
+     * the column ever becomes nullable (R2-STD-03).
      */
     public function scopeForInstansi($query, ?string $instansiId)
     {

@@ -95,16 +95,68 @@ class SakipDashboardMetricsIsolationTest extends TestCase
         }
     }
 
-    private function makeReport(Instansi $instansi, string $marker): void
+    private function makeReport(Instansi $instansi, string $marker, string $status = 'completed'): void
     {
         \App\Models\Report::create([
             'instansi_id' => $instansi->id,
             'generated_by' => $this->collectorA->id,
             'report_type' => 'annual',
             'period' => now()->year.'-Q1',
-            'status' => 'completed',
+            'status' => $status,
             'title' => $marker,
         ]);
+    }
+
+    #[Test]
+    public function executive_branch_helpers_are_fleet_consistent(): void
+    {
+        // Review R2-STD-02: the system-wide branch lifts InstansiScope on its
+        // count queries; its helper aggregates (average_performance,
+        // pending_actions) must be lifted consistently or a non-admin
+        // executive holder sees fleet totals beside caller-scoped helpers.
+        $this->makeIndicator($this->instansiA);
+        $this->makeIndicator($this->instansiB);
+
+        PerformanceData::forceCreate([
+            'performance_indicator_id' => $this->makeIndicator($this->instansiA)->id,
+            'instansi_id' => $this->instansiA->id,
+            'submitted_by' => $this->collectorA->id,
+            // Full-date period so whereYear/strftime can parse it under the
+            // sqlite test driver ('2026-01' yields NULL there, masking the
+            // scoped-vs-fleet distinction the assertion targets).
+            'period' => now()->year.'-01-15',
+            'actual_value' => 80,
+            'status' => 'draft',
+            'data_quality' => 'good',
+        ]);
+        PerformanceData::forceCreate([
+            'performance_indicator_id' => $this->makeIndicator($this->instansiB)->id,
+            'instansi_id' => $this->instansiB->id,
+            'submitted_by' => $this->collectorA->id,
+            'period' => now()->year.'-01-15',
+            'actual_value' => 40,
+            'status' => 'draft',
+            'data_quality' => 'good',
+        ]);
+
+        $this->makeReport($this->instansiA, 'REPORT-A-SUBMITTED', 'submitted');
+        $this->makeReport($this->instansiB, 'REPORT-B-SUBMITTED', 'submitted');
+
+        $executive = User::factory()->create([
+            'email_verified_at' => now(),
+            'instansi_id' => $this->instansiA->id,
+        ]);
+        $executive->givePermissionTo(['view-sakip-dashboard', 'view-executive-dashboard']);
+
+        $response = $this->actingAs($executive)
+            ->getJson(route('sakip.api.dashboard-data'))
+            ->assertOk()
+            ->assertJson(['success' => true]);
+
+        // Fleet consistency: A=80 and B=40 average 60 across instansis; two
+        // submitted reports across instansis are both "unverified".
+        $this->assertSame(60.0, (float) $response->json('data.average_performance'));
+        $this->assertSame(2, (int) $response->json('data.pending_actions.unverified_reports'));
     }
 
     private function makeAssessmentsFor(Instansi $instansi, int $count, int $year): void

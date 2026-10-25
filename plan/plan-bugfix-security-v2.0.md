@@ -299,3 +299,11 @@ continue in `plan/plan-refactor-security-remediation-v1.0.md`.
   closed, no exception) instead of `hasPermissionTo`, because the registered
   branch gates fire on every dashboard request and the permission names were
   unregistered at the time; they are seeded as of the review follow-up.
+- **REQ-107 follow-up (round-2 review, R2-SPEC-03):** `getSystemWideMetrics`
+  lifts `InstansiScope` on its aggregates so a non-Super-Admin executive
+  holder sees a coherent fleet view; the lift is gated by the executive gate
+  (Semua Instansi authority granted explicitly) and institutional/personal
+  branches keep the scope.
+- **REQ-108 follow-up (round-2 review, R2-SPEC-04):** the obsolete
+  `version:` key was also dropped from the base `docker-compose.yml` (same
+  root cause as the overlay; compose v2 ignores it with a warning).

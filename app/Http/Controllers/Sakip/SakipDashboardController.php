@@ -219,7 +219,11 @@ class SakipDashboardController extends Controller
      */
     private function calculateAveragePerformance($year)
     {
-        $performanceData = PerformanceData::whereYear('period', $year)
+        // Fleet-consistent with the other system-wide aggregates: this helper
+        // serves the executive branch, whose gate grants Semua Instansi
+        // authority (R2-STD-02).
+        $performanceData = PerformanceData::withoutGlobalScope(InstansiScope::class)
+            ->whereYear('period', $year)
             ->whereNotNull('actual_value')
             ->avg('actual_value');
 
@@ -293,10 +297,14 @@ class SakipDashboardController extends Controller
      */
     private function getPendingActions()
     {
+        // Fleet-consistent with the other system-wide aggregates (R2-STD-02).
         return [
-            'unverified_reports' => Report::where('status', 'submitted')->count(),
-            'pending_assessments' => Assessment::where('status', 'pending')->count(),
-            'missing_data_sets' => PerformanceData::whereNull('actual_value')->count(),
+            'unverified_reports' => Report::withoutGlobalScope(InstansiScope::class)
+                ->where('status', 'submitted')->count(),
+            'pending_assessments' => Assessment::withoutGlobalScope(InstansiScope::class)
+                ->where('status', 'pending')->count(),
+            'missing_data_sets' => PerformanceData::withoutGlobalScope(InstansiScope::class)
+                ->whereNull('actual_value')->count(),
         ];
     }
 

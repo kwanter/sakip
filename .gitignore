@@ -118,3 +118,7 @@ docker/mysql/data/
 # impeccable runtime cache (keep .impeccable/config.json committed)
 .impeccable/hook.cache.json
 .impeccable/hook.pending.json
+
+# ZCode session-local artifacts
+.v2c/
+.zcodeignore

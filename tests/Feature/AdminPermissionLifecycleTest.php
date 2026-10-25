@@ -68,6 +68,20 @@ class AdminPermissionLifecycleTest extends TestCase
         app(PermissionRegistrar::class)->forgetCachedPermissions();
     }
 
+    protected function tearDown(): void
+    {
+        // The shared :memory: connection persists rows across suites; remove
+        // this suite's rows so later files never observe them (review
+        // R2-STD-05).
+        Permission::where('name', 'like', 'custom.%')->delete();
+        Permission::where('name', 'view-executive-dashboard')->delete();
+        Role::where('name', 'Auditor')->whereDoesntHave('users')->delete();
+
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+
+        parent::tearDown();
+    }
+
     #[Test]
     public function manager_cannot_rename_into_a_reserved_permission_name(): void
     {
