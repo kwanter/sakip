@@ -38,3 +38,17 @@ _Avoid_: antrean lain, menunggu, pending asesmen
 **Antrean Laporan**:
 The reports awaiting HQ review before publication.
 _Avoid_: antrean lain, menunggu, pending laporan
+
+### Bukti & Integritas
+
+**Bukti Terkunci**:
+Evidence attached to a submitted or validated performance record; collectors cannot mutate or remove it — only a genuine validation transition (or sakip.admin authority) may change it.
+_Avoid_: frozen evidence, readonly evidence, bukti beku
+
+**Status Dapat Edit**:
+The record statuses draft and rejected — the only ones in which an owning collector may still edit values and evidence attachments.
+_Avoid_: open status, status terbuka
+
+**Cleanup Setelah Commit**:
+Physical file deletion scheduled only after the owning database transaction commits; a failed transaction preserves bytes and rows in a diagnosable state.
+_Avoid_: deferred delete, async delete
