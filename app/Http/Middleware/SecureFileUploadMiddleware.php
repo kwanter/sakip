@@ -10,6 +10,16 @@ use Symfony\Component\HttpFoundation\Response;
 class SecureFileUploadMiddleware
 {
     /**
+     * Signatures shorter than this are only checked in text uploads.
+     *
+     * Office documents are ZIP containers. Over a few megabytes of compressed
+     * bytes a two-byte tag like "<%" shows up by chance hundreds of times, so
+     * scanning binaries for it would reject real evidence. Short server tags
+     * only mean something in server-parsed text anyway.
+     */
+    protected const BINARY_SAFE_MIN_SIGNATURE_LENGTH = 5;
+
+    /**
      * Allowed MIME types for file uploads.
      *
      * SECURITY: Archive types (zip, rar) removed due to inability to scan
@@ -103,16 +113,8 @@ class SecureFileUploadMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // Only check requests with file uploads
-        if (
-            $request->hasFile('file') ||
-            $request->hasFile('evidence') ||
-            $request->hasFile('document')
-        ) {
-            $this->validateFileUploads($request);
-        }
-
-        // Check all uploaded files
+        // Every uploaded file is checked individually; the per-request file
+        // count is capped by the controller validation.
         foreach ($request->allFiles() as $key => $file) {
             if (is_array($file)) {
                 foreach ($file as $singleFile) {
@@ -124,24 +126,6 @@ class SecureFileUploadMiddleware
         }
 
         return $next($request);
-    }
-
-    /**
-     * Validate all file uploads in the request.
-     */
-    protected function validateFileUploads(Request $request): void
-    {
-        $files = $request->allFiles();
-
-        foreach ($files as $key => $file) {
-            if (is_array($file)) {
-                foreach ($file as $singleFile) {
-                    $this->validateSingleFile($singleFile, $key);
-                }
-            } else {
-                $this->validateSingleFile($file, $key);
-            }
-        }
     }
 
     /**
@@ -336,33 +320,73 @@ class SecureFileUploadMiddleware
     }
 
     /**
-     * Check if file contains executable content.
+     * Check whether the file contains executable content.
+     *
+     * SECURITY: the whole file is scanned, not only its first kilobyte. A
+     * clean header followed by a script payload used to pass as an image. The
+     * file is read in windows with an overlap of the longest signature, so a
+     * signature straddling a window boundary is still found. The size cap in
+     * validateSingleFile() bounds the work.
      *
      * @param  \Illuminate\Http\UploadedFile  $file
      */
     protected function containsExecutableContent($file): bool
     {
-        // Read first 1KB of file
+        $signatures = $this->signaturesFor($file->getMimeType());
+        $overlap = max(array_map('strlen', $signatures)) - 1;
+
         $handle = fopen($file->getRealPath(), 'rb');
-        if (! $handle) {
-            return false;
+
+        // SECURITY: a file that cannot be read cannot be proven clean.
+        if ($handle === false) {
+            return true;
         }
 
-        $content = fread($handle, 1024);
-        fclose($handle);
+        $carry = '';
 
-        // Check for common executable signatures
-        // php-sig: static detection keywords stored as closed list
-        // php-sig-end
-        $signatures = self::maliciousPatterns();
+        try {
+            while (! feof($handle)) {
+                $chunk = fread($handle, 65536);
 
-        foreach ($signatures as $signature) {
-            if (stripos($content, $signature) !== false) {
-                return true;
+                if ($chunk === false) {
+                    return true;
+                }
+
+                $window = $carry.$chunk;
+
+                foreach ($signatures as $signature) {
+                    if (stripos($window, $signature) !== false) {
+                        return true;
+                    }
+                }
+
+                $carry = substr($chunk, -$overlap);
             }
+        } finally {
+            fclose($handle);
         }
 
         return false;
+    }
+
+    /**
+     * Signatures to scan for, by MIME type: everything for text, only the
+     * unambiguous long ones for binaries.
+     *
+     * @return string[]
+     */
+    private static function signaturesFor(string $mimeType): array
+    {
+        $all = self::maliciousPatterns();
+
+        if (str_starts_with($mimeType, 'text/')) {
+            return $all;
+        }
+
+        return array_values(array_filter(
+            $all,
+            fn (string $signature): bool => strlen($signature) >= self::BINARY_SAFE_MIN_SIGNATURE_LENGTH,
+        ));
     }
 
     /**
