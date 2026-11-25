@@ -23,6 +23,7 @@ use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\Rules\Password;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -44,6 +45,18 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // SECURITY: one password policy for the whole application. Without a
+        // default, every call site invented its own rule (the admin user forms
+        // accepted 8 characters while the FormRequests demanded 12), so the
+        // weakest rule was the one that actually ran.
+        Password::defaults(function () {
+            $rule = Password::min(12)->letters()->mixedCase()->numbers()->symbols();
+
+            // The breach check calls an external service; keep it out of
+            // tests and local work, where it would be flaky or offline.
+            return app()->isProduction() ? $rule->uncompromised() : $rule;
+        });
+
         // SECURITY: Validate APP_KEY in production
         if (app()->environment('production')) {
             $appKey = config('app.key');

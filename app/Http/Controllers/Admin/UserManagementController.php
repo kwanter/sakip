@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Services\AdminService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
 
 class UserManagementController extends Controller
 {
@@ -103,7 +104,7 @@ class UserManagementController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8|confirmed',
+            'password' => ['required', 'confirmed', Password::defaults()],
             'instansi_id' => 'nullable|exists:instansis,id',
             'roles' => 'array',
             'roles.*' => 'exists:roles,id',
@@ -158,7 +159,7 @@ class UserManagementController extends Controller
                 'max:255',
                 Rule::unique('users')->ignore($user->id),
             ],
-            'password' => 'nullable|string|min:8|confirmed',
+            'password' => ['nullable', 'confirmed', Password::defaults()],
             'email_verified' => 'sometimes|accepted',
             'instansi_id' => 'nullable|exists:instansis,id',
         ]);
