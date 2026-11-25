@@ -28,6 +28,8 @@ class AdminProtectedAccountTest extends TestCase
 
     private Instansi $destination;
 
+    private Instansi $managerInstansi;
+
     private static string $originalPassword;
 
     private static string $replacementPassword;
@@ -49,6 +51,7 @@ class AdminProtectedAccountTest extends TestCase
 
         $institution = Instansi::factory()->create();
         $this->destination = Instansi::factory()->create();
+        $this->managerInstansi = $institution;
         $this->manager = User::factory()->create([
             'email_verified_at' => now(),
             'instansi_id' => $institution->id,
@@ -80,8 +83,29 @@ class AdminProtectedAccountTest extends TestCase
             'password' => self::$replacementPassword,
             'password_confirmation' => self::$replacementPassword,
             'email_verified' => '1',
-            'instansi_id' => $this->destination->id,
+            // SECURITY: a delegated manager may only place an unplaced account
+            // into their own institution. Moving an account into a foreign
+            // institution is a cross-tenant takeover and is refused.
+            'instansi_id' => $this->managerInstansi->id,
         ];
+    }
+
+    /**
+     * SECURITY: a delegated manager may not move an account into a foreign
+     * institution (cross-tenant takeover) nor edit an account that already
+     * belongs to another institution.
+     */
+    public function test_delegated_manager_cannot_move_an_account_into_a_foreign_instansi(): void
+    {
+        $target = User::factory()->create(['email_verified_at' => now()]);
+
+        $payload = $this->updatePayload($target);
+        $payload['instansi_id'] = $this->destination->id;
+
+        $response = $this->actingAs($this->manager)->put(route('admin.users.update', $target), $payload);
+
+        $response->assertSessionHasErrors('instansi_id');
+        $this->assertNotSame($this->destination->id, $target->fresh()->instansi_id);
     }
 
     public function test_delegated_manager_cannot_update_super_admin(): void

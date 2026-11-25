@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\UpdatePermissionsRequest;
 use App\Http\Requests\Admin\UpdateRolesRequest;
+use App\Models\Instansi;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
@@ -28,6 +29,17 @@ class UserManagementController extends Controller
     public function index(Request $request)
     {
         $query = User::with(['roles.permissions']);
+
+        // SECURITY (audit run-3, admin-cross-tenant): a delegated manager
+        // only ever sees the accounts of their own institution, plus the
+        // unplaced ones they may adopt. Super Admin keeps the system-wide view.
+        if (! auth()->user()?->isAdmin()) {
+            $instansiId = auth()->user()?->instansi_id;
+            $query->where(function ($q) use ($instansiId) {
+                $q->where('instansi_id', $instansiId)
+                    ->orWhereNull('instansi_id');
+            });
+        }
 
         if ($request->has('search')) {
             $search = $request->get('search');
@@ -54,6 +66,8 @@ class UserManagementController extends Controller
      */
     public function show(User $user)
     {
+        $this->authorize('view', $user);
+
         $user->load(['roles.permissions', 'auditLogs']);
         $roles = Role::all();
 
@@ -65,8 +79,16 @@ class UserManagementController extends Controller
      */
     public function create()
     {
+        $this->authorize('create', User::class);
+
         $roles = Role::all();
-        $instansis = \App\Models\Instansi::orderBy('nama_instansi')->get();
+
+        // SECURITY (audit run-3, admin-cross-tenant): a delegated manager may
+        // only place new accounts into their own institution, so the foreign
+        // ones are not offered at all.
+        $instansis = auth()->user()?->isAdmin()
+            ? Instansi::orderBy('nama_instansi')->get()
+            : Instansi::whereKey(auth()->user()?->instansi_id)->get();
 
         return view('admin.users.create', compact('roles', 'instansis'));
     }
@@ -76,6 +98,8 @@ class UserManagementController extends Controller
      */
     public function store(Request $request)
     {
+        $this->authorize('create', User::class);
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
@@ -84,6 +108,17 @@ class UserManagementController extends Controller
             'roles' => 'array',
             'roles.*' => 'exists:roles,id',
         ]);
+
+        // SECURITY: a delegated manager may only create accounts inside their
+        // own institution (Super Admin keeps cross-instansi authority).
+        if (! auth()->user()?->isAdmin()
+            && ($validated['instansi_id'] ?? null) !== auth()->user()?->instansi_id) {
+            return back()
+                ->withInput()
+                ->withErrors([
+                    'instansi_id' => 'Instansi tujuan harus sesuai dengan instansi Anda.',
+                ]);
+        }
 
         $user = $this->adminService->createUser($validated);
 
@@ -97,10 +132,12 @@ class UserManagementController extends Controller
      */
     public function edit(User $user)
     {
+        $this->authorize('update', $user);
+
         $user->load('roles');
         $roles = Role::all();
         $permissions = Permission::all();
-        $instansis = \App\Models\Instansi::orderBy('nama_instansi')->get();
+        $instansis = Instansi::orderBy('nama_instansi')->get();
 
         return view('admin.users.edit', compact('user', 'roles', 'permissions', 'instansis'));
     }
@@ -126,6 +163,21 @@ class UserManagementController extends Controller
             'instansi_id' => 'nullable|exists:instansis,id',
         ]);
 
+        // SECURITY (audit run-3, admin-cross-tenant): a delegated manager may
+        // not move an account into another institution (or out of their own).
+        // Only Super Admin may retarget someone's institution.
+        if (! auth()->user()?->isAdmin() && array_key_exists('instansi_id', $validated)) {
+            $ownInstansiId = auth()->user()?->instansi_id;
+
+            if ($validated['instansi_id'] !== $ownInstansiId) {
+                return back()
+                    ->withInput()
+                    ->withErrors([
+                        'instansi_id' => 'Instansi tujuan harus sesuai dengan instansi Anda.',
+                    ]);
+            }
+        }
+
         $this->adminService->updateUser($user, $validated);
 
         return redirect()
@@ -139,6 +191,7 @@ class UserManagementController extends Controller
     public function updateRoles(UpdateRolesRequest $request, User $user)
     {
         $this->authorize('manageProtectedAccount', $user);
+        $this->authorize('view', $user);
 
         $validated = $request->validated();
 
@@ -155,6 +208,7 @@ class UserManagementController extends Controller
     public function updatePermissions(UpdatePermissionsRequest $request, User $user)
     {
         $this->authorize('manageProtectedAccount', $user);
+        $this->authorize('view', $user);
 
         $validated = $request->validated();
 

@@ -12,6 +12,11 @@ class UserPolicy
 
     /**
      * Determine whether the user can view any models.
+     *
+     * SECURITY (audit run-3, admin-cross-tenant): 'manage-users' alone let a
+     * delegated administrator read and edit accounts of every institution.
+     * A delegated manager now only reaches their own institution; Super Admin
+     * keeps explicit cross-instansi authority.
      */
     public function viewAny(User $user): bool
     {
@@ -23,7 +28,11 @@ class UserPolicy
      */
     public function view(User $user, User $model): bool
     {
-        return $user->can('manage-users') || $user->id === $model->id;
+        if ($user->id === $model->id) {
+            return true;
+        }
+
+        return $user->can('manage-users') && $this->managesTenant($user, $model);
     }
 
     /**
@@ -39,8 +48,40 @@ class UserPolicy
      */
     public function update(User $user, User $model): bool
     {
+        if ($user->id === $model->id) {
+            return $this->manageProtectedAccount($user, $model);
+        }
+
         return $this->manageProtectedAccount($user, $model)
-            && ($user->can('manage-users') || $user->id === $model->id);
+            && $user->can('manage-users')
+            && $this->managesTenant($user, $model);
+    }
+
+    /**
+     * Tenant boundary for delegated (non-Super-Admin) administrators.
+     *
+     * Super Admin keeps cross-instansi authority. A delegated manager may
+     * reach accounts of their own institution, plus accounts that are not
+     * attached to any institution yet (those are unplaced and can be
+     * adopted). An account already owned by another institution is off
+     * limits.
+     */
+    public function managesTenant(User $user, User $model): bool
+    {
+        if ($user->hasRole(SystemRoles::SUPER_ADMIN)) {
+            return true;
+        }
+
+        if ($user->instansi_id === null) {
+            return false;
+        }
+
+        // Unplaced accounts may be adopted by any manager.
+        if ($model->instansi_id === null) {
+            return true;
+        }
+
+        return $user->instansi_id === $model->instansi_id;
     }
 
     /**
@@ -62,7 +103,9 @@ class UserPolicy
             return false;
         }
 
-        return $this->manageProtectedAccount($user, $model) && $user->can('manage-users');
+        return $this->manageProtectedAccount($user, $model)
+            && $user->can('manage-users')
+            && $this->managesTenant($user, $model);
     }
 
     /**
@@ -70,7 +113,7 @@ class UserPolicy
      */
     public function restore(User $user, User $model): bool
     {
-        return $user->can('manage-users');
+        return $user->can('manage-users') && $this->managesTenant($user, $model);
     }
 
     /**
@@ -83,7 +126,7 @@ class UserPolicy
             return false;
         }
 
-        return $user->can('manage-users');
+        return $user->can('manage-users') && $this->managesTenant($user, $model);
     }
 
     /**

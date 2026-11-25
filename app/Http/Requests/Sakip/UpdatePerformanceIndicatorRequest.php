@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Sakip;
 
+use App\Rules\TenantRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -23,9 +24,13 @@ class UpdatePerformanceIndicatorRequest extends FormRequest
     public function rules(): array
     {
         $indicatorId = $this->route('indicator');
+        $instansiId = $this->input('instansi_id');
 
         return [
-            'instansi_id' => 'required|exists:instansis,id',
+            // Tenant binding: an indicator may not be moved to another
+            // institution by a delegated actor (ProgramFormRequest already
+            // enforces the same rule for programs).
+            'instansi_id' => TenantRule::ownInstansi($this->user()),
             'code' => 'required|string|max:50|unique:performance_indicators,code,'.$indicatorId,
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -34,9 +39,11 @@ class UpdatePerformanceIndicatorRequest extends FormRequest
             'collection_method' => 'required|string|max:100',
             'calculation_formula' => 'nullable|string',
             'frequency' => ['required', Rule::in(['monthly', 'quarterly', 'semester', 'annual'])],
+            // The vocabulary is the one the column actually stores
+            // (input/output/outcome/impact); the previous list
+            // (financial/service/...) rejected every update.
             'category' => ['required', Rule::in([
-                'financial', 'service', 'internal', 'learning',
-                'stakeholder', 'compliance', 'strategic',
+                'input', 'output', 'outcome', 'impact',
             ])],
             'weight' => 'required|numeric|min:0|max:100',
             'is_mandatory' => 'boolean',

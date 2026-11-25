@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Sakip;
 
+use App\Rules\TenantRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -22,11 +23,33 @@ class StorePerformanceIndicatorRequest extends FormRequest
      */
     public function rules(): array
     {
+        $instansiId = $this->input('instansi_id');
+
         return [
-            'instansi_id' => 'required|exists:instansis,id',
-            'sasaran_strategis_id' => 'nullable|exists:sasaran_strategis,id',
-            'program_id' => 'nullable|exists:programs,id',
-            'kegiatan_id' => 'nullable|exists:kegiatans,id',
+            // Tenant binding: a delegated actor may only create indicators for
+            // their own institution (Super Admin keeps cross-instansi authority).
+            'instansi_id' => TenantRule::ownInstansi($this->user()),
+            // The cascade parents must belong to the same institution, so an
+            // indicator cannot be hung under another institution's plan.
+            'sasaran_strategis_id' => [
+                'nullable',
+                Rule::exists('sasaran_strategis', 'id')->where('instansi_id', $instansiId),
+            ],
+            'program_id' => [
+                'nullable',
+                Rule::exists('programs', 'id')->where('instansi_id', $instansiId),
+            ],
+            'kegiatan_id' => [
+                'nullable',
+                // kegiatans has no instansi_id of its own; the tenant is the
+                // owning program, so the parent is matched through it.
+                Rule::exists('kegiatans', 'id')->whereIn(
+                    'program_id',
+                    \App\Models\Program::query()
+                        ->where('instansi_id', $instansiId)
+                        ->select('id'),
+                ),
+            ],
             'code' => 'required|string|max:50|unique:performance_indicators,code',
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
