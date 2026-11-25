@@ -598,7 +598,7 @@ class EvidenceDocumentService
     protected function validateEvidenceData(array $data, ?UploadedFile $file = null): \Illuminate\Contracts\Validation\Validator
     {
         $rules = [
-            'instansi_id' => 'nullable|exists:instansi,id',
+            'instansi_id' => 'nullable|exists:instansis,id',
             'performance_data_id' => 'nullable|exists:performance_data,id',
             'assessment_id' => 'nullable|exists:assessments,id',
             'document_type' => 'required|string|in:evidence,supporting_document,reference,other',

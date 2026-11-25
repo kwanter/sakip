@@ -69,10 +69,15 @@ class User extends Authenticatable implements MustVerifyEmail
 
     /**
      * Check if the user has a specific permission.
-     * This is a helper method that wraps Spatie's hasPermissionTo method.
+     *
+     * Deliberately non-throwing: Spatie's hasPermissionTo() throws
+     * PermissionDoesNotExist when the permission row is missing (odd seed,
+     * renamed or deleted permission), turning every policy that probes e.g.
+     * 'sakip.admin' into a 500 instead of a plain denial. Reads the resolved
+     * permission set instead, so a missing permission fails closed.
      */
     public function hasPermission(string $permission): bool
     {
-        return $this->hasPermissionTo($permission);
+        return $this->getAllPermissions()->contains('name', $permission);
     }
 }

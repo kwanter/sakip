@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Scopes\InstansiScope;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -64,6 +65,36 @@ class EvidenceDocument extends Model
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
     ];
+
+    /**
+     * Tenant and status defaults for a new document.
+     *
+     * SECURITY: the tenant of record is the owning performance data row;
+     * callers must never have to remember to stamp it themselves. No global
+     * scope is added here: EvidenceDocumentPolicy is the enforced tenant
+     * boundary, so a foreign document stays resolvable and answers 403 instead
+     * of leaking a distinguishable 404.
+     */
+    protected static function booted(): void
+    {
+        static::creating(function (self $document) {
+            // Workflow state is server-owned: a caller can never mass-assign its
+            // way past the draft -> submitted -> validated transitions.
+            $document->status = 'draft';
+
+            $performanceDataId = $document->performance_data_id;
+
+            if (! is_string($performanceDataId)) {
+                return;
+            }
+
+            // The owning performance data row is authoritative; ignore any
+            // caller-supplied tenant.
+            $document->instansi_id = PerformanceData::withoutGlobalScope(InstansiScope::class)
+                ->whereKey($performanceDataId)
+                ->value('instansi_id');
+        });
+    }
 
     /**
      * Get the performance data that owns the evidence document.
