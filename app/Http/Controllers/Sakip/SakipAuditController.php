@@ -7,6 +7,7 @@ use App\Models\Assessment;
 use App\Models\AuditLog;
 use App\Models\PerformanceIndicator;
 use App\Models\Report;
+use App\Policies\AuditLogPolicy;
 use App\Services\ComplianceService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -38,8 +39,7 @@ class SakipAuditController extends Controller
      */
     private function canViewAllAuditLogs($user): bool
     {
-        return $user->can('viewAny', AuditLog::class) &&
-            $user->hasRole('Super Admin');
+        return $user->can(AuditLogPolicy::ABILITY_VIEW_ALL, AuditLog::class);
     }
 
     /**
@@ -420,7 +420,23 @@ class SakipAuditController extends Controller
                 });
             }
 
-            $auditLogs = $query->get();
+            // SECURITY: the export materialises every matching row, so an
+            // unbounded date range can exhaust memory. Refuse rather than
+            // truncate: a partial compliance artefact is worse than none.
+            $rowLimit = (int) config('sakip.audit.export_row_limit');
+            $rowCount = (clone $query)->count();
+
+            if ($rowCount > $rowLimit) {
+                return response()->json(
+                    [
+                        'success' => false,
+                        'message' => "Rentang ekspor mencakup {$rowCount} baris, melebihi batas {$rowLimit}. Persempit rentang tanggal.",
+                    ],
+                    422,
+                );
+            }
+
+            $auditLogs = $query->limit($rowLimit)->get();
 
             // Export based on format
             $format = $request->get('format');

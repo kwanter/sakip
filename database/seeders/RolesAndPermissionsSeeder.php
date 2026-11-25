@@ -61,6 +61,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'access-restricted-government-portals',
             'approve-targets',
             'view-audit-trails',
+            'view-all-audit-logs',
             'export-audit-data',
             'view-audit-statistics',
             'view-compliance-reports',

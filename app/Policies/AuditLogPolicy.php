@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Constants\SystemRoles;
 use App\Models\AuditLog;
 use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
@@ -17,6 +18,13 @@ class AuditLogPolicy
     use HandlesAuthorization;
 
     /**
+     * Ability name for the cross-instansi audit view. Exposed as a constant so
+     * call sites do not repeat a literal that the reserved-permission drift
+     * guard would otherwise have to treat as a mintable permission name.
+     */
+    public const ABILITY_VIEW_ALL = 'viewAll';
+
+    /**
      * Determine whether the user can view any models.
      *
      * @return \Illuminate\Auth\Access\Response|bool
@@ -24,7 +32,7 @@ class AuditLogPolicy
     public function viewAny(User $user)
     {
         // Super Admins can view all audit logs
-        if ($user->hasRole('Super Admin')) {
+        if ($user->hasRole(SystemRoles::SUPER_ADMIN)) {
             return true;
         }
 
@@ -39,6 +47,20 @@ class AuditLogPolicy
     public function view(User $user, AuditLog $auditLog)
     {
         return $user->hasPermissionTo('view-audit-trails');
+    }
+
+    /**
+     * Determine whether the user sees audit rows across every institution.
+     *
+     * SECURITY: this used to be a hardcoded Super Admin role check, so the
+     * boundary could not be delegated through the permission model at all.
+     * It is now a permission; the role stays as a fallback so an installation
+     * that has not re-run the seeder keeps its current behaviour.
+     */
+    public function viewAll(User $user): bool
+    {
+        return $user->hasPermission('view-all-audit-logs')
+            || $user->hasRole(SystemRoles::SUPER_ADMIN);
     }
 
     /**

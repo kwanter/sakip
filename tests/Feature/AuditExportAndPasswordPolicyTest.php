@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\AuditLog;
 use App\Models\Instansi;
 use App\Models\Permission;
 use App\Models\User;
@@ -10,9 +11,14 @@ use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
- * SECURITY (audit run-3, item 11): the admin user forms accepted an 8
- * character password while the dedicated FormRequests demanded 12 with
- * complexity, so the weak rule was the one that ran.
+ * SECURITY (audit run-3, items 11 and 14).
+ *
+ * Item 11: the admin user forms accepted an 8 character password while the
+ * dedicated FormRequests demanded 12 with complexity, so the weak rule was the
+ * one that ran.
+ *
+ * Item 14: the audit export loaded every matching row with get() before
+ * writing the file, so one wide date range could exhaust memory.
  */
 class AuditExportAndPasswordPolicyTest extends TestCase
 {
@@ -92,5 +98,29 @@ class AuditExportAndPasswordPolicyTest extends TestCase
                 'password_confirmation' => 'Str0ng-Passw0rd!',
             ])
             ->assertSessionHasNoErrors();
+    }
+
+    #[Test]
+    public function the_audit_export_caps_the_number_of_rows_it_materialises(): void
+    {
+        // One row over the documented ceiling must refuse, not silently
+        // truncate: a partial compliance export is worse than none.
+        $limit = (int) config('sakip.audit.export_row_limit');
+
+        $this->assertGreaterThan(0, $limit);
+
+        foreach (range(1, $limit + 1) as $i) {
+            AuditLog::create([
+                'user_id' => $this->admin->id,
+                'instansi_id' => $this->instansi->id,
+                'action' => 'test.export.'.$i,
+                'module' => 'SAKIP',
+                'description' => 'row '.$i,
+            ]);
+        }
+
+        $this->actingAs($this->admin)
+            ->get(route('sakip.audit.export-report', ['format' => 'csv']))
+            ->assertStatus(422);
     }
 }

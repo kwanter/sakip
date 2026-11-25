@@ -170,6 +170,12 @@ return [
         'log_all_changes' => true,
         'log_read_access' => false,
         'retention_days' => 365,
+
+        // Hard ceiling for a single audit export. The export materialises every
+        // matching row before writing the file, so an unbounded range is a
+        // memory-exhaustion vector. Exceeding this refuses the request instead
+        // of quietly truncating a compliance artefact.
+        'export_row_limit' => env('SAKIP_AUDIT_EXPORT_ROW_LIMIT', 50000),
     ],
 
     'dashboard' => [
