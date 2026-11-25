@@ -31,6 +31,16 @@ return Application::configure(basePath: dirname(__DIR__))
                 ':login',
             'throttle.api.strict' => \Illuminate\Routing\Middleware\ThrottleRequests::class.
                 ':api_strict',
+            // SECURITY: the limiters below were defined but never bound, so
+            // the heavy routes they describe ran unmetered (audit run-3).
+            'throttle.upload' => \Illuminate\Routing\Middleware\ThrottleRequests::class.
+                ':upload',
+            'throttle.report_generation' => \Illuminate\Routing\Middleware\ThrottleRequests::class.
+                ':report_generation',
+            'throttle.export' => \Illuminate\Routing\Middleware\ThrottleRequests::class.
+                ':export',
+            'throttle.bulk_operations' => \Illuminate\Routing\Middleware\ThrottleRequests::class.
+                ':bulk_operations',
         ]);
 
         // API Rate Limiting

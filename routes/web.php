@@ -7,7 +7,6 @@ use App\Http\Controllers\Admin\PermissionManagementController;
 use App\Http\Controllers\Admin\RoleManagementController;
 use App\Http\Controllers\Admin\SystemSettingsController;
 use App\Http\Controllers\Admin\UserManagementController;
-use App\Http\Controllers\AdminController;
 use Illuminate\Support\Facades\Route;
 
 // Dashboard Route with auth/verification-aware redirect
@@ -242,11 +241,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
                         UserManagementController::class,
                         'updatePermissions',
                     ])->name('admin.users.permissions.update');
-                    // Cleanup legacy roles & permissions for a user (supports dry_run)
-                    Route::post('/{user}/cleanup-access', [
-                        AdminController::class,
-                        'cleanupAccess',
-                    ])->name('admin.users.cleanup-access');
                     Route::delete('/{user}', [
                         UserManagementController::class,
                         'destroy',

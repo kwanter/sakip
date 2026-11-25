@@ -144,10 +144,39 @@ Route::prefix('sakip')
                 'create',
             ])->name('sakip.data-collection.create');
             Route::post('/', [DataCollectionController::class, 'store'])
-                ->middleware('secure.file.upload')
+                ->middleware(['secure.file.upload', 'throttle.upload'])
                 ->name(
                     'sakip.data-collection.store',
                 );
+
+            // Literal-segment routes MUST be declared before the
+            // '/{performanceData}' routes below: route model binding would
+            // otherwise swallow "template"/"sample"/"import" as a
+            // PerformanceData id and answer 404 instead of reaching the
+            // controller.
+            Route::get('/template', [
+                DataCollectionController::class,
+                'downloadTemplate',
+            ])->name('sakip.data-collection.template');
+            Route::get('/sample', [
+                DataCollectionController::class,
+                'downloadSample',
+            ])->name('sakip.data-collection.sample');
+            Route::post('/import', [DataCollectionController::class, 'import'])
+                ->middleware(['secure.file.upload', 'throttle.bulk_operations'])
+                ->name('sakip.data-collection.import');
+            Route::post('/import/confirm', [
+                DataCollectionController::class,
+                'confirmImport',
+            ])->middleware('throttle.bulk_operations')->name('sakip.data-collection.import.confirm');
+            Route::post('/bulk-import', [DataCollectionController::class, 'bulkImport'])
+                ->middleware(['secure.file.upload', 'throttle.bulk_operations'])
+                ->name('sakip.data-collection.bulk-import');
+            Route::post('/validate-data', [
+                DataCollectionController::class,
+                'validateData',
+            ])->name('sakip.data-collection.validate');
+
             Route::get('/{performanceData}', [
                 DataCollectionController::class,
                 'show',
@@ -159,45 +188,15 @@ Route::prefix('sakip')
             Route::put('/{performanceData}', [
                 DataCollectionController::class,
                 'update',
-            ])->name('sakip.data-collection.update');
+            ])->middleware(['secure.file.upload', 'throttle.upload'])->name('sakip.data-collection.update');
             Route::delete('/{performanceData}', [
                 DataCollectionController::class,
                 'destroy',
             ])->name('sakip.data-collection.destroy');
-            Route::post('/bulk-import', [DataCollectionController::class, 'bulkImport'])
-                ->middleware('secure.file.upload')
-                ->name('sakip.data-collection.bulk-import');
-            Route::post('/validate-data', [
-                DataCollectionController::class,
-                'validateData',
-            ])->name('sakip.data-collection.validate');
             Route::post('/{performanceData}/reject', [
                 DataCollectionController::class,
                 'reject',
             ])->name('sakip.data-collection.reject');
-            Route::get('/template', [
-                DataCollectionController::class,
-                'downloadTemplate',
-            ])->name('sakip.data-collection.template');
-            Route::get('/sample', [
-                DataCollectionController::class,
-                'downloadSample',
-            ])->name('sakip.data-collection.sample');
-            Route::post('/import', [DataCollectionController::class, 'import'])
-                ->middleware('secure.file.upload')
-                ->name('sakip.data-collection.import');
-            Route::post('/import/confirm', [
-                DataCollectionController::class,
-                'confirmImport',
-            ])->name('sakip.data-collection.import.confirm');
-            Route::get('/evidence-upload', [
-                DataCollectionController::class,
-                'evidenceUpload',
-            ])->name('sakip.data-collection.evidence-upload');
-            Route::get('/evidence', [
-                DataCollectionController::class,
-                'evidence',
-            ])->name('sakip.data-collection.evidence');
         });
 
         // Assessments
@@ -228,22 +227,14 @@ Route::prefix('sakip')
                 AssessmentController::class,
                 'destroy',
             ])->name('sakip.assessments.destroy');
-            Route::post('/{assessment}/approve', [
+            Route::post('/{assessment}/submit', [
                 AssessmentController::class,
-                'approve',
-            ])->name('sakip.assessments.approve');
-            Route::post('/{assessment}/reject', [
+                'submitForReview',
+            ])->name('sakip.assessments.submit');
+            Route::post('/{assessment}/review', [
                 AssessmentController::class,
-                'reject',
-            ])->name('sakip.assessments.reject');
-            Route::post('/{assessment}/auto-assess', [
-                AssessmentController::class,
-                'autoAssess',
-            ])->name('sakip.assessments.auto-assess');
-            Route::post('/batch-assess', [
-                AssessmentController::class,
-                'batchAssess',
-            ])->name('sakip.assessments.batch-assess');
+                'review',
+            ])->name('sakip.assessments.review');
         });
 
         // Reports
@@ -267,7 +258,7 @@ Route::prefix('sakip')
             Route::get('/{report}/export/{format}', [
                 ReportController::class,
                 'export',
-            ])->name('sakip.reports.export');
+            ])->middleware('throttle.export')->name('sakip.reports.export');
             Route::delete('/{report}', [
                 ReportController::class,
                 'destroy',
@@ -276,10 +267,6 @@ Route::prefix('sakip')
                 ReportController::class,
                 'approve',
             ])->name('sakip.reports.approve');
-            Route::post('/{report}/reject', [
-                ReportController::class,
-                'reject',
-            ])->name('sakip.reports.reject');
             Route::get('/templates/{template}', [
                 ReportController::class,
                 'template',
@@ -294,19 +281,15 @@ Route::prefix('sakip')
             Route::post('/run-compliance-check', [
                 SakipAuditController::class,
                 'runComplianceCheck',
-            ])->name('sakip.audit.run-compliance-check');
+            ])->middleware('throttle.bulk_operations')->name('sakip.audit.run-compliance-check');
             Route::get('/audit-log/{auditLog}', [
                 SakipAuditController::class,
-                'showAuditLog',
+                'show',
             ])->name('sakip.audit.show-log');
-            Route::post('/fix-violation/{violation}', [
-                SakipAuditController::class,
-                'fixViolation',
-            ])->name('sakip.audit.fix-violation');
             Route::get('/export-report', [
                 SakipAuditController::class,
-                'exportReport',
-            ])->name('sakip.audit.export-report');
+                'export',
+            ])->middleware('throttle.export')->name('sakip.audit.export-report');
         });
 
         // API endpoints for AJAX
@@ -315,45 +298,33 @@ Route::prefix('sakip')
                 SakipDashboardController::class,
                 'getDashboardData',
             ])->name('sakip.api.dashboard-data');
-            Route::get('/performance-summary', [
-                PerformanceMeasurementController::class,
-                'getPerformanceSummary',
-            ])->name('sakip.api.performance-summary');
-            Route::get('/achievement-trends', [
-                PerformanceMeasurementController::class,
-                'getAchievementTrends',
-            ])->name('sakip.api.achievement-trends');
             Route::get('/compliance-status', [
                 SakipAuditController::class,
                 'getComplianceStatus',
             ])->name('sakip.api.compliance-status');
             Route::get('/indicator-comparison', [
                 PerformanceMeasurementController::class,
-                'getIndicatorComparison',
+                'compareBenchmarks',
             ])->name('sakip.api.indicator-comparison');
             Route::get('/indicators/by-instansi/{instansi}', [
                 PerformanceIndicatorController::class,
-                'byInstansi',
+                'getByInstansi',
             ])->name('sakip.api.indicators.by-instansi');
-            Route::get('/indicators/{indicator}/targets', [
-                PerformanceIndicatorController::class,
-                'getTargets',
-            ])->name('sakip.api.indicators.targets');
             Route::get('/indicators/{indicator}/performance-data', [
                 PerformanceIndicatorController::class,
                 'getPerformanceData',
             ])->name('sakip.api.indicators.performance-data');
             Route::get('/assessment-analytics', [
                 AssessmentController::class,
-                'getAnalytics',
+                'getStatistics',
             ])->name('sakip.api.assessment-analytics');
             Route::get('/report-analytics', [
                 ReportController::class,
-                'getAnalytics',
+                'getStatistics',
             ])->name('sakip.api.report-analytics');
             Route::get('/audit-analytics', [
                 SakipAuditController::class,
-                'getAnalytics',
+                'getStatistics',
             ])->name('sakip.api.audit-analytics');
 
             // Master Data API endpoints for cascade dropdowns

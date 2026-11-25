@@ -50,15 +50,18 @@ class PerformanceData extends Model
         'submitted_at',
         'validated_at',
         'metadata',
+        // Audit actors are NOT NULL on the table but were listed in $guarded,
+        // which Laravel ignores once $fillable is non-empty, so no caller could
+        // ever satisfy them. They are stamped server-side in booted() below.
+        'submitted_by',
+        'validated_by',
+        'created_by',
+        'updated_by',
     ];
 
     // Protected fields - set automatically
     protected $guarded = [
         'id',
-        'submitted_by',
-        'validated_by',
-        'created_by',
-        'updated_by',
         'created_at',
         'updated_at',
         'deleted_at',
@@ -321,5 +324,28 @@ class PerformanceData extends Model
     protected static function booted(): void
     {
         static::addGlobalScope(new InstansiScope);
+
+        // SECURITY: the tenant and the audit actors are server-owned. The
+        // indicator is the tenant of record (so a forged instansi_id can never
+        // park a row in another instansi), and the NOT NULL actor columns are
+        // stamped from the session instead of trusting the caller.
+        static::creating(function (self $data) {
+            $indicatorId = $data->performance_indicator_id;
+
+            if (is_string($indicatorId)) {
+                $data->instansi_id = PerformanceIndicator::withoutGlobalScope(InstansiScope::class)
+                    ->whereKey($indicatorId)
+                    ->value('instansi_id');
+            }
+
+            $actor = auth()->id();
+            $data->submitted_by ??= $actor;
+            $data->created_by ??= $actor;
+            $data->updated_by ??= $actor;
+        });
+
+        static::updating(function (self $data) {
+            $data->updated_by = auth()->id();
+        });
     }
 }

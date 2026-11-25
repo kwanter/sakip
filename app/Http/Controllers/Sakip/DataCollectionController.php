@@ -12,8 +12,11 @@ use App\Services\DataValidationService;
 use App\Services\DropdownCacheService;
 use App\Services\ReportGenerationService;
 use Carbon\Carbon;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
@@ -320,6 +323,7 @@ class DataCollectionController extends Controller
             'period' => 'required|date',
             'actual_value' => 'required|numeric',
             'target_value' => 'nullable|numeric',
+            'evidence_files' => 'nullable|array|max:10',
             'evidence_files.*' => 'nullable|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png',
             'notes' => 'nullable|string|max:1000',
         ]);
@@ -348,6 +352,8 @@ class DataCollectionController extends Controller
             // Validate period based on indicator frequency
             $period = Carbon::parse($request->get('period'));
             if (! $this->isValidPeriod($indicator, $period)) {
+                DB::rollBack();
+
                 return response()->json(
                     [
                         'success' => false,
@@ -357,27 +363,27 @@ class DataCollectionController extends Controller
                 );
             }
 
-            // Check for existing data in the same period using updateOrCreate for atomicity
-            // This prevents race conditions by using database-level unique constraints
-            $performanceData = PerformanceData::updateOrCreate(
+            $periodDate = $period->format('Y-m-d');
+
+            // A second submission for the same indicator+period is a conflict,
+            // never an overwrite: the unique index settles the race, and
+            // firstOrCreate lets us tell the two outcomes apart afterwards.
+            $performanceData = PerformanceData::firstOrCreate(
                 [
-                    // Search criteria - if these match, update instead of create
-                    'indicator_id' => $indicator->id,
-                    'period' => $period->format('Y-m-d'),
+                    'performance_indicator_id' => $indicator->id,
+                    'period' => $periodDate,
                 ],
                 [
-                    // Values to set (for both create and update)
+                    'instansi_id' => $indicator->instansi_id,
                     'actual_value' => $request->get('actual_value'),
-                    'target_value' => $targetValue,
-                    'performance_percentage' => $performancePercentage,
                     'notes' => $request->get('notes'),
                     'status' => 'draft',
+                    'submitted_by' => $user->id,
                     'created_by' => $user->id,
                     'updated_by' => $user->id,
                 ],
             );
 
-            // If this was an update (not a new record), notify the user
             if (! $performanceData->wasRecentlyCreated) {
                 DB::rollBack();
 
@@ -403,10 +409,13 @@ class DataCollectionController extends Controller
                 $performanceData,
             );
 
-            if ($validationResult['has_errors']) {
+            if (! $validationResult['is_valid']) {
+                // Quality failures are recorded on the draft so the collector can
+                // fix them; the record is never promoted to 'submitted' by a
+                // failed check. validation_notes is the column the model's own
+                // validate()/reject() transitions write to.
                 $performanceData->update([
-                    'status' => 'submitted',
-                    'validation_errors' => $validationResult['errors'],
+                    'validation_notes' => json_encode($validationResult['errors']),
                 ]);
             }
 
@@ -430,10 +439,15 @@ class DataCollectionController extends Controller
                 'message' => 'Data kinerja berhasil disimpan.',
                 'data' => [
                     'id' => $performanceData->id,
-                    'performance_percentage' => $performancePercentage,
                     'validation_errors' => $validationResult['errors'] ?? [],
                 ],
             ]);
+        } catch (ModelNotFoundException $e) {
+            DB::rollBack();
+            abort(404, 'Indikator tidak ditemukan.');
+        } catch (AuthorizationException $e) {
+            DB::rollBack();
+            throw $e;
         } catch (\Exception $e) {
             DB::rollBack();
             \Log::error('Store performance data error: '.$e->getMessage());
@@ -559,6 +573,7 @@ class DataCollectionController extends Controller
         $validator = Validator::make($request->all(), [
             'actual_value' => 'required|numeric',
             'target_value' => 'nullable|numeric',
+            'evidence_files' => 'nullable|array|max:10',
             'evidence_files.*' => 'nullable|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png',
             'existing_files' => 'nullable|array',
             'existing_files.*' => 'exists:evidence_documents,id',
@@ -581,25 +596,14 @@ class DataCollectionController extends Controller
             $user = Auth::user();
             $oldValues = $performanceData->toArray();
 
-            // Get target value
-            $targetValue =
-                $request->get('target_value') ?: $performanceData->target_value;
-
-            // Calculate performance percentage
-            $performancePercentage = $this->calculatePerformancePercentage(
-                $request->get('actual_value'),
-                $targetValue,
-                $performanceData->indicator->calculation_formula,
-            );
-
-            // Update performance data
+            // Update performance data. Only columns that exist on
+            // performance_data are written; achievement is derived on read
+            // (calculateAchievement()) rather than stored.
             $performanceData->update([
                 'actual_value' => $request->get('actual_value'),
-                'target_value' => $targetValue,
-                'performance_percentage' => $performancePercentage,
                 'notes' => $request->get('notes'),
                 'status' => 'draft',
-                'validation_errors' => null,
+                'validation_notes' => null,
                 'updated_by' => $user->id,
             ]);
 
@@ -629,10 +633,9 @@ class DataCollectionController extends Controller
                 $performanceData,
             );
 
-            if ($validationResult['has_errors']) {
+            if (! $validationResult['is_valid']) {
                 $performanceData->update([
-                    'status' => 'submitted',
-                    'validation_errors' => $validationResult['errors'],
+                    'validation_notes' => json_encode($validationResult['errors']),
                 ]);
             }
 
@@ -653,7 +656,6 @@ class DataCollectionController extends Controller
                 'success' => true,
                 'message' => 'Data kinerja berhasil diperbarui.',
                 'data' => [
-                    'performance_percentage' => $performancePercentage,
                     'validation_errors' => $validationResult['errors'] ?? [],
                 ],
             ]);
@@ -806,7 +808,7 @@ class DataCollectionController extends Controller
                     // Check for existing data using updateOrCreate for atomicity
                     // SECURITY: This prevents race conditions during concurrent imports
                     $existingData = PerformanceData::where(
-                        'indicator_id',
+                        'performance_indicator_id',
                         $indicator->id,
                     )
                         ->where('period', $periodDate->format('Y-m-d'))
@@ -821,29 +823,16 @@ class DataCollectionController extends Controller
                         continue;
                     }
 
-                    // Get target for the period
-                    $target = $this->getTargetForPeriod(
-                        $indicator,
-                        $periodDate,
-                    );
-                    $targetValue = $target ? $target->target_value : null;
-
-                    // Calculate performance
-                    $performancePercentage = $this->calculatePerformancePercentage(
-                        $actualValue,
-                        $targetValue,
-                        $indicator->calculation_formula,
-                    );
-
-                    // Create performance data
+                    // Create performance data. Target comparison and achievement
+                    // are derived on read; the row carries only what the table has.
                     PerformanceData::create([
-                        'indicator_id' => $indicator->id,
+                        'performance_indicator_id' => $indicator->id,
+                        'instansi_id' => $indicator->instansi_id,
                         'period' => $periodDate->format('Y-m-d'),
                         'actual_value' => $actualValue,
-                        'target_value' => $targetValue,
-                        'performance_percentage' => $performancePercentage,
                         'notes' => $notes,
                         'status' => 'draft',
+                        'submitted_by' => $user->id,
                         'created_by' => $user->id,
                         'updated_by' => $user->id,
                     ]);
@@ -890,6 +879,231 @@ class DataCollectionController extends Controller
                 500,
             );
         }
+    }
+
+    /**
+     * Reject a submitted record back to the collector.
+     *
+     * SECURITY: the show view renders this form for the 'pending' branch,
+     * but the workflow vocabulary is draft/submitted/validated/rejected, so
+     * the button never appeared and the route had no method.
+     */
+    public function reject(Request $request, PerformanceData $performanceData)
+    {
+        $this->authorize('reject', $performanceData);
+
+        $validated = $request->validate([
+            'notes' => 'required|string|max:1000',
+        ]);
+
+        $performanceData->reject($validated['notes']);
+
+        AuditLog::create([
+            'user_id' => Auth::id(),
+            'instansi_id' => $performanceData->instansi_id,
+            'action' => 'REJECT',
+            'module' => 'SAKIP',
+            'description' => "Menolak data kinerja untuk indikator: {$performanceData->indicator->name}",
+            'old_values' => ['status' => 'submitted'],
+            'new_values' => ['status' => 'rejected'],
+        ]);
+
+        return back()->with('success', 'Data kinerja ditolak.');
+    }
+
+    /**
+     * Download the CSV import template.
+     */
+    public function downloadTemplate()
+    {
+        $this->authorize('create', PerformanceData::class);
+
+        return $this->csvResponse(
+            'template_import_data_kinerja.csv',
+            "indicator_code,period,actual_value,notes\nCONTOH-001,".date('Y')."-01-01,100,Contoh baris\n",
+        );
+    }
+
+    /**
+     * Download a filled sample so collectors see the expected shape.
+     */
+    public function downloadSample()
+    {
+        $this->authorize('create', PerformanceData::class);
+
+        return $this->csvResponse(
+            'contoh_import_data_kinerja.csv',
+            "indicator_code,period,actual_value,notes\nIK-001,".date('Y')."-01-01,95,Realisasi Januari\nIK-001,".date('Y')."-02-01,97,Realisasi Februari\n",
+        );
+    }
+
+    /**
+     * Parse an uploaded CSV and render a preview. Nothing is persisted yet;
+     * the parsed rows are parked under a random import_id bound to the
+     * uploader so confirmImport() can only ever commit the caller's own file.
+     */
+    public function import(Request $request)
+    {
+        $this->authorize('create', PerformanceData::class);
+
+        $validator = Validator::make($request->all(), [
+            'file' => 'required|file|mimes:csv,txt|max:10240',
+            'year' => 'required|integer|min:2020|max:'.Carbon::now()->year,
+        ]);
+
+        if ($validator->fails()) {
+            return back()->withErrors($validator)->withInput();
+        }
+
+        $user = Auth::user();
+        $year = (int) $request->get('year');
+        $rows = array_map('str_getcsv', file($request->file('file')->getRealPath()));
+        array_shift($rows); // header
+
+        $valid = [];
+        $errors = [];
+
+        foreach ($rows as $i => $row) {
+            $line = $i + 2;
+            if (count($row) < 3) {
+                continue;
+            }
+
+            $code = trim((string) $row[0]);
+            $period = trim((string) $row[1]);
+            $value = trim((string) $row[2]);
+
+            $indicator = PerformanceIndicator::where('instansi_id', $user->instansi_id)
+                ->where('code', $code)
+                ->first();
+
+            if (! $indicator) {
+                $errors[] = ['row' => $line, 'message' => "Indikator {$code} tidak ditemukan."];
+
+                continue;
+            }
+
+            try {
+                $periodDate = Carbon::parse($period);
+            } catch (\Throwable) {
+                $errors[] = ['row' => $line, 'message' => "Periode {$period} tidak valid."];
+
+                continue;
+            }
+
+            if (! is_numeric($value)) {
+                $errors[] = ['row' => $line, 'message' => "Nilai {$value} bukan angka."];
+
+                continue;
+            }
+
+            if (! $this->isValidPeriod($indicator, $periodDate)) {
+                $errors[] = ['row' => $line, 'message' => 'Periode tidak cocok dengan frekuensi indikator.'];
+
+                continue;
+            }
+
+            if (PerformanceData::where('performance_indicator_id', $indicator->id)
+                ->where('period', $periodDate->format('Y-m-d'))
+                ->exists()
+            ) {
+                $errors[] = ['row' => $line, 'message' => 'Data untuk periode ini sudah ada.'];
+
+                continue;
+            }
+
+            $target = $indicator->targets()->where('year', $periodDate->year)->value('target_value');
+
+            $valid[] = [
+                'row' => $line,
+                'indicator_code' => $code,
+                'period' => $periodDate->format('Y-m-d'),
+                'value' => $value,
+                'target' => $target,
+                '_indicator_id' => $indicator->id,
+            ];
+        }
+
+        $importId = (string) Str::uuid();
+        Cache::put(
+            self::IMPORT_CACHE_KEY.$user->id.':'.$importId,
+            ['rows' => $valid, 'year' => $year],
+            now()->addMinutes(30),
+        );
+
+        return view('sakip.data-collection.import', [
+            'previewData' => [
+                'import_id' => $importId,
+                'total_count' => count($valid),
+                'valid_count' => count($valid),
+                'error_count' => count($errors),
+                'valid_data' => array_map(fn ($r) => array_diff_key($r, ['_indicator_id' => true]), $valid),
+                'errors' => $errors,
+            ],
+            'year' => $year,
+            'instansi' => $user->instansi,
+            'instansis' => collect(),
+        ]);
+    }
+
+    /**
+     * Commit a previewed import. Only the uploader's own import_id resolves.
+     */
+    public function confirmImport(Request $request)
+    {
+        $this->authorize('create', PerformanceData::class);
+
+        $validated = $request->validate([
+            'import_id' => 'required|uuid',
+        ]);
+
+        $key = self::IMPORT_CACHE_KEY.Auth::id().':'.$validated['import_id'];
+        $staged = Cache::pull($key);
+
+        if ($staged === null) {
+            return back()->withErrors([
+                'import_id' => 'Pratinjau impor sudah kedaluwarsa. Unggah ulang file.',
+            ])->withInput();
+        }
+
+        $imported = 0;
+        DB::transaction(function () use ($staged, &$imported) {
+            foreach ($staged['rows'] as $row) {
+                PerformanceData::firstOrCreate(
+                    [
+                        'performance_indicator_id' => $row['_indicator_id'],
+                        'period' => $row['period'],
+                    ],
+                    [
+                        'actual_value' => $row['value'],
+                        'status' => 'draft',
+                    ],
+                );
+                $imported++;
+            }
+        });
+
+        AuditLog::create([
+            'user_id' => Auth::id(),
+            'instansi_id' => Auth::user()->instansi_id,
+            'action' => 'IMPORT',
+            'module' => 'SAKIP',
+            'description' => "Mengimpor {$imported} data kinerja",
+            'new_values' => ['imported_count' => $imported],
+        ]);
+
+        return redirect()->route('sakip.data-collection.index')
+            ->with('success', "Berhasil mengimpor {$imported} data kinerja.");
+    }
+
+    private const IMPORT_CACHE_KEY = 'sakip.import.';
+
+    private function csvResponse(string $filename, string $body)
+    {
+        return response($body, 200, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
+        ]);
     }
 
     /**
@@ -992,6 +1206,7 @@ class DataCollectionController extends Controller
 
                 EvidenceDocument::create([
                     'performance_data_id' => $performanceData->id,
+                    'instansi_id' => $performanceData->instansi_id,
                     'file_name' => $file->getClientOriginalName(),
                     'file_path' => $path,
                     'file_size' => $file->getSize(),
@@ -1018,67 +1233,6 @@ class DataCollectionController extends Controller
         } catch (\Exception $e) {
             \Log::error('Delete evidence file error: '.$e->getMessage());
         }
-    }
-
-    /**
-     * Calculate performance percentage with comprehensive edge case handling.
-     * IMPROVED: Handles zero targets, negative values, and reduction goals.
-     *
-     * @param  float  $actualValue  The actual achieved value
-     * @param  float|null  $targetValue  The target/goal value
-     * @param  array|null  $calculationFormula  Optional calculation formula specification
-     * @return float Performance percentage (0-200 depending on scenario)
-     */
-    private function calculatePerformancePercentage(
-        $actualValue,
-        $targetValue,
-        $calculationFormula = null,
-    ) {
-        // Handle null/empty/zero targets
-        if (empty($targetValue) || $targetValue == 0) {
-            // If target is 0 or null, we cannot calculate percentage
-            // Return 0 if no actual value, or 100 if actual exists (achievement by default)
-            return ! empty($actualValue) && $actualValue != 0 ? 100 : 0;
-        }
-
-        // Handle negative target values (e.g., cost reduction goals)
-        if ($targetValue < 0) {
-            if ($actualValue < 0) {
-                // Both negative: calculate ratio of reduction achieved
-                $performance = abs($actualValue / $targetValue) * 100;
-
-                return min($performance, 200); // Cap at 200% for negative targets
-            } else {
-                // Target negative, actual positive: goal not met
-                return 0;
-            }
-        }
-
-        // Handle negative actual values with positive targets
-        if ($actualValue < 0) {
-            return 0;
-        }
-
-        // Standard calculation: percentage of target achieved
-        $performance = ($actualValue / $targetValue) * 100;
-
-        // Round to 2 decimal places for precision
-        return round(max(0, $performance), 2);
-    }
-
-    /**
-     * Get target for a specific period
-     */
-    private function getTargetForPeriod(
-        PerformanceIndicator $indicator,
-        Carbon $period,
-    ) {
-        return $indicator
-            ->targets()
-            ->where('year', $period->year)
-            ->where('period', '<=', $period->format('Y-m-d'))
-            ->orderBy('period', 'desc')
-            ->first();
     }
 
     /**

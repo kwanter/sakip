@@ -71,6 +71,21 @@ class PerformanceIndicatorPolicy
     }
 
     /**
+     * Determine whether the user can submit performance data for this
+     * indicator.
+     *
+     * SECURITY: DataCollectionController::store() authorizes 'createData' but
+     * no policy defined it, so every non-Super-Admin submission was a 403
+     * (masked as 500 by later errors). The tenant check is the whole rule:
+     * the indicator must belong to the caller's instansi.
+     */
+    public function createData(User $user, PerformanceIndicator $performanceIndicator): bool
+    {
+        return $user->hasPermission('enter-and-submit-data-records')
+            && $user->instansi_id === $performanceIndicator->instansi_id;
+    }
+
+    /**
      * Determine whether the user can delete the model.
      */
     public function delete(User $user, PerformanceIndicator $performanceIndicator): bool

@@ -52,6 +52,34 @@ class PerformanceDataPolicy
             && $this->sameTenant($user, $performanceData->instansi_id);
     }
 
+    /**
+     * Assessors/pimpinan may move a submitted record to validated or
+     * rejected. Same tenant, and never the collector who submitted it (the
+     * workflow's own separation of duties).
+     */
+    public function validate(User $user, PerformanceData $performanceData)
+    {
+        return $this->isReviewer($user, $performanceData);
+    }
+
+    public function reject(User $user, PerformanceData $performanceData)
+    {
+        return $this->isReviewer($user, $performanceData);
+    }
+
+    private function isReviewer(User $user, PerformanceData $performanceData): bool
+    {
+        if (! $this->sameTenant($user, $performanceData->instansi_id)) {
+            return false;
+        }
+
+        if ($user->id === $performanceData->submitted_by) {
+            return false;
+        }
+
+        return $user->can('submit-evaluation-findings');
+    }
+
     private function sameTenant(User $user, ?string $instansiId): bool
     {
         if ($user->hasRole('Super Admin')) {

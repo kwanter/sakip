@@ -41,9 +41,15 @@ class PerformanceDataFactory extends Factory
         $dataQuality = fake()->randomElement(['excellent', 'good', 'fair', 'poor']);
         $status = fake()->randomElement(['draft', 'submitted', 'validated', 'rejected']);
 
+        // The indicator is the tenant of record (PerformanceData::booted()
+        // derives instansi_id from it), so the factory always creates its own
+        // indicator. Reusing a shared one would let two rows collide on the
+        // unique (performance_indicator_id, instansi_id, period) index.
+        $indicator = PerformanceIndicator::factory()->create();
+
         return [
-            'performance_indicator_id' => PerformanceIndicator::inRandomOrder()->first()->id ?? PerformanceIndicator::factory(),
-            'instansi_id' => Instansi::inRandomOrder()->first()->id ?? Instansi::factory(),
+            'performance_indicator_id' => $indicator->id,
+            'instansi_id' => $indicator->instansi_id,
             'submitted_by' => User::inRandomOrder()->first()->id ?? User::factory(),
             'period' => fake()->randomElement($periods),
             'actual_value' => $actualValue,
