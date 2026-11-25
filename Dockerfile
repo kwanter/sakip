@@ -61,8 +61,17 @@ RUN pecl install redis \
 # Enable Apache modules
 RUN a2enmod rewrite headers expires
 
+# Listen on an unprivileged port so the container can run as a non-root
+# user. Anything below 1024 would require CAP_NET_BIND_SERVICE back.
+RUN sed -i 's/^Listen 80$/Listen 8080/' /etc/apache2/ports.conf
+
 # Configure Apache
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
+
+# Apache needs writable runtime directories. The base image leaves them owned
+# by root, which breaks the non-root startup below.
+RUN mkdir -p /var/run/apache2 /var/lock/apache2 /var/log/apache2 \
+    && chown -R www-data:www-data /var/run/apache2 /var/lock/apache2 /var/log/apache2
 
 # Copy Apache virtual host configuration
 COPY docker/apache/sakip.conf /etc/apache2/sites-available/sakip.conf
@@ -113,16 +122,22 @@ RUN mkdir -p /var/www/html/bootstrap/cache \
     && chmod -R 755 /var/www/html/bootstrap/cache \
     && chmod -R 755 /var/www/html/storage/framework
 
-# Expose port 80
-EXPOSE 80
+# Expose the unprivileged port (see the ports.conf edit above)
+EXPOSE 8080
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost/ || exit 1
+    CMD curl -f http://localhost:8080/ || exit 1
 
 # Copy startup script
 COPY docker/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+# SECURITY: drop root. The application, Apache workers and the entrypoint all
+# run as www-data; nothing in the request path needs root once the image is
+# built. Step-up operations that do (chown of mounted volumes) are guarded in
+# the entrypoint.
+USER www-data
 
 ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["apache2-foreground"]

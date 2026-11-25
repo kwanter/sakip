@@ -106,9 +106,21 @@ mkdir -p /var/www/html/storage/framework/views
 mkdir -p /var/www/html/storage/logs
 mkdir -p /var/www/html/bootstrap/cache
 
-# Set proper permissions
-chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
-chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+# Set proper permissions. The image already ships these directories owned by
+# www-data, so this only matters when a root-run container (or a bind mount
+# owned by the host) needs re-owning. Running as a non-root user must not fail
+# the boot.
+if [ "$(id -u)" = "0" ]; then
+    chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+    chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+else
+    for dir in /var/www/html/storage /var/www/html/bootstrap/cache; do
+        if [ ! -w "$dir" ]; then
+            echo -e "${RED}FATAL: $dir is not writable by $(id -un). Fix the mount ownership.${NC}"
+            exit 1
+        fi
+    done
+fi
 
 # Create symbolic link for public storage
 if [ ! -L /var/www/html/public/storage ]; then
