@@ -39,13 +39,24 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('assessments', function (Blueprint $table) {
-            $table->dropIndex('idx_assessments_data_status');
-            $table->dropIndex('idx_assessments_assessor_status');
-            $table->dropIndex('idx_assessments_reviewer_status');
-            $table->dropIndex('idx_assessments_submitted_at');
-            $table->dropIndex('idx_assessments_approved_at');
-            $table->dropIndex('idx_assessments_created_at');
-        });
+        // The assessor_id/reviewer_id/submitted_at indexes are dropped by
+        // 2026_11_25_000000 (their columns never existed), so their absence
+        // on rollback must not abort the rest of this teardown.
+        foreach ([
+            'idx_assessments_data_status',
+            'idx_assessments_assessor_status',
+            'idx_assessments_reviewer_status',
+            'idx_assessments_submitted_at',
+            'idx_assessments_approved_at',
+            'idx_assessments_created_at',
+        ] as $index) {
+            if (! Schema::hasIndex('assessments', $index)) {
+                continue;
+            }
+
+            Schema::table('assessments', function (Blueprint $table) use ($index) {
+                $table->dropIndex($index);
+            });
+        }
     }
 };

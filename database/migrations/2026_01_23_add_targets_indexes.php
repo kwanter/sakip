@@ -33,11 +33,22 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('targets', function (Blueprint $table) {
-            $table->dropIndex('idx_targets_indicator_year');
-            $table->dropIndex('idx_targets_year');
-            $table->dropIndex('idx_targets_approval_status');
-            $table->dropIndex('idx_targets_period');
-        });
+        // The approval_status/target_period indexes are dropped by
+        // 2026_11_25_000000 (their columns never existed), so their absence
+        // on rollback must not abort the rest of this teardown.
+        foreach ([
+            'idx_targets_indicator_year',
+            'idx_targets_year',
+            'idx_targets_approval_status',
+            'idx_targets_period',
+        ] as $index) {
+            if (! Schema::hasIndex('targets', $index)) {
+                continue;
+            }
+
+            Schema::table('targets', function (Blueprint $table) use ($index) {
+                $table->dropIndex($index);
+            });
+        }
     }
 };
